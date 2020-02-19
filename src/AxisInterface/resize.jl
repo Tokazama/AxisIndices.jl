@@ -321,6 +321,19 @@ shrink_first!(x::AbstractRange, n::Integer) = set_first!(x, first(x) + step(x) *
     shrink_last!(x, n)
 
 Returns the collection `x` after shrinking from the last index by `n` elements.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> mr = UnitMRange(1, 10)
+UnitMRange(1:10)
+
+julia> shrink_last!(mr, 2);
+
+julia> mr
+UnitMRange(1:8)
+```
 """
 function shrink_last!(x::AbstractVector, n::Integer)
     for _ in 1:n
@@ -361,10 +374,8 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> shrink_first!(mr, 2);
-
-julia> mr
-UnitMRange(3:10)
+julia> shrink_last(mr, 2)
+UnitMRange(1:8)
 ```
 """
 @propagate_inbounds shrink_last(x::AbstractVector, n::Integer) = x[firstindex(x):end - n]

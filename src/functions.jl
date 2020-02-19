@@ -112,12 +112,6 @@ for (T, S) in [
         end
 
     end
-
-    @eval function Base.foreach(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
-        data = foreach(f, parent(a), parent(b), parent.(cs)...)
-        map(combine_axis, (a, b, cs...,))
-        return nothing
-    end
 end
 
 Base.filter(f, A::AxisIndicesVector) = AxisIndicesArray(filter(f, parent(A)), axes(f))

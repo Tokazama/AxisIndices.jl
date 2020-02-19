@@ -22,6 +22,14 @@
         a = Axis(2:10)
         @test to_index(a, 1) == 1
         @test to_index(a, 1:2) == 1:2
+
+        x = Axis([:one, :two])
+        @test to_index(x, :one) == 1
+        @test to_index(x, [:one, :two]) == [1, 2]
+
+        @test_throws BoundsError to_index(x, :three)
+        # TODO this currently doesn't throw an error, just returns the indices that can be found
+        #@test_throws BoundsError to_index(x, [:one, :two, :three])
     end
 
     @testset "reindex" begin

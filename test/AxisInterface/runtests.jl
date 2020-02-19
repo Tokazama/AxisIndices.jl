@@ -76,5 +76,9 @@ end
     @test prev_type("") == ""
 end
 
+# TODO organize these tests better
+@test resize_first([1, 2, 3], 3) == [1, 2, 3]
+@test shrink_last(1:3, 2) == 1:1
+
 @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
 @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
