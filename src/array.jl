@@ -1,10 +1,6 @@
 """
     AxisIndicesArray
 
-```jldoctest
-
-ia = AxisIndicesArray(reshape(1:16, 4,4), 1:4, 1:4)
-```
 """
 struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},A<:Tuple{Vararg{<:AbstractAxis,N}}} <: AbstractArray{T,N}
     parent::P

@@ -48,13 +48,13 @@ end
 for (N1,N2) in ((2,2), (1,2), (2,1))
     @eval begin
         function Base.:*(a::AxisIndicesArray{T1,$N1}, b::AxisIndicesArray{T2,$N2}) where {T1,T2}
-            return _matmul(promote_type(T1, T2), *(parent(a), parent(b)), StaticRanges.matmul_axes(a, b))
+            return _matmul(promote_type(T1, T2), *(parent(a), parent(b)), matmul_axes(a, b))
         end
         function Base.:*(a::AbstractArray{T1,$N1}, b::AxisIndicesArray{T2,$N2}) where {T1,T2}
-            return _matmul(promote_type(T1, T2), *(a, parent(b)), StaticRanges.matmul_axes(a, b))
+            return _matmul(promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
         end
         function Base.:*(a::AxisIndicesArray{T1,$N1}, b::AbstractArray{T2,$N2}) where {T1,T2}
-            return _matmul(promote_type(T1, T2), *(parent(a), b), StaticRanges.matmul_axes(a, b))
+            return _matmul(promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
         end
     end
 end
