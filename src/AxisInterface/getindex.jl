@@ -23,39 +23,3 @@ _getindex(a::SimpleAxis, inds) = SimpleAxis(@inbounds(values(a)[inds]))
 _getindex(a::SimpleAxis, i::Integer) = @inbounds(values(a)[i])
 # TODO Type inference for things that we know produce UnitRange/GapRange, etc
 
-Base.checkbounds(a::AbstractAxis, i) = checkbounds(Bool, a, i)
-
-Base.checkbounds(::Type{Bool}, a::AbstractAxis, i) = checkindex(Bool, a, i)
-
-function Base.checkbounds(::Type{Bool}, a::AbstractAxis, i::CartesianIndex{1})
-    return checkindex(Bool, a, first(i.I))
-end
-
-function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::Integer)
-    return checkindexlo(a, i) & checkindexhi(a, i)
-end
-
-function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::AbstractVector)
-    return checkindexlo(a, i) & checkindexhi(a, i)
-end
-
-function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::AbstractUnitRange)
-    return checkindexlo(a, i) & checkindexhi(a, i) 
-end
-
-function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::Base.Slice)
-    return checkindex(Bool, values(a), i)
-end
-
-function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::StepRange)
-    return checkindexlo(a, i) & checkindexhi(a, i)
-end
-
-function Base.checkindex(::Type{Bool}, indx::AbstractAxis, I::AbstractVector{Bool})
-    return length(indx) == length(I)
-end
-
-function Base.checkindex(::Type{Bool}, indx::AbstractAxis, I::Base.LogicalIndex)
-    return length(indx) == length(axes(I.mask, 1))
-end
-

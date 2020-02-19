@@ -29,6 +29,7 @@ export
 
 
 include("./AxisInterface/AxisInterface.jl")
+include("checkbounds.jl")
 include("array.jl")
 include("show.jl")
 include("functions.jl")

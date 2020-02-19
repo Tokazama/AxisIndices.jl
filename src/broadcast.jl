@@ -56,7 +56,6 @@ end
 function Base.copyto!(dest::AbstractArray, bc::Broadcasted{AxisIndicesArrayStyle{S}}) where S
     inner_bc = unwrap_broadcasted(bc)
     copyto!(dest, inner_bc)
-    L = unify_names(dimnames(dest), broadcasted_names(bc))
     return AxisIndicesArray(dest)
 end
 
