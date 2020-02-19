@@ -123,21 +123,21 @@ end
                     (Axis(UnitRange(1, 3),UnitRange(1, 3)), Axis(UnitMRange(1, 3),UnitMRange(1, 3)), Axis(UnitSRange(1, 3),UnitSRange(1, 3))),
                    )
         @testset "as_dynamic($(typeof(i).name))" begin
-            @test is_dynamic(as_dynamic(i)) == true
-            @test is_dynamic(as_dynamic(m)) == true
-            @test is_dynamic(as_dynamic(s)) == true
+            @test is_dynamic(as_dynamic(i))
+            @test is_dynamic(as_dynamic(m))
+            @test is_dynamic(as_dynamic(s))
         end
 
         @testset "as_fixed($(typeof(i).name))" begin
-            @test is_fixed(as_fixed(i)) == true
-            @test is_fixed(as_fixed(m)) == true
-            @test is_fixed(as_fixed(s)) == true
+            @test is_fixed(as_fixed(i))
+            @test is_fixed(as_fixed(m))
+            @test is_fixed(as_fixed(s))
         end
 
         @testset "as_static($(typeof(i).name))" begin
-            @test is_static(as_static(i)) == true
-            @test is_static(as_static(m)) == true
-            @test is_static(as_static(s)) == true
+            @test is_static(as_static(i))
+            @test is_static(as_static(m))
+            @test is_static(as_static(s))
         end
     end
 end

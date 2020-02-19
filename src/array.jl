@@ -20,7 +20,7 @@ struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},A<:Tuple{Vararg{<:AbstractAxis
     end
 end
 
-parent_type(::T) where {T} = T
+parent_type(::T) where {T} = parent_type(T)
 parent_type(::Type{<:AxisIndicesArray{T,N,P}}) where {T,N,P} = P
 
 const AxisIndicesMatrix{T,P<:AbstractMatrix{T},A1,A2} = AxisIndicesArray{T,2,P,Tuple{A1,A2}}
@@ -40,16 +40,6 @@ Base.size(x::AxisIndicesArray) = map(length, axes(x))
 Base.length(x::AxisIndicesArray) = prod(size(x))
 
 Base.parentindices(x::AxisIndicesArray) = axes(parent(x))
-
-#=
-function AxisIndicesArray(x::AbstractArray{T,N}; kwargs...) where {T,N}
-    if isempty(kwargs)
-        return AxisIndicesArray(x, indices(x), AllUnique, LengthChecked)
-    else
-        return AxisIndicesArray(x, Tuple([Index{k}(v) for (k,v) in kwargs]))
-    end
-end
-=#
 
 function AxisIndicesArray(x::AbstractArray{T,N}, axs::Tuple=axes(x), check_length::Bool=true) where {T,N}
     axs = map(to_axis, axs)
@@ -76,59 +66,6 @@ function to_axis(x::AbstractArray{T,N}, axs::Tuple) where {T,N}
     end
 end
 
-@propagate_inbounds keys_to_index(x, f::F2Eq) = find_first(f, keys(x))
-
-@propagate_inbounds keys_to_index(x, f::Function) = find_all(f, keys(x))
-
-@propagate_inbounds function Base.to_indices(
-    A::IndicesArray,
-    inds::Tuple{Any, Vararg{Any}},
-    I::Tuple{Any, Vararg{Any}}
-)
-    Base.@_inline_meta
-    return (keys_to_index(first(inds), first(I)),
-            to_indices(A::IndicesArray, maybetail(inds), tail(I))...)
-end
-
-@propagate_inbounds function Base.to_indices(
-    A::IndicesArray,
-    inds::Tuple{Any, Vararg{Any}},
-    I::Tuple{Colon, Vararg{Any}}
-)
-    Base.@_inline_meta
-    return (values(first(inds)), to_indices(A, maybetail(inds), tail(I))...)
-end
-
-@propagate_inbounds function Base.to_indices(
-    A::IndicesArray,
-    inds::Tuple{Any, Vararg{Any}},
-    I::Tuple{CartesianIndex{1}, Vararg{Any}}
-)
-    Base.@_inline_meta
-    return (keys_to_index(first(inds), first(I)), to_indices(A, maybetail(inds), tail(I))...)
-end
-
-maybetail(::Tuple{}) = ()
-maybetail(t::Tuple) = tail(t)
-=#
-
-###################
-# getindex / view / dotview
-# Note that `dotview` is undocumented but needed for making `a[x=2] .= 3` work
-#
-#=
-@propagate_inbounds function Base.getindex(a::AxisIndicesArray, inds...)
-    return _getindex(a, to_indices(a, axes(a), inds)...)
-end
-@propagate_inbounds function _getindex(a::AxisIndicesArray, inds::Vararg{<:Integer})
-    return getindex(parent(a), inds...)
-end
-@propagate_inbounds function _getindex(a::AxisIndicesArray, ci::CartesianIndex)
-    return getindex(parent(a), ci)
-end
-@propagate_inbounds function _getindex(a::AxisIndicesArray, inds...)
-    return AxisIndicesArray(getindex(parent(a), inds...), map(reindex, axes(a), inds))
-end
 =#
 
 @propagate_inbounds function Base.setindex!(a::AxisIndicesArray, value, inds...)
@@ -167,7 +104,7 @@ function Base.similar(
     a::AxisIndicesArray{T},
     inds::Tuple{Vararg{<:AbstractVector,N}}
    ) where {T,N}
-    return AxisIndicesArray(similar(parent(a), eltype, map(length, inds)), inds)
+    return AxisIndicesArray(similar(parent(a), T, map(length, inds)), inds)
 end
 
 function Base.similar(
