@@ -5,7 +5,7 @@ makedocs(;
     modules=[AxisIndices],
     format=Documenter.HTML(),
     pages=[
-        "Introduction" => "index.md"
+        "Introduction" => "index.md",
         "Axis Interface" => [
             "Introduction" => "axis_intro.md",
             "Types" => "axis_types.md",
@@ -16,7 +16,7 @@ makedocs(;
             "Resizing Axes" => "resize_axes.md",
             "Axes to Arrays" => "axes_to_arrays.md",
         ],
-    ]
+    ],
     repo="https://github.com/Tokazma/AxisIndices.jl/blob/{commit}{path}#L{line}",
     sitename="AxisIndices.jl",
     authors="Zachary P. Christensen",

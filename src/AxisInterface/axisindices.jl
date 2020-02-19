@@ -81,6 +81,3 @@ function Base.getindex(A::LinearAxes, inds...)
     return Base._getindex(IndexStyle(A), A, to_indices(A, axes(A), Tuple(inds))...)
 end
 
-
-#const AxisIndices{N,R} = Union{<:LinearAxes{N,R},<:CartesianAxes{N,R}}
-
