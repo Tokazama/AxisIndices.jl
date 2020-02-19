@@ -1,8 +1,14 @@
 
+
+@test valtype(typeof(Axis(1.0:10.0))) <: Int
+@test keytype(typeof(Axis(1.0:10.0))) <: Float64
+
+@test firstindex(Axis(1:10)) == firstindex(1:10)
+
 @testset "first" begin
     @testset "can_set_first" begin
-        @test @inferred(can_set_first(Axis(UnitMRange(1, 2))))
-        @test @inferred(!can_set_first(Axis(UnitSRange(1, 2))))
+        @test @inferred(can_set_first(typeof(Axis(UnitMRange(1, 2)))))
+        @test @inferred(!can_set_first(typeof(Axis(UnitSRange(1, 2)))))
     end
 
  
@@ -23,14 +29,14 @@ end
 
 @testset "last" begin
    @testset "can_set_last" begin
-       @test @inferred(can_set_last(Axis(UnitMRange(1:2)))) == true
-        @test @inferred(can_set_last(Axis(UnitSRange(1:2)))) == false
+       @test @inferred(can_set_last(typeof(Axis(UnitMRange(1:2))))) == true
+       @test @inferred(can_set_last(typeof(Axis(UnitSRange(1:2))))) == false
     end
 
     for (r1,b,v,r2) in ((SimpleAxis(UnitMRange(1,3)), true, 2, SimpleAxis(UnitMRange(1,2))),
                         (Axis(UnitMRange(1,3),UnitMRange(1,3)), true, 2, Axis(UnitMRange(1,2),UnitMRange(1,2))))
         @testset "set_last-$(r1)" begin
-            x = @inferred(can_set_last(r1))
+            x = @inferred(can_set_last(typeof(r1)))
             @test x == b
             if x
                 @test @inferred(set_last!(r1, v)) == r2
@@ -72,8 +78,8 @@ end
     end
 
     @testset "can_set_length" begin
-        @test @inferred(can_set_length(Axis(UnitMRange(1:2)))) == true
-        @test @inferred(can_set_length(Axis(UnitSRange(1:2)))) == false
+        @test @inferred(can_set_length(typeof(Axis(UnitMRange(1:2))))) == true
+        @test @inferred(can_set_length(typeof(Axis(UnitSRange(1:2))))) == false
     end
 
     @testset "set_length!" begin
@@ -123,21 +129,21 @@ end
                     (Axis(UnitRange(1, 3),UnitRange(1, 3)), Axis(UnitMRange(1, 3),UnitMRange(1, 3)), Axis(UnitSRange(1, 3),UnitSRange(1, 3))),
                    )
         @testset "as_dynamic($(typeof(i).name))" begin
-            @test is_dynamic(as_dynamic(i))
-            @test is_dynamic(as_dynamic(m))
-            @test is_dynamic(as_dynamic(s))
+            @test is_dynamic(typeof(as_dynamic(i)))
+            @test is_dynamic(typeof(as_dynamic(m)))
+            @test is_dynamic(typeof(as_dynamic(s)))
         end
 
         @testset "as_fixed($(typeof(i).name))" begin
-            @test is_fixed(as_fixed(i))
-            @test is_fixed(as_fixed(m))
-            @test is_fixed(as_fixed(s))
+            @test is_fixed(typeof(as_fixed(i)))
+            @test is_fixed(typeof(as_fixed(m)))
+            @test is_fixed(typeof(as_fixed(s)))
         end
 
         @testset "as_static($(typeof(i).name))" begin
-            @test is_static(as_static(i))
-            @test is_static(as_static(m))
-            @test is_static(as_static(s))
+            @test is_static(typeof(as_static(i)))
+            @test is_static(typeof(as_static(m)))
+            @test is_static(typeof(as_static(s)))
         end
     end
 end
