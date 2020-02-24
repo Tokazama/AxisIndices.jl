@@ -170,7 +170,7 @@ end
             @test keys.(axes(f(a; dims=1))) == (2:6, 2:6)
             @test keys.(axes(f(a, dims=2))) == (2:4, 2:4)
             # TODO `Statistic.cov/cor(A, dims=p)` for `p > 2` is allowed but returns NaNs.
-            #@test dimnames(f(nda, dims=3)) == (:_, :_)
+            @test keys.(axes(f(a, dims=3))) == (2:4, 2:4)
         end
         @testset "vector input, scalar result" begin
             v = rand(4)
@@ -184,6 +184,6 @@ end
         A = rand(2, 4)
         a = AxisIndicesArray(A)
         @test cov(a; corrected=bool) == cov(A; corrected=bool)
-        @test cov(a; corrected=bool, dims=:2)  == cov(A; corrected=bool, dims=2)
+        @test cov(a; corrected=bool, dims=2)  == cov(A; corrected=bool, dims=2)
     end
 end

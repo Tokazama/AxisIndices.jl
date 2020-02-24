@@ -2,6 +2,29 @@
     next_type(x::T)
 
 Returns the immediately greater value of type `T`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisIndices.next_type("b")
+"c"
+
+julia> AxisIndices.next_type(:b)
+:c
+
+julia> AxisIndices.next_type('a')
+'b': ASCII/Unicode U+0062 (category Ll: Letter, lowercase)
+
+julia> AxisIndices.next_type(1)
+2
+
+julia> AxisIndices.next_type(2.0)
+2.0000000000000004
+
+julia> AxisIndices.next_type("")
+""
+```
 """
 function next_type(x::AbstractString)
     isempty(x) && return ""
@@ -16,6 +39,29 @@ next_type(x::T) where {T} = x + one(T)
     prev_type(x::T)
 
 Returns the immediately lesser value of type `T`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisIndices.prev_type("b")
+"a"
+
+julia> AxisIndices.prev_type(:b)
+:a
+
+julia> AxisIndices.prev_type('b')
+'a': ASCII/Unicode U+0061 (category Ll: Letter, lowercase)
+
+julia> AxisIndices.prev_type(1)
+0
+
+julia> AxisIndices.prev_type(1.0)
+0.9999999999999999
+
+julia> AxisIndices.prev_type("")
+""
+```
 """
 function prev_type(x::AbstractString)
     isempty(x) && return ""

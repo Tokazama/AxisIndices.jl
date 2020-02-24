@@ -10,7 +10,7 @@ using AxisIndices: matmul_axes
 include("AxisInterface/runtests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
-include("functions_maths_tests.jl")
+include("math_tests.jl")
 include("functions_tests.jl")
 include("array_tests.jl")
 include("broadcasting_tests.jl")

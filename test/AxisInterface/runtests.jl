@@ -58,6 +58,7 @@ include("combine_tests.jl")
 include("cat_tests.jl")
 include("broadcast_tests.jl")
 
+#=
 @testset "next_type" begin
     @test next_type("a") == "b"
     @test next_type(:a) == :b
@@ -75,6 +76,7 @@ end
     @test prev_type(nextfloat(1.0)) == prevfloat(nextfloat(1.0))
     @test prev_type("") == ""
 end
+=#
 
 # TODO organize these tests better
 @test resize_first([1, 2, 3], 3) == [1, 2, 3]
