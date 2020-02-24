@@ -24,17 +24,19 @@ export
     srange,
     mrange,
     values_type,
-    keys_type
-
-
+    keys_type,
+    and,
+    or
 
 include("./AxisInterface/AxisInterface.jl")
 include("checkbounds.jl")
 include("array.jl")
 include("show.jl")
 include("functions.jl")
-include("functions_dims.jl")
+include("permutedims.jl")
 include("functions_math.jl")
+include("push_pop.jl")
 include("broadcast.jl")
+include("./LinearAlgebra/LinearAlgebra.jl")
 
 end

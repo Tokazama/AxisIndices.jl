@@ -1,7 +1,4 @@
-"""
-    AxisIndicesArray
-
-"""
+# TODO Document this thoroughly
 struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},A<:Tuple{Vararg{<:AbstractAxis,N}}} <: AbstractArray{T,N}
     parent::P
     axes::A
@@ -10,7 +7,7 @@ struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},A<:Tuple{Vararg{<:AbstractAxis
         if check_length
             for (i, axs_i) in enumerate(axs)
                 if size(p, i) != length(axs_i)
-                    error("All keys and and must have the same length as the respective axes of the parent array, got size(parent, $i) = $(size(p, i)) and length(key_i) = $(length(axs_i))")
+                    error("All keys and values must have the same length as the respective axes of the parent array, got size(parent, $i) = $(size(p, i)) and length(key_i) = $(length(axs_i))")
                 else
                     continue
                 end

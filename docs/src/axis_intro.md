@@ -1,8 +1,21 @@
-# Introduction
+# Introduction to the `AbstractAxis`
 
-The standard syntax for indexing doesn't change at all.
+The supertype to all axis types herein is the `AbstractAxis`, which is a subtype of `AbstractUnitRange{<:Integer}`.
+
+The vocabulary can get a bit a tricky here and documentation tries to stick to these functional definitions:
+* axis: maps a set of keys to a set of indices.
+* indices: a set of integers (e.g., `<:Integer`) that locate the in memory locations of a elements.
+* keys: maps a set of any type to a set of indices
+
+If we have a set of keys `a b c` and a set of indices `1 2 3` then the key `a` maps to the index `1`.
+Given these definitions, the `AbstractAxis` differs from the classic dictionary in the following two ways:
+1. The `valtype` of `AbstractAxis` is always an integer.
+2. The `values` are always unique and continuous.
+
+The two main axis types defined here are `Axis` and `SimpleAxis`.
+The standard syntax for indexing doesn't change at all for these types.
 ```jldoctest intro_axis_examples
-julia> using StaticRanges, Dates
+julia> using AxisIndices, Dates
 
 julia> sa = SimpleAxis(1:10)
 SimpleAxis(1:10)
@@ -66,11 +79,33 @@ Note in the last example that a vector was returned instead of an `AbstractAxis`
 An `AbstractAxis` is a subtype of `AbstractUnitRange` and therefore cannot be reformed after any operation that does not guarantee the return of another unit range.
 This is similar to the behavior of `UnitRange` in base.
 
+## How Does It Work?
+
+This package makes a small alteration in the indexing pipeline for arrays from base.
+Where an array typically passes indices along a similar path to:
+
+```
+getindex(A::Array, i1, i2, i3) -> to_indices(A, axes(), (i1, i2, i3))
+to_indices(A, (ax1, ax2, ax3), (i1, i2, i3)) ->
+(to_index(A, i1), to_index(A, i2), to_index(A, i3)) -> I
+_getindex(A, I)
+```
+
+This package does:
+```
+getindex(A::Array, i1, i2, i3) -> to_indices(A, axes(), (i1, i2, i3))
+to_indices(A, (ax1, ax2, ax3), (i1, i2, i3)) ->
+(to_index(ax1, i1), to_index(ax2, i2), to_index(ax3, i3)) -> I
+_getindex(A, I)
+```
+
+This allows customizing the initial arguments given to `getindex` per each axis instead of by the array type or the type of `i1/2/3`.
+
 ## Performance
 
 Indexing `CartesianAxes` is comparable to that of `CartesianIndices`.
 ```julia
-julia> using StaticRanges, BenchmarkTools
+julia> using AxisIndices, BenchmarkTools
 
 julia> cartaxes = CartesianAxes((Axis(2.0:5.0), Axis(1:4)));
 
@@ -91,7 +126,7 @@ CartesianIndex(2, 2)
 
 Indexing `LinearAxes` is comparable to that of `LinearIndices`
 ```julia
-julia> using StaticRanges, BenchmarkTools
+julia> using AxisIndices, BenchmarkTools
 
 julia> linaxes = LinearAxes((Axis(1.0:4.0), Axis(1:4)));
 
@@ -111,7 +146,7 @@ julia> @btime getindex(linaxes, ==(3.0), 2)
 ```
 
 You may notice there's significant overhead for using the filtering syntax.
-However, the filteirng syntax takes advantage of a special type in base, `Fix2`.
+However, the filtering syntax takes advantage of a special type in base, `Fix2`.
 This means that we can take advantage of filtering methods that have been optimized for specific types of keys. 
 Here we do the same thing as above but we create a function that knows it's going to perform filtering.
 
@@ -129,14 +164,8 @@ julia> @btime getindex_filter(linaxes2, 3, 2)
   22.070 ns (0 allocations: 0 bytes)
 7
 ```
-Indexing `linaxes` is much faster now that the it can be optimized inside of a function call.
+Indexing `linaxes` is much faster now that it can be optimized inside of a function call.
 However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
 
-## Chaining filters
-
-```@docs
-StaticRanges.and
-StaticRanges.or
-```

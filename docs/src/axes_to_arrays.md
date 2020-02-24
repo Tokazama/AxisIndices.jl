@@ -7,15 +7,15 @@ The following methods are likely to only be useful when extending the use of a m
 ## Swapping Axes
 
 ```@docs
-StaticRanges.drop_axes
-StaticRanges.permute_axes
-StaticRanges.reduce_axes
-StaticRanges.reduce_axis
+AxisIndices.drop_axes
+AxisIndices.permute_axes
+AxisIndices.reduce_axes
+AxisIndices.reduce_axis
 ```
 ## Matrix Multiplication and Statistics
 
 ```@docs
-StaticRanges.matmul_axes
-StaticRanges.inverse_axes
-StaticRanges.covcor_axes
+AxisIndices.matmul_axes
+AxisIndices.inverse_axes
+AxisIndices.covcor_axes
 ```

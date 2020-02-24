@@ -10,6 +10,9 @@ const AbstractSimpleAxis{V,Vs} = AbstractAxis{V,V,Vs,Vs}
 
 Base.valtype(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = V
 
+# This is required for performing `similar` on arrays
+Base.to_shape(r::AbstractAxis) = length(r)
+
 """
     values_type(x)
 
@@ -59,6 +62,27 @@ Base.OneTo{Int64}
 keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
 keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
+
+"""
+    step_keys(x)
+
+Returns the step size of the keys of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisIndices.step_keys(Axis(1:2:10))
+2
+
+julia> AxisIndices.step_keys(rand(2))
+1
+```
+"""
+@inline step_keys(x) = _step_keys(keys(x))
+_step_keys(ks::AbstractRange) = step(ks)
+_step_keys(ks::LinearIndices) = 1
+
 
 Base.size(a::AbstractAxis) = (length(a),)
 

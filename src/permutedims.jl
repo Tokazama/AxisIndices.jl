@@ -13,8 +13,7 @@ for f in (
     :(Base.transpose),
     :(Base.adjoint),
     :(Base.permutedims),
-    :(LinearAlgebra.pinv)
-)
+    :(LinearAlgebra.pinv))
     # Vector
     @eval function $f(v::AxisIndicesVector)
         return AxisIndicesArray($f(parent(v)), permute_axes(v))
