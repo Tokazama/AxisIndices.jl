@@ -14,6 +14,7 @@ include("functions_maths_tests.jl")
 include("functions_tests.jl")
 include("array_tests.jl")
 include("broadcasting_tests.jl")
+include("linear_algebra.jl")
 
 @testset "docs" begin
     doctest(AxisIndices; manual=false)
