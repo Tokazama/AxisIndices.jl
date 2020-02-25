@@ -9,6 +9,7 @@
     @testset "svd" begin
         m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
         x = svd(m)
+        u, s, v = x
         @test size(x) == (2, 2)
         @test size(x) == (2, 2)
         @test size(x, 1) == 2

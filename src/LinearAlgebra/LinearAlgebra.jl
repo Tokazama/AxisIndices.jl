@@ -15,7 +15,9 @@ decomposition.
 ```jldoctest get_factorization_example
 julia> using AxisIndices, LinearAlgebra
 
-julia> F = qr(AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4)), Val(true));
+julia> m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+
+julia> F = qr(m, Val(true));
 
 julia> keys.(axes(F.Q))
 (2:3, Base.OneTo(2))
@@ -38,7 +40,7 @@ julia> keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
 
 ## LU Factorization
 ```jldoctest get_factorization_example
-julia> F = lu(AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4)));
+julia> F = lu(m);
 
 julia> keys.(axes(F.L))
 (2:3, Base.OneTo(2))
@@ -52,7 +54,7 @@ julia> keys.(axes(F.p))
 julia> keys.(axes(F.P))
 (2:3, 2:3)
 
-julia> keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
+julia> keys.(axes(F.P * m))
 (2:3, 3:4)
 
 julia> keys.(axes(F.L * F.U))
@@ -61,7 +63,7 @@ julia> keys.(axes(F.L * F.U))
 
 ## LQ Factorization
 ```jldoctest get_factorization_example
-julia> F = lq(AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4)));
+julia> F = lq(m);
 
 julia> keys.(axes(F.L))
 (2:3, Base.OneTo(2))
@@ -75,7 +77,7 @@ julia> keys.(axes(F.L * F.Q))
 
 ## SVD Factorization
 ```jldoctest get_factorization_example
-julia> F = svd(AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))));
+julia> F = svd(m);
 
 julia> axes(F.U)
 (Axis(2:3 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
