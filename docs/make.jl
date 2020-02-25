@@ -6,6 +6,7 @@ makedocs(;
     format=Documenter.HTML(),
     pages=[
         "Introduction" => "index.md",
+        "Quick Start" => "quick_start.md",
         "The Axis" => "axis.md",
         "Arrays With Axes" => "axisindicesarray.md",
     ],
