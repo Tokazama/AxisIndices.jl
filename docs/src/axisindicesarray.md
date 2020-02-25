@@ -9,6 +9,10 @@ The implementation is meant to be basic and have sane defaults that can be overr
 In other words, default methods for manipulating arrays that return an `AxisIndicesArray` should not cause unexpected downstream behavior for users.
 However, it should also be possible to change the behavior of an `AxisIndicesArray` through unique subtypes of `AbstractAxis`.
 
+```@docs
+AxisIndices.AxisIndicesArray
+```
+
 ## Concatenating Arrays With Axes
 
 ```@docs

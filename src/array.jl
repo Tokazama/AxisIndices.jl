@@ -1,3 +1,31 @@
+"""
+    AxisIndicesArray(parent_array, tuple_of_keys) -> AxisIndicesArray(parent_array, Axis.(tuple_of_keys))
+    AxisIndicesArray(parent_array, tuple_of_axis) -> AxisIndicesArray
+
+An array struct that wraps any parent array and assigns it an `AbstractAxis` for
+each dimension. The first argument is the parent array and the second argument is
+a tuple of subtypes to `AbstractAxis` or keys that will be converted to subtypes
+of `AbstractAxis` with the provided keys.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> A = AxisIndicesArray(reshape(1:9, 3,3), (2:4, 3.0:5.0));
+
+julia> A[1, 1]
+1
+
+julia> A[==(2), ==(3.0)]
+1
+
+julia> A[1:2, 1:2] == [1 4; 2 5]
+true
+
+julia> A[<(4), <(5.0)] == [1 4; 2 5]
+true
+```
+"""
 struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},A<:Tuple{Vararg{<:AbstractAxis,N}}} <: AbstractArray{T,N}
     parent::P
     axes::A
