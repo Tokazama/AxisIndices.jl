@@ -20,19 +20,21 @@ Base.axes(F::LU{T,<:AxisIndicesArray}) where {T} = axes(getfield(F, :factors))
 
 Base.axes(F::LU{T,<:AxisIndicesArray}, i) where {T} = axes(F)[i]
 
-function Base.getproperty(F::LU{T,<:AxisIndicesArray}, d::Symbol) where {T}
-    inner = getproperty(parent(F), d)
+@inline function Base.getproperty(F::LU{T,<:AxisIndicesArray}, d::Symbol) where {T}
+    return get_factorization(parent(F), axes(F), d)
+end
+
+function get_factorization(F::LU, axs::NTuple{2,Any}, d::Symbol)
+    inner = getproperty(F, d)
     if d === :L
-        return AxisIndicesArray(inner, (axes(F, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return AxisIndicesArray(inner, (first(axs), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :U
-        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), axes(F, 2)))
+        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), last(axs)))
     elseif d === :P
-        return AxisIndicesArray(inner, (axes(F, 1), axes(F, 1)))
+        return AxisIndicesArray(inner, (first(axs), first(axs)))
     elseif d === :p
-        return AxisIndicesArray(inner, (axes(F, 1),))
+        return AxisIndicesArray(inner, (first(axs),))
     else
         return inner
     end
 end
-
-

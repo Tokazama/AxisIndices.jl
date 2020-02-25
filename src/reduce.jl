@@ -63,3 +63,34 @@ reduce_axis(x::UnitRange{T}) where {T} = UnitRange{T}(one(T), one(T))
 reduce_axis(x::UnitSRange{T}) where {T} = UnitSRange{T}(one(T), one(T))
 reduce_axis(x::UnitMRange{T}) where {T} = UnitMRange{T}(one(T), one(T))
 
+function indicesarray_result(original_ia, reduced_data, reduction_dims)
+    return AxisIndicesArray(reduced_data, reduce_axes(original_ia, reduction_dims))
+end
+
+# if reducing over `:` then results is a scalar
+indicesarray_result(original_ia, reduced_data, reduction_dims::Colon) = reduced_data
+
+
+################################################
+# Overloads
+
+# 1 Arg
+for (mod, funs) in (
+    (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),
+    (:Statistics, (:mean, :std, :var, :median)))
+    for fun in funs
+        @eval function $mod.$fun(a::AxisIndicesArray; dims=:, kwargs...)
+            return indicesarray_result(a, $mod.$fun(parent(a); dims=dims, kwargs...), dims)
+        end
+    end
+end
+
+function Base.mapslices(f, a::AxisIndicesArray; dims, kwargs...)
+    return indicesarray_result(a, Base.mapslices(f, parent(a); dims=dims, kwargs...), dims)
+end
+
+function Base.mapreduce(f1, f2, a::AxisIndicesArray; dims=:, kwargs...)
+    return indicesarray_result(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
+end
+
+

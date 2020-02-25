@@ -1,3 +1,40 @@
+"""
+    matmul_axes(a, b) -> Tuple
+
+Returns the appropriate axes for the return of `a * b` where `a` and `b` are a
+vector or matrix.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axs2, axs1 = (Axis(1:2), Axis(1:4)), (Axis(1:6),);
+
+julia> matmul_axes(axs2, axs2)
+(Axis(1:2 => Base.OneTo(2)), Axis(1:4 => Base.OneTo(4)))
+
+julia> matmul_axes(axs1, axs2)
+(Axis(1:6 => Base.OneTo(6)), Axis(1:4 => Base.OneTo(4)))
+
+julia> matmul_axes(axs2, axs1)
+(Axis(1:2 => Base.OneTo(2)),)
+
+julia> matmul_axes(axs1, axs1)
+()
+
+julia> matmul_axes(rand(2, 4), rand(4, 2))
+(Base.OneTo(2), Base.OneTo(2))
+
+julia> matmul_axes(CartesianAxes((2,4)), CartesianAxes((4, 2))) == matmul_axes(rand(2, 4), rand(4, 2))
+true
+```
+"""
+matmul_axes(a::AbstractArray,  b::AbstractArray ) = matmul_axes(axes(a), axes(b))
+matmul_axes(a::Tuple{Any},     b::Tuple{Any,Any}) = (first(a), last(b))
+matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any,Any}) = (first(a), last(b))
+matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any}    ) = (first(a),)
+matmul_axes(a::Tuple{Any},     b::Tuple{Any}    ) = ()
+
 
 for (N1,N2) in ((2,2), (1,2), (2,1))
     @eval begin
@@ -33,13 +70,4 @@ end
 
 # vector^T * vector
 Base.:*(a::AxisIndicesArray{T,2,<:CoVector}, b::AxisIndicesArray{S,1}) where {T,S} = *(parent(a), parent(b))
-
-Base.inv(a::AxisIndicesMatrix) = AxisIndicesArray(inv(parent(a)), inverse_axes(a))
-
-# Statistics
-for fun in (:cor, :cov)
-    @eval function Statistics.$fun(a::AxisIndicesMatrix; dims=1, kwargs...)
-        return AxisIndicesArray(Statistics.$fun(parent(a); dims=dims, kwargs...), covcor_axes(a, dims))
-    end
-end
 

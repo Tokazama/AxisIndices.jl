@@ -1,29 +1,3 @@
-# This file is for functions that just need simple standard overloading.
-
-## Helpers:
-
-function indicesarray_result(original_ia, reduced_data, reduction_dims)
-    return AxisIndicesArray(reduced_data, reduce_axes(original_ia, reduction_dims))
-end
-
-# if reducing over `:` then results is a scalar
-indicesarray_result(original_ia, reduced_data, reduction_dims::Colon) = reduced_data
-
-
-################################################
-# Overloads
-
-# 1 Arg
-for (mod, funs) in (
-    (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),
-    (:Statistics, (:mean, :std, :var, :median)))
-    for fun in funs
-        @eval function $mod.$fun(a::AxisIndicesArray; dims=:, kwargs...)
-            return indicesarray_result(a, $mod.$fun(parent(a); dims=dims, kwargs...), dims)
-        end
-    end
-end
-
 # 1 Arg - no default for `dims` keyword
 for fun in (:cumsum, :cumprod, :sort, :sort!)
     @eval function Base.$fun(a::AxisIndicesArray; dims, kwargs...)
@@ -43,14 +17,6 @@ if VERSION > v"1.1-"
             return AxisIndicesArray(slice, drop_axes(a, dims))
         end
     end
-end
-
-function Base.mapslices(f, a::AxisIndicesArray; dims, kwargs...)
-    return indicesarray_result(a, Base.mapslices(f, parent(a); dims=dims, kwargs...), dims)
-end
-
-function Base.mapreduce(f1, f2, a::AxisIndicesArray; dims=:, kwargs...)
-    return indicesarray_result(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
 end
 
 ################################################

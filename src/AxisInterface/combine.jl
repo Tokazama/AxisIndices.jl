@@ -73,18 +73,14 @@ Axis(1:10 => 1:10)
 
 ```
 """
-function combine_axis(x::X, y::Y) where {X, Y}
-    return combine_axis(promote_rule(X, Y), x, y)
-end
-
+combine_axis(x::X, y::Y) where {X, Y} = combine_axis(promote_rule(X, Y), x, y)
 function combine_axis(::Type{T}, x, y) where {T<:SimpleAxis}
     return SimpleAxis(combine_values(values(x), values(y)))
 end
 function combine_axis(::Type{T}, x, y) where {T<:AbstractAxis}
-    return similar_type(T)(
-        combine_keys(keys_or_nothing(x), keys_or_nothing(y)),
-        combine_values(values(x), values(y))
-    )
+    ks = combine_keys(keys_or_nothing(x), keys_or_nothing(y))
+    vs = combine_values(values(x), values(y))
+    return similar_type(T, typeof(ks), typeof(vs))(ks, vs)
 end
 combine_axis(::Type{T}, x, y) where {T} = combine_values(x, y)
 

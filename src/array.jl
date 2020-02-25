@@ -1,4 +1,3 @@
-# TODO Document this thoroughly
 struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},A<:Tuple{Vararg{<:AbstractAxis,N}}} <: AbstractArray{T,N}
     parent::P
     axes::A
@@ -111,4 +110,3 @@ function Base.similar(
    ) where {T,N}
     return AxisIndicesArray(similar(parent(a), eltype, map(length, inds)), inds)
 end
-

@@ -40,3 +40,7 @@ function drop_axes(x::Tuple{Vararg{<:Any,D}}, dims::NTuple{N,Int}) where {D,N}
     return d
 end
 
+function Base.dropdims(ia::AxisIndicesArray; dims)
+    return AxisIndicesArray(dropdims(parent(ia); dims=dims), drop_axes(ia, dims))
+end
+

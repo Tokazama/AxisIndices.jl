@@ -22,19 +22,6 @@ Base.size(F::AxisIndicesSVD) = size(parent(F))
 
 Base.size(F::AxisIndicesSVD, i) = size(parent(F), i)
 
-function Base.getproperty(F::AxisIndicesSVD, s::Symbol)
-    inner = getproperty(parent(F), s)
-    if s === :U
-        return AxisIndicesArray(inner, (axes(F, 1), SimpleAxis(OneTo(size(inner, 2)))))
-    elseif s === :V
-        return AxisIndicesArray(inner, (axes(F, 2), SimpleAxis(OneTo(size(inner, 2)))))
-    elseif s === :Vt
-        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), axes(F, 2)))
-    else  # d === :S
-        return inner
-    end
-end
-
 function Base.propertynames(F::AxisIndicesSVD, private::Bool=false)
     return private ? (:V, fieldnames(typeof(parent(F)))...) : (:U, :S, :V, :Vt)
 end
@@ -57,3 +44,20 @@ Base.iterate(S::AxisIndicesSVD, ::Val{:S}) = (S.S, Val(:V))
 Base.iterate(S::AxisIndicesSVD, ::Val{:V}) = (S.V, Val(:done))
 Base.iterate(S::AxisIndicesSVD, ::Val{:done}) = nothing
 # TODO GeneralizedSVD
+
+@inline function Base.getproperty(F::AxisIndicesSVD, d::Symbol) where {T}
+    return get_factorization(parent(F), axes(F), d)
+end
+
+function get_factorization(F::SVD, axs::NTuple{2,Any}, d::Symbol)
+    inner = getproperty(F, d)
+    if d === :U
+        return AxisIndicesArray(inner, (first(axs), SimpleAxis(OneTo(size(inner, 2)))))
+    elseif d === :V
+        return AxisIndicesArray(inner, (last(axs), SimpleAxis(OneTo(size(inner, 2)))))
+    elseif d === :Vt
+        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), last(axs)))
+    else  # d === :S
+        return inner
+    end
+end

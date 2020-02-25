@@ -7,3 +7,5 @@ end
 show_axesarray(io::IO, m, a::AbstractArray, axes::Tuple) = show(io, m, a)
 show_axesarray(io::IO, a::AbstractArray, axes::Tuple) = show(io, a)
 
+function pretty_array()
+end

@@ -1,4 +1,8 @@
-# Introduction to the `AbstractAxis`
+# The Axis Interface
+
+The following describes the components necessary to construct and manipulate existing and new subtypes of `AbstractAxis`.
+
+## Introduction 
 
 The supertype to all axis types herein is the `AbstractAxis`, which is a subtype of `AbstractUnitRange{<:Integer}`.
 
@@ -79,7 +83,7 @@ Note in the last example that a vector was returned instead of an `AbstractAxis`
 An `AbstractAxis` is a subtype of `AbstractUnitRange` and therefore cannot be reformed after any operation that does not guarantee the return of another unit range.
 This is similar to the behavior of `UnitRange` in base.
 
-## How Does It Work?
+### How Does It Work?
 
 This package makes a small alteration in the indexing pipeline for arrays from base.
 Where an array typically passes indices along a similar path to:
@@ -101,7 +105,7 @@ _getindex(A, I)
 
 This allows customizing the initial arguments given to `getindex` per each axis instead of by the array type or the type of `i1/2/3`.
 
-## Performance
+### Performance
 
 Indexing `CartesianAxes` is comparable to that of `CartesianIndices`.
 ```julia
@@ -169,3 +173,61 @@ However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
 
+
+## Combining Axes
+
+These methods are responsible for assisting in broadcasting operations.
+
+```@docs
+AxisIndices.combine_axis
+AxisIndices.combine_values
+AxisIndices.combine_keys
+```
+
+## Reindexing Axes
+
+```@docs
+AxisIndices.reindex
+AxisIndices.unsafe_reindex
+```
+## Reducing Axes
+
+```@docs
+AxisIndices.reduce_axes
+AxisIndices.reduce_axis
+```
+## Resizing Axes
+
+These methods help with operations that need to resize axes, either dynamically or by creating a new instance of an axis. In addition to helping with operations related to array resizing, these may be useful for managing the axis of a vector throughout a `push!`, `pushfirst!`, `pop`, and `popfirst!` operation.
+
+```@docs
+AxisIndices.resize_first
+AxisIndices.resize_first!
+AxisIndices.resize_last
+AxisIndices.resize_last!
+
+AxisIndices.grow_first
+AxisIndices.grow_first!
+AxisIndices.grow_last
+AxisIndices.grow_last!
+
+AxisIndices.shrink_first
+AxisIndices.shrink_first!
+AxisIndices.shrink_last
+AxisIndices.shrink_last!
+
+AxisIndices.next_type
+AxisIndices.prev_type
+```
+
+## Axis Types
+
+```@docs
+AxisIndices.AbstractAxis
+AxisIndices.values_type
+AxisIndices.keys_type
+AxisIndices.Axis
+AxisIndices.SimpleAxis
+AxisIndices.CartesianAxes
+AxisIndices.LinearAxes
+```

@@ -3,8 +3,6 @@ using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, chec
 using Base.Cartesian
 
 export
-    next_type,
-    prev_type,
     reindex,
     # Combine Indices
     #combine_indices,
@@ -66,10 +64,6 @@ include("resize.jl")
 include("combine.jl")
 include("append.jl")
 include("cat_axes.jl")
-include("drop_axes.jl")
-include("matmul_axes.jl")
-include("permute_axes.jl")
-include("reduce_axes.jl")
 include("to_index.jl")
 include("getindex.jl")
 include("promotion.jl")

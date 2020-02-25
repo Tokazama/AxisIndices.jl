@@ -9,15 +9,19 @@ function Base.parent(F::LQ{T,<:AxisIndicesArray}) where {T}
 end
 
 Base.axes(F::LQ{T,<:AxisIndicesArray}) where {T} = axes(getfield(F, :factors))
+
 Base.axes(F::LQ{T,<:AxisIndicesArray}, i) where {T} = axes(F)[i]
 
+@inline function Base.getproperty(F::LQ{T,<:AxisIndicesArray}, d::Symbol) where {T}
+    return get_factorization(parent(F), axes(F), d)
+end
 
-function Base.getproperty(F::LQ{T,<:AxisIndicesArray}, d::Symbol) where {T}
-    inner = getproperty(parent(F), d)
+function get_factorization(F::LQ, axs::NTuple{2,Any}, d::Symbol)
+    inner = getproperty(F, d)
     if d === :L
-        return AxisIndicesArray(inner, (axes(F, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return AxisIndicesArray(inner, (first(axs), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :Q
-        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), axes(F, 2)))
+        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), last(axs)))
     else
         return inner
     end

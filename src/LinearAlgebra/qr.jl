@@ -50,17 +50,22 @@ Base.axes(F::AIQRUnion) = axes(getfield(F, :factors))
 
 Base.axes(F::AIQRUnion, i) = axes(getfield(F, :factors))[i]
 
-function Base.getproperty(F::AIQRUnion, d::Symbol)
-    inner = getproperty(parent(F), d)
+@inline function Base.getproperty(F::AIQRUnion, d::Symbol) where {T}
+    return get_factorization(parent(F), axes(F), d)
+end
+
+function get_factorization(F::Q, axs::NTuple{2,Any}, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
+    inner = getproperty(F, d)
     if d === :Q
-        return AxisIndicesArray(inner, (axes(F, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return AxisIndicesArray(inner, (first(axs), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :R
-        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), axes(F, 2)))
+        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), last(axs)))
     elseif F isa QRPivoted && d === :P
-        return AxisIndicesArray(inner, (axes(F, 1), axes(F, 1)))
+        return AxisIndicesArray(inner, (first(axs), first(axs)))
     elseif F isa QRPivoted && d === :p
-        return AxisIndicesArray(inner, (axes(F, 1),))
+        return AxisIndicesArray(inner, (first(axs),))
     else
         return inner
     end
 end
+
