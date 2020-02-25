@@ -37,5 +37,10 @@
             end
         end
     end
+
+    @testset "diagonal" begin
+        m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
+        @test diag(m) == diag(parent(m))
+    end
 end
 
