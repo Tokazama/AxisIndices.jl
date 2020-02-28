@@ -1,5 +1,5 @@
 
-function LinearAlgebra.diag(x::AxisIndicesMatrix)
+function LinearAlgebra.diag(x::AbstractAxisIndices{T,2}) where {T}
     return AxisIndicesArray(diag(parent(x)), (diagonal_axes(axes(x)),))
 end
 

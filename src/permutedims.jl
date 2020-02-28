@@ -17,7 +17,9 @@ julia> permute_axes((Axis(1:2), Axis(1:4), Axis(1:6)), (1, 3, 2))
 ```
 """
 permute_axes(x::AbstractArray{T,N}, p) where {T,N} = permute_axes(axes(x), p)
-permute_axes(x::NTuple{N,Any}, p::AbstractVector{<:Integer}) where {N} = Tuple(map(i -> getindex(x, i), p))
+function permute_axes(x::NTuple{N,Any}, p::AbstractVector{<:Integer}) where {N}
+    return Tuple(map(i -> getindex(x, i), p))
+end
 permute_axes(x::NTuple{N,Any}, p::NTuple{N,<:Integer}) where {N} = map(i -> getfield(x, i), p)
 
 """
@@ -74,11 +76,13 @@ julia> permute_axes((Axis(1:4), Axis(1:2)))
 permute_axes(x::AbstractMatrix) = permute_axes(axes(x))
 permute_axes(x::NTuple{2,Any}) = (last(x), first(x))
 
-function Base.permutedims(a::AxisIndicesArray, perm)
-    return AxisIndicesArray(permutedims(parent(a), perm), permute_axes(a, perm))
+function Base.permutedims(a::AbstractAxisIndices, perm)
+    p = permutedims(parent(a), perm)
+    axs = permute_axes(a, perm)
+    return similar_type(a, typeof(p), typeof(axs))(p, axs)
 end
 
-#Base.selectdim(a::AxisIndicesArray, d::Integer, i) = selectdim(a, d, i)
+#Base.selectdim(a::AbstractAxisIndices, d::Integer, i) = selectdim(a, d, i)
 
 for f in (
     :(Base.transpose),
@@ -86,27 +90,32 @@ for f in (
     :(Base.permutedims),
     :(LinearAlgebra.pinv))
     # Vector
-    @eval function $f(v::AxisIndicesVector)
-        return AxisIndicesArray($f(parent(v)), permute_axes(v))
+    @eval function $f(a::AbstractAxisIndices{T,1}) where {T}
+        p = $f(parent(a))
+        axs = permute_axes(a)
+        return similar_type(a, typeof(p), typeof(axs))(p, axs)
     end
 
     # Vector Double Transpose
     if f != :(Base.permutedims)
         # TODO fix CoVector
-        @eval function $f(a::AxisIndicesMatrix{T,A}) where {L,T,A<:CoVector}
-            return AxisIndicesArray($f(parent(a)), (axes(a, 2),))
+        @eval function $f(a::AbstractAxisIndices{T,2,A}) where {T,A<:CoVector}
+            p = $f(parent(a))
+            axs = (axes(a, 2),)
+            return similar_type(a, typeof(p), typeof(axs))(p, axs)
         end
     end
 
     # Matrix
-    @eval function $f(a::AxisIndicesMatrix)
-        return AxisIndicesArray($f(parent(a)), permute_axes(a))
+    @eval function $f(a::AbstractAxisIndices{T,2}) where {T}
+        p = $f(parent(a))
+        axs = permute_axes(a)
+        return similar_type(a, typeof(p), typeof(axs))(p, axs)
     end
 end
-
 
 # reshape
 # For now we only implement the version that drops dimension names
 # TODO
-#Base.reshape(ia::AxisIndicesArray, d::Vararg{Union{Colon, Int}}) = reshape(parent(ia), d)
+#Base.reshape(ia::AbstractAxisIndices, d::Vararg{Union{Colon, Int}}) = reshape(parent(ia), d)
 

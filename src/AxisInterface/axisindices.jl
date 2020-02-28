@@ -3,6 +3,29 @@ to_axis(x) = Axis(x)
 to_axis(i::Integer) = SimpleAxis(OneTo(i))
 to_axis(x::AbstractAxis) = x
 
+to_axis(x::AbstractArray, axs::Tuple) = map(axs_i -> to_axis(x, axs_i), axs)
+
+to_axis(::T, axis::AbstractAxis) where {T} = axis
+function to_axis(::T, axis::Union{OneTo,OneToSRange,OneToMRange}) where {T}
+    if is_static(T)
+        return SimpleAxis(as_static(axis))
+    elseif is_fixed(T)
+        return SimpleAxis(as_fixed(axis))
+    else
+        return SimpleAxis(as_dynamic(axis))
+    end
+end
+
+function to_axis(::T, axis) where T
+    if is_static(T)
+        return Axis(as_static(axis))
+    elseif is_fixed(T)
+        return Axis(as_fixed(axis))
+    else
+        return Axis(as_dynamic(axis))
+    end
+end
+
 """
     CartesianAxes
 Alias for LinearIndices where indices are subtypes of `AbstractAxis`.

@@ -19,5 +19,9 @@ julia> inverse_axes((Axis(1:2), Axis(1:4)))
 inverse_axes(x::AbstractMatrix) = inverse_axes(axes(x))
 inverse_axes(x::Tuple{I1,I2}) where {I1,I2} = (last(x), first(x))
 
-Base.inv(a::AxisIndicesMatrix) = AxisIndicesArray(inv(parent(a)), inverse_axes(a))
+function Base.inv(a::AbstractAxisIndices{T,2}) where {T}
+    p = inv(parent(a))
+    axs = inverse_axes(a)
+    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+end
 

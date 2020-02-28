@@ -44,7 +44,9 @@ function covcor_axes(x::NTuple{2,Any}, dim::Int)
 end
 
 for fun in (:cor, :cov)
-    @eval function Statistics.$fun(a::AxisIndicesMatrix; dims=1, kwargs...)
-        return AxisIndicesArray(Statistics.$fun(parent(a); dims=dims, kwargs...), covcor_axes(a, dims))
+    @eval function Statistics.$fun(a::AbstractAxisIndices{T,2}; dims=1, kwargs...) where {T}
+        p = Statistics.$fun(parent(a); dims=dims, kwargs...)
+        axs = covcor_axes(a, dims)
+        return similar_type(a, typeof(p), typeof(axs))(p, axs)
     end
 end

@@ -58,4 +58,4 @@ function Base.copyto!(dest::AbstractArray, bc::Broadcasted{AxisIndicesArrayStyle
     copyto!(dest, inner_bc)
     return AxisIndicesArray(dest)
 end
-
+# TODO make the above generic

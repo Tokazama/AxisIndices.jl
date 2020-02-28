@@ -1,20 +1,22 @@
 # 1 Arg - no default for `dims` keyword
 for fun in (:cumsum, :cumprod, :sort, :sort!)
-    @eval function Base.$fun(a::AxisIndicesArray; dims, kwargs...)
+    @eval function Base.$fun(a::AbstractAxisIndices; dims, kwargs...)
         return AxisIndicesArray(Base.$fun(parent(a); dims=dims, kwargs...), axes(a))
     end
 
     # Vector case
-    @eval function Base.$fun(a::AxisIndicesVector; kwargs...)
-        return AxisIndicesArray(Base.$fun(parent(a); kwargs...), axes(a))
+    @eval function Base.$fun(a::AbstractAxisIndices{T,1}; kwargs...) where {T}
+        p = Base.$fun(parent(a); kwargs...)
+        return similar_type(a, typeof(p))(p, axes(a))
     end
 end
 
 if VERSION > v"1.1-"
-    function Base.eachslice(a::AxisIndicesArray; dims, kwargs...)
+    function Base.eachslice(a::AbstractAxisIndices; dims, kwargs...)
         slices = eachslice(parent(a); dims=dims, kwargs...)
         return Base.Generator(slices) do slice
-            return AxisIndicesArray(slice, drop_axes(a, dims))
+            axs = drop_axes(a, dims)
+            return similar_type(a, typeof(slice), typeof(axs))(slice, axs)
         end
     end
 end
@@ -24,32 +26,27 @@ end
 
 for f in (:(==), :isequal, :isapprox)
     @eval begin
-        Base.$f(a::AxisIndicesArray, b::AxisIndicesArray; kw...) = $f(parent(a), parent(b); kw...)
-        Base.$f(a::AxisIndicesArray, b::AbstractArray; kw...) = $f(parent(a), b; kw...)
-        Base.$f(a::AbstractArray, b::AxisIndicesArray; kw...) = $f(a, parent(b); kw...)
+        Base.$f(a::AbstractAxisIndices, b::AbstractAxisIndices; kw...) = $f(parent(a), parent(b); kw...)
+        Base.$f(a::AbstractAxisIndices, b::AbstractArray; kw...) = $f(parent(a), b; kw...)
+        Base.$f(a::AbstractArray, b::AbstractAxisIndices; kw...) = $f(a, parent(b); kw...)
     end
-end
-
-function Base.empty!(a::AxisIndicesArray)
-    for ax_i in axes(a)
-        empty!(ax_i)
-    end
-    empty!(parent(a))
-    return a
 end
 
 for f in (:zero, :one, :copy)
     @eval begin
-        Base.$f(a::AxisIndicesArray) = AxisIndicesArray(Base.$f(parent(a)), axes(a))
+        function Base.$f(a::AbstractAxisIndices)
+            p = Base.$f(parent(a))
+            return similar_type(a, typeof(p))(p, axes(a))
+        end
     end
 end
 
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 # Two arrays
 for fun in (:sum!, :prod!, :maximum!, :minimum!)
-    for (A,B) in ((AxisIndicesArray, AbstractArray),
-                  (AbstractArray,AxisIndicesArray),
-                  (AxisIndicesArray, AxisIndicesArray))
+    for (A,B) in ((AbstractAxisIndices, AbstractArray),
+                  (AbstractArray, AbstractAxisIndices),
+                  (AbstractAxisIndices, AbstractAxisIndices))
         @eval begin
             function Base.$fun(a::$A, b::$B)
                 Base.$fun(parent(a), parent(b))
@@ -62,24 +59,54 @@ end
 ################################################
 # map, collect
 
-Base.map(f, A::AxisIndicesArray) = AxisIndicesArray(map(f, parent(A)), axes(A))
+function Base.map(f, A::AbstractAxisIndices)
+    p = map(f, parent(A))
+    return similar_type(A, typeof(p))(p, axes(A))
+end
 
-for (T, S) in [
-    (:AxisIndicesArray, :AbstractArray),
-    (:AbstractArray, :AxisIndicesArray),
-    (:AxisIndicesArray, :AxisIndicesArray),
-    ]
-    for fun in [:map, :map!]
-
+#=
+for (T, S) in (
+    (:AbstractAxisIndices, :AbstractArray),
+    (:AbstractArray,       :AbstractAxisIndices),
+    (:AbstractAxisIndices, :AbstractAxisIndices))
+    for fun in (:map, :map!)
         # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
-        @eval function Base.$fun(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
-            return AxisIndicesArray($fun(f, parent(a), parent(b), parent.(cs)...),
-                             Broadcast.combine_axes(a, b, cs...,))
+        @eval begin
+            function Base.$fun(f::F, a::AbstractArray, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
+                p = $fun(f, parent(a), parent(b), parent.(cs)...)
+                axs = Broadcast.combine_axes(a, b, cs...,)
+                return similar_type(b, typeof(p), typeof(axs))(p, axs)
+            end
+        end
+    end
+end
+=#
+for f in (:map, :map!)
+    # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
+    @eval begin
+        function Base.$f(f::F, a::AbstractArray, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
+            p = $f(f, parent(a), parent(b), parent.(cs)...)
+            axs = Broadcast.combine_axes(a, b, cs...,)
+            return similar_type(b, typeof(p), typeof(axs))(p, axs)
         end
 
+        function Base.$f(f::F, a::AbstractAxisIndices, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
+            p = $f(f, parent(a), parent(b), parent.(cs)...)
+            axs = Broadcast.combine_axes(a, b, cs...,)
+            return similar_type(b, typeof(p), typeof(axs))(p, axs)
+        end
+
+        function Base.$f(f::F, a::AbstractAxisIndices, b::AbstractArray, cs::AbstractArray...) where {F}
+            p = $f(f, parent(a), parent(b), parent.(cs)...)
+            axs = Broadcast.combine_axes(a, b, cs...,)
+            return similar_type(a, typeof(p), typeof(axs))(p, axs)
+        end
     end
 end
 
-Base.filter(f, A::AxisIndicesVector) = AxisIndicesArray(filter(f, parent(A)), axes(f))
-Base.filter(f, A::AxisIndicesArray) = filter(f, parent(A))
+function Base.filter(f, A::AbstractAxisIndices{T,1}) where {T}
+    p = filter(f, parent(A))
+    return similar_type(A, typeof(p))(p, axes(A))
+end
+Base.filter(f, A::AbstractAxisIndices) = filter(f, parent(A))
 

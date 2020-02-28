@@ -1,15 +1,9 @@
 
-const AIQRCompactWY{T,M,Ax1,Ax2} = LinearAlgebra.QRCompactWY{T,AxisIndicesMatrix{T,M,Ax1,Ax2}}
+const AIQRUnion{T} = Union{LinearAlgebra.QRCompactWY{T,<:AbstractAxisIndices},
+                                     QRPivoted{T,<:AbstractAxisIndices},
+                                     QR{T,<:AbstractAxisIndices}}
 
-const AIQRPivoted{T,M,Ax1,Ax2} = QRPivoted{T,AxisIndicesMatrix{T,M,Ax1,Ax2}}
-
-const AIQR{T,M,Ax1,Ax2} = QR{T,AxisIndicesMatrix{T,M,Ax1,Ax2}}
-
-const AIQRUnion{T,M,Ax1,Ax2} = Union{AIQRCompactWY{T,M,Ax1,Ax2},
-                                    AIQRPivoted{T,M,Ax1,Ax2},
-                                    AIQR{T,M,Ax1,Ax2}}
-
-function LinearAlgebra.qr(A::AxisIndicesMatrix{T}, arg) where T
+function LinearAlgebra.qr(A::AbstractAxisIndices{T,2}, arg) where T
     Base.require_one_based_indexing(A)
     # this line throws away axes in the original function
     #similar(A, LinearAlgebra._qreltype(T), size(A))
@@ -18,52 +12,56 @@ function LinearAlgebra.qr(A::AxisIndicesMatrix{T}, arg) where T
     return qr!(AA, arg)
 end
 
-function LinearAlgebra.qr!(a::AxisIndicesArray, args...; kwargs...)
-    return _qr(qr!(parent(a), args...; kwargs...), axes(a))
+function LinearAlgebra.qr!(a::AbstractAxisIndices, args...; kwargs...)
+    return _qr(a, qr!(parent(a), args...; kwargs...), axes(a))
 end
 
-function _qr(inner::QR, axs::Tuple)
-    return QR(AxisIndicesArray(inner.factors, axs, false), inner.τ)
+function _qr(a::AbstractAxisIndices, F::QR, axs::Tuple)
+    p = getfield(F, :factors)
+    return QR(similar_type(a, typeof(p), typeof(axs))(p, axs, false), F.τ)
 end
-
-function Base.parent(F::QR{<:Any,<:AxisIndicesArray})
+function Base.parent(F::QR{<:Any,<:AbstractAxisIndices})
     return QR(parent(getfield(F, :factors)), getfield(F, :τ))
 end
 
-function _qr(inner::LinearAlgebra.QRCompactWY, inds::Tuple)
-    return LinearAlgebra.QRCompactWY(AxisIndicesArray(inner.factors, inds), inner.T)
+function _qr(a::AbstractAxisIndices, inner::LinearAlgebra.QRCompactWY, inds::Tuple)
+    p = inner.factors
+    return LinearAlgebra.QRCompactWY(similar_type(a, typeof(p))(p, inds), inner.T)
 end
-function Base.parent(F::LinearAlgebra.QRCompactWY{<:Any, <:AxisIndicesArray})
+function Base.parent(F::LinearAlgebra.QRCompactWY{<:Any, <:AbstractAxisIndices})
     return LinearAlgebra.QRCompactWY(parent(getfield(F, :factors)), getfield(F, :T))
 end
 
-function _qr(F::QRPivoted, axs::Tuple)
-    return QRPivoted(AxisIndicesArray(getfield(F, :factors), axs),
-                     getfield(F, :τ),
-                     getfield(F, :jpvt))
+function _qr(a::AbstractAxisIndices, F::QRPivoted, axs::Tuple)
+    p = getfield(F, :factors)
+    return QRPivoted(similar_type(a, typeof(p))(p, axs), getfield(F, :τ), getfield(F, :jpvt))
 end
-function Base.parent(F::QRPivoted{<:Any, <:AxisIndicesArray})
+function Base.parent(F::QRPivoted{<:Any, <:AbstractAxisIndices})
     return QRPivoted(parent(getfield(F, :factors)), getfield(F, :τ), getfield(F, :jpvt))
 end
 
 Base.axes(F::AIQRUnion) = axes(getfield(F, :factors))
 
-Base.axes(F::AIQRUnion, i) = axes(getfield(F, :factors))[i]
+Base.axes(F::AIQRUnion, i) = getfield(axes(getfield(F, :factors)), i)
 
 @inline function Base.getproperty(F::AIQRUnion, d::Symbol) where {T}
-    return get_factorization(parent(F), axes(F), d)
+    return get_factorization(getfield(F, :factors), parent(F), axes(F), d)
 end
 
-function get_factorization(F::Q, axs::NTuple{2,Any}, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
+function get_factorization(A::AbstractAxisIndices, F::Q, axs::NTuple{2,Any}, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
     inner = getproperty(F, d)
     if d === :Q
-        return AxisIndicesArray(inner, (first(axs), SimpleAxis(OneTo(size(inner, 2)))))
+        axs = (first(axs), SimpleAxis(OneTo(size(inner, 2))))
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif d === :R
-        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), last(axs)))
+        axs = (SimpleAxis(OneTo(size(inner, 1))), last(axs))
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif F isa QRPivoted && d === :P
-        return AxisIndicesArray(inner, (first(axs), first(axs)))
+        axs = (first(axs), first(axs))
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif F isa QRPivoted && d === :p
-        return AxisIndicesArray(inner, (first(axs),))
+        axs = (first(axs),)
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     else
         return inner
     end

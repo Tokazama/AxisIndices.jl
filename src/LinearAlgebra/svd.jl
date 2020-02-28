@@ -1,22 +1,22 @@
 
-struct AxisIndicesSVD{T,F<:SVD{T},Ax} <: Factorization{T}
+struct AxisIndicesSVD{T,F<:SVD{T},A<:AbstractAxisIndices} <: Factorization{T}
     factor::F
-    axes::Ax
+    axes_indices::A
 end
 
-function LinearAlgebra.svd(A::AxisIndicesArray, args...; kwargs...)
-    return AxisIndicesSVD(svd(parent(A), args...; kwargs...), axes(A))
+function LinearAlgebra.svd(A::AbstractAxisIndices, args...; kwargs...)
+    return AxisIndicesSVD(svd(parent(A), args...; kwargs...), A)
 end
 
 function LinearAlgebra.svd!(A::AxisIndicesArray, args...; kwargs...)
-    return AxisIndicesSVD(svd!(parent(A), args...; kwargs...), axes(A))
+    return AxisIndicesSVD(svd!(parent(A), args...; kwargs...), A)
 end
 
 Base.parent(F::AxisIndicesSVD) = getfield(F, :factor)
 
-Base.axes(F::AxisIndicesSVD) = getfield(F, :axes)
+Base.axes(F::AxisIndicesSVD) = axes(getfield(F, :axes_indices))
 
-Base.axes(F::AxisIndicesSVD, i) = getfield(F, :axes)[i]
+Base.axes(F::AxisIndicesSVD, i) = getfield(axes(F), i)
 
 Base.size(F::AxisIndicesSVD) = size(parent(F))
 
@@ -36,7 +36,7 @@ function Base.show(io::IO, mime::MIME{Symbol("text/plain")}, F::AxisIndicesSVD)
     show(io, mime, F.Vt)
 end
 
-LinearAlgebra.svdvals(A::AxisIndicesArray) = sdvals(parent(A))
+LinearAlgebra.svdvals(A::AbstractAxisIndices) = sdvals(parent(A))
 
 # iteration for destructuring into components
 Base.iterate(S::AxisIndicesSVD) = (S.U, Val(:S))
@@ -46,17 +46,20 @@ Base.iterate(S::AxisIndicesSVD, ::Val{:done}) = nothing
 # TODO GeneralizedSVD
 
 @inline function Base.getproperty(F::AxisIndicesSVD, d::Symbol) where {T}
-    return get_factorization(parent(F), axes(F), d)
+    return get_factorization(getfield(F, :axes_indices), parent(F), axes(F), d)
 end
 
-function get_factorization(F::SVD, axs::NTuple{2,Any}, d::Symbol)
+function get_factorization(A::AbstractAxisIndices, F::SVD, axs::NTuple{2,Any}, d::Symbol)
     inner = getproperty(F, d)
     if d === :U
-        return AxisIndicesArray(inner, (first(axs), SimpleAxis(OneTo(size(inner, 2)))))
+        axs = (first(axs), SimpleAxis(OneTo(size(inner, 2))))
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif d === :V
-        return AxisIndicesArray(inner, (last(axs), SimpleAxis(OneTo(size(inner, 2)))))
+        axs = (last(axs), SimpleAxis(OneTo(size(inner, 2))))
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif d === :Vt
-        return AxisIndicesArray(inner, (SimpleAxis(OneTo(size(inner, 1))), last(axs)))
+        axs = (SimpleAxis(OneTo(size(inner, 1))), last(axs))
+        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     else  # d === :S
         return inner
     end

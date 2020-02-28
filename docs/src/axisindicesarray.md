@@ -1,13 +1,17 @@
 # Arrays With Axes
 
-The following describes many of the available methods for accomodating multidimensional manipulation of types that have axes.
+The following describes many of the available methods for accommodating multidimensional manipulation of types that have axes.
 
-## AxisIndicesArray
+## AbstractAxisIndices Interface
 
-`AxisIndicesArray` is provided as a convenient subtype of `AbstractArray` for using instances of `AbstractAxis`.
-The implementation is meant to be basic and have sane defaults that can be overridden as necessary.
-In other words, default methods for manipulating arrays that return an `AxisIndicesArray` should not cause unexpected downstream behavior for users.
-However, it should also be possible to change the behavior of an `AxisIndicesArray` through unique subtypes of `AbstractAxis`.
+A minimal interface for creating arrays that use the `AbstractAxis`'s is offered via `AbstractAxisIndices`.
+The only methods that absolutely needs to be defined for a subtype of `AbstractAxisIndices` are `axes`, `parent`, `similar_type`, and `similar`.
+Most users should find the provided `AxisIndicesArray` subtype is sufficient for the majority of use cases.
+Although custom behavior may be accomplished through a new subtype of `AbstractAxisIndices`, customizing the behavior of many methods described herein can be accomplished through a unique subtype of `AbstractAxis`.
+
+This implementation is meant to be basic, well documented, and have sane defaults that can be overridden as necessary.
+In other words, default methods for manipulating arrays that return an `AxisIndicesArray` should not cause unexpected downstream behavior for users;
+and developers should be able to freely customize the behavior of `AbstractAxisIndices` subtypes with minimal effort.
 
 ```@docs
 AxisIndices.AxisIndicesArray

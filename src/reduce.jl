@@ -79,17 +79,17 @@ for (mod, funs) in (
     (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),
     (:Statistics, (:mean, :std, :var, :median)))
     for fun in funs
-        @eval function $mod.$fun(a::AxisIndicesArray; dims=:, kwargs...)
+        @eval function $mod.$fun(a::AbstractAxisIndices; dims=:, kwargs...)
             return indicesarray_result(a, $mod.$fun(parent(a); dims=dims, kwargs...), dims)
         end
     end
 end
 
-function Base.mapslices(f, a::AxisIndicesArray; dims, kwargs...)
+function Base.mapslices(f, a::AbstractAxisIndices; dims, kwargs...)
     return indicesarray_result(a, Base.mapslices(f, parent(a); dims=dims, kwargs...), dims)
 end
 
-function Base.mapreduce(f1, f2, a::AxisIndicesArray; dims=:, kwargs...)
+function Base.mapreduce(f1, f2, a::AbstractAxisIndices; dims=:, kwargs...)
     return indicesarray_result(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
 end
 
