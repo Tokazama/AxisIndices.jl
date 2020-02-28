@@ -19,6 +19,10 @@ Base.size(x::AbstractAxisIndices) = map(length, axes(x))
 
 Base.length(x::AbstractAxisIndices) = prod(size(x))
 
+# TODO this should all derived from the values of the axis
+# Base.stride(x::AbstractAxisIndices) = axes_to_stride(axes(x))
+#axes_to_stride()
+
 const AbstractAxisIndicesMatrix{T,P<:AbstractMatrix{T},A1,A2} = AbstractAxisIndices{T,2,P,Tuple{A1,A2}}
 
 const AbstractAxisIndicesVector{T,P<:AbstractVector{T},A1} = AbstractAxisIndices{T,1,P,Tuple{A1}}

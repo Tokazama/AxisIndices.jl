@@ -5,6 +5,7 @@ using Base: @propagate_inbounds, OneTo, to_index, tail, front
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 
 export
+    AbstractAxisIndices,
     AxisIndicesArray,
     Axis,
     SimpleAxis,
