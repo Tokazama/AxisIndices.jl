@@ -2,7 +2,14 @@
 """
     AbstractAxisIndices
 
-Requires users to implement a `parent` and `axes` method
+`AbstractAxisIndices` is a subtype of `AbstractArray` that offers integration with the `AbstractAxis` interface.
+The only methods that absolutely needs to be defined for a subtype of `AbstractAxisIndices` are `axes`, `parent`, `similar_type`, and `similar`.
+Most users should find the provided [`AxisIndicesArray`](@ref) subtype is sufficient for the majority of use cases.
+Although custom behavior may be accomplished through a new subtype of `AbstractAxisIndices`, customizing the behavior of many methods described herein can be accomplished through a unique subtype of `AbstractAxis`.
+
+This implementation is meant to be basic, well documented, and have sane defaults that can be overridden as necessary.
+In other words, default methods for manipulating arrays that return an `AxisIndicesArray` should not cause unexpected downstream behavior for users;
+and developers should be able to freely customize the behavior of `AbstractAxisIndices` subtypes with minimal effort. 
 """
 abstract type AbstractAxisIndices{T,N,P,AI} <: AbstractArray{T,N} end
 

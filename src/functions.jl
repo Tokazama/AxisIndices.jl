@@ -45,7 +45,7 @@ const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:Abst
 # Two arrays
 for fun in (:sum!, :prod!, :maximum!, :minimum!)
     for (A,B) in ((AbstractAxisIndices, AbstractArray),
-                  (AbstractArray, AbstractAxisIndices),
+                  (AbstractArray,       AbstractAxisIndices),
                   (AbstractAxisIndices, AbstractAxisIndices))
         @eval begin
             function Base.$fun(a::$A, b::$B)
@@ -64,23 +64,6 @@ function Base.map(f, A::AbstractAxisIndices)
     return similar_type(A, typeof(p))(p, axes(A))
 end
 
-#=
-for (T, S) in (
-    (:AbstractAxisIndices, :AbstractArray),
-    (:AbstractArray,       :AbstractAxisIndices),
-    (:AbstractAxisIndices, :AbstractAxisIndices))
-    for fun in (:map, :map!)
-        # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
-        @eval begin
-            function Base.$fun(f::F, a::AbstractArray, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
-                p = $fun(f, parent(a), parent(b), parent.(cs)...)
-                axs = Broadcast.combine_axes(a, b, cs...,)
-                return similar_type(b, typeof(p), typeof(axs))(p, axs)
-            end
-        end
-    end
-end
-=#
 for f in (:map, :map!)
     # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
     @eval begin
