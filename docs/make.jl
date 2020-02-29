@@ -9,6 +9,7 @@ makedocs(;
         "Quick Start" => "quick_start.md",
         "The Axis" => "axis.md",
         "Arrays With Axes" => "axisindicesarray.md",
+        "Comparison to Other Packages" => "comparison.md",
     ],
     repo="https://github.com/Tokazma/AxisIndices.jl/blob/{commit}{path}#L{line}",
     sitename="AxisIndices.jl",
