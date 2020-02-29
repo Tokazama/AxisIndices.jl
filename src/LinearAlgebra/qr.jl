@@ -40,27 +40,23 @@ function Base.parent(F::QRPivoted{<:Any, <:AbstractAxisIndices})
     return QRPivoted(parent(getfield(F, :factors)), getfield(F, :τ), getfield(F, :jpvt))
 end
 
-Base.axes(F::AIQRUnion) = axes(getfield(F, :factors))
-
-Base.axes(F::AIQRUnion, i) = getfield(axes(getfield(F, :factors)), i)
-
 @inline function Base.getproperty(F::AIQRUnion, d::Symbol) where {T}
-    return get_factorization(getfield(F, :factors), parent(F), axes(F), d)
+    return get_factorization(parent(F), getfield(F, :factors), d)
 end
 
-function get_factorization(A::AbstractAxisIndices, F::Q, axs::NTuple{2,Any}, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
+function get_factorization(F::Q, A::AbstractAxisIndices, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
     inner = getproperty(F, d)
     if d === :Q
-        axs = (first(axs), SimpleAxis(OneTo(size(inner, 2))))
+        axs = (axes(A, 1), SimpleAxis(OneTo(size(inner, 2))))
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif d === :R
-        axs = (SimpleAxis(OneTo(size(inner, 1))), last(axs))
+        axs = (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2))
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif F isa QRPivoted && d === :P
-        axs = (first(axs), first(axs))
+        axs = (axes(A, 1), axes(A, 1))
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif F isa QRPivoted && d === :p
-        axs = (first(axs),)
+        axs = (axes(A, 1),)
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     else
         return inner

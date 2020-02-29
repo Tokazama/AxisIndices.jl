@@ -6,7 +6,7 @@ include("qr.jl")
 include("svd.jl")
 
 """
-    get_factorization(F::Factorization, axs::NTuple{2,Any}, d::Symbol)
+    get_factorization(F::Factorization, A::AbstractAxisIndices, d::Symbol)
 
 Used internally to compose an `AxisIndicesArray` for each component of a factor
 decomposition.

@@ -14,10 +14,6 @@ end
 
 Base.parent(F::AxisIndicesSVD) = getfield(F, :factor)
 
-Base.axes(F::AxisIndicesSVD) = axes(getfield(F, :axes_indices))
-
-Base.axes(F::AxisIndicesSVD, i) = getfield(axes(F), i)
-
 Base.size(F::AxisIndicesSVD) = size(parent(F))
 
 Base.size(F::AxisIndicesSVD, i) = size(parent(F), i)
@@ -46,19 +42,19 @@ Base.iterate(S::AxisIndicesSVD, ::Val{:done}) = nothing
 # TODO GeneralizedSVD
 
 @inline function Base.getproperty(F::AxisIndicesSVD, d::Symbol) where {T}
-    return get_factorization(getfield(F, :axes_indices), parent(F), axes(F), d)
+    return get_factorization(parent(F), getfield(F, :axes_indices), d)
 end
 
-function get_factorization(A::AbstractAxisIndices, F::SVD, axs::NTuple{2,Any}, d::Symbol)
+function get_factorization(F::SVD, A::AbstractAxisIndices, d::Symbol)
     inner = getproperty(F, d)
     if d === :U
-        axs = (first(axs), SimpleAxis(OneTo(size(inner, 2))))
+        axs = (axes(A, 1), SimpleAxis(OneTo(size(inner, 2))))
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif d === :V
-        axs = (last(axs), SimpleAxis(OneTo(size(inner, 2))))
+        axs = (axes(A, 2), SimpleAxis(OneTo(size(inner, 2))))
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     elseif d === :Vt
-        axs = (SimpleAxis(OneTo(size(inner, 1))), last(axs))
+        axs = (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2))
         return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
     else  # d === :S
         return inner
