@@ -13,3 +13,15 @@
     @test eltype(similar(x, Float64, (2:3, 4:5))) <: Float64
     @test_throws ErrorException AxisIndicesArray(rand(2,2), (2:9,2:1))
 end
+
+@testset "I/O" begin
+    io = IOBuffer()
+    x = AxisIndicesArray([1 2; 3 4])
+    write(io, x)
+
+    seek(io, 0)
+    y = AxisIndicesArray(Array{Int}(undef, 2, 2))
+    read!(io, y)
+
+    @test y == x
+end
