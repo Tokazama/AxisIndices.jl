@@ -64,3 +64,15 @@ include("broadcast_tests.jl")
 
 @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
 @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
+
+@testset "to_axis" begin
+    for (t,f) in (([], is_dynamic),
+                  ((), is_static),
+                  (1:2, is_fixed))
+        for ax in (OneTo(10), 1:10)
+            @test f(AxisIndices.to_axis(t, ax))
+        end
+    end
+end
+
+

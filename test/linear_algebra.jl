@@ -6,6 +6,13 @@
         @test keys.(axes(m[x.p, :])) == (keys(axes(m, 1))[x.p], 3:4)
     end
 
+    @testset "eigen" begin
+        m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
+        x = eigen(m)
+        @test keys.(axes(x.vectors)) == (2:3, 3:4)
+        @test eigvals(m) == eigvals(parent(m))
+    end
+
     @testset "svd" begin
         m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
         x = svd(m)

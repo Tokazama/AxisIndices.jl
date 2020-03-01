@@ -43,6 +43,7 @@ include("covcor.jl")
 include("matmul.jl")
 include("mutate.jl")
 include("broadcast.jl")
+include("io.jl")
 include("./LinearAlgebra/LinearAlgebra.jl")
 
 end

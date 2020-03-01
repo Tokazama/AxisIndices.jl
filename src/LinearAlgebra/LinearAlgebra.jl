@@ -4,6 +4,7 @@ include("lq.jl")
 include("lu.jl")
 include("qr.jl")
 include("svd.jl")
+include("eigen.jl")
 
 """
     get_factorization(F::Factorization, A::AbstractAxisIndices, d::Symbol)

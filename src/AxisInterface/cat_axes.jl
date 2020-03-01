@@ -83,7 +83,9 @@ See also: [`cat_axis`](@ref)
 cat_keys(x, y) = _cat_keys(keys(x), y)
 _cat_keys(x, y) = __cat_keys(StaticRanges.Continuity(x), x, y)
 __cat_keys(::StaticRanges.ContinuousTrait, x, y) = set_length(x, length(x) + length(y))
-__cat_keys(::StaticRanges.DiscreteTrait, x, y) = make_unique(x, keys(y))
+function __cat_keys(::StaticRanges.DiscreteTrait, x, y)
+    return error("No method defined for combining keys of type $(typeof(x)) and $(typeof(y)).")
+end
 
 """
     cat_values(x, y)
