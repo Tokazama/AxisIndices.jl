@@ -82,9 +82,69 @@ julia> AxisIndices.step_keys(rand(2))
 @inline step_keys(x) = _step_keys(keys(x))
 _step_keys(ks::AbstractRange) = step(ks)
 _step_keys(ks::LinearIndices) = 1
+# TODO should this error when there isn't a continuous step size
 
 
 Base.size(a::AbstractAxis) = (length(a),)
+
+"""
+    axes_indices(x)
+
+Returns the indices corresponding to all axes of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+(Base.OneTo(2), Base.OneTo(2))
+```
+"""
+axes_indices(x) = map(values, axes(x))
+
+"""
+    axes_indices(x, i)
+
+Returns the indices corresponding to the `i` axis
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+Base.OneTo(2)
+```
+"""
+axes_indices(x, i) = values(axes(x, i))
+
+"""
+    axes_keys(x)
+
+Returns the keys corresponding to all axes of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+(2:3, 3:4)
+"""
+axes_keys(x) = map(keys, axes(x))
+
+"""
+    axes_keys(x, i)
+
+Returns the keys corresponding to the `i` axis
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+2:3
+```
+"""
+axes_keys(x, i) = keys(axes(x, i))
 
 ###
 ### first

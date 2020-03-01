@@ -26,6 +26,7 @@ Base.size(x::AbstractAxisIndices) = map(length, axes(x))
 
 Base.length(x::AbstractAxisIndices) = prod(size(x))
 
+
 # TODO this should all derived from the values of the axis
 # Base.stride(x::AbstractAxisIndices) = axes_to_stride(axes(x))
 #axes_to_stride()

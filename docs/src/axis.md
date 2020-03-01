@@ -226,8 +226,11 @@ AxisIndices.prev_type
 AxisIndices.AbstractAxis
 AxisIndices.values_type
 AxisIndices.keys_type
+AxisIndices.axes_indices
+AxisIndices.axes_keys
 AxisIndices.Axis
 AxisIndices.SimpleAxis
 AxisIndices.CartesianAxes
 AxisIndices.LinearAxes
 ```
+

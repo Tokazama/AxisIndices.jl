@@ -87,9 +87,3 @@ for f in (:map, :map!)
     end
 end
 
-function Base.filter(f, A::AbstractAxisIndices{T,1}) where {T}
-    p = filter(f, parent(A))
-    return similar_type(A, typeof(p))(p, axes(A))
-end
-Base.filter(f, A::AbstractAxisIndices) = filter(f, parent(A))
-

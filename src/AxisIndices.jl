@@ -22,8 +22,11 @@ export
     StepSRange,
     UnitMRange,
     UnitSRange,
+    # methods
     srange,
     mrange,
+    axes_indices,
+    axes_keys,
     values_type,
     keys_type,
     and,
