@@ -8,6 +8,7 @@ using StaticRanges: can_set_first, can_set_last, can_set_length
 using AxisIndices: matmul_axes
 
 include("AxisInterface/runtests.jl")
+include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")

@@ -1,3 +1,4 @@
+
 ###
 ### AbstractAxis
 ###
@@ -85,3 +86,6 @@ function StaticRanges.same_type(::Type{X}, ::Type{Y}) where {X<:AbstractAxis,Y<:
        same_type(keys_type(X), keys_type(Y)) &
        same_type(values_type(X), values_type(Y))
 end
+
+Base.UnitRange(a::AbstractAxis) = UnitRange(values(a))
+

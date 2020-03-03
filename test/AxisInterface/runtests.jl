@@ -65,12 +65,12 @@ include("broadcast_tests.jl")
 @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
 @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
 
-@testset "to_axis" begin
+@testset "as_axis" begin
     for (t,f) in (([], is_dynamic),
                   ((), is_static),
                   (1:2, is_fixed))
         for ax in (OneTo(10), 1:10)
-            @test f(AxisIndices.to_axis(t, ax))
+            @test f(AxisIndices.as_axis(t, ax))
         end
     end
 end
@@ -79,7 +79,7 @@ end
     a = AxisIndicesArray([11 12; 21 22], (2:3, 3:4))
     v = AxisIndicesArray(1:7, (2:8,))
 
-    @test axes_keys(filter(isodd, v)) == ([2, 4, 6, 8],)
-    @test axes_keys(filter(isodd, a)) == (1:2,)
+    @test keys(filter(isodd, v)) == ([2, 4, 6, 8],)
+    @test keys.(axes(filter(isodd, a))) == (1:2,)
 end
 

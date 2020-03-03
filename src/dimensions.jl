@@ -1,3 +1,4 @@
+# These are base module methods that simply need to swap/drop axes positions
 
 """
     permute_axes(x::AbstractArray, p::Tuple) = permute_axes(axes(x), p)
@@ -114,8 +115,103 @@ for f in (
     end
 end
 
+"""
+    covcor_axes(x, dim) -> NTuple{2}
+
+Returns appropriate axes for a `cov` or `var` method on array `x`.
+
+## Examples
+```jldoctest covcor_axes_examples
+julia> using AxisIndices
+
+julia> covcor_axes(rand(2,4), 1)
+(Base.OneTo(4), Base.OneTo(4))
+
+julia> covcor_axes((Axis(1:4), Axis(1:6)), 2)
+(Axis(1:4 => Base.OneTo(4)), Axis(1:4 => Base.OneTo(4)))
+
+julia> covcor_axes((Axis(1:4), Axis(1:4)), 1)
+(Axis(1:4 => Base.OneTo(4)), Axis(1:4 => Base.OneTo(4)))
+```
+
+Each axis is resized to equal to the smallest sized dimension if given a dimensional
+argument greater than 2.
+```jldoctest covcor_axes_examples
+julia> covcor_axes((Axis(2:4), Axis(3:4)), 3)
+(Axis(3:4 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+```
+"""
+covcor_axes(x::AbstractMatrix, dim::Int) = covcor_axes(axes(x), dim)
+function covcor_axes(x::NTuple{2,Any}, dim::Int)
+    if dim === 1
+        return (last(x), last(x))
+    elseif dim === 2
+        return (first(x), first(x))
+    else
+        ax = diagonal_axes(x)
+        return (ax, ax)
+    end
+end
+
+for fun in (:cor, :cov)
+    @eval function Statistics.$fun(a::AbstractAxisIndices{T,2}; dims=1, kwargs...) where {T}
+        p = Statistics.$fun(parent(a); dims=dims, kwargs...)
+        axs = covcor_axes(a, dims)
+        return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    end
+end
+
+"""
+    drop_axes(x, dims)
+
+Returns all axes of `x` except for those identified by `dims`. Elements of `dims`
+must be unique integers or symbols corresponding to the dimensions or names of
+dimensions of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axs = (Axis(1:5), Axis(1:10));
+
+julia> drop_axes(axs, 1)
+(Axis(1:10 => Base.OneTo(10)),)
+
+julia> drop_axes(axs, 2)
+(Axis(1:5 => Base.OneTo(5)),)
+
+julia> drop_axes(rand(2, 4), 2)
+(Base.OneTo(2),)
+```
+"""
+drop_axes(x::AbstractArray, dims) = drop_axes(axes(x), dims)
+drop_axes(x::Tuple{Vararg{<:Any}}, dims::Int) = drop_axes(x, (dims,))
+function drop_axes(x::Tuple{Vararg{<:Any,D}}, dims::NTuple{N,Int}) where {D,N}
+    for i in 1:N
+        1 <= dims[i] <= D || throw(ArgumentError("dropped dims must be in range 1:ndims(A)"))
+        for j = 1:i-1
+            dims[j] == dims[i] && throw(ArgumentError("dropped dims must be unique"))
+        end
+    end
+    d = ()
+    for (i,axis_i) in zip(1:D,x)
+        if !in(i, dims)
+            d = tuple(d..., axis_i)
+        end
+    end
+    return d
+end
+
+function Base.dropdims(a::AxisIndicesArray; dims)
+    p = dropdims(parent(a); dims=dims)
+    axs = drop_axes(a, dims)
+    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+end
+
 # reshape
 # For now we only implement the version that drops dimension names
 # TODO
 #Base.reshape(ia::AbstractAxisIndices, d::Vararg{Union{Colon, Int}}) = reshape(parent(ia), d)
+
+
 
