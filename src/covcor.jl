@@ -22,7 +22,7 @@ Each axis is resized to equal to the smallest sized dimension if given a dimensi
 argument greater than 2.
 ```jldoctest covcor_axes_examples
 julia> covcor_axes((Axis(2:4), Axis(3:4)), 3)
-(Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+(Axis(3:4 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
 ```
 """
 covcor_axes(x::AbstractMatrix, dim::Int) = covcor_axes(axes(x), dim)
@@ -32,14 +32,8 @@ function covcor_axes(x::NTuple{2,Any}, dim::Int)
     elseif dim === 2
         return (first(x), first(x))
     else
-        lf, ll = length.(x)
-        if lf < ll
-            return (first(x), shrink_last(last(x), ll - lf))
-        elseif lf > ll
-            return (shrink_last(first(x), lf - ll), last(x))
-        else
-            return x
-        end
+        ax = diagonal_axes(x)
+        return (ax, ax)
     end
 end
 

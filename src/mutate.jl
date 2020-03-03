@@ -35,3 +35,4 @@ function Base.append!(A::AbstractAxisIndices{T,1}, collection) where {T}
     append!(parent(A), collection)
     return A
 end
+

@@ -10,33 +10,41 @@ Keywords are incorporated through the `show` method (e.g., `show(::IO, ::Abstrac
 ```jldoctest
 julia> using AxisIndices
 
+julia> AxisIndicesArray(1:2, ([:a, :b],))
+1-dimensional AxisIndicesArray{Int64,1,UnitRange{Int64}...}
+
+  a   1
+  b   2
+
+julia> AxisIndicesArray(reshape(1:4, (2,2)), ([:a, :b], ["a", "b"]))
+2-dimensional AxisIndicesArray{Int64,2,Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}...}
+      a   b
+  a   1   3
+  b   2   4
+
 julia> AxisIndicesArray(reshape(1:16, (2,2,2,2)), ([:a, :b], ["a", "b"], ["c", "d"], ["e", "f"]))
-4-dimensional AxisIndicesArray{Int64,4,...} with axes:
-    :axis 1, Axis(Symbol[:a, :b] => OneToMRange(2))
-    :axis 2, Axis(["a", "b"] => OneToMRange(2))
-    :axis 3, Axis(["c", "d"] => OneToMRange(2))
-    :axis 4, Axis(["e", "f"] => OneToMRange(2))
-[:, :, c, e] =
-      e       f
-  1.000   3.000
-  2.000   4.000
+4-dimensional AxisIndicesArray{Int64,4,Base.ReshapedArray{Int64,4,UnitRange{Int64},Tuple{}}...}
+[dim1, dim2, dim1[c], dim4[e]] =
+      e   f  
+  c   1   3  
+  d   2   4  
 
 
-[:, :, d, e] =
-      e       f
-  5.000   7.000
-  6.000   8.000
+[dim1, dim2, dim1[d], dim4[e]] =
+      e   f  
+  c   5   7  
+  d   6   8  
 
 
-[:, :, c, f] =
-       e        f
-   9.000   11.000
-  10.000   12.000
+[dim1, dim2, dim1[c], dim4[f]] =
+       e    f  
+  c    9   11  
+  d   10   12  
 
 
-[:, :, d, f] =
-       e        f
-  13.000   15.000
-  14.000   16.000
+[dim1, dim2, dim1[d], dim4[f]] =
+       e    f  
+  c   13   15  
+  d   14   16  
 
 ```

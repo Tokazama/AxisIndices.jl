@@ -6,11 +6,6 @@ The following describes the components necessary to construct and manipulate exi
 
 The supertype to all axis types herein is the `AbstractAxis`, which is a subtype of `AbstractUnitRange{<:Integer}`.
 
-The vocabulary can get a bit a tricky here and documentation tries to stick to these functional definitions:
-* axis: maps a set of keys to a set of indices.
-* indices: a set of integers (e.g., `<:Integer`) that locate the in memory locations of a elements.
-* keys: maps a set of any type to a set of indices
-
 If we have a set of keys `a b c` and a set of indices `1 2 3` then the key `a` maps to the index `1`.
 Given these definitions, the `AbstractAxis` differs from the classic dictionary in the following two ways:
 1. The `valtype` of `AbstractAxis` is always an integer.

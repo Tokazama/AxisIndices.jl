@@ -1,7 +1,6 @@
 # Quick Start
 
-Most users will be able to achieve what they want by just specifying a tuple of
-keys for the indices of each dimension.
+Custom indexing only requires specifying a tuple of keys[^1] for the indices of each dimension.
 ```jldoctest quick_start_example
 julia> using AxisIndices
 
@@ -36,4 +35,8 @@ This is because all keys must be unique so there can only be one value that retu
 The last call uses operators that can produce any number of `true` values and the resulting output is an array.
 This is the same as indexing an array by any vector (i.e., returns another array).
 
+[^1]: Terminology here is important here. Keys, indices, and axes each have a specific meaning. Throughout the documentation the following functional definitions apply:
+    * axis: maps a set of keys to a set of indices.
+    * indices: a set of integers (e.g., `<:Integer`) that locate the in memory locations of a elements.
+    * keys: maps a set of any type to a set of indices
 
