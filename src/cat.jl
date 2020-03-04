@@ -1,3 +1,4 @@
+
 """
     cat_axis(x, y)
 
@@ -102,22 +103,6 @@ function vcat_axes(x::Tuple{Any,Vararg}, y::Tuple{Any,Vararg})
     return (cat_axis(first(x), first(y)), Broadcast.broadcast_shape(tail(x), tail(y))...)
 end
 
-function Base.vcat(A::AbstractAxisIndices, B::AbstractArray)
-    p = vcat(parent(A), B)
-    axs = vcat_axes(A, B)
-    return similar_type(A, typeof(p), typeof(axs))(p, axs)
-end
-function Base.vcat(A::AbstractArray, B::AbstractAxisIndices)
-    p = vcat(A, parent(B))
-    axs = vcat_axes(A, B)
-    return similar_type(B, typeof(p), typeof(axs))(p, axs)
-end
-function Base.vcat(A::AbstractAxisIndices, B::AbstractAxisIndices)
-    p = vcat(parent(A), parent(B))
-    axs = vcat_axes(A, B)
-    return similar_type(B, typeof(p), typeof(axs))(p, axs)
-end
-
 """
     hcat_axes(x, y) -> Tuple
 
@@ -143,31 +128,40 @@ true
 """
 hcat_axes(x::AbstractArray, y::AbstractArray) = hcat_axes(axes(x), axes(y))
 function hcat_axes(x::Tuple, y::Tuple)
-    if length(x) > length(y)
-        return (front(x)..., grow_last(last(x), 1))
-    elseif length(x) < length(y)
-        return (front(y)..., grow_last(last(y), 1))
-    else  # length(x) == length(y)
-        return (front(x)..., cat_axis(last(x), last(y)))
-    end
+    return (combine_axis(first(x), first(y)), _hcat_axes(tail(x), tail(y))...)
 end
-function hcat_axes(x::Tuple{Any}, y::Tuple{Any})
-    return (combine_axis(first(x), first(y)), SimpleAxis(OneTo(2)))
+_hcat_axes(x::Tuple{}, y::Tuple) = (grow_last(first(y), 1), tail(y)...)
+_hcat_axes(x::Tuple, y::Tuple{}) = (grow_last(first(x), 1), tail(x)...)
+_hcat_axes(x::Tuple{}, y::Tuple{}) = (SimpleAxis(OneTo(2)),)
+function _hcat_axes(x::Tuple, y::Tuple)
+    return (cat_axis(first(x), first(y)), _combine_axes(tail(x), tail(y))...)
 end
 
-function Base.hcat(A::AbstractAxisIndices, B::AbstractArray)
-    p = hcat(parent(A), B)
-    axs = hcat_axes(A, B)
-    return similar_type(A, typeof(p), typeof(axs))(p, axs)
+for (tf, T, sf, S) in ((parent, :AbstractAxisIndicesVecOrMat, parent, :AbstractAxisIndicesVecOrMat),
+                       (parent, :AbstractAxisIndicesVecOrMat, identity, :AbstractVecOrMat),
+                       (identity, :AbstractVecOrMat,          parent,  :AbstractAxisIndicesVecOrMat))
+    @eval function Base.vcat(A::$T, B::$S, Cs::AbstractVecOrMat...)
+        return vcat(AxisIndicesArray(vcat($tf(A), $sf(B)), vcat_axes(A, B)), Cs...)
+    end
+
+    @eval function Base.hcat(A::$T, B::$S, Cs::AbstractVecOrMat...)
+        return hcat(AxisIndicesArray(hcat($tf(A), $sf(B)), hcat_axes(A, B)), Cs...)
+    end
+
+    @eval function Base.cat(A::$T, B::$S, Cs::AbstractVecOrMat...; dims)
+        return cat(AxisIndicesArray(cat($tf(A), $sf(B); dims=dims), cat_axes(A, B; dims=dims); dims=dims), Cs...; dims=dims)
+    end
 end
-function Base.hcat(A::AbstractArray, B::AbstractAxisIndices)
-    p = hcat(A, parent(B))
-    axs = hcat_axes(A, B)
-    return similar_type(B, typeof(p), typeof(axs))(p, axs)
+
+function Base.hcat(A::AbstractAxisIndices{T,N}) where {T,N}
+    if N === 1
+        m = hcat(parent(A))
+        axs = (axes(A, 1), SimpleAxis(OneTo(1)))
+        return similar_type(A, typeof(m), typeof(axs))(m, axs)
+    else
+        return A
+    end
 end
-function Base.hcat(A::AbstractAxisIndices, B::AbstractAxisIndices)
-    p = hcat(parent(A), parent(B))
-    axs = hcat_axes(A, B)
-    return similar_type(B, typeof(p), typeof(axs))(p, axs)
-end
+
+Base.vcat(A::AbstractAxisIndices{T,N}) where {T,N} = A
 

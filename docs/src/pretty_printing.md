@@ -7,7 +7,6 @@ Each 2-dimensional `AbstractAxisIndices` subtype prints with keyword arguments p
 N-dimensional arrays iteratively call matrix printing similar to how base Julia does (but passing keyword arguments for pretty printing).
 Keywords are incorporated through the `show` method (e.g., `show(::IO, ::AbstractAxisIndices; kwargs...)`).
 
-
 ## CoefTable Example
 
 Let's see if we can recreate the coefficient table from StatsBase.jl.
@@ -29,9 +28,7 @@ julia> function coefarray(mm::StatsModels.TableRegressionModel; level::Real=0.95
        end
 coefarray (generic function with 1 method)
 
-julia> data = DataFrame(X=[1,2,3], Y=[2,4,7])
-
-julia> ols = lm(@formula(Y ~ X), data);
+julia> ols = lm(@formula(Y ~ X), DataFrame(X=[1,2,3], Y=[2,4,7]));
 
 julia> cfa = coefarray(ols)
 2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}

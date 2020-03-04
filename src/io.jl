@@ -53,7 +53,7 @@ function Base.show(io::IO,
     post_rowname="",
     row_colname="",
     vec_colname="",
-    tf=array_text_format,
+    tf=text_matrix,
     formatter=ft_round(3),
     kwargs...
 ) where {T,N}
@@ -74,7 +74,7 @@ function Base.show(io::IO,
     )
 end
 
-const array_text_format = TextFormat(
+const text_matrix = TextFormat(
     up_right_corner = ' ',
     up_left_corner = ' ',
     bottom_left_corner=' ',
@@ -101,7 +101,8 @@ function pretty_array(
     post_rowname="",
     row_colname="",
     vec_colname="",
-    tf=array_text_format,
+    backend=:text,
+    tf=ifelse(backend == :text, text_matrix, ifelse(backend == :html, html_matrix, latex_simple)),
     formatter=ft_printf("%5.3f"),
     kwargs...
 ) where {T,N}
@@ -124,12 +125,13 @@ function pretty_array(
     io::IO,
     A::AbstractArray{T,N},
     key_names::Tuple=map(keys, axes(A));
+    backend=:text,
     dnames=ntuple(i -> "dim$i", N),
     pre_rowname="",
     post_rowname="",
     row_colname="",
     vec_colname="",
-    tf=array_text_format,
+    tf=ifelse(backend == :text, text_matrix, ifelse(backend == :html, html_matrix, latex_simple)),
     formatter=ft_printf("%5.3f"),
     kwargs...
 ) where {T,N}
