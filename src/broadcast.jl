@@ -68,36 +68,32 @@ function _similar_type(A::AbstractAxisIndices, p, axs=axes(A))
 end
 _similar_type(::Nothing, p, axs=nothing) = AxisIndicesArray(p)
 
-function Base.broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::AbstractAxis)
-    ks = keys(r)
-    vs = x .- values(r)
-    return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
+for (f, FT, arg) in ((:-, typeof(-), Number),
+                     (:+, typeof(+), Real),
+                     (:*, typeof(*), Real))
+    @eval begin
+        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
+            ks = keys(r)
+            vs = broadcast($f, x, values(r))
+            return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
+        end
+        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
+            ks = keys(r)
+            vs = broadcast($f, values(r), x)
+            return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
+        end
+
+        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractSimpleAxis)
+            vs = broadcast($f, x, values(r))
+            return similar_type(r, typeof(vs))(vs)
+        end
+        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractSimpleAxis, x::$arg)
+            vs = broadcast($f, values(r), x)
+            return similar_type(r, typeof(vs))(vs)
+        end
+    end
 end
-function Base.broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractAxis, x::Number)
-    ks = keys(r)
-    vs = values(r) .- x
-    return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
-end
-function Base.broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Real, r::AbstractAxis)
-    ks = keys(r)
-    vs = x .+ values(r)
-    return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
-end
-function Base.broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractAxis, x::Real)
-    ks = keys(r)
-    vs = values(r) .+ x
-    return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
-end
-function Base.broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Real, r::AbstractAxis)
-    ks = keys(r)
-    vs = x .* values(r)
-    return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
-end
-function Base.broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::AbstractAxis, x::Real)
-    ks = keys(r)
-    vs = values(r) .* x
-    return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
-end
+
 keys_or_nothing(x::AbstractAxis) = keys(x)
 keys_or_nothing(x) = nothing
 
