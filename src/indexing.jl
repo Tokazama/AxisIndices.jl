@@ -59,8 +59,9 @@ Returns the keys corresponding to all axes of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+julia> AxisIndices.last_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
 (3, 4)
+```
 """
 @inline last_keys(x) = map(last, axes_keys(x))
 
@@ -148,12 +149,6 @@ end
 @inline function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{Bool, N}, Vararg{Any}}) where N
     _, indstail = Base.IteratorsMD.split(inds, Val(N))
     return (to_index(A, I[1]), to_indices(A, indstail, tail(I))...)
-end
-
-
-@inline function Base.to_indices(A::AbstractAxis, I::Tuple{Any})
-    return (Base.to_index(A, first(I)),)
-    #(@_inline_meta; to_indices(A, (eachindex(IndexLinear(), A),), I))
 end
 
 maybetail(::Tuple{}) = ()

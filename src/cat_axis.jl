@@ -34,21 +34,11 @@ end
 function cat_axis(::CombineAxis, x::X, y::Y) where {X,Y}
     ks = cat_axis(keys(x), keys(y))
     vs = cat_axis(values(x), values(y))
-    T = promote_rule(X, Y)
-    if T <: Union{}
-        return similar_type(promote_rule(Y, X), typeof(ks), typeof(vs))(ks, vs)
-    else
-        return similar_type(T, typeof(ks), typeof(vs))(ks, vs)
-    end
+    return similar_type(promote_type(X, Y), typeof(ks), typeof(vs))(ks, vs)
 end
 
 function cat_axis(::CombineSimpleAxis, x::X, y::Y) where {X,Y}
     vs = cat_axis(values(x), values(y))
-    T = promote_rule(X, Y)
-    if T <: Union{}
-        return similar_type(promote_rule(Y, X), typeof(vs))(vs)
-    else
-        return similar_type(T, typeof(vs))(vs)
-    end
+    return similar_type(similar_type(X, Y), typeof(vs))(vs)
 end
 

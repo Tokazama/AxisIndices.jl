@@ -69,22 +69,12 @@ broadcast_axis(::Nothing, y) = copy(y)
 function broadcast_axis(::CombineAxis, x::X, y::Y) where {X,Y}
     ks = broadcast_axis(keys_or_nothing(x), keys_or_nothing(y))
     vs = broadcast_axis(values(x), values(y))
-    T = promote_rule(X, Y)
-    if T <: Union{}
-        return similar_type(promote_rule(Y, X), typeof(ks), typeof(vs))(ks, vs)
-    else
-        return similar_type(T, typeof(ks), typeof(vs))(ks, vs)
-    end
+    return similar_type(promote_rule(X, Y), typeof(ks), typeof(vs))(ks, vs)
 end
 
 function broadcast_axis(::CombineSimpleAxis, x::X, y::Y) where {X,Y}
     vs = broadcast_axis(values(x), values(y))
-    T = promote_rule(X, Y)
-    if T <: Union{}
-        return similar_type(promote_rule(Y, X), typeof(vs))(vs)
-    else
-        return similar_type(T, typeof(vs))(vs)
-    end
+    return similar_type(promote_rule(X, Y), typeof(vs))(vs)
 end
 
 broadcast_axis(ps::CombineStyle, x::X, y::Y) where {X, Y} = promote_axis_collections(x, y)
