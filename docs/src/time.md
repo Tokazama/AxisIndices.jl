@@ -53,8 +53,7 @@ julia> function Base.to_index(t::TimeAxis, i::Symbol)
 
 Now we can access the time points of this access by the `Symbols` that correspond to intervals of time.
 ```jldoctest time_axis_example
-julia> t = TimeAxis(Second(1):Second(1):Second(10))
-TimeAxis(1 second:1 second:10 seconds => Base.OneTo(10))
+julia> t = TimeAxis(Second(1):Second(1):Second(10));
 
 julia> t[:time_1] = Pair(Second(1), Second(3));
 
