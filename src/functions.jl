@@ -7,8 +7,7 @@ for fun in (:cumsum, :cumprod, :sort, :sort!)
 
     # Vector case
     @eval function Base.$fun(a::AbstractAxisIndices{T,1}; kwargs...) where {T}
-        p = Base.$fun(parent(a); kwargs...)
-        return similar_type(a, typeof(p))(p, axes(a))
+        return reconstruct(a, Base.$fun(parent(a); kwargs...), axes(a))
     end
 end
 
@@ -16,8 +15,7 @@ if VERSION > v"1.1-"
     function Base.eachslice(a::AbstractAxisIndices; dims, kwargs...)
         slices = eachslice(parent(a); dims=dims, kwargs...)
         return Base.Generator(slices) do slice
-            axs = drop_axes(a, dims)
-            return similar_type(a, typeof(slice), typeof(axs))(slice, axs)
+            return reconstruct(a, slice, drop_axes(a, dims))
         end
     end
 end
@@ -36,8 +34,7 @@ end
 for f in (:zero, :one, :copy)
     @eval begin
         function Base.$f(a::AbstractAxisIndices)
-            p = Base.$f(parent(a))
-            return similar_type(a, typeof(p))(p, axes(a))
+            return reconstruct(a, Base.$f(parent(a)), axes(a))
         end
     end
 end
@@ -60,30 +57,33 @@ end
 ################################################
 # map, collect
 
-function Base.map(f, A::AbstractAxisIndices)
-    p = map(f, parent(A))
-    return similar_type(A, typeof(p))(p, axes(A))
-end
+Base.map(f, A::AbstractAxisIndices) = reconstruct(A, map(f, parent(A)), axes(A))
 
 for f in (:map, :map!)
     # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
     @eval begin
         function Base.$f(f::F, a::AbstractArray, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
-            p = $f(f, parent(a), parent(b), parent.(cs)...)
-            axs = Broadcast.combine_axes(a, b, cs...,)
-            return similar_type(b, typeof(p), typeof(axs))(p, axs)
+            return reconstruct(
+                b,
+                $f(f, parent(a), parent(b), parent.(cs)...),
+                Broadcast.combine_axes(a, b, cs...,)
+            )
         end
 
         function Base.$f(f::F, a::AbstractAxisIndices, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
-            p = $f(f, parent(a), parent(b), parent.(cs)...)
-            axs = Broadcast.combine_axes(a, b, cs...,)
-            return similar_type(b, typeof(p), typeof(axs))(p, axs)
+            return reconstruct(
+                b,
+                $f(f, parent(a), parent(b), parent.(cs)...),
+                Broadcast.combine_axes(a, b, cs...,)
+            )
         end
 
         function Base.$f(f::F, a::AbstractAxisIndices, b::AbstractArray, cs::AbstractArray...) where {F}
-            p = $f(f, parent(a), parent(b), parent.(cs)...)
-            axs = Broadcast.combine_axes(a, b, cs...,)
-            return similar_type(a, typeof(p), typeof(axs))(p, axs)
+            return reconstruct(
+                a,
+                $f(f, parent(a), parent(b), parent.(cs)...),
+                Broadcast.combine_axes(a, b, cs...,)
+            )
         end
     end
 end

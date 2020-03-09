@@ -15,6 +15,7 @@ include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")
+
 include("functions_tests.jl")
 include("concatenation_tests.jl")
 include("array_tests.jl")

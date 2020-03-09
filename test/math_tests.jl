@@ -33,11 +33,9 @@
         @test lhs_sum == ones(3, 3, 3, 3)
         @test keys.(axes(lhs_sum)) == axs
 
-
         rhs_sum = +(zeros(3, 3, 3, 3), AxisIndicesArray(ones(3, 3, 3, 3), axs))
         @test rhs_sum == ones(3, 3, 3, 3)
         @test keys.(axes(rhs_sum)) == axs
-
 
         #= TODO
         casts = (AxisIndicesArray{(:foo, :bar)}, identity)
@@ -187,5 +185,4 @@ end
         @test cov(a; corrected=bool, dims=2)  == cov(A; corrected=bool, dims=2)
     end
 end
-
 

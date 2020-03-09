@@ -63,35 +63,35 @@ end
 
 # catch cases where get_first_axis_indices couldn't find a AbstractAxisIndices
 function _similar_type(A::AbstractAxisIndices, p, axs=axes(A))
-    return similar_type(A, typeof(p), typeof(axs))(p, axs)
+    return reconstruct(A, p, axs)
 end
 _similar_type(::Nothing, p, axs=nothing) = AxisIndicesArray(p)
+
+function _mayb_similar_axis_type(x::AbstractAxis, vs::AbstractUnitRange)
+    ks = keys(x)
+    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
+end
+
+function _mayb_similar_axis_type(x::AbstractSimpleAxis, vs::AbstractUnitRange)
+    return similar_type(x, typeof(vs))(vs)
+end
+
+_mayb_similar_axis_type(x::AbstractAxis, vs) = vs
+_mayb_similar_axis_type(x::AbstractSimpleAxis, vs) = vs
 
 for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:+, typeof(+), Real),
                      (:*, typeof(*), Real))
     @eval begin
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            ks = keys(r)
-            vs = broadcast($f, x, values(r))
-            return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
+            return _mayb_similar_axis_type(r, (broadcast($f, x, values(r))))
         end
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            ks = keys(r)
-            vs = broadcast($f, values(r), x)
-            return similar_type(r, typeof(ks), typeof(vs))(ks, vs)
-        end
-
-        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractSimpleAxis)
-            vs = broadcast($f, x, values(r))
-            return similar_type(r, typeof(vs))(vs)
-        end
-        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractSimpleAxis, x::$arg)
-            vs = broadcast($f, values(r), x)
-            return similar_type(r, typeof(vs))(vs)
+            return _mayb_similar_axis_type(r, broadcast($f, values(r), x))
         end
     end
 end
+
 
 function Broadcast.broadcast_shape(
     shape1::Tuple,
@@ -139,19 +139,7 @@ function _bcs1(a, b)
         end
     end
 end
-#=
-function _bcs1(a, b)
-    if _bcsm(b, a)
-        return broadcast_axis(b, a)
-    else
-        if _bcsm(a, b)
-            return broadcast_axis(a, b)
-        else
-            throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $(length(a)) and $(length(b))"))
-        end
-    end
-end
-=#
+
 # _bcsm tests whether the second index is consistent with the first
 _bcsm(a, b) = a == b || length(b) == 1
 _bcsm(a, b::Number) = b == 1

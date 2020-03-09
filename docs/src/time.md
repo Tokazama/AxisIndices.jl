@@ -61,6 +61,7 @@ julia> t[:time_1] == 1:3
 true
 ```
 
+And now we have a time series array.
 ```jldoctest time_axis_example
 julia> x = AxisIndicesArray(collect(1:2:20), t);
 

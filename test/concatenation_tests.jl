@@ -34,6 +34,9 @@
         # @test keys(cat(a, a, dims=(1, 2))) == (['a','b','c', 'a','b','c'], [2,3,4,5, 2,3,4,5])
     end
 
+    @test AxisIndices.cat_axis(AxisIndices.CombineStack(), [1, 2], [3, 4]) == [1, 2, 3, 4]
+    @test_throws ErrorException AxisIndices.cat_axis(AxisIndices.CombineStack(), 1:3, 3:4)
+
     #= TODO these tests break because internally this code errors
     #  allunique(('a':1:'c')[:])
     # However, chars aren't currently tested very thouroughly in this package and this would be a nice place to do it.

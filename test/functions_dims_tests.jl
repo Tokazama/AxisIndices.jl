@@ -3,10 +3,10 @@
     a = AxisIndicesArray(ones(10, 1, 1, 20), (2:11, 3:3, 4:4, 5:24))
 
     @test dropdims(a; dims=2) == ones(10, 1, 20)
-    @test keys.(axes(dropdims(a; dims=2))) == (2:11, 4:4, 5:24)
+    @test axes_keys(dropdims(a; dims=2)) == (2:11, 4:4, 5:24)
 
     @test dropdims(a; dims=(2, 3)) == ones(10, 20)
-    @test keys.(axes(dropdims(a; dims=(2, 3)))) == (2:11, 5:24)
+    @test axes_keys(dropdims(a; dims=(2, 3))) == (2:11, 5:24)
 end
 
 #= TODO
@@ -24,17 +24,17 @@ end
     a = AxisIndicesArray(rand(2, 3), (2:3, 2:4))
 
     @test selectdim(a, 1, 1) == a[1, :]
-    @test keys.(axes(selectdim(a, 1, 1))) == (2:4,)
+    @test axes_keys(selectdim(a, 1, 1)) == (2:4,)
 
     @test vec(selectdim(a, 1, 1:1)) == a[1, :]
-    @test keys.(axes(selectdim(a, 1, 1:1))) == (2:2, 2:4)
+    @test axes_keys(selectdim(a, 1, 1:1)) == (2:2, 2:4)
 end
 
 @testset "$f" for f in (adjoint, transpose, permutedims)
     @testset "Vector $f" begin
         v = AxisIndicesArray([10, 20, 30], (2:4,))
         @test f(v) == [10 20 30]
-        @test keys.(axes(f(v))) == (1:1, 2:4)
+        @test axes_keys(f(v)) == (1:1, 2:4)
 
         if f === permutedims
             # unlike adjoint and tranpose, permutedims should not be its own inverse
@@ -62,11 +62,11 @@ end
 
 @testset "permutedims" begin
     v = AxisIndicesArray([10, 20, 30], (2:4,))
-    @test keys.(axes(permutedims(transpose(v)))) == (2:4, 1:1)
+    @test axes_keys(permutedims(transpose(v))) == (2:4, 1:1)
 
     a = AxisIndicesArray(ones(10, 20, 30, 40), (2:11, 2:21, 2:31, 2:41));
-    @test (keys.(axes(permutedims(a, (1, 2, 3, 4)))) ==
-           keys.(axes(permutedims(a, 1:4))) ==
+    @test (axes_keys(permutedims(a, (1, 2, 3, 4))) ==
+           axes_keys(permutedims(a, 1:4)) ==
            (2:11, 2:21, 2:31, 2:41)
     )
 

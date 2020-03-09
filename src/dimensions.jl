@@ -78,9 +78,7 @@ permute_axes(x::AbstractMatrix) = permute_axes(axes(x))
 permute_axes(x::NTuple{2,Any}) = (last(x), first(x))
 
 function Base.permutedims(a::AbstractAxisIndices, perm)
-    p = permutedims(parent(a), perm)
-    axs = permute_axes(a, perm)
-    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    return reconstruct(a, permutedims(parent(a), perm), permute_axes(a, perm))
 end
 
 #Base.selectdim(a::AbstractAxisIndices, d::Integer, i) = selectdim(a, d, i)
@@ -92,26 +90,20 @@ for f in (
     :(LinearAlgebra.pinv))
     # Vector
     @eval function $f(a::AbstractAxisIndices{T,1}) where {T}
-        p = $f(parent(a))
-        axs = permute_axes(a)
-        return similar_type(a, typeof(p), typeof(axs))(p, axs)
+        return reconstruct(a, $f(parent(a)), permute_axes(a))
     end
 
     # Vector Double Transpose
     if f != :(Base.permutedims)
         # TODO fix CoVector
         @eval function $f(a::AbstractAxisIndices{T,2,A}) where {T,A<:CoVector}
-            p = $f(parent(a))
-            axs = (axes(a, 2),)
-            return similar_type(a, typeof(p), typeof(axs))(p, axs)
+            return reconstruct(a, $f(parent(a)), (axes(a, 2),))
         end
     end
 
     # Matrix
     @eval function $f(a::AbstractAxisIndices{T,2}) where {T}
-        p = $f(parent(a))
-        axs = permute_axes(a)
-        return similar_type(a, typeof(p), typeof(axs))(p, axs)
+        return reconstruct(a, $f(parent(a)), permute_axes(a))
     end
 end
 
@@ -155,9 +147,11 @@ end
 
 for fun in (:cor, :cov)
     @eval function Statistics.$fun(a::AbstractAxisIndices{T,2}; dims=1, kwargs...) where {T}
-        p = Statistics.$fun(parent(a); dims=dims, kwargs...)
-        axs = covcor_axes(a, dims)
-        return similar_type(a, typeof(p), typeof(axs))(p, axs)
+        return reconstruct(
+            a,
+            Statistics.$fun(parent(a); dims=dims, kwargs...),
+            covcor_axes(a, dims)
+        )
     end
 end
 
@@ -203,9 +197,7 @@ function drop_axes(x::Tuple{Vararg{<:Any,D}}, dims::NTuple{N,Int}) where {D,N}
 end
 
 function Base.dropdims(a::AxisIndicesArray; dims)
-    p = dropdims(parent(a); dims=dims)
-    axs = drop_axes(a, dims)
-    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    return reconstruct(a, dropdims(parent(a); dims=dims), drop_axes(a, dims))
 end
 
 # reshape

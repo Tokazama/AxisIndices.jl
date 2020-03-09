@@ -93,7 +93,7 @@ Notice that `==` returns a single value instead of a collection of all elements
 where the key was found to be true. This is because all keys must be unique so
 there can only ever be one element returned.
 """
-struct Axis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
+struct Axis{K,V,Ks,Vs<:AbstractUnitRange{V}} <: AbstractAxis{K,V,Ks,Vs}
     keys::Ks
     values::Vs
 
@@ -306,6 +306,10 @@ julia> using AxisIndices
 
 julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
 (UnitMRange(2:3), UnitMRange(3:4))
+
+julia> axes_keys(Axis(1:2))
+(1:2,)
+```
 """
 axes_keys(x) = map(keys, axes(x))
 axes_keys(x::AbstractAxis) = (keys(x),)

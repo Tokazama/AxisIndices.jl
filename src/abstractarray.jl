@@ -285,3 +285,7 @@ function Base.similar(
     #return AxisIndicesArray(similar(parent(a), eltype, map(length, inds)), inds)
 end
 
+
+function reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs}
+    return similar_type(A, P, Axs)(p, axs)
+end

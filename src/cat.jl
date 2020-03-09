@@ -1,58 +1,4 @@
 
-#=
-"""
-    cat_axis(x, y)
-
-Returns the concatenation of the axes `x` and `y`. New subtypes of `AbstractAxis`
-must implement a unique `cat_axis` method.
-"""
-function cat_axis(x::AbstractAxis, y::AbstractAxis)
-    ks = cat_keys(keys(x), keys(y))
-    vs = cat_values(values(x), values(y))
-    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
-end
-function cat_axis(x::AbstractSimpleAxis, y::AbstractAxis)
-    ks = cat_keys(keys(x), keys(y))
-    vs = cat_values(values(x), values(y))
-    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
-end
-function cat_axis(x::AbstractAxis, y::AbstractSimpleAxis)
-    ks = cat_keys(keys(x), keys(y))
-    vs = cat_values(values(x), values(y))
-    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
-end
-function cat_axis(x::AbstractSimpleAxis, y::AbstractSimpleAxis)
-    vs = cat_values(values(x), values(y))
-    return similar_type(x, typeof(vs))(vs)
-end
-cat_axis(x, y) = cat_values(x, y)
-"""
-    cat_keys(x, y)
-
-Returns the appropriate keys of the `x` and `y` index within the operation `cat_axis(x, y)`
-
-See also: [`cat_axis`](@ref)
-"""
-cat_keys(x, y) = __cat_keys(StaticRanges.Continuity(x), x, y)
-__cat_keys(::StaticRanges.ContinuousTrait, x, y) = set_length(x, length(x) + length(y))
-function __cat_keys(::StaticRanges.DiscreteTrait, x, y)
-    return error("No method defined for combining keys of type $(typeof(x)) and $(typeof(y)).")
-end
-
-"""
-    cat_values(x, y)
-
-Returns the appropriate values of the `x` and `y` index within the operation `cat_axis(x, y)`
-
-See also: [`cat_axis`](@ref)
-"""
-function cat_values(x::AbstractUnitRange{<:Integer}, y::AbstractUnitRange{<:Integer})
-    val, _ = promote(x, y)
-    return set_length(val, length(x) + length(y))
-end
-
-=#
-
 """
     cat_axes(x, y, dims) -> Tuple
 
@@ -182,9 +128,7 @@ end
 
 function Base.hcat(A::AbstractAxisIndices{T,N}) where {T,N}
     if N === 1
-        m = hcat(parent(A))
-        axs = (axes(A, 1), SimpleAxis(OneTo(1)))
-        return similar_type(A, typeof(m), typeof(axs))(m, axs)
+        return reconstruct(hcat(parent(A)), (axes(A, 1), SimpleAxis(OneTo(1))))
     else
         return A
     end

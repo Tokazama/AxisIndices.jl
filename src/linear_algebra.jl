@@ -20,24 +20,21 @@ function LinearAlgebra.qr!(a::AbstractAxisIndices, args...; kwargs...)
 end
 
 function _qr(a::AbstractAxisIndices, F::QR, axs::Tuple)
-    p = getfield(F, :factors)
-    return QR(similar_type(a, typeof(p), typeof(axs))(p, axs, false), F.τ)
+    return QR(reconstruct(a, getfield(F, :factors), axs), F.τ)
 end
 function Base.parent(F::QR{<:Any,<:AbstractAxisIndices})
     return QR(parent(getfield(F, :factors)), getfield(F, :τ))
 end
 
-function _qr(a::AbstractAxisIndices, inner::LinearAlgebra.QRCompactWY, inds::Tuple)
-    p = inner.factors
-    return LinearAlgebra.QRCompactWY(similar_type(a, typeof(p))(p, inds), inner.T)
+function _qr(a::AbstractAxisIndices, F::LinearAlgebra.QRCompactWY, axs::Tuple)
+    return LinearAlgebra.QRCompactWY(reconstruct(a, getfield(F, :factors), axs), F.T)
 end
 function Base.parent(F::LinearAlgebra.QRCompactWY{<:Any, <:AbstractAxisIndices})
     return LinearAlgebra.QRCompactWY(parent(getfield(F, :factors)), getfield(F, :T))
 end
 
 function _qr(a::AbstractAxisIndices, F::QRPivoted, axs::Tuple)
-    p = getfield(F, :factors)
-    return QRPivoted(similar_type(a, typeof(p))(p, axs), getfield(F, :τ), getfield(F, :jpvt))
+    return QRPivoted(reconstruct(a, getfield(F, :factors), axs), getfield(F, :τ), getfield(F, :jpvt))
 end
 function Base.parent(F::QRPivoted{<:Any, <:AbstractAxisIndices})
     return QRPivoted(parent(getfield(F, :factors)), getfield(F, :τ), getfield(F, :jpvt))
@@ -50,17 +47,13 @@ end
 function get_factorization(F::Q, A::AbstractAxisIndices, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
     inner = getproperty(F, d)
     if d === :Q
-        axs = (axes(A, 1), SimpleAxis(OneTo(size(inner, 2))))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :R
-        axs = (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     elseif F isa QRPivoted && d === :P
-        axs = (axes(A, 1), axes(A, 1))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1), axes(A, 1)))
     elseif F isa QRPivoted && d === :p
-        axs = (axes(A, 1),)
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1),))
     else
         return inner
     end
@@ -72,7 +65,7 @@ end
 if VERSION <= v"1.2"
     function LinearAlgebra.eigen(A::AbstractAxisIndices{T,N,P,AI}; kwargs...) where {T,N,P,AI}
         vals, vecs = LinearAlgebra.eigen(parent(A); kwargs...)
-        return Eigen(vals, similar_type(A, typeof(vecs), AI)(vecs, axes(A)))
+        return Eigen(vals, reconstruct(A, vecs, axes(A)))
     end
 
     function LinearAlgebra.eigvals(A::AbstractAxisIndices; kwargs...)
@@ -83,7 +76,7 @@ end
 
 function LinearAlgebra.eigen!(A::AbstractAxisIndices{T,N,P,AI}; kwargs...) where {T,N,P,AI}
     vals, vecs = LinearAlgebra.eigen!(parent(A); kwargs...)
-    return Eigen(vals, similar_type(A, typeof(vecs), AI)(vecs, axes(A)))
+    return Eigen(vals, reconstruct(A, vecs, axes(A)))
 end
 
 function LinearAlgebra.eigvals!(A::AbstractAxisIndices; kwargs...)
@@ -99,7 +92,7 @@ LinearAlgebra.lq(A::AbstractAxisIndices, args...; kws...) = lq!(copy(A), args...
 function LinearAlgebra.lq!(A::AbstractAxisIndices, args...; kwargs...)
     F = lq!(parent(A), args...; kwargs...)
     inner = getfield(F, :factors)
-    return LQ(similar_type(A, typeof(inner))(inner, axes(A)), getfield(F, :τ))
+    return LQ(reconstruct(A, inner, axes(A)), getfield(F, :τ))
 end
 function Base.parent(F::LQ{T,<:AbstractAxisIndices}) where {T}
     return LQ(parent(getfield(F, :factors)), getfield(F, :τ))
@@ -112,11 +105,9 @@ end
 function get_factorization(F::LQ, A::AbstractAxisIndices, d::Symbol)
     inner = getproperty(F, d)
     if d === :L
-        axs = (axes(A, 1), SimpleAxis(OneTo(size(inner, 2))))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :Q
-        axs = (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     else
         return inner
     end
@@ -144,17 +135,13 @@ end
 function get_factorization(F::LU, A::AbstractAxisIndices, d::Symbol)
     inner = getproperty(F, d)
     if d === :L
-        axs = (axes(A, 1), SimpleAxis(OneTo(size(inner, 2))))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :U
-        axs = (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     elseif d === :P
-        axs = (axes(A, 1), axes(A, 1))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1), axes(A, 1)))
     elseif d === :p
-        axs = (axes(A, 1),)
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1),))
     else
         return inner
     end
@@ -212,14 +199,11 @@ end
 function get_factorization(F::SVD, A::AbstractAxisIndices, d::Symbol)
     inner = getproperty(F, d)
     if d === :U
-        axs = (axes(A, 1), SimpleAxis(OneTo(size(inner, 2))))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :V
-        axs = (axes(A, 2), SimpleAxis(OneTo(size(inner, 2))))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (axes(A, 2), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :Vt
-        axs = (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2))
-        return similar_type(A, typeof(inner), typeof(axs))(inner, axs)
+        return reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     else  # d === :S
         return inner
     end
@@ -256,9 +240,7 @@ function diagonal_axes(x::NTuple{2,Any})
 end
 
 function Base.inv(a::AbstractAxisIndices{T,2}) where {T}
-    p = inv(parent(a))
-    axs = permute_axes(axes(a))
-    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    return reconstruct(a, inv(parent(a)), permute_axes(axes(a)))
 end
 
 """
@@ -409,9 +391,7 @@ function Base.:*(a::AbstractAxisIndices{T1,2}, b::Diagonal{T2}) where {T1,T2}
 end
 
 _matmul(A, ::Type{T}, a::T, axs) where {T} = a
-function _matmul(A, ::Type{T}, a::AbstractArray{T}, axs) where {T}
-    return similar_type(A, typeof(a), typeof(axs))(a, axs)
-end
+_matmul(A, ::Type{T}, a::AbstractArray{T}, axs) where {T} = reconstruct(A, a, axs)
 
 
 
