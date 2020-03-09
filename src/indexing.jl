@@ -240,8 +240,7 @@ reindex(axs::Tuple{}, inds::Tuple{}) = ()
     unsafe_reindex(a::AbstractAxis, inds::AbstractVector) -> AbstractAxis
 
 Similar to `reindex` this function returns an index of the same type as `a` but
-doesn't check that `inds` is inbounds. New subtypes of `AbstractAxis` must
-implement a unique `unsafe_reindex` method.
+doesn't check that `inds` is inbounds.
 
 See also: [`reindex`](@ref)
 
@@ -257,14 +256,11 @@ SimpleAxis(OneToSRange(5))
 ```
 """
 function unsafe_reindex(a::AbstractAxis, inds)
-    error("New subtypes of `AbstractAxis` must implement a unique `unsafe_reindex` method.")
-end
-function unsafe_reindex(a::Axis, inds)
     ks = @inbounds(keys(a)[inds])
     vs = _reindex(values(a), inds)
     return similar_type(a, typeof(ks), typeof(vs))(ks, vs)
 end
-function unsafe_reindex(a::SimpleAxis, inds)
+function unsafe_reindex(a::AbstractSimpleAxis, inds)
     vs = _reindex(values(a), inds)
     return similar_type(a, typeof(vs))(vs)
 end
@@ -314,7 +310,6 @@ end
         return _getindex(a, to_index(a, first(i)))
     end
 end
-
 
 _getindex(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
 function _getindex(a::AbstractAxis, inds::AbstractUnitRange)

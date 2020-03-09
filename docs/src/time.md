@@ -8,6 +8,24 @@ julia> using AxisIndices, Dates
 julia> struct TimeAxis{K<:Dates.AbstractTime,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
            axis::Axis{K,V,Ks,Vs}
            times::Dict{Symbol,Pair{K,K}}
+           function TimeAxis{K,V,Ks,Vs}(axis::Axis{K,V,Ks,Vs}, times::Dict{Symbol,Pair{K,K}}) where {K,V,Ks,Vs}
+               return new{K,V,Ks,Vs}(axis, times)
+           end
+           function TimeAxis{K,V,Ks,Vs}(args...; kwargs...) where {K,V,Ks,Vs}
+               d = Dict{Symbol,Pair{K,K}}()
+               for (k,v) in kwargs
+                   d[k] = v
+               end
+               return new{K,V,Ks,Vs}(Axis{K,V,Ks,Vs}(args...), d)
+           end
+           function TimeAxis(args...; kwargs...)
+               ax = Axis(args...)
+               d = Dict{Symbol,Pair{keytype(ax),keytype(ax)}}()
+               for (k,v) in kwargs
+                   d[k] = v
+               end
+               return new{keytype(ax),valtype(ax),keys_type(ax),values_type(ax)}(ax, d)
+           end
        end
 
 julia> Base.keys(t::TimeAxis) = keys(getfield(t, :axis))
@@ -21,22 +39,6 @@ julia> function AxisIndices.similar_type(
           ) where {K,V,Ks,Vs}
            return TimeAxis{eltype(new_keys_type),eltype(new_values_type),new_keys_type,new_values_type}
        end
-
-julia> function TimeAxis{K,V,Ks,Vs}(args...; kwargs...) where {K,V,Ks,Vs}
-           TimeAxis(Axis{K,V,Ks,Vs}(args...); kwargs...)
-       end
-
-julia> function TimeAxis(t::AbstractAxis{K}; kwargs...) where {K}
-           d = Dict{Symbol,Pair{K,K}}()
-           for (k,v) in kwargs
-               d[k] = v
-           end
-           return TimeAxis(Axis(t), d)
-       end
-TimeAxis
-
-julia> TimeAxis(ts::AbstractRange{K}; kwargs...) where {K} = TimeAxis(Axis(ts); kwargs...)
-TimeAxis
 ```
 
 Here are some extras to make it more useful.
@@ -58,5 +60,12 @@ julia> t[:time_1] = Pair(Second(1), Second(3));
 
 julia> t[:time_1]
 TimeAxis(1 second:1 second:3 seconds => 1:3)
+```
+
+```jldoctest time_axis_example
+julia> x = AxisIndicesArray(collect(1:2:20), t);
+
+julia> x[:time_1] == [1, 3, 5]
+true
 ```
 

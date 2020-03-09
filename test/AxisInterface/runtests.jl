@@ -17,8 +17,6 @@ function AxisIndices.StaticRanges.similar_type(
     return Axis2{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
 end
 
-@test_throws ErrorException AxisIndices.unsafe_reindex(Axis2(1:2, 1:2), 1:2)
-
 @testset "array interface" begin
     a1 = Axis(2:3 => 1:2)
 
