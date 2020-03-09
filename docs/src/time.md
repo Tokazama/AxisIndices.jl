@@ -58,14 +58,20 @@ TimeAxis(1 second:1 second:10 seconds => Base.OneTo(10))
 
 julia> t[:time_1] = Pair(Second(1), Second(3));
 
-julia> t[:time_1]
-TimeAxis(1 second:1 second:3 seconds => 1:3)
+julia> t[:time_1] == 1:3
+true
 ```
 
 ```jldoctest time_axis_example
 julia> x = AxisIndicesArray(collect(1:2:20), t);
 
-julia> x[:time_1] == [1, 3, 5]
-true
+julia> x[:time_1]
+1-dimensional AxisIndicesArray{Int64,1,Array{Int64,1}...}
+
+   1 second   1.0
+  2 seconds   3.0
+  3 seconds   5.0
+
+
 ```
 

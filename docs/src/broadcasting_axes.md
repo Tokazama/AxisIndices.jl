@@ -49,8 +49,8 @@ In this instance we clearly want to apply some sort of label along an axis and t
 ```jldoctest broadcast_examples
 julia> d = AxisIndicesArray(a, [:a, :b, :c]);
 
-julia> axes_keys(a .+ d)
-(Symbol[:a, :b, :c],)
+julia> axes_keys(a .+ d, 1) == [:a, :b, :c]
+true
 ```
 The term **key specific promotion** is used because it is only sensible in the context of keys.
 
@@ -60,8 +60,8 @@ Finally, if both key types are non `Real` then **order of arguments** determines
 julia> axes_keys(c .+ d)
 (["1", "2", "3"],)
 
-julia> axes_keys(d .+ c)
-(Symbol[:a, :b, :c],)
+julia> axes_keys(d .+ c, 1) == [:a, :b, :c]
+true
 ```
 
 Customizing broadcasting behavior should be accomplished through either `AxisIndices.CombineStyle` or `AxisIndices.broadcast_axis`.
