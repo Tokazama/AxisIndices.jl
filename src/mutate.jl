@@ -70,6 +70,15 @@ function Base.popfirst!(A::AbstractAxisIndices{T,1}) where {T}
 end
 
 ###
+### append!
+###
+function Base.append!(A::AbstractAxisIndices{T,1}, collection) where {T}
+    append_axis!(axes(A, 1), axes(collection, 1))
+    append!(parent(A), collection)
+    return A
+end
+
+###
 ### empty
 ###
 function Base.empty!(a::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
@@ -98,109 +107,6 @@ function Base.empty!(a::AbstractAxisIndices)
 end
 
 Base.isempty(a::AbstractAxis) = isempty(values(a))
-
-###
-###
-###
-
-"""
-    append_axis(x, y)
-
-Returns the appended axes `x` and `y`. New subtypes of `AbstractAxis` must
-implement a unique `append_axis` method.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> append_axis(Axis(UnitMRange(1, 10)), SimpleAxis(UnitMRange(1, 10)))
-Axis(UnitMRange(1:20) => UnitMRange(1:20))
-
-julia> append_axis(SimpleAxis(UnitMRange(1, 10)), SimpleAxis(UnitMRange(1, 10)))
-SimpleAxis(UnitMRange(1:20))
-```
-"""
-function append_axis(x::AbstractAxis, y::AbstractAxis)
-    return Axis(append_keys(keys(x), keys(y)), append_values(values(y), values(y)))
-end
-function append_axis(x::AbstractSimpleAxis, y::AbstractAxis)
-    return Axis(append_keys(keys(x), keys(y)), append_values(values(y), values(y)))
-end
-function append_axis(x::AbstractAxis, y::AbstractSimpleAxis)
-    return Axis(append_keys(keys(x), keys(y)), append_values(values(y), values(y)))
-end
-function append_axis(x::AbstractSimpleAxis, y::AbstractSimpleAxis)
-    return SimpleAxis(append_values(values(y), values(y)))
-end
-
-function append_axis(x, y)
-    if same_type(x, y)
-        return append_values(x, y)
-    else
-        return append_axis(promote(x, y)...)
-    end
-end
-
-"""
-    append_keys(x, y)
-
-Returns the appropriate keys of and index within the operation `append_axis(x, y)`
-
-See also: [`append_axis`](@ref)
-"""
-append_keys(x, y) = cat_keys(x, y)
-
-"""
-    append_values(x, y)
-
-Returns the appropriate values of and index within the operation `append_axis(x, y)`
-
-See also: [`append_axis`](@ref)
-"""
-append_values(x, y) = cat_values(x, y)
-
-"""
-    append_axis!(x, y)
-
-Returns the appended axes `x` and `y`. New subtypes of `AbstractAxis` must
-implement a unique `append_axis!` method.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> x, y = Axis(UnitMRange(1, 10)), SimpleAxis(UnitMRange(1, 10));
-
-julia> append_axis!(x, y);
-
-julia> length(x)
-20
-
-julia> append_axis!(y, x);
-
-julia> length(y)
-30
-```
-"""
-function append_axis!(x::AbstractAxis{K,V,Ks,Vs}, y) where {K,V,Ks,Vs}
-    _append_keys!(keys(x), y)
-    set_length!(values(x), length(x) + length(y))
-    return x
-end
-function append_axis!(x::AbstractSimpleAxis{V,Vs}, y) where {V,Vs}
-    set_length!(x, length(x) + length(y))
-    return x
-end
-
-_append_keys!(x, y) = __append_keys!(StaticRanges.Continuity(x), x, y)
-__append_keys!(::StaticRanges.ContinuousTrait, x, y) = set_length!(x, length(x) + length(y))
-__append_keys!(::StaticRanges.DiscreteTrait, x, y) = make_unique!(x, keys(y))
-
-function Base.append!(A::AbstractAxisIndices{T,1}, collection) where {T}
-    append_axis!(axes(A, 1), axes(collection, 1))
-    append!(parent(A), collection)
-    return A
-end
 
 ###
 ### resize
@@ -292,14 +198,14 @@ julia> using AxisIndices
 
 julia> x = collect(1:5);
 
-julia> resize_first!(x, 2);
+julia> AxisIndices.resize_first!(x, 2);
 
 julia> x
 2-element Array{Int64,1}:
  4
  5
 
-julia> resize_first!(x, 6);
+julia> AxisIndices.resize_first!(x, 6);
 
 julia> x
 6-element Array{Int64,1}:
@@ -335,14 +241,14 @@ julia> using AxisIndices
 
 julia> x = collect(1:5);
 
-julia> resize_last!(x, 2);
+julia> AxisIndices.resize_last!(x, 2);
 
 julia> x
 2-element Array{Int64,1}:
  1
  2
 
-julia> resize_last!(x, 5);
+julia> AxisIndices.resize_last!(x, 5);
 
 julia> x
 5-element Array{Int64,1}:
@@ -378,12 +284,12 @@ julia> using AxisIndices
 
 julia> x = collect(1:5);
 
-julia> resize_first(x, 2)
+julia> AxisIndices.resize_first(x, 2)
 2-element Array{Int64,1}:
  4
  5
 
-julia> resize_first(x, 7)
+julia> AxisIndices.resize_first(x, 7)
 7-element Array{Int64,1}:
  -1
   0
@@ -393,7 +299,7 @@ julia> resize_first(x, 7)
   4
   5
 
-julia> resize_first(x, 5)
+julia> AxisIndices.resize_first(x, 5)
 5-element Array{Int64,1}:
  1
  2
@@ -426,12 +332,12 @@ julia> using AxisIndices
 
 julia> x = collect(1:5);
 
-julia> resize_last(x, 2)
+julia> AxisIndices.resize_last(x, 2)
 2-element Array{Int64,1}:
  1
  2
 
-julia> resize_last(x, 7)
+julia> AxisIndices.resize_last(x, 7)
 7-element Array{Int64,1}:
  1
  2
@@ -441,7 +347,7 @@ julia> resize_last(x, 7)
  6
  7
 
-julia>  resize_last(x, 5)
+julia>  AxisIndices.resize_last(x, 5)
 5-element Array{Int64,1}:
  1
  2
@@ -477,7 +383,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> grow_first!(mr, 2);
+julia> AxisIndices.grow_first!(mr, 2);
 
 julia> mr
 UnitMRange(-1:10)
@@ -501,7 +407,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> grow_last!(mr, 2);
+julia> AxisIndices.grow_last!(mr, 2);
 
 julia> mr
 UnitMRange(1:12)
@@ -525,7 +431,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> grow_first(mr, 2)
+julia> AxisIndices.grow_first(mr, 2)
 UnitMRange(-1:10)
 ```
 """
@@ -547,7 +453,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> grow_last(mr, 2)
+julia> AxisIndices.grow_last(mr, 2)
 UnitMRange(1:12)
 ```
 """
@@ -582,7 +488,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> shrink_last!(mr, 2);
+julia> AxisIndices.shrink_last!(mr, 2);
 
 julia> mr
 UnitMRange(1:8)
@@ -608,7 +514,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> shrink_first(mr, 2)
+julia> AxisIndices.shrink_first(mr, 2)
 UnitMRange(3:10)
 ```
 """
@@ -627,7 +533,7 @@ julia> using AxisIndices
 julia> mr = UnitMRange(1, 10)
 UnitMRange(1:10)
 
-julia> shrink_last(mr, 2)
+julia> AxisIndices.shrink_last(mr, 2)
 UnitMRange(1:8)
 ```
 """

@@ -9,16 +9,16 @@ dimensions `dims`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> reduce_axes(rand(2, 4), 2)
+julia> AxisIndices.reduce_axes(rand(2, 4), 2)
 (Base.OneTo(2), Base.OneTo(1))
 
-julia> reduce_axes(rand(2, 4), (1,2))
+julia> AxisIndices.reduce_axes(rand(2, 4), (1,2))
 (Base.OneTo(1), Base.OneTo(1))
 
-julia> reduce_axes(rand(2, 4), :)
+julia> AxisIndices.reduce_axes(rand(2, 4), :)
 ()
 
-julia> reduce_axes((Axis(1:4), Axis(1:4)), 2)
+julia> AxisIndices.reduce_axes((Axis(1:4), Axis(1:4)), 2)
 (Axis(1:4 => Base.OneTo(4)), Axis(1:1 => Base.OneTo(1)))
 ```
 """
@@ -42,10 +42,10 @@ See also: [`reduce_axes`](@ref)
 ```jldoctest
 julia> using AxisIndices
 
-julia> reduce_axis(Axis(1:4))
+julia> AxisIndices.reduce_axis(Axis(1:4))
 Axis(1:1 => Base.OneTo(1))
 
-julia> reduce_axis(1:4)
+julia> AxisIndices.reduce_axis(1:4)
 1:1
 ```
 """

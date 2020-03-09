@@ -233,7 +233,7 @@ end
 
 Determines the appropriate axis for the resulting vector from a call to
 `diag(::AxisIndicesMatrix)`. The default behavior is to place the smallest axis
-at the beginning of a call to `combine_axis` (e.g., `combine_axis(small_axis, big_axis)`).
+at the beginning of a call to `combine` (e.g., `broadcast_axis(small_axis, big_axis)`).
 
 ## Examples
 ```jldoctest
@@ -249,36 +249,15 @@ Axis(["1", "2", "3"] => UnitMRange(1:3))
 function diagonal_axes(x::NTuple{2,Any})
     m, n = length(first(x)), length(last(x))
     if m > n
-        return combine_axis(last(x), first(x))
+        return broadcast_axis(last(x), first(x))
     else
-        return combine_axis(first(x), last(x))
+        return broadcast_axis(first(x), last(x))
     end
 end
 
-"""
-    inverse_axes(a::AbstractMatrix) = inverse_axes(axes(a))
-    inverse_axes(a::Tuple{I1,I2}) -> Tuple{I2,I1}
-
-Returns the inverted axes of `a`, corresponding to the `inv` method from the 
-`LinearAlgebra` package in the standard library.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> inverse_axes(rand(2,4))
-(Base.OneTo(4), Base.OneTo(2))
-
-julia> inverse_axes((Axis(1:2), Axis(1:4)))
-(Axis(1:4 => Base.OneTo(4)), Axis(1:2 => Base.OneTo(2)))
-```
-"""
-inverse_axes(x::AbstractMatrix) = inverse_axes(axes(x))
-inverse_axes(x::Tuple{I1,I2}) where {I1,I2} = (last(x), first(x))
-
 function Base.inv(a::AbstractAxisIndices{T,2}) where {T}
     p = inv(parent(a))
-    axs = inverse_axes(a)
+    axs = permute_axes(axes(a))
     return similar_type(a, typeof(p), typeof(axs))(p, axs)
 end
 
@@ -312,7 +291,7 @@ julia> keys.(axes(F.P))
 (2:3, 2:3)
 
 julia> keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
-(2:3, 3:4)
+(2:3, UnitMRange(3:4))
 ```
 
 ## LU Factorization
@@ -383,22 +362,22 @@ julia> using AxisIndices
 
 julia> axs2, axs1 = (Axis(1:2), Axis(1:4)), (Axis(1:6),);
 
-julia> matmul_axes(axs2, axs2)
+julia> AxisIndices.matmul_axes(axs2, axs2)
 (Axis(1:2 => Base.OneTo(2)), Axis(1:4 => Base.OneTo(4)))
 
-julia> matmul_axes(axs1, axs2)
+julia> AxisIndices.matmul_axes(axs1, axs2)
 (Axis(1:6 => Base.OneTo(6)), Axis(1:4 => Base.OneTo(4)))
 
-julia> matmul_axes(axs2, axs1)
+julia> AxisIndices.matmul_axes(axs2, axs1)
 (Axis(1:2 => Base.OneTo(2)),)
 
-julia> matmul_axes(axs1, axs1)
+julia> AxisIndices.matmul_axes(axs1, axs1)
 ()
 
-julia> matmul_axes(rand(2, 4), rand(4, 2))
+julia> AxisIndices.matmul_axes(rand(2, 4), rand(4, 2))
 (Base.OneTo(2), Base.OneTo(2))
 
-julia> matmul_axes(CartesianAxes((2,4)), CartesianAxes((4, 2))) == matmul_axes(rand(2, 4), rand(4, 2))
+julia> AxisIndices.matmul_axes(CartesianAxes((2,4)), CartesianAxes((4, 2))) == AxisIndices.matmul_axes(rand(2, 4), rand(4, 2))
 true
 ```
 """

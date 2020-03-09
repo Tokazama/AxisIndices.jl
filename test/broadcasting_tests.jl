@@ -1,5 +1,6 @@
 @testset "Binary broadcasting operations (.+)" begin
 
+    #= TODO moved to docs
     @testset "standard case" begin
         a = AxisIndicesArray(ones(3), (2:4,))
         @test a .+ a == 2ones(3)
@@ -10,6 +11,7 @@
 
         @test (a .= 0 .* a .+ 7) == [7, 7, 7]
     end
+    =#
 
     #= TODO Need to explain how order matters
     @testset "Order matters" begin

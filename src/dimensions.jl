@@ -10,10 +10,10 @@ Returns axes of `x` in the order of `p`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> permute_axes(rand(2, 4, 6), (1, 3, 2))
+julia> AxisIndices.permute_axes(rand(2, 4, 6), (1, 3, 2))
 (Base.OneTo(2), Base.OneTo(6), Base.OneTo(4))
 
-julia> permute_axes((Axis(1:2), Axis(1:4), Axis(1:6)), (1, 3, 2))
+julia> AxisIndices.permute_axes((Axis(1:2), Axis(1:4), Axis(1:6)), (1, 3, 2))
 (Axis(1:2 => Base.OneTo(2)), Axis(1:6 => Base.OneTo(6)), Axis(1:4 => Base.OneTo(4)))
 ```
 """
@@ -32,16 +32,16 @@ Returns the permuted axes of `x` as axes of size 1 × length(x)
 ```jldoctest
 julia> using AxisIndices
 
-julia> length.(permute_axes(rand(4))) == (1, 4)
+julia> length.(AxisIndices.permute_axes(rand(4))) == (1, 4)
 true
 
-julia> permute_axes((Axis(1:4),))
+julia> AxisIndices.permute_axes((Axis(1:4),))
 (SimpleAxis(Base.OneTo(1)), Axis(1:4 => Base.OneTo(4)))
 
-julia> permute_axes((Axis(mrange(1, 4)),))
+julia> AxisIndices.permute_axes((Axis(mrange(1, 4)),))
 (SimpleAxis(OneToMRange(1)), Axis(UnitMRange(1:4) => OneToMRange(4)))
 
-julia> permute_axes((Axis(srange(1, 4)),))
+julia> AxisIndices.permute_axes((Axis(srange(1, 4)),))
 (SimpleAxis(OneToSRange(1)), Axis(UnitSRange(1:4) => OneToSRange(4)))
 ```
 """
@@ -67,10 +67,10 @@ not recursive.
 ```jldoctest
 julia> using AxisIndices
 
-julia> permute_axes(rand(4, 2))
+julia> AxisIndices.permute_axes(rand(4, 2))
 (Base.OneTo(2), Base.OneTo(4))
 
-julia> permute_axes((Axis(1:4), Axis(1:2)))
+julia> AxisIndices.permute_axes((Axis(1:4), Axis(1:2)))
 (Axis(1:2 => Base.OneTo(2)), Axis(1:4 => Base.OneTo(4)))
 ```
 """
@@ -124,20 +124,20 @@ Returns appropriate axes for a `cov` or `var` method on array `x`.
 ```jldoctest covcor_axes_examples
 julia> using AxisIndices
 
-julia> covcor_axes(rand(2,4), 1)
+julia> AxisIndices.covcor_axes(rand(2,4), 1)
 (Base.OneTo(4), Base.OneTo(4))
 
-julia> covcor_axes((Axis(1:4), Axis(1:6)), 2)
+julia> AxisIndices.covcor_axes((Axis(1:4), Axis(1:6)), 2)
 (Axis(1:4 => Base.OneTo(4)), Axis(1:4 => Base.OneTo(4)))
 
-julia> covcor_axes((Axis(1:4), Axis(1:4)), 1)
+julia> AxisIndices.covcor_axes((Axis(1:4), Axis(1:4)), 1)
 (Axis(1:4 => Base.OneTo(4)), Axis(1:4 => Base.OneTo(4)))
 ```
 
 Each axis is resized to equal to the smallest sized dimension if given a dimensional
 argument greater than 2.
 ```jldoctest covcor_axes_examples
-julia> covcor_axes((Axis(2:4), Axis(3:4)), 3)
+julia> AxisIndices.covcor_axes((Axis(2:4), Axis(3:4)), 3)
 (Axis(3:4 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
 ```
 """
@@ -174,13 +174,13 @@ julia> using AxisIndices
 
 julia> axs = (Axis(1:5), Axis(1:10));
 
-julia> drop_axes(axs, 1)
+julia> AxisIndices.drop_axes(axs, 1)
 (Axis(1:10 => Base.OneTo(10)),)
 
-julia> drop_axes(axs, 2)
+julia> AxisIndices.drop_axes(axs, 2)
 (Axis(1:5 => Base.OneTo(5)),)
 
-julia> drop_axes(rand(2, 4), 2)
+julia> AxisIndices.drop_axes(rand(2, 4), 2)
 (Base.OneTo(2),)
 ```
 """

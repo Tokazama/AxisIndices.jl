@@ -1,0 +1,62 @@
+# TimeAxis
+
+Here we define an axis that specifically supports time.
+This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
+```jldoctest time_axis_example
+julia> using AxisIndices, Dates
+
+julia> struct TimeAxis{K<:Dates.AbstractTime,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
+           axis::Axis{K,V,Ks,Vs}
+           times::Dict{Symbol,Pair{K,K}}
+       end
+
+julia> Base.keys(t::TimeAxis) = keys(getfield(t, :axis))
+
+julia> Base.values(t::TimeAxis) = values(getfield(t, :axis))
+
+julia> function AxisIndices.similar_type(
+           t::TimeAxis{K,V,Ks,Vs},
+           new_keys_type::Type=Ks,
+           new_values_type::Type=Vs
+          ) where {K,V,Ks,Vs}
+           return TimeAxis{eltype(new_keys_type),eltype(new_values_type),new_keys_type,new_values_type}
+       end
+
+julia> function TimeAxis{K,V,Ks,Vs}(args...; kwargs...) where {K,V,Ks,Vs}
+           TimeAxis(Axis{K,V,Ks,Vs}(args...); kwargs...)
+       end
+
+julia> function TimeAxis(t::AbstractAxis{K}; kwargs...) where {K}
+           d = Dict{Symbol,Pair{K,K}}()
+           for (k,v) in kwargs
+               d[k] = v
+           end
+           return TimeAxis(Axis(t), d)
+       end
+TimeAxis
+
+julia> TimeAxis(ts::AbstractRange{K}; kwargs...) where {K} = TimeAxis(Axis(ts); kwargs...)
+TimeAxis
+```
+
+Here are some extras to make it more useful.
+```jldoctest time_axis_example
+julia> Base.setindex!(t::TimeAxis, val, i::Symbol) = t.times[i] = val
+
+julia> function Base.to_index(t::TimeAxis, i::Symbol)
+           f, l = t.times[i]
+           return Base.to_index(t, and(>=(f), <=(l)))
+       end
+```
+
+Now we can access the time points of this access by the `Symbols` that correspond to intervals of time.
+```jldoctest time_axis_example
+julia> t = TimeAxis(Second(1):Second(1):Second(10))
+TimeAxis(1 second:1 second:10 seconds => Base.OneTo(10))
+
+julia> t[:time_1] = Pair(Second(1), Second(3));
+
+julia> t[:time_1]
+TimeAxis(1 second:1 second:3 seconds => 1:3)
+```
+

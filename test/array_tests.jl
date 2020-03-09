@@ -9,7 +9,7 @@
     x[CartesianIndex(2,2)] = 5
     @test x[CartesianIndex(2,2)] == 5
 
-    @test keys.(axes(similar(x, (2:3, 4:5)))) == (2:3, 4:5)
+    @test axes_keys(similar(x, (2:3, 4:5))) == (2:3, 4:5)
     @test eltype(similar(x, Float64, (2:3, 4:5))) <: Float64
     @test_throws ErrorException AxisIndicesArray(rand(2,2), (2:9,2:1))
 end

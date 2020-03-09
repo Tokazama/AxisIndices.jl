@@ -1,4 +1,7 @@
-using AxisIndices, Test, Statistics, LinearAlgebra, StaticRanges, Documenter
+using AxisIndices, Test, Statistics, LinearAlgebra, StaticRanges, Documenter, Dates
+using AxisIndices: resize_last, resize_last!, resize_first, resize_first!, reduce_axis
+using AxisIndices: shrink_last, shrink_last!, grow_last, grow_last!
+
 using Base: step_hp, OneTo
 
 
@@ -19,5 +22,5 @@ include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 
 @testset "docs" begin
-    doctest(AxisIndices; manual=false)
+    doctest(AxisIndices)
 end

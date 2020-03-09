@@ -78,8 +78,12 @@ end
 ###
 ### to_index
 ###
-@propagate_inbounds function Base.to_index(x::AbstractAxis, i::KeyIndexType)
-    return _maybe_throw_boundserror(x, findfirst(==(i), keys(x)))
+@propagate_inbounds function Base.to_index(x::AbstractAxis, i::T) where {T}
+    if is_key_type(T)
+        return _maybe_throw_boundserror(x, findfirst(==(i), keys(x)))
+    else
+        return _maybe_throw_boundserror(x, Int(i))
+    end
 end
 
 @propagate_inbounds function Base.to_index(x::AbstractAxis, f::Base.Fix2{<:Union{typeof(isequal),typeof(==)}})
@@ -109,8 +113,12 @@ end
     return to_index(inds)
 end
 
-@propagate_inbounds function Base.to_index(x::AbstractAxis, inds::AbstractVector{T}) where {T<:KeyIndexType}
-    return _maybe_throw_boundserror(x, find_all(in(inds), keys(x)))
+@propagate_inbounds function Base.to_index(x::AbstractAxis, inds::AbstractVector{T}) where {T}
+    if is_key_type(T)
+        return _maybe_throw_boundserror(x, find_all(in(inds), keys(x)))
+    else
+        return _maybe_throw_boundserror(x, inds)  # TODO should probably promote this somehow to Int elments
+    end
 end
 
 ###
@@ -140,6 +148,12 @@ end
 @inline function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{Bool, N}, Vararg{Any}}) where N
     _, indstail = Base.IteratorsMD.split(inds, Val(N))
     return (to_index(A, I[1]), to_indices(A, indstail, tail(I))...)
+end
+
+
+@inline function Base.to_indices(A::AbstractAxis, I::Tuple{Any})
+    return (Base.to_index(A, first(I)),)
+    #(@_inline_meta; to_indices(A, (eachindex(IndexLinear(), A),), I))
 end
 
 maybetail(::Tuple{}) = ()
@@ -245,8 +259,15 @@ SimpleAxis(OneToSRange(5))
 function unsafe_reindex(a::AbstractAxis, inds)
     error("New subtypes of `AbstractAxis` must implement a unique `unsafe_reindex` method.")
 end
-unsafe_reindex(a::Axis, inds) = Axis(@inbounds(keys(a)[inds]), _reindex(values(a), inds))
-unsafe_reindex(a::SimpleAxis, inds) = SimpleAxis(_reindex(values(a), inds))
+function unsafe_reindex(a::Axis, inds)
+    ks = @inbounds(keys(a)[inds])
+    vs = _reindex(values(a), inds)
+    return similar_type(a, typeof(ks), typeof(vs))(ks, vs)
+end
+function unsafe_reindex(a::SimpleAxis, inds)
+    vs = _reindex(values(a), inds)
+    return similar_type(a, typeof(vs))(vs)
+end
 
 _reindex(a::OneTo{T}, inds) where {T} = OneTo{T}(length(inds))
 _reindex(a::OneToMRange{T}, inds) where {T} = OneToMRange{T}(length(inds))
@@ -257,28 +278,59 @@ _reindex(a::T, inds) where {T<:AbstractUnitRange} = T(first(a), first(a) + lengt
 ###
 ### getindex
 ###
-# have to define several getindex methods to avoid ambiguities with other unit ranges
-@propagate_inbounds function Base.getindex(a::AbstractAxis{K,<:Integer}, inds::AbstractUnitRange{<:Integer}) where {K}
+#=
+We have to define several index types (AbstractUnitRange, Integer, and i...) in
+order to avoid ambiguities.
+=#
+@propagate_inbounds function Base.getindex(
+    a::AbstractAxis{K,V,Ks,Vs},
+    inds::AbstractUnitRange{<:Integer}
+    )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     @boundscheck checkbounds(a, inds)
     @inbounds return _getindex(a, inds)
 end
-@propagate_inbounds function Base.getindex(a::AbstractAxis{K,<:Integer}, i::Integer) where {K}
+
+@propagate_inbounds function Base.getindex(
+    a::AbstractAxis{K,V,Ks,Vs},
+    i::Integer
+    )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     @boundscheck checkbounds(a, i)
     @inbounds return _getindex(a, i)
 end
-@propagate_inbounds function Base.getindex(a::AbstractAxis, inds::Function)
+@propagate_inbounds function Base.getindex(
+    a::AbstractAxis{K,V,Ks,Vs},
+    inds::Function
+    ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     return getindex(a, to_index(a, inds))
 end
 
-function _getindex(a::AbstractAxis, inds)
+@propagate_inbounds function Base.getindex(
+    a::AbstractAxis{K,V,Ks,Vs},
+    i...
+    ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+    if length(i) > 1
+        error(BoundsError(a, i...))
+    else
+        return _getindex(a, to_index(a, first(i)))
+    end
+end
+
+
+_getindex(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
+function _getindex(a::AbstractAxis, inds::AbstractUnitRange)
     ks = @inbounds(keys(a)[inds])
     vs = @inbounds(values(a)[inds])
     return similar_type(a, typeof(ks), typeof(vs))(ks, vs, allunique(inds), false)
 end
 _getindex(a::AbstractAxis, i::Integer) = @inbounds(values(a)[i])
 
-_getindex(a::SimpleAxis, inds) = SimpleAxis(@inbounds(values(a)[inds]))
-_getindex(a::SimpleAxis, i::Integer) = @inbounds(values(a)[i])
+
+_getindex(a::AbstractSimpleAxis, inds) = @inbounds(values(a)[inds])
+function _getindex(a::AbstractSimpleAxis, inds::AbstractUnitRange)
+    ks = @inbounds(values(a)[inds])
+    return similar_type(a, typeof(ks))(ks)
+end
+_getindex(a::AbstractSimpleAxis, i::Integer) = @inbounds(values(a)[i])
 # TODO Type inference for things that we know produce UnitRange/GapRange, etc
 
 @propagate_inbounds function Base.setindex!(a::AbstractAxisIndices, value, inds...)

@@ -9,26 +9,6 @@ AxisIndices.AbstractAxisIndices
 AxisIndices.AxisIndicesArray
 ```
 
-## Concatenating Arrays With Axes
-
-```@docs
-AxisIndices.cat_axes
-AxisIndices.hcat_axes
-AxisIndices.vcat_axes
-AxisIndices.cat_axis
-AxisIndices.cat_values
-AxisIndices.cat_keys
-```
-
-## Mutating Methods
-
-```@docs
-AxisIndices.append_axis
-AxisIndices.append_axis!
-AxisIndices.append_keys
-AxisIndices.append_values
-```
-
 ## Swapping Dimensions
 
 ### Drop Dimensions
@@ -50,12 +30,6 @@ AxisIndices.covcor_axes
 ```
 
 ## Linear Algebra
-
-### Inverse Array
-
-```@docs
-AxisIndices.inverse_axes
-```
 
 ### Matrix Multiplication
 

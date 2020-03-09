@@ -6,13 +6,13 @@
         @test f(am) == f(m)
         @test f(am; dims=1) == f(m; dims=1)
 
-        @test keys.(axes(f(am; dims=1))) == (2:2, 3:4)
+        @test axes_keys(f(am; dims=1)) == (2:2, 3:4)
     end
 
     @testset "$f" for f in (cumsum, cumprod, sort)
         @test f(am; dims=1) == f(m; dims=1)
 
-        @test keys.(axes(f(am; dims=1))) == (2:3, 3:4) 
+        @test axes_keys(f(am; dims=1)) == (2:3, 3:4) 
 
         @test f([1, 4, 3]) == f(AxisIndicesArray([1, 4, 3]))
     end
@@ -49,8 +49,8 @@
             @test f!(a1, am) == f!(a1, a) == f(a, dims=1)
             @test f!(a2, am) == f!(a2, a) == f(a, dims=2)
 
-            @test keys.(axes(f!(a1, am))) == (2:2, 3:4) == keys.(axes(f!(a1, a)))
-            @test keys.(axes(f!(a2, am))) == (2:3, 3:3) == keys.(axes(f!(a2, a)))
+            @test axes_keys(f!(a1, am)) == (2:2, 3:4) == axes_keys(f!(a1, a))
+            @test axes_keys(f!(a2, am)) == (2:3, 3:3) == axes_keys(f!(a2, a))
         end
         @testset "ndims==1 too" begin
             x = AxisIndicesArray([3, 4], (2:3,))
@@ -78,7 +78,7 @@
             #@test_throws UndefKeywordError eachslice(nda)
             #@test_throws UndefKeywordError eachslice(cat_slices)
 
-            @test keys.(axes(first(eachslice(a; dims=2)))) == (2:3, 4:5)
+            @test axes_keys(first(eachslice(a; dims=2))) == (2:3, 4:5)
         end
     end
 
@@ -98,7 +98,7 @@
               mapslices(join, m; dims=(1, 2)) ==
               reshape(["10312040"], (1, 1))
 
-        @test keys.(axes(mapslices(join, am; dims=2))) == (2:3, 3:3)
+        @test axes_keys(mapslices(join, am; dims=2)) == (2:3, 3:3)
     end
 
     @testset "mapreduce" begin
@@ -108,7 +108,7 @@
         @test mapreduce(isodd, |, maxes) == true == mapreduce(isodd, |, m)
         @test mapreduce(isodd, |, maxes; dims=1) == [true false]
         @test mapreduce(isodd, |, maxes; dims=2) == [false true]'
-        @test keys.(axes(mapreduce(isodd, |, maxes; dims=2))) == (2:3, 3:3)
+        @test axes_keys(mapreduce(isodd, |, maxes; dims=2)) == (2:3, 3:3)
     end
 
     @testset "zero" begin
@@ -116,7 +116,7 @@
         maxes = AxisIndicesArray(m, (2:3, 3:4))
 
         @test zero(maxes) == [0 0; 0 0] == zero(m)
-        @test keys.(axes(zero(maxes))) == (2:3, 3:4)
+        @test axes_keys(zero(maxes)) == (2:3, 3:4)
     end
 
     @testset "count" begin
@@ -132,7 +132,7 @@
         v = AxisIndicesArray([10, 20, 30], (Axis(UnitMRange(2, 4),UnitMRange(1, 3)),))
 
         @test length(push!(v, 40)) == 4
-        @test keys.(axes(pushfirst!(v, 0))) == (1:5,)
+        @test axes_keys(pushfirst!(v, 0)) == (1:5,)
         @test v == [0, 10, 20, 30, 40]
 
         @test pop!(v) == 40
@@ -147,12 +147,12 @@
 
         @test length(append!(v, v45)) == 5
         v = append!(v, [60,70])
-        @test keys(axes(v, 1)) == 2:8
+        @test axes_keys(v, 1) == 2:8
 
         #@test_throws DimensionMismatch append!(ndv, ndv0)
         @test v == 10:10:70 # error was thrown before altering
 
-        @test keys(axes(empty!(v), 1)) == 2:1
+        @test axes_keys(empty!(v), 1) == 2:1
         @test length(v) == 0
     end
 

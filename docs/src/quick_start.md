@@ -30,6 +30,13 @@ julia> A[<(4), <(5.0)] == parent(A)[findall(<(4), 2:4), findall(<(5.0), 3.0:5.0)
 true
 ```
 
+Any value that is not a `CartesianIndex` or subtype of `Real` is considered a dedicated key type.
+In other words, it could never be used for default indexing and will be treated the same as the `==` filtering syntax above.
+```jldoctest quick_start_example
+julia> AxisIndicesArray([1, 2, 3], (["one", "two", "three"],))["one"]
+1
+```
+
 Note that the first call only returns a single element, where the last call returns an array.
 This is because all keys must be unique so there can only be one value that returns `true` if filtering by `==`, which is the same as indexing by `1` (e.g., only one index can equal `1`).
 The last call uses operators that can produce any number of `true` values and the resulting output is an array.

@@ -169,16 +169,6 @@ That's largely because of the cost of searching `1.0:4.0` (which is a `StepRange
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
 
 
-## Combining Axes
-
-These methods are responsible for assisting in broadcasting operations.
-
-```@docs
-AxisIndices.combine_axis
-AxisIndices.combine_values
-AxisIndices.combine_keys
-```
-
 ## Reindexing Axes
 
 ```@docs
@@ -219,12 +209,15 @@ AxisIndices.prev_type
 
 ```@docs
 AxisIndices.AbstractAxis
-AxisIndices.values_type
-AxisIndices.keys_type
-AxisIndices.indices
+AxisIndices.AbstractSimpleAxis
 AxisIndices.Axis
 AxisIndices.SimpleAxis
 AxisIndices.CartesianAxes
 AxisIndices.LinearAxes
+AxisIndices.values_type
+AxisIndices.keys_type
+AxisIndices.indices
+AxisIndices.axes_keys
+AxisIndices.CombineStyle
 ```
 

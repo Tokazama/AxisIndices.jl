@@ -47,7 +47,7 @@ end
 function Base.show(io::IO,
     m::MIME"text/plain",
     A::AbstractAxisIndices{T,N},
-    key_names::Tuple=keys(A),
+    key_names::Tuple=axes_keys(A),
     dnames=ntuple(i -> "dim$i", N),
     pre_rowname="",
     post_rowname="",
@@ -177,7 +177,7 @@ function pretty_array(
         pretty_array(
             io,
             view(A, axes(A,1), axes(A,2), idxs...),
-            keyinds;
+            (key_names[1], key_names[2]);
             dnames=dnames,
             vec_colname=vec_colname,
             row_colname=row_colname,
@@ -272,3 +272,4 @@ function apply_formatter(data::AbstractMatrix, formatter)
     end
     return out
 end
+

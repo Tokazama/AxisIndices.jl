@@ -17,6 +17,8 @@ abstract type AbstractAxis{K,V<:Integer,Ks,Vs} <: AbstractUnitRange{V} end
 
 """
     AbstractSimpleAxis{V,Vs}
+
+A subtype of `AbstractAxis` where the keys and values are represented by a single collection.
 """
 abstract type AbstractSimpleAxis{V,Vs} <: AbstractAxis{V,V,Vs,Vs} end
 
@@ -216,6 +218,17 @@ as_axis(x::AbstractAxis) = x
 as_axis(x::AbstractArray, axs::Tuple) = map(axs_i -> as_axis(x, axs_i), axs)
 
 as_axis(::T, axis::AbstractAxis) where {T} = axis
+
+function as_axis(::T, i::Integer) where {T}
+    if is_static(T)
+        return SimpleAxis(OneToSRange(i))
+    elseif is_fixed(T)
+        return SimpleAxis(OneTo(i))
+    else
+        return SimpleAxis(OneToMRange(i))
+    end
+end
+
 function as_axis(::T, axis::Union{OneTo,OneToSRange,OneToMRange}) where {T}
     if is_static(T)
         return SimpleAxis(as_static(axis))
@@ -234,6 +247,17 @@ function as_axis(::T, axis) where T
     else
         return Axis(as_dynamic(axis))
     end
+end
+
+function as_axes(A::AbstractArray{T,N}, axs::Tuple{Vararg{<:Any,M}}) where {T,N,M}
+    newaxs = ntuple(N) do i
+        if i > M
+            as_axis(A, OneTo(size(A, i)))
+        else
+            as_axis(A, getfield(axs, i))
+        end
+    end
+    return newaxs
 end
 
 ###
@@ -270,6 +294,36 @@ Base.OneTo{Int64}
 keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
 keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
+
+"""
+    axes_keys(x)
+
+Returns the keys corresponding to all axes of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+(UnitMRange(2:3), UnitMRange(3:4))
+"""
+axes_keys(x) = map(keys, axes(x))
+axes_keys(x::AbstractAxis) = (keys(x),)
+
+"""
+    axes_keys(x, i)
+
+Returns the keys corresponding to the `i` axis
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+UnitMRange(2:3)
+```
+"""
+axes_keys(x, i) = keys(axes(x, i))
 
 ###
 ### similar

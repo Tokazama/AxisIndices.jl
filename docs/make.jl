@@ -7,10 +7,21 @@ makedocs(;
     pages=[
         "Introduction" => "index.md",
         "Quick Start" => "quick_start.md",
-        "The Axis" => "axis.md",
-        "Arrays With Axes" => "axisindicesarray.md",
+        "Axes" => [
+            "The Axis" => "axis.md",
+            "Broadcasting Axes" => "broadcasting_axes.md",
+            "Concatenating Axes" => "concatenating_axes.md",
+            "Appending Axes" => "appending_axes.md",
+        ],
+        "Arrays With Axes" => [
+            "AbstractAxisIndices" => "axisindicesarray.md",
+            "Pretty Printing" => "pretty_printing.md",
+        ],
+        "Examples" => [
+            "CoefTable" => "coeftable.md",
+            "TimeAxis" => "time.md",
+        ],
         "Comparison to Other Packages" => "comparison.md",
-        "Pretty Printing" => "pretty_printing.md",
     ],
     repo="https://github.com/Tokazma/AxisIndices.jl/blob/{commit}{path}#L{line}",
     sitename="AxisIndices.jl",

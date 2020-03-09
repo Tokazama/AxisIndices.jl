@@ -71,9 +71,11 @@ struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},AI<:Tuple{Vararg{<:AbstractAxi
 end
 
 function AxisIndicesArray(x::AbstractArray{T,N}, axs::Tuple=axes(x), check_length::Bool=true) where {T,N}
-    axs = map(as_axis, axs)
+    axs = as_axes(x, axs)
     return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
 end
+
+AxisIndicesArray(x::AbstractArray, args...) = AxisIndicesArray(x, args)
 
 ###
 ### values
@@ -92,7 +94,7 @@ Returns the indices corresponding to all axes of `x`.
 julia> using AxisIndices
 
 julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(Base.OneTo(2), Base.OneTo(2))
+(OneToMRange(2), OneToMRange(2))
 ```
 """
 indices(x) = map(values, axes(x))
@@ -107,7 +109,7 @@ Returns the indices corresponding to the `i` axis
 julia> using AxisIndices
 
 julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
-Base.OneTo(2)
+OneToMRange(2)
 ```
 """
 indices(x, i) = values(axes(x, i))
@@ -115,36 +117,6 @@ indices(x, i) = values(axes(x, i))
 function keys_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
     return map(keytype, AI.parameters)
 end
-
-
-"""
-    keys(x::AbstractAxisIndices)
-
-Returns the keys corresponding to all axes of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(2:3, 3:4)
-"""
-Base.keys(x::AbstractAxisIndices) = map(keys, axes(x))
-
-"""
-    keys(x::AbstractAxisIndices, i)
-
-Returns the keys corresponding to the `i` axis
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
-2:3
-```
-"""
-Base.keys(x::AbstractAxisIndices, i) = keys(axes(x, i))
 
 ###
 ### length
@@ -242,7 +214,13 @@ StaticRanges.axes_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
 
 Base.axes(x::AxisIndicesArray) = getfield(x, :axes)
 
-Base.axes(x::AbstractAxisIndices, i::Integer) = getfield(axes(x), i)
+function Base.axes(x::AbstractAxisIndices{T,N}, i::Integer) where {T,N}
+    if i > N
+        return as_axis(x, 1)
+    else
+        return getfield(axes(x), i)
+    end
+end
 
 Base.axes(A::LinearAxes) = getfield(A, :indices)
 
@@ -272,28 +250,38 @@ function StaticRanges.similar_type(
 end
 
 function Base.similar(
-    a::AxisIndicesArray{T},
+    a::AbstractAxisIndices{T,N},
     eltype::Type=T,
-    dims::Tuple{Vararg{Int}}=size(a)
-) where {T}
+    dims::Tuple{Vararg{Int,M}}=size(a)
+) where {T,N,M}
 
-    return AxisIndicesArray(similar(parent(a), eltype, ))
+    axs = ntuple(M) do i
+        resize_last(axes(a, i), getfield(dims, i))
+    end
+    p = similar(parent(a), eltype, dims)
+    return similar_type(a, typeof(p), typeof(axs))(p, axs)
 end
 
 function Base.similar(
-    a::AxisIndicesArray{T},
+    a::AbstractAxisIndices{T},
     inds::Tuple{Vararg{<:AbstractVector,N}}
-   ) where {T,N}
+    ) where {T,N}
 
-    return AxisIndicesArray(similar(parent(a), T, map(length, inds)), inds)
+    p = similar(parent(a), T, map(length, inds))
+    axs = as_axes(a, inds)
+    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    #return AxisIndicesArray(similar(parent(a), T, map(length, inds)), inds)
 end
 
 function Base.similar(
-    a::AxisIndicesArray{T},
-    eltype::Type,
+    a::AbstractAxisIndices,
+    t::Type,
     inds::Tuple{Vararg{<:AbstractVector,N}}
-) where {T,N}
+    ) where {N}
 
-    return AxisIndicesArray(similar(parent(a), eltype, map(length, inds)), inds)
+    p = similar(parent(a), t, map(length, inds))
+    axs = as_axes(a, inds)
+    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    #return AxisIndicesArray(similar(parent(a), eltype, map(length, inds)), inds)
 end
 

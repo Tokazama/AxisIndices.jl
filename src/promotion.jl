@@ -1,23 +1,3 @@
-
-###
-### AbstractAxis
-###
-promote_values_rule(::X, ::Y) where {X,Y} = promote_values_rule(X, Y)
-function promote_values_rule(::Type{X}, ::Type{Y}) where {X<:AbstractAxis,Y<:AbstractAxis}
-    xv = values_type(X)
-    yv = values_type(Y)
-    return same_type(xv, yv) ? xv : _promote_rule(xv, yv)
-end
-promote_values_rule(::Type{X}, ::Type{Y}) where {X,Y} = _promote_rule(X, Y)
-
-promote_keys_rule(::X, ::Y) where {X,Y} = promote_keys_rule(X, Y)
-promote_keys_rule(::Type{X}, ::Type{Y}) where {X,Y} = _promote_rule(X, Y)
-function promote_keys_rule(::Type{X}, ::Type{Y}) where {X<:AbstractAxis,Y<:AbstractAxis}
-    xv = keys_type(X)
-    yv = keys_type(Y)
-    return same_type(xv, yv) ? xv : _promote_rule(xv, yv)
-end
-
 #=
 Type Hierarchy for combining axes
 1. Axis
@@ -89,3 +69,53 @@ end
 
 Base.UnitRange(a::AbstractAxis) = UnitRange(values(a))
 
+promote_axis_collections(x::X, y::X) where {X} = x
+
+
+#=
+Problem: String, Symbol, Second, etc. don't promote neatly with Int (default key value)
+Solution: Symbol(element), Second(element) for promotion
+Exception: String(element) doesn't work so string(element) has to be used
+=#
+function promote_axis_collections(x::LinearIndices{1}, y::Y) where {Y}
+    return promote_axis_collections(x.indices[1], y)
+end
+function promote_axis_collections(x::X, y::LinearIndices{1}) where {X}
+    return promote_axis_collections(x, y.indices[1])
+end
+function promote_axis_collections(x::X, y::Y) where {X,Y}
+    if promote_rule(X, Y) <: Union{}
+        Z = promote_rule(Y, X)
+    else
+        Z = promote_rule(X, Y)
+    end
+
+    if Z <: Union{}
+        Tx = eltype(X)
+        Ty = eltype(Y)
+        Tnew = promote_type(Tx, Ty)
+        if Tnew == Any
+            if is_key_type(Tx)
+                if Tx <: AbstractString
+                    return promote_axis_collections(x, string.(y))
+                else
+                    return promote_axis_collections(x, Tx.(y))
+                end
+            else
+                if is_key_type(Ty)
+                    if Ty <: AbstractString
+                        return promote_axis_collections(string.(x), y)
+                    else
+                        return promote_axis_collections(Ty.(x), y)
+                    end
+                else
+                    error("No method available for promoting keys of type $Tx and $Ty.")
+                end
+            end
+        else
+            return promote_axis_collections(Tnew.(x), y)
+        end
+    else
+        return Z(x)
+    end
+end
