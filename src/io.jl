@@ -93,9 +93,16 @@ const text_matrix = TextFormat(
     bottom_line=false
 )
 
+"""
+    pretty_array([io::IO,] A::AbstractArray[, key_names::Tuple=axes_keys(A)]; kwargs...)
+
+Prints to `io` the array `A` with the keys `key_names` along each dimension of `A`.
+Printing of multidimensional arrays is accomplished in a similar manner to `Array`, where the final two dimensions are sliced producing a series of matrices.
+`kwargs...` are passed to `pretty_table` for 1/2D slice produced.
+"""
 function pretty_array(
     A::AbstractArray{T,N},
-    key_names::Tuple=map(keys, axes(A));
+    key_names::Tuple=axes_keys(A);
     dnames=ntuple(i -> "dim$i", N),
     pre_rowname="",
     post_rowname="",
@@ -124,7 +131,7 @@ end
 function pretty_array(
     io::IO,
     A::AbstractArray{T,N},
-    key_names::Tuple=map(keys, axes(A));
+    key_names::Tuple=axes_keys(A);
     backend=:text,
     dnames=ntuple(i -> "dim$i", N),
     pre_rowname="",
