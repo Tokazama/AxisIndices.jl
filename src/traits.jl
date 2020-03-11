@@ -1,4 +1,10 @@
 
+"""
+    is_key_type(::T) -> Bool
+
+Returns `true` if `T` is always considered a key for indexing. Only `CartesianIndex`
+and subtypes of `Real` return `false`.
+"""
 is_key_type(::Type{T}) where {T} = true
 is_key_type(::Type{<:CartesianIndex}) = false
 is_key_type(::Type{<:Real}) = false
@@ -23,8 +29,8 @@ struct CombineStack <: CombineStyle end
 CombineStyle(x, y) = CombineStyle(CombineStyle(x), CombineStyle(y))
 CombineStyle(::T) where {T} = CombineStyle(T)
 CombineStyle(::Type{T}) where {T} = CombineStack() # default
-CombineStyle(::Type{T}) where{T<:AbstractAxis} = CombineAxis()
-CombineStyle(::Type{T}) where{T<:AbstractSimpleAxis} = CombineSimpleAxis()
+CombineStyle(::Type{T}) where {T<:AbstractAxis} = CombineAxis()
+CombineStyle(::Type{T}) where {T<:AbstractSimpleAxis} = CombineSimpleAxis()
 CombineStyle(::Type{T}) where {T<:AbstractRange} = CombineResize()
 CombineStyle(::Type{T}) where {T<:LinearIndices{1}} = CombineResize()  # b/c it really is OneTo{Int}
 
