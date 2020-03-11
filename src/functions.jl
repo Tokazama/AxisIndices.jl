@@ -7,7 +7,7 @@ for fun in (:cumsum, :cumprod, :sort, :sort!)
 
     # Vector case
     @eval function Base.$fun(a::AbstractAxisIndices{T,1}; kwargs...) where {T}
-        return reconstruct(a, Base.$fun(parent(a); kwargs...), axes(a))
+        return unsafe_reconstruct(a, Base.$fun(parent(a); kwargs...), axes(a))
     end
 end
 
@@ -15,7 +15,7 @@ if VERSION > v"1.1-"
     function Base.eachslice(a::AbstractAxisIndices; dims, kwargs...)
         slices = eachslice(parent(a); dims=dims, kwargs...)
         return Base.Generator(slices) do slice
-            return reconstruct(a, slice, drop_axes(a, dims))
+            return unsafe_reconstruct(a, slice, drop_axes(a, dims))
         end
     end
 end
@@ -34,7 +34,7 @@ end
 for f in (:zero, :one, :copy)
     @eval begin
         function Base.$f(a::AbstractAxisIndices)
-            return reconstruct(a, Base.$f(parent(a)), axes(a))
+            return unsafe_reconstruct(a, Base.$f(parent(a)), axes(a))
         end
     end
 end
@@ -57,13 +57,13 @@ end
 ################################################
 # map, collect
 
-Base.map(f, A::AbstractAxisIndices) = reconstruct(A, map(f, parent(A)), axes(A))
+Base.map(f, A::AbstractAxisIndices) = unsafe_reconstruct(A, map(f, parent(A)), axes(A))
 
 for f in (:map, :map!)
     # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
     @eval begin
         function Base.$f(f::F, a::AbstractArray, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
-            return reconstruct(
+            return unsafe_reconstruct(
                 b,
                 $f(f, parent(a), parent(b), parent.(cs)...),
                 Broadcast.combine_axes(a, b, cs...,)
@@ -71,7 +71,7 @@ for f in (:map, :map!)
         end
 
         function Base.$f(f::F, a::AbstractAxisIndices, b::AbstractAxisIndices, cs::AbstractArray...) where {F}
-            return reconstruct(
+            return unsafe_reconstruct(
                 b,
                 $f(f, parent(a), parent(b), parent.(cs)...),
                 Broadcast.combine_axes(a, b, cs...,)
@@ -79,7 +79,7 @@ for f in (:map, :map!)
         end
 
         function Base.$f(f::F, a::AbstractAxisIndices, b::AbstractArray, cs::AbstractArray...) where {F}
-            return reconstruct(
+            return unsafe_reconstruct(
                 a,
                 $f(f, parent(a), parent(b), parent.(cs)...),
                 Broadcast.combine_axes(a, b, cs...,)

@@ -1,4 +1,9 @@
 # This file is for methods related to retreiving elements of collections
+#
+# Notes:
+# `@propagate_inbounds` is widely used because indexing with filtering syntax
+# means we don't know that it's inbounds until we've passed the function through
+# `to_index`.
 
 ###
 ### first
@@ -15,12 +20,11 @@ function StaticRanges.set_first!(x::AbstractAxis{K,V}, val::V) where {K,V}
 end
 function StaticRanges.set_first(x::AbstractAxis{K,V}, val::V) where {K,V}
     vs = set_first(values(x), val)
-    return similar_type(x)(resize_first(keys(x), length(vs)), vs)
+    return unsafe_reconstruct(x, resize_first(keys(x), length(vs)), vs)
 end
 
 function StaticRanges.set_first(x::AbstractSimpleAxis{V}, val::V) where {V}
-    val = set_first(values(x), val)
-    return similar_type(x, typeof(val))(val)
+    return unsafe_reconstruct(x, set_first(values(x), val))
 end
 function StaticRanges.set_first!(x::AbstractSimpleAxis{V}, val::V) where {K,V}
     can_set_first(x) || throw(MethodError(set_first!, (x, val)))
@@ -45,7 +49,7 @@ function StaticRanges.set_last!(x::AbstractAxis{K,V}, val::V) where {K,V}
 end
 function StaticRanges.set_last(x::AbstractAxis{K,V}, val::V) where {K,V}
     vs = set_last(values(x), val)
-    return similar_type(x)(resize_last(keys(x), length(vs)), vs)
+    return unsafe_reconstruct(x, resize_last(keys(x), length(vs)), vs)
 end
 
 Base.lastindex(a::AbstractAxis) = lastindex(values(a))
@@ -72,8 +76,7 @@ function StaticRanges.set_last!(x::AbstractSimpleAxis{V}, val::V) where {V}
 end
 
 function StaticRanges.set_last(x::AbstractSimpleAxis{K}, val::K) where {K}
-    val = set_last(values(x), val)
-    return similar_type(x, typeof(val))(val)
+    return unsafe_reconstruct(x, set_last(values(x), val))
 end
 
 ###
@@ -251,20 +254,16 @@ SimpleAxis(OneToSRange(5))
 ```
 """
 function unsafe_reindex(a::AbstractAxis, inds)
-    ks = @inbounds(keys(a)[inds])
-    vs = _reindex(values(a), inds)
-    return similar_type(a, typeof(ks), typeof(vs))(ks, vs)
+    return unsafe_reconstruct(a, @inbounds(keys(a)[inds]), _reindex(values(a), inds))
 end
 function unsafe_reindex(a::AbstractSimpleAxis, inds)
-    vs = _reindex(values(a), inds)
-    return similar_type(a, typeof(vs))(vs)
+    return unsafe_reconstruct(a, _reindex(values(a), inds))
 end
 
 _reindex(a::OneTo{T}, inds) where {T} = OneTo{T}(length(inds))
 _reindex(a::OneToMRange{T}, inds) where {T} = OneToMRange{T}(length(inds))
 _reindex(a::OneToSRange{T}, inds) where {T} = OneToSRange{T}(length(inds))
 _reindex(a::T, inds) where {T<:AbstractUnitRange} = T(first(a), first(a) + length(inds) - 1)
-
 
 ###
 ### getindex
@@ -308,17 +307,14 @@ end
 
 _getindex(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
 function _getindex(a::AbstractAxis, inds::AbstractUnitRange)
-    ks = @inbounds(keys(a)[inds])
-    vs = @inbounds(values(a)[inds])
-    return similar_type(a, typeof(ks), typeof(vs))(ks, vs, allunique(inds), false)
+    unsafe_reconstruct(a, @inbounds(keys(a)[inds]), @inbounds(values(a)[inds]))
 end
 _getindex(a::AbstractAxis, i::Integer) = @inbounds(values(a)[i])
 
 
 _getindex(a::AbstractSimpleAxis, inds) = @inbounds(values(a)[inds])
 function _getindex(a::AbstractSimpleAxis, inds::AbstractUnitRange)
-    ks = @inbounds(values(a)[inds])
-    return similar_type(a, typeof(ks))(ks)
+    return unsafe_reconstruct(a, @inbounds(values(a)[inds]))
 end
 _getindex(a::AbstractSimpleAxis, i::Integer) = @inbounds(values(a)[i])
 # TODO Type inference for things that we know produce UnitRange/GapRange, etc
@@ -343,7 +339,7 @@ for f in (:getindex, :view, :dotview)
         end
 
         @propagate_inbounds function $_f(a::AbstractAxisIndices{T,N}, inds::Tuple{Vararg{<:Any,N}}) where {T,N}
-            return reconstruct(a, Base.$f(parent(a), inds...), reindex(axes(a), inds))
+            return unsafe_reconstruct(a, Base.$f(parent(a), inds...), reindex(axes(a), inds))
         end
     end
 end

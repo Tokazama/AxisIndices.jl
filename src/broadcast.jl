@@ -63,7 +63,7 @@ end
 
 # catch cases where get_first_axis_indices couldn't find a AbstractAxisIndices
 function _similar_type(A::AbstractAxisIndices, p, axs=axes(A))
-    return reconstruct(A, p, axs)
+    return unsafe_reconstruct(A, p, axs)
 end
 _similar_type(::Nothing, p, axs=nothing) = AxisIndicesArray(p)
 

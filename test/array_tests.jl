@@ -14,6 +14,13 @@
     @test_throws ErrorException AxisIndicesArray(rand(2,2), (2:9,2:1))
 end
 
+@testset "PermuteDimsArray" begin
+    x = AxisIndicesArray(ones(2,2))
+    y = PermutedDimsArray(x, (2, 1))
+    @test axes(y) isa Tuple{SimpleAxis, SimpleAxis}
+    @test axes(y, 1) isa SimpleAxis
+end
+
 @testset "I/O" begin
     io = IOBuffer()
     x = AxisIndicesArray([1 2; 3 4])

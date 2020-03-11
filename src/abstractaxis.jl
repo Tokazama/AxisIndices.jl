@@ -16,11 +16,28 @@ An `AbstractVector` subtype optimized for indexing.
 abstract type AbstractAxis{K,V<:Integer,Ks,Vs} <: AbstractUnitRange{V} end
 
 """
+    unsafe_reconstruct(axis::AbstractAxis, keys::Ks, values::Vs)
+
+Reconstructs an `AbstractAxis` of the same type as `axis` but with keys of type `Ks` and values of type `Vs`.
+"""
+function unsafe_reconstruct(a::AbstractAxis, ks::Ks, vs::Vs) where {Ks,Vs}
+    return similar_type(a, Ks, Vs)(ks, vs, false, false)
+end
+
+"""
     AbstractSimpleAxis{V,Vs}
 
 A subtype of `AbstractAxis` where the keys and values are represented by a single collection.
 """
 abstract type AbstractSimpleAxis{V,Vs} <: AbstractAxis{V,V,Vs,Vs} end
+
+"""
+    unsafe_reconstruct(axis::AbstractSimpleAxis, values::Vs)
+
+Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of type `Vs`.
+"""
+unsafe_reconstruct(a::AbstractSimpleAxis, vs::Vs) where {Vs} = similar_type(a, Vs)(vs)
+
 
 """
     Axis(k[, v=OneTo(length(k))])
@@ -186,10 +203,7 @@ SimpleAxis(3:10)
 struct SimpleAxis{V,Vs<:AbstractUnitRange{V}} <: AbstractSimpleAxis{V,Vs}
     values::Vs
 
-    function SimpleAxis{V,Vs}(vs::Vs, check_unique::Bool=true) where {V,Vs<:AbstractUnitRange}
-        if check_unique
-            allunique(vs) || error("All values must be unique.")
-        end
+    function SimpleAxis{V,Vs}(vs::Vs) where {V,Vs<:AbstractUnitRange}
         eltype(vs) <: V || error("keytype of keys and keytype do no match, got $(eltype(Vs)) and $K")
         return new{V,Vs}(vs)
     end
@@ -197,11 +211,11 @@ end
 
 Base.values(si::SimpleAxis) = getfield(si, :values)
 
-function SimpleAxis(vs, check_unique::Bool=true)
-    return SimpleAxis{eltype(vs),typeof(vs)}(vs, check_unique)
-end
+SimpleAxis(vs) = SimpleAxis{eltype(vs),typeof(vs)}(vs)
 
-SimpleAxis{V,Vs}(idx::AbstractAxis) where {V,Vs} = SimpleAxis{V,Vs}(Vs(values(idx)))
+#function SimpleAxis{V,Vs}(idx::AbstractAxis{K1,V1,Ks1,Vs1}) where {V,Vs,K1,V1,Ks1,Vs1}
+#    return SimpleAxis{V,Vs}(Vs(values(idx)))
+#end
 
 function SimpleAxis{V,Vs1}(x::Vs2) where {V,Vs1,Vs2<:AbstractUnitRange}
     return SimpleAxis{V,Vs1}(Vs1(values(x)))
@@ -429,14 +443,11 @@ function StaticRanges.set_length!(a::AbstractSimpleAxis{V,Vs}, len) where {V,Vs}
 end
 
 function StaticRanges.set_length(a::AbstractAxis{K,V,Ks,Vs}, len) where {K,V,Ks,Vs}
-    ks = set_length(keys(a), len)
-    vs = set_length(values(a), len)
-    return similar_type(a, typeof(ks), typeof(vs))(ks, vs)
+    return unsafe_reconstruct(a, set_length(keys(a), len), set_length(values(a), len))
 end
 
 function StaticRanges.set_length(x::AbstractSimpleAxis{V,Vs}, len) where {V,Vs}
-    vs = StaticRanges.set_length(values(x), len)
-    return similar_type(x, typeof(vs))(vs)
+    return unsafe_reconstruct(x, StaticRanges.set_length(values(x), len))
 end
 
 ###
@@ -502,9 +513,7 @@ end
 for f in (:as_static, :as_fixed, :as_dynamic)
     @eval begin
         function StaticRanges.$f(x::AxisIndices.AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
-            vs = StaticRanges.$f(values(x))
-            ks = StaticRanges.$f(keys(x))
-            return similar_type(x, typeof(ks), typeof(vs))(vs, ks)
+            return unsafe_reconstruct(x, StaticRanges.$f(values(x)), StaticRanges.$f(keys(x)))
         end
     end
 end
@@ -520,8 +529,7 @@ end
 for f in (:as_static, :as_fixed, :as_dynamic)
     @eval begin
         function StaticRanges.$f(x::AxisIndices.AbstractSimpleAxis{V,Vs}) where {V,Vs}
-            vs = StaticRanges.$f(values(x))
-            return similar_type(x, typeof(vs))(vs)
+            return unsafe_reconstruct(x, StaticRanges.$f(values(x)))
         end
     end
 end

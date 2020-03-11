@@ -153,13 +153,6 @@ const CartesianAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = CartesianIndices{N,R
 CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = CartesianIndices(as_axis.(ks))
 CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
 
-#=
-function Base.getindex(A::CartesianAxes{N}, inds::CartesianIndex{N}) where {N}
-    Base.@_propagate_inbounds_meta
-    return CartesianIndex(map(getindex, axes(A), inds.I))
-end
-=#
-
 function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
     Base.@_propagate_inbounds_meta
     #return Base._getindex(IndexStyle(A), A, to_indices(A, A.indices, Tuple(inds))...)
@@ -226,6 +219,11 @@ Base.axes(A::LinearAxes) = getfield(A, :indices)
 
 Base.axes(A::CartesianAxes) = getfield(A, :indices)
 
+## return axes even when they are permuted
+function Base.axes(a::PermutedDimsArray{T,N,permin,permout,<:AbstractAxisIndices}) where {T,N,permin,permout}
+    return permute_axes(parent(a), permin)
+end
+
 ###
 ### parent
 ###
@@ -244,7 +242,7 @@ function StaticRanges.similar_type(
     ::AxisIndicesArray{T,N,P,AI},
     ptype::Type=P,
     axstype::Type=AI
-) where {T,N,P,AI}
+    ) where {T,N,P,AI}
 
     return AxisIndicesArray{eltype(ptype), ndims(ptype), ptype, axstype}
 end
@@ -253,13 +251,13 @@ function Base.similar(
     a::AbstractAxisIndices{T,N},
     eltype::Type=T,
     dims::Tuple{Vararg{Int,M}}=size(a)
-) where {T,N,M}
+    ) where {T,N,M}
 
-    axs = ntuple(M) do i
-        resize_last(axes(a, i), getfield(dims, i))
-    end
-    p = similar(parent(a), eltype, dims)
-    return similar_type(a, typeof(p), typeof(axs))(p, axs)
+    return unsafe_reconstruct(
+        a,
+        similar(parent(a), eltype, dims),
+        ntuple(i -> resize_last(axes(a, i), getfield(dims, i)), M)
+    )
 end
 
 function Base.similar(
@@ -267,10 +265,7 @@ function Base.similar(
     inds::Tuple{Vararg{<:AbstractVector,N}}
     ) where {T,N}
 
-    p = similar(parent(a), T, map(length, inds))
-    axs = as_axes(a, inds)
-    return similar_type(a, typeof(p), typeof(axs))(p, axs)
-    #return AxisIndicesArray(similar(parent(a), T, map(length, inds)), inds)
+    return unsafe_reconstruct(a, similar(parent(a), T, map(length, inds)), as_axes(a, inds))
 end
 
 function Base.similar(
@@ -279,13 +274,20 @@ function Base.similar(
     inds::Tuple{Vararg{<:AbstractVector,N}}
     ) where {N}
 
-    p = similar(parent(a), t, map(length, inds))
-    axs = as_axes(a, inds)
-    return similar_type(a, typeof(p), typeof(axs))(p, axs)
-    #return AxisIndicesArray(similar(parent(a), eltype, map(length, inds)), inds)
+    return unsafe_reconstruct(a, similar(parent(a), t, map(length, inds)), as_axes(a, inds))
 end
 
+"""
+    unsafe_reconstruct(A::AbstractAxisIndices, parent, axes)
 
-function reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs}
+Reconstructs an `AbstractAxisIndices` of the same type as `A` but with the parent
+array `parent` and axes `axes`. This method depends on an underlying call to
+`similar_types`. It is considered unsafe because it bypasses safety checks to
+ensure the keys of each axis are unique and match the length of each dimension of
+`parent`. Therefore, this is not intended for interactive use and should only be
+used when it is clear all arguments are composed correctly.
+"""
+function unsafe_reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs}
     return similar_type(A, P, Axs)(p, axs)
 end
+

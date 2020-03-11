@@ -19,14 +19,11 @@ end
 ### pop
 ###
 function StaticRanges.pop(x::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
-    ks = pop(keys(x))
-    vs = pop(values(x))
-    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
+    return unsafe_reconstruct(x, pop(keys(x)), pop(values(x)))
 end
 
 function StaticRanges.pop(x::AbstractSimpleAxis{V,Vs}) where {V,Vs}
-    vs = pop(values(x))
-    return similar_type(x, typeof(vs))(vs)
+    return unsafe_reconstruct(x, pop(values(x)))
 end
 
 function Base.pop!(a::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
@@ -46,14 +43,11 @@ end
 ### popfirst
 ###
 function StaticRanges.popfirst(x::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
-    ks = popfirst(keys(x))
-    vs = popfirst(values(x))
-    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
+    return unsafe_reconstruct(x, popfirst(keys(x)), popfirst(values(x)))
 end
 
 function StaticRanges.popfirst(x::AbstractSimpleAxis{V,Vs}) where {V,Vs}
-    vs = popfirst(values(x))
-    return similar_type(x, typeof(vs))(vs)
+    return unsafe_reconstruct(x, popfirst(values(x)))
 end
 
 function Base.popfirst!(a::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
