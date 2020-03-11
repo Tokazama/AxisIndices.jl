@@ -25,7 +25,6 @@ struct CombineResize <: CombineStyle end
 
 struct CombineStack <: CombineStyle end
 
-
 CombineStyle(x, y) = CombineStyle(CombineStyle(x), CombineStyle(y))
 CombineStyle(::T) where {T} = CombineStyle(T)
 CombineStyle(::Type{T}) where {T} = CombineStack() # default

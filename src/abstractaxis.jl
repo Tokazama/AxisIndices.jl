@@ -19,9 +19,10 @@ abstract type AbstractAxis{K,V<:Integer,Ks,Vs} <: AbstractUnitRange{V} end
     unsafe_reconstruct(axis::AbstractAxis, keys::Ks, values::Vs)
 
 Reconstructs an `AbstractAxis` of the same type as `axis` but with keys of type `Ks` and values of type `Vs`.
+This method is considered unsafe because it bypasses checks  to ensure that `keys` and `values` have the same length and the all `keys` are unique.
 """
 function unsafe_reconstruct(a::AbstractAxis, ks::Ks, vs::Vs) where {Ks,Vs}
-    return similar_type(a, Ks, Vs)(ks, vs, false, false)
+    return similar_type(a, Ks, Vs)(ks, vs)
 end
 
 """
@@ -165,6 +166,10 @@ function Axis{K,V,Ks,Vs}(x::AbstractUnitRange{<:Integer}) where {K,V,Ks,Vs}
     return 
 end
 
+function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
+    return similar_type(a, Ks, Vs)(ks, vs, false, false)
+end
+
 ###
 ### SimpleAxis
 ###
@@ -212,10 +217,6 @@ end
 Base.values(si::SimpleAxis) = getfield(si, :values)
 
 SimpleAxis(vs) = SimpleAxis{eltype(vs),typeof(vs)}(vs)
-
-#function SimpleAxis{V,Vs}(idx::AbstractAxis{K1,V1,Ks1,Vs1}) where {V,Vs,K1,V1,Ks1,Vs1}
-#    return SimpleAxis{V,Vs}(Vs(values(idx)))
-#end
 
 function SimpleAxis{V,Vs1}(x::Vs2) where {V,Vs1,Vs2<:AbstractUnitRange}
     return SimpleAxis{V,Vs1}(Vs1(values(x)))

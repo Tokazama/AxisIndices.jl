@@ -98,7 +98,6 @@ end
 
 @propagate_inbounds Base.to_index(x::AbstractAxis, i::CartesianIndex{1}) = first(i.I)
 
-
 @propagate_inbounds function _maybe_throw_boundserror(x, i)::Integer
     @boundscheck if i isa Nothing
         throw(BoundsError(x, i))
@@ -275,7 +274,7 @@ order to avoid ambiguities.
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     inds::AbstractUnitRange{<:Integer}
-    )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+)  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     @boundscheck checkbounds(a, inds)
     @inbounds return _getindex(a, inds)
 end
@@ -283,21 +282,21 @@ end
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     i::Integer
-    )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+)  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     @boundscheck checkbounds(a, i)
     @inbounds return _getindex(a, i)
 end
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     inds::Function
-    ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     return getindex(a, to_index(a, inds))
 end
 
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     i...
-    ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
     if length(i) > 1
         error(BoundsError(a, i...))
     else

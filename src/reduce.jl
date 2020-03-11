@@ -93,4 +93,3 @@ function Base.mapreduce(f1, f2, a::AbstractAxisIndices; dims=:, kwargs...)
     return indicesarray_result(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
 end
 
-

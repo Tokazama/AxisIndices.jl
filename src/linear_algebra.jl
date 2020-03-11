@@ -8,8 +8,6 @@ const AIQRUnion{T} = Union{LinearAlgebra.QRCompactWY{T,<:AbstractAxisIndices},
 
 function LinearAlgebra.qr(A::AbstractAxisIndices{T,2}, arg) where T
     Base.require_one_based_indexing(A)
-    # this line throws away axes in the original function
-    #similar(A, LinearAlgebra._qreltype(T), size(A))
     AA = similar(A, LinearAlgebra._qreltype(T), axes(A))
     copyto!(AA, A)
     return qr!(AA, arg)
@@ -393,8 +391,6 @@ end
 _matmul(A, ::Type{T}, a::T, axs) where {T} = a
 _matmul(A, ::Type{T}, a::AbstractArray{T}, axs) where {T} = unsafe_reconstruct(A, a, axs)
 
-
-
 # Using `CovVector` results in Method ambiguities; have to define more specific methods.
 for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
     @eval function Base.:*(a::$A, b::AbstractAxisIndices{T,1,<:AbstractVector{T}}) where {T}
@@ -403,5 +399,7 @@ for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<
 end
 
 # vector^T * vector
-Base.:*(a::AbstractAxisIndices{T,2,<:CoVector}, b::AbstractAxisIndices{S,1}) where {T,S} = *(parent(a), parent(b))
+function Base.:*(a::AbstractAxisIndices{T,2,<:CoVector}, b::AbstractAxisIndices{S,1}) where {T,S}
+    return *(parent(a), parent(b))
+end
 
