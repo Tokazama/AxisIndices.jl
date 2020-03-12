@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Broadcasting Axes · AxisIndices.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AxisIndices.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../quick_start/">Quick Start</a></li><li><span class="tocitem">Axes</span><ul><li><a class="tocitem" href="../axis/">The Axis</a></li><li class="is-active"><a class="tocitem" href>Broadcasting Axes</a></li><li><a class="tocitem" href="../concatenating_axes/">Concatenating Axes</a></li><li><a class="tocitem" href="../appending_axes/">Appending Axes</a></li></ul></li><li><span class="tocitem">Arrays With Axes</span><ul><li><a class="tocitem" href="../axisindicesarray/">AbstractAxisIndices</a></li><li><a class="tocitem" href="../pretty_printing/">Pretty Printing</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../coeftable/">CoefTable</a></li><li><a class="tocitem" href="../time/">TimeAxis</a></li></ul></li><li><a class="tocitem" href="../comparison/">Comparison to Other Packages</a></li><li><a class="tocitem" href="../acknowledgments/">Acknowledgments</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Axes</a></li><li class="is-active"><a href>Broadcasting Axes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Broadcasting Axes</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Tokazma/AxisIndices.jl/blob/master/docs/src/broadcasting_axes.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Broadcasting-Axes-1"><a class="docs-heading-anchor" href="#Broadcasting-Axes-1">Broadcasting Axes</a><a class="docs-heading-anchor-permalink" href="#Broadcasting-Axes-1" title="Permalink"></a></h1><p>There are three things that determine the output of a broadcasting axes.</p><ol><li>Standard promotion</li><li>Key specific promotion (or promotion over <code>Real</code>)</li><li>Order of arguments promotion</li></ol><p>Take the following vectors.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; a = ones(3);
+
+julia&gt; b = AxisIndicesArray(a, 2:4);
+
+julia&gt; c = AxisIndicesArray(a, [&quot;1&quot;, &quot;2&quot;, &quot;3&quot;]);</code></pre><p>We assume the lack of a formal axis defined in <code>a</code> indicates that it&#39;s keys are unimportant. Therefore, we freely choose any keys that are formally defined elsewhere to belong to the new result of a broadcast statement. This is the kind of behavior one gets from <strong>standard type promotion</strong>.</p><pre><code class="language-julia-repl">julia&gt; axes_keys(a .+ b)
+(UnitMRange(2:4),)
+
+julia&gt; axes_keys(b .+ a)
+(UnitMRange(2:4),)
+
+julia&gt; axes_keys(a .+ c)
+([&quot;1&quot;, &quot;2&quot;, &quot;3&quot;],)
+
+julia&gt; axes_keys(c .+ a)
+([&quot;1&quot;, &quot;2&quot;, &quot;3&quot;],)</code></pre><p>However, when we do the same with <code>b</code> and <code>c</code> they both have formally defined keys.</p><pre><code class="language-julia-repl">julia&gt; axes_keys(b .+ c)
+([&quot;2&quot;, &quot;3&quot;, &quot;4&quot;],)
+
+julia&gt; axes_keys(c .+ b)
+([&quot;1&quot;, &quot;2&quot;, &quot;3&quot;],)</code></pre><p>Notice that all outputs become elements of <code>String</code> and a collection that are <code>Vector</code>. We can&#39;t depend upon the default promotion in base (e.g., <code>promote(x, y)</code>) because some keys won&#39;t have <code>promote_rule</code> defined for two key types. It may not be appropriate to define a promotion rule between something like <code>Int</code> and <code>String</code> in the base Julia library because there is not universally meaningful way to promote it without context. In this instance we clearly want to apply some sort of label along an axis and that label may or may not be intended to parse as an <code>Int</code>, so we always default to broadcasting the key type that is not a subtype of <code>Real</code>.</p><pre><code class="language-julia-repl">julia&gt; d = AxisIndicesArray(a, [:a, :b, :c]);
+
+julia&gt; axes_keys(a .+ d, 1) == [:a, :b, :c]
+true</code></pre><p>The term <strong>key specific promotion</strong> is used because it is only sensible in the context of keys.</p><p>Finally, if both key types are non <code>Real</code> then <strong>order of arguments</strong> determines promotion.</p><pre><code class="language-julia-repl">julia&gt; axes_keys(c .+ d)
+([&quot;1&quot;, &quot;2&quot;, &quot;3&quot;],)
+
+julia&gt; axes_keys(d .+ c, 1) == [:a, :b, :c]
+true</code></pre><p>Customizing broadcasting behavior should be accomplished through either <code>AxisIndices.CombineStyle</code> or <code>AxisIndices.broadcast_axis</code>.</p><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.broadcast_axis" href="#AxisIndices.broadcast_axis"><code>AxisIndices.broadcast_axis</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">broadcast_axis(x, y) -&gt; collection
+broadcast_axis(::PromoteStyle, ::CombineStyle, x, y)</code></pre><p>Returns an axis given the axes <code>x</code> and <code>y</code> that are appropriate for a broadcasting operation.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; a, b = 1:10, Base.OneTo(10);
+
+julia&gt; AxisIndices.broadcast_axis(a, SimpleAxis(b))
+SimpleAxis(1:10)
+
+julia&gt; AxisIndices.broadcast_axis(a, b)
+1:10
+
+julia&gt; AxisIndices.broadcast_axis(b, a)
+1:10
+
+julia&gt; c = AxisIndices.broadcast_axis(a, SimpleAxis(b))
+SimpleAxis(1:10)
+
+julia&gt; d = AxisIndices.broadcast_axis(SimpleAxis(b), a)
+SimpleAxis(1:10)
+
+julia&gt; e = AxisIndices.broadcast_axis(c, d)
+SimpleAxis(1:10)
+
+julia&gt; f = AxisIndices.broadcast_axis(Axis(a), a)
+Axis(1:10 =&gt; 1:10)
+
+julia&gt; g = AxisIndices.broadcast_axis(a, Axis(b))
+Axis(Base.OneTo(10) =&gt; 1:10)
+
+julia&gt; AxisIndices.broadcast_axis(f, g)
+Axis(1:10 =&gt; 1:10)
+
+julia&gt; AxisIndices.broadcast_axis(Base.OneTo(10), Base.OneTo(10))
+Base.OneTo(10)
+
+julia&gt; AxisIndices.broadcast_axis(1:10, Base.OneTo(10))
+1:10</code></pre><p>Using <code>combine</code> allows combining axes that aren&#39;t appropriate for conventional promotion.</p><pre><code class="language-julia-repl">julia&gt; AxisIndices.broadcast_axis(1:2, string.(1:2))
+2-element Array{String,1}:
+ &quot;1&quot;
+ &quot;2&quot;
+
+julia&gt; AxisIndices.broadcast_axis(1:2, Symbol.(1:2))
+2-element Array{Symbol,1}:
+ Symbol(&quot;1&quot;)
+ Symbol(&quot;2&quot;)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/3a2119a603366514bc2d249daf74d9ad249d3d68/src/broadcast_axis.jl#LL5-L64">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../axis/">« The Axis</a><a class="docs-footer-nextpage" href="../concatenating_axes/">Concatenating Axes »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 12 March 2020 08:29">Thursday 12 March 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
