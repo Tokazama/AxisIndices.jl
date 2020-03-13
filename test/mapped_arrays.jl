@@ -1,7 +1,7 @@
 
 @testset "ReadonlyMappedArray" begin
     a = AxisIndicesArray([1,4,9,16], ["one", "two", "three", "four"])
-    s = view(a', 1:1, [1,2,4])
+    s = AxisIndicesArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
 
     b = @inferred(mappedarray(sqrt, a))
     @test parent(parent(b)) === parent(a)
@@ -21,7 +21,7 @@ end
 @testset "MappedArray" begin
     intsym = Int == Int64 ? :Int64 : :Int32
     a = AxisIndicesArray([1,4,9,16], ["one", "two", "three", "four"])
-    s = view(a', 1:1, [1,2,4])
+    s = AxisIndicesArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
     c = @inferred(mappedarray(sqrt, x->x*x, a))
     @test parent(parent(c)) === parent(a)
     @test @inferred(getindex(c, 1)) == 1
