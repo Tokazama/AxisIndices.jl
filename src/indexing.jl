@@ -5,6 +5,8 @@
 # means we don't know that it's inbounds until we've passed the function through
 # `to_index`.
 
+Base.IndexStyle(::Type{<:AbstractAxisIndices{T,N,A,AI}}) where {T,N,A,AI} = IndexStyle(A)
+
 ###
 ### first
 ###

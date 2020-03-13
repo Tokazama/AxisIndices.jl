@@ -2,6 +2,10 @@ using AxisIndices, Test, Statistics, LinearAlgebra, StaticRanges, Documenter, Da
 using AxisIndices: resize_last, resize_last!, resize_first, resize_first!, reduce_axis
 using AxisIndices: shrink_last, shrink_last!, grow_last, grow_last!
 
+# test deps
+using FixedPointNumbers, ColorTypes
+using AxisIndices: mappedarray, of_eltype # from MappedArrays
+
 using Base: step_hp, OneTo
 
 
@@ -21,6 +25,8 @@ include("concatenation_tests.jl")
 include("array_tests.jl")
 include("broadcasting_tests.jl")
 include("linear_algebra.jl")
+
+include("mapped_arrays.jl")
 
 
 # TODO this needs to be formally tested

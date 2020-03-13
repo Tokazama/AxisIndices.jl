@@ -1,6 +1,6 @@
 module AxisIndices
 
-using StaticRanges, LinearAlgebra, Statistics, Dates, PrettyTables
+using StaticRanges, LinearAlgebra, Statistics, Dates, PrettyTables, MappedArrays
 using Base: @propagate_inbounds, OneTo, to_index, tail, front
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base.Cartesian
