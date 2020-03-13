@@ -1,5 +1,45 @@
 # This file is for I/O methods
 
+function array_format(backend::Symbol)
+    if backend === :text
+        return TextFormat(borderless, header_line = false)
+    elseif backend === :latex
+        return LatexTableFormat(
+            latex_simple,
+            header_line = "",
+            top_line = "",
+            bottom_line = ""
+        )
+    elseif backend === :html
+        return HTMLTableFormat(
+            css = """
+            table, td, th {
+                border-collapse: collapse;
+                font-family: sans-serif;
+            }
+            td, th {
+                border-bottom: 0;
+                padding: 4px
+            }
+            tr:nth-child(even) {
+                background: #fff;
+            }
+            tr.header {
+                background: navy !important;
+                color: white;
+                font-weight: bold;
+            }
+            th.rowNumber, td.rowNumber {
+                text-align: right;
+            }
+            """,
+            table_width = ""
+        )
+    else
+        error("Unkown backend, $backend, requested.")
+    end
+end
+
 ###
 ### read/write
 ###
@@ -41,6 +81,7 @@ function row_formatter(
     bold=true,
     kwargs...
 )
+
     return Highlighter(f = (data, i, j) -> j == 1, crayon = Crayon(; bold=bold, kwargs...))
 end
 
@@ -53,7 +94,7 @@ function Base.show(io::IO,
     post_rowname="",
     row_colname="",
     vec_colname="",
-    tf=text_matrix,
+    tf=array_format(backend),
     formatter=ft_round(3),
     kwargs...
 ) where {T,N}
@@ -74,31 +115,30 @@ function Base.show(io::IO,
     )
 end
 
-const text_matrix = TextFormat(
-    up_right_corner = ' ',
-    up_left_corner = ' ',
-    bottom_left_corner=' ',
-    bottom_right_corner= ' ',
-    up_intersection= ' ',
-    left_intersection= ' ',
-    right_intersection= ' ',
-    middle_intersection= ' ',
-    bottom_intersection= ' ',
-    column= ' ',
-    left_border= ' ',
-    right_border= ' ',
-    row= ' ',
-    top_line=false,
-    header_line=false,
-    bottom_line=false
-)
-
 """
     pretty_array([io::IO,] A::AbstractArray[, key_names::Tuple=axes_keys(A)]; kwargs...)
 
 Prints to `io` the array `A` with the keys `key_names` along each dimension of `A`.
 Printing of multidimensional arrays is accomplished in a similar manner to `Array`, where the final two dimensions are sliced producing a series of matrices.
 `kwargs...` are passed to `pretty_table` for 1/2D slice produced.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> pretty_array(AxisIndicesArray(ones(2,2,2), (2:3, [:one, :two], ["a", "b"])))
+[dim1, dim2, dim3[a]] =
+      one   two
+  2   1.0   1.0
+  3   1.0   1.0
+
+
+[dim1, dim2, dim3[b]] =
+      one   two
+  2   1.0   1.0
+  3   1.0   1.0
+
+```
 """
 function pretty_array(
     A::AbstractArray{T,N},
@@ -109,7 +149,7 @@ function pretty_array(
     row_colname="",
     vec_colname="",
     backend=:text,
-    tf=ifelse(backend == :text, text_matrix, ifelse(backend == :html, html_matrix, latex_simple)),
+    tf=array_format(backend),
     formatter=ft_printf("%5.3f"),
     kwargs...
 ) where {T,N}
@@ -138,7 +178,7 @@ function pretty_array(
     post_rowname="",
     row_colname="",
     vec_colname="",
-    tf=ifelse(backend == :text, text_matrix, ifelse(backend == :html, html_matrix, latex_simple)),
+    tf=array_format(backend),
     formatter=ft_printf("%5.3f"),
     kwargs...
 ) where {T,N}
@@ -210,7 +250,7 @@ function pretty_array(
     post_rowname="",
     formatter=ft_printf("%5.3f"),
     kwargs...
-   )
+)
     data = combine_rows_to_matrix(
         apply_formatter(x, formatter),
         first(key_names),
@@ -237,6 +277,7 @@ function pretty_array(
     end
 end
 
+# TODO delete this in the next update of PrettyTables.jl
 function combine_rows_to_matrix(x::AbstractArray{<:AbstractString}, key_names::LinearIndices, pre_rowname, post_rowname)
     return combine_rows_to_matrix(x, key_names.indices[1], pre_rowname, post_rowname)
 end

@@ -3,25 +3,12 @@
 !!! warning
     Currently pretty printing is an experimental feature that may undergo rapid changes.
 
-Each 2-dimensional `AbstractAxisIndices` subtype prints with keyword arguments passed to `PrettyTables`.
-N-dimensional arrays iteratively call matrix printing similar to how base Julia does (but passing keyword arguments for pretty printing).
-Keywords are incorporated through the `show` method (e.g., `show(::IO, ::AbstractAxisIndices; kwargs...)`) ore threw a call to `pretty_array`.
-Documentation for pretty printing is still being developed but you can look at the "CoefTable" example to get a better idea of how flexible this can be.
+It's important that we can view the custom indices that we assign to arrays.
+Yet a surprising challenge of implementing and using arrays in interactive programming is how [complicated](https://github.com/JuliaLang/julia/blob/master/base/arrayshow.jl) printing them can be.
+Rather than burdening users with cryptic text readouts this package seeks to provide "pretty" printing (quotes because beauty is in the eye of the beholder).
+This package leans heavily on the [PrettyTables.jl]() package to accomplish this by handing off everything that goes through the `show` method to `pretty_array`.
+`pretty_array` in turn repeatedly calls `PrettyTables.pretty_print` along slices of arrays.
 
-```jldoctest
-julia> using AxisIndices
-
-julia> AxisIndicesArray(ones(2,2,2), (2:3, [:one, :two], ["a", "b"]))
-3-dimensional AxisIndicesArray{Float64,3,Array{Float64,3}...}
-[dim1, dim2, dim3[a]] =
-      one   two
-  2   1.0   1.0
-  3   1.0   1.0
-
-
-[dim1, dim2, dim3[b]] =
-      one   two
-  2   1.0   1.0
-  3   1.0   1.0
-
+```@docs
+AxisIndices.pretty_array
 ```
