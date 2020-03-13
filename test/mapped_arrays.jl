@@ -79,8 +79,8 @@ end
 end
 
 @testset "ReadOnlyMultiMappedArray" begin
-    a = AxisIndicesArray(reshape(1:6, 2, 3))
-    b = AxisIndicesArray(fill(10.0f0, 2, 3))
+    a = AxisIndicesArray(reshape(1:6, 2, 3), ["a", "b"], ["one", "two", "three"])
+    b = AxisIndicesArray(fill(10.0f0, 2, 3), ["a", "b"], ["one", "two", "three"])
     M = @inferred(mappedarray(+, a, b))
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexLinear()
@@ -91,7 +91,7 @@ end
     @test @inferred(M[1]) === 11.0f0
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
 
-    c = view(reshape(1:9, 3, 3), 1:2, :)
+    c = AxisIndicesArray(view(reshape(1:9, 3, 3), 1:2, :), ["a", "b"], ["one", "two", "three"])
     M = @inferred(mappedarray(+, c, b))
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexCartesian()
@@ -104,9 +104,9 @@ end
 
 @testset "MultiMappedArray" begin
     intsym = Int == Int64 ? :Int64 : :Int32
-    a = [0.1 0.2; 0.3 0.4]
-    b = N0f8[0.6 0.5; 0.4 0.3]
-    c = [0 1; 0 1]
+    a = AxisIndicesArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"])
+    b = AxisIndicesArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"])
+    c = AxisIndicesArray([0 1; 0 1], ["a", "b"], ["one", "two"])
     f = RGB{N0f8}
     finv = c->(red(c), green(c), blue(c))
     M = @inferred(mappedarray(f, finv, a, b, c))
@@ -127,18 +127,18 @@ end
     R = reinterpret(N0f8, M)
     @test R == N0f8[0.1 0.25; 0.6 0.35; 0 0; 0.3 0.4; 0.4 0.3; 0 1]
     R[2,1] = 0.8
-    @test b[1,1] === N0f8(0.8)
+    @test b[1,1] === N0f8(0.8) === b["a", "one"]
 
-    a = view(reshape(0.1:0.1:0.6, 3, 2), 1:2, 1:2)
+    a = AxisIndicesArray(view(reshape(0.1:0.1:0.6, 3, 2), 1:2, 1:2), ["a", "b"], ["one", "two"])
     M = @inferred(mappedarray(f, finv, a, b, c))
     @test @inferred(eltype(M)) == RGB{N0f8}
     @test @inferred(IndexStyle(M)) == IndexCartesian()
     @test @inferred(IndexStyle(typeof(M))) == IndexCartesian()
     @test @inferred(axes(M)) === axes(a)
-    @test M[1,1] === RGB{N0f8}(0.1, 0.8, 0)
+    @test M[1,1] === RGB{N0f8}(0.1, 0.8, 0) === M["a", "one"]
     @test_throws ErrorException("indexed assignment fails for a reshaped range; consider calling collect") M[1,2] = RGB(0.25, 0.35, 0)
 
-    a = reshape(0.1:0.1:0.6, 3, 2)
+    a = AxisIndicesArray(reshape(0.1:0.1:0.6, 3, 2), ["a", "b", "c"], ["one", "two"])
     @test_throws DimensionMismatch mappedarray(f, finv, a, b, c)
 end
 

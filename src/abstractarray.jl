@@ -243,7 +243,7 @@ function StaticRanges.similar_type(
     ::AxisIndicesArray{T,N,P,AI},
     ptype::Type=P,
     axstype::Type=AI
-    ) where {T,N,P,AI}
+) where {T,N,P,AI}
 
     return AxisIndicesArray{eltype(ptype), ndims(ptype), ptype, axstype}
 end
@@ -252,7 +252,7 @@ function Base.similar(
     a::AbstractAxisIndices{T,N},
     eltype::Type=T,
     dims::Tuple{Vararg{Int,M}}=size(a)
-    ) where {T,N,M}
+) where {T,N,M}
 
     return unsafe_reconstruct(
         a,
@@ -264,7 +264,7 @@ end
 function Base.similar(
     a::AbstractAxisIndices{T},
     inds::Tuple{Vararg{<:AbstractVector,N}}
-    ) where {T,N}
+) where {T,N}
 
     return unsafe_reconstruct(a, similar(parent(a), T, map(length, inds)), as_axes(a, inds))
 end
@@ -273,7 +273,7 @@ function Base.similar(
     a::AbstractAxisIndices,
     t::Type,
     inds::Tuple{Vararg{<:AbstractVector,N}}
-    ) where {N}
+) where {N}
 
     return unsafe_reconstruct(a, similar(parent(a), t, map(length, inds)), as_axes(a, inds))
 end
@@ -292,6 +292,11 @@ function unsafe_reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs
     return similar_type(A, P, Axs)(p, axs)
 end
 
+function Base.reinterpret(::Type{T}, A::AbstractAxisIndices) where {T}
+    p = reinterpret(T, parent(A))
+    axs = map(resize_last, axes(A), size(p))
+    return unsafe_reconstruct(A, p, axs)
+end
 
 ###
 ### MappedArrays
@@ -341,7 +346,7 @@ function MappedArrays.mappedarray(f, finv::Function, data::AbstractAxisIndices..
     )
 end
 
-function MappedArrays.mappedarray(::Type{T}, finv, data::AbstractAxisIndices...) where T
+function MappedArrays.mappedarray(::Type{T}, finv::Function, data::AbstractAxisIndices...) where T
     return AxisIndicesArray(
         mappedarray(T, finv, map(unwrap_broadcasted, data)...),
         Broadcast.combine_axes(data...)
