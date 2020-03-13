@@ -94,7 +94,7 @@ function Base.show(io::IO,
     post_rowname="",
     row_colname="",
     vec_colname="",
-    tf=array_format(backend),
+    tf=array_format(:text),
     formatter=ft_round(3),
     kwargs...
 ) where {T,N}
@@ -128,16 +128,15 @@ julia> using AxisIndices
 
 julia> pretty_array(AxisIndicesArray(ones(2,2,2), (2:3, [:one, :two], ["a", "b"])))
 [dim1, dim2, dim3[a]] =
-      one   two
-  2   1.0   1.0
-  3   1.0   1.0
+        one     two
+  2   1.000   1.000
+  3   1.000   1.000
 
 
 [dim1, dim2, dim3[b]] =
-      one   two
-  2   1.0   1.0
-  3   1.0   1.0
-
+        one     two
+  2   1.000   1.000
+  3   1.000   1.000
 ```
 """
 function pretty_array(
