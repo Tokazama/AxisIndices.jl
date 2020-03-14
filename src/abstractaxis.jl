@@ -535,3 +535,7 @@ for f in (:as_static, :as_fixed, :as_dynamic)
     end
 end
 
+# for when we want the same underlying memory layout but reversed keys
+reverse_keys(a::AbstractAxis) = unsafe_reconstruct(a, reverse(keys(a)), values(a))
+reverse_keys(a::AbstractSimpleAxis) = Axis(a, reverse(keys(a)), values(a))
+
