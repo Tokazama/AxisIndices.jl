@@ -3,7 +3,7 @@ using NamedDims
 export
     NamedIndicesArray,
     NIArray,
-    dims,
+    dim,
     dimnames
 
 ###
@@ -58,7 +58,6 @@ julia> A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "thre
   b   20.0   22.0    24.0
 
 
-
 julia> dimnames(A)
 (:x, :y, :z)
 
@@ -98,6 +97,14 @@ for f in (:getindex, :view, :dotview)
     @eval begin
         @propagate_inbounds function Base.$f(a::NIArray, inds...)
             return $_f(a, to_indices(parent(a), axes(a), inds))
+        end
+
+        @propagate_inbounds function Base.$f(a::NIArray, inds::Vararg{<:Integer})
+            return Base.$f(parent(a), inds...)
+        end
+
+        @propagate_inbounds function Base.$f(a::NIArray, inds::CartesianIndex)
+            return Base.$f(parent(a), inds)
         end
 
         @propagate_inbounds function $_f(a::NIArray, inds::Tuple{Vararg{<:Integer}})
