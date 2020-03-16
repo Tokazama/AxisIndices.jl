@@ -16,6 +16,7 @@ makedocs(;
         "Arrays With Axes" => [
             "AbstractAxisIndices" => "axisindicesarray.md",
             "Pretty Printing" => "pretty_printing.md",
+            "Compatibility" => "compatibility.md",
         ],
         "Examples" => [
             "CoefTable" => "coeftable.md",

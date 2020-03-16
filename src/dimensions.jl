@@ -304,3 +304,4 @@ function Base.rot180(x::AbstractAxisIndices)
         (reverse_keys(axes(x, 1)), reverse_keys(axes(x, 2)))
     )
 end
+

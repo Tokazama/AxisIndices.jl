@@ -29,22 +29,3 @@ AxisIndices.permute_axes
 AxisIndices.covcor_axes
 ```
 
-## Linear Algebra
-
-### Matrix Multiplication
-
-```@docs
-AxisIndices.matmul_axes
-```
-
-### Diagonal
-
-```@docs
-AxisIndices.diagonal_axes
-```
-
-### Factorizations
-
-```@docs
-AxisIndices.get_factorization
-```
