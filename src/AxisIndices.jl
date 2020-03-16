@@ -64,4 +64,7 @@ include("broadcast.jl")
 include("linear_algebra.jl")
 include("io.jl")
 
+include("mapped_arrays.jl")
+include("nameddims.jl")
+
 end

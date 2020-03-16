@@ -11,6 +11,15 @@ Support is provided by overloading the `mappedarray` method, which AxisIndices d
 In order to avoid method ambiguities multi-mapping of mixed `AbstractArray` and `AbstractAxisIndices` cannot be provided.
 In other words, the current version can only support multi-mapping multiple `AbstractAxisIndices`.
 
+## NamedDims
+
+[NamedDims.jl](https://github.com/invenia/NamedDims.jl)
+
+```@docs
+AxisIndices.NamedIndicesArray
+AxisIndices.NIArray
+```
+
 
 ## LinearAlgebra
 

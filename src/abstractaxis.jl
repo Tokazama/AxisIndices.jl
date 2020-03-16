@@ -539,3 +539,6 @@ end
 reverse_keys(a::AbstractAxis) = unsafe_reconstruct(a, reverse(keys(a)), values(a))
 reverse_keys(a::AbstractSimpleAxis) = Axis(a, reverse(keys(a)), values(a))
 
+# TODO should this be a formal abstract type?
+const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
+
