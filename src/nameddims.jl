@@ -6,10 +6,6 @@ export
     dim,
     dimnames
 
-###
-### NamedDims
-###
-
 function StaticRanges.axes_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A}
     return StaticRanges.axes_type(A)
 end
@@ -19,14 +15,18 @@ StaticRanges.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 """
     NamedIndicesArray
 
-Type alias for `NamedDimsArray` whose parent array is a subtype of `AbstractAxisIndices`.
+Type alias for `NamedDimsArray` whose parent array is a subtype of `AxisIndicesArray`.
 """
 const NamedIndicesArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisIndicesArray{T,N,P,AI}}
 
 """
+    NIArray((parent::AbstractArray; kwargs...) = NIArray(parent, kwargs)
     NIArray((parent::AbstractArray, axes::NamedTuple{L,AbstractAxes}))
 
-An abbreviated alias and constructor for [`NamedIndicesArray`](@ref).
+An abbreviated alias and constructor for [`NamedIndicesArray`](@ref). If key word
+arguments are provided then each key word becomes the name of a dimension and its
+assigned value is sent to the corresponding axis when constructing the underlying
+`AxisIndicesArray`.
 
 ## Examples
 ```jldoctest
@@ -112,12 +112,6 @@ for f in (:getindex, :view, :dotview)
         end
 
         @propagate_inbounds function $_f(a::NIArray{T,N}, inds::Tuple{Vararg{<:Any,M}}) where {T,N,M}
-            data = Base.$f(parent(a), inds...)
-            L = NamedDims.remaining_dimnames_from_indexing(dimnames(a), inds)
-            return NamedDims.NamedDimsArray{L}(data)
-        end
-
-        @propagate_inbounds function $_f(a::NIArray{T,N}, inds::Tuple{Vararg{<:Any,N}}) where {T,N}
             data = Base.$f(parent(a), inds...)
             L = NamedDims.remaining_dimnames_from_indexing(dimnames(a), inds)
             return NamedDims.NamedDimsArray{L}(data)
@@ -210,4 +204,3 @@ function Base.show(io::IO,
         kwargs...
     )
 end
-

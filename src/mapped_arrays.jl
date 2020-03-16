@@ -1,6 +1,4 @@
-###
-### MappedArrays
-###
+
 # We can't just make a type alias for mapped array types because this would require
 # multiple calls teh combine_axes for multi-mapped types for every axes call. It also
 # would require overloading a bunch of other methods to ensure they work correctly
