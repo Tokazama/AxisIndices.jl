@@ -1,6 +1,6 @@
 # Compatibility
 
-The following packages outside of the standard library have some form of support.
+The following packages outside of the `Base` module have some form of support.
 In addition to creating awareness of existing functionality, the following provides users with a better idea of how exactly these packages are supported.
 This means features existing outside of those described here are not within the domain of intended coverage and users should seek support linked resources.
 
