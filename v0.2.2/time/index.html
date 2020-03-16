@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>TimeAxis · AxisIndices.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AxisIndices.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../quick_start/">Quick Start</a></li><li><span class="tocitem">Axes</span><ul><li><a class="tocitem" href="../axis/">The Axis</a></li><li><a class="tocitem" href="../broadcasting_axes/">Broadcasting Axes</a></li><li><a class="tocitem" href="../concatenating_axes/">Concatenating Axes</a></li><li><a class="tocitem" href="../appending_axes/">Appending Axes</a></li></ul></li><li><span class="tocitem">Arrays With Axes</span><ul><li><a class="tocitem" href="../axisindicesarray/">AbstractAxisIndices</a></li><li><a class="tocitem" href="../pretty_printing/">Pretty Printing</a></li><li><a class="tocitem" href="../compatibility/">Compatibility</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../coeftable/">CoefTable</a></li><li class="is-active"><a class="tocitem" href>TimeAxis</a></li></ul></li><li><a class="tocitem" href="../comparison/">Comparison to Other Packages</a></li><li><a class="tocitem" href="../acknowledgments/">Acknowledgments</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>TimeAxis</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>TimeAxis</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Tokazma/AxisIndices.jl/blob/master/docs/src/time.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="TimeAxis-1"><a class="docs-heading-anchor" href="#TimeAxis-1">TimeAxis</a><a class="docs-heading-anchor-permalink" href="#TimeAxis-1" title="Permalink"></a></h1><p>Here we define an axis that specifically supports time. This first section defines the minimum <code>keys</code>, <code>values</code>, <code>similar_type</code> and constructors for the <code>TimeAxis</code> type.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, Dates
+
+julia&gt; struct TimeAxis{K&lt;:Dates.AbstractTime,V,Ks,Vs} &lt;: AbstractAxis{K,V,Ks,Vs}
+           axis::Axis{K,V,Ks,Vs}
+           times::Dict{Symbol,Pair{K,K}}
+           function TimeAxis{K,V,Ks,Vs}(axis::Axis{K,V,Ks,Vs}, times::Dict{Symbol,Pair{K,K}}) where {K,V,Ks,Vs}
+               return new{K,V,Ks,Vs}(axis, times)
+           end
+           function TimeAxis{K,V,Ks,Vs}(args...; kwargs...) where {K,V,Ks,Vs}
+               d = Dict{Symbol,Pair{K,K}}()
+               for (k,v) in kwargs
+                   d[k] = v
+               end
+               return new{K,V,Ks,Vs}(Axis{K,V,Ks,Vs}(args...), d)
+           end
+           function TimeAxis(args...; kwargs...)
+               ax = Axis(args...)
+               d = Dict{Symbol,Pair{keytype(ax),keytype(ax)}}()
+               for (k,v) in kwargs
+                   d[k] = v
+               end
+               return new{keytype(ax),valtype(ax),keys_type(ax),values_type(ax)}(ax, d)
+           end
+       end
+
+julia&gt; Base.keys(t::TimeAxis) = keys(getfield(t, :axis))
+
+julia&gt; Base.values(t::TimeAxis) = values(getfield(t, :axis))
+
+julia&gt; function AxisIndices.similar_type(
+           t::TimeAxis{K,V,Ks,Vs},
+           new_keys_type::Type=Ks,
+           new_values_type::Type=Vs
+          ) where {K,V,Ks,Vs}
+           return TimeAxis{eltype(new_keys_type),eltype(new_values_type),new_keys_type,new_values_type}
+       end</code></pre><p>Here are some extras to make it more useful.</p><pre><code class="language-julia-repl">julia&gt; Base.setindex!(t::TimeAxis, val, i::Symbol) = t.times[i] = val
+
+julia&gt; function Base.to_index(t::TimeAxis, i::Symbol)
+           f, l = t.times[i]
+           return Base.to_index(t, and(&gt;=(f), &lt;=(l)))
+       end</code></pre><p>Now we can access the time points of this access by the <code>Symbols</code> that correspond to intervals of time.</p><pre><code class="language-julia-repl">julia&gt; t = TimeAxis(Second(1):Second(1):Second(10));
+
+julia&gt; t[:time_1] = Pair(Second(1), Second(3));
+
+julia&gt; t[:time_1] == 1:3
+true</code></pre><p>And now we have a time series array.</p><pre><code class="language-julia-repl">julia&gt; x = AxisIndicesArray(collect(1:2:20), t);
+
+julia&gt; x[:time_1]
+1-dimensional AxisIndicesArray{Int64,1,Array{Int64,1}...}
+
+   1 second   1.0
+  2 seconds   3.0
+  3 seconds   5.0
+
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../coeftable/">« CoefTable</a><a class="docs-footer-nextpage" href="../comparison/">Comparison to Other Packages »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 16 March 2020 01:30">Monday 16 March 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
