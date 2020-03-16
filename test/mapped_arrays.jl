@@ -16,6 +16,11 @@
     @test isa(eachindex(b), AbstractUnitRange)
     b = mappedarray(sqrt, s)
     @test isa(eachindex(b), CartesianIndices)
+
+    @testset "Type map" begin
+        c = mappedarray(Float32, a)
+        @test eltype(c) <: Float32
+    end
 end
 
 @testset "MappedArray" begin
@@ -100,7 +105,25 @@ end
     @test M == c + b
     @test @inferred(M[1]) === 11.0f0
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
+
+    @testset "Type map" begin
+        a = AxisIndicesArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"]);
+        b = AxisIndicesArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"]);
+        c = AxisIndicesArray([0 1; 0 1], ["a", "b"], ["one", "two"]);
+        f = RGB{N0f8}
+        M = @inferred(mappedarray(f, a, b, c))
+        @test @inferred(eltype(M)) == RGB{N0f8}
+        @test @inferred(IndexStyle(M)) == IndexLinear()
+        @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
+        @test @inferred(size(M)) === size(a)
+        @test @inferred(axes(M)) === axes(a)
+        @test M[1,1] === RGB{N0f8}(0.1, 0.6, 0)
+        @test M[2,1] === RGB{N0f8}(0.3, 0.4, 0)
+        @test M[1,2] === RGB{N0f8}(0.2, 0.5, 1)
+        @test M[2,2] === RGB{N0f8}(0.4, 0.3, 1)
+    end
 end
+
 
 @testset "MultiMappedArray" begin
     intsym = Int == Int64 ? :Int64 : :Int32

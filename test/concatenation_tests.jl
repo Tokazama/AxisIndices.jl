@@ -36,25 +36,4 @@
 
     @test AxisIndices.cat_axis(AxisIndices.CombineStack(), [1, 2], [3, 4]) == [1, 2, 3, 4]
     @test_throws ErrorException AxisIndices.cat_axis(AxisIndices.CombineStack(), 1:3, 3:4)
-
-    #= TODO these tests break because internally this code errors
-    #  allunique(('a':1:'c')[:])
-    # However, chars aren't currently tested very thouroughly in this package and this would be a nice place to do it.
-    #
-    @testset "cat" begin
-        a = AxisIndicesArray(reshape(1:12, (3, 4)), ('a':'c', 2:5))
-        b = parent(a)
-        @test keys(cat(a, a, dims=3)) == ('a':1:'c', 2:5, Base.OneTo(2))
-        @test keys(cat(b, a, dims=3)) == ('a':1:'c', 2:5, Base.OneTo(2))
-        @test keys(cat(a, b, dims=3)) == ('a':1:'c', 2:5, Base.OneTo(2))
-
-        @test keys(cat(a, a, a, dims=3)) == ('a':1:'c', 2:5, Base.OneTo(3))
-        @test ranges(cat(M,M, dims=(1,2))) == (['a','b','c', 'a','b','c'], [2,3,4,5, 2,3,4,5])
-
-        @test ranges(cat(MN,MN, dims=3)) == ('a':1:'c', 2:5, Base.OneTo(2))
-        @test ranges(cat(M,MN, dims=3)) == ('a':1:'c', 2:5, Base.OneTo(2))
-
-        @test_broken ranges(cat(M,M, dims=:r)) # doesn't work in NamedDims either
-    end
-    =#
 end

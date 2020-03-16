@@ -64,3 +64,4 @@ function MappedArrays.mappedarray(::Type{T}, ::Type{Finv}, data::AbstractAxisInd
         Broadcast.combine_axes(data...)
     )
 end
+
