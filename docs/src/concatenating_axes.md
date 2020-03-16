@@ -7,9 +7,9 @@ Concatenating axes can happen by one of the following:
 The second only happens when the two collections provided are subtypes of `AbstractRange`.
 
 Customizing concatenating axes should be accomplished through either `AxisIndices.CombineStyle` or `AxisIndices.cat_axis!`.
+
 ```@docs
 AxisIndices.cat_axis
-AxisIndices.cat_axes
 AxisIndices.hcat_axes
 AxisIndices.vcat_axes
 ```

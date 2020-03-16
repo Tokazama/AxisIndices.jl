@@ -11,7 +11,6 @@ using Base: step_hp, OneTo
 
 using StaticRanges: can_set_first, can_set_last, can_set_length
 
-
 using AxisIndices: matmul_axes
 
 include("AxisInterface/runtests.jl")
@@ -27,6 +26,7 @@ include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 
 include("mapped_arrays.jl")
+include("nameddims_tests.jl")
 
 
 # TODO this needs to be formally tested
