@@ -3,7 +3,7 @@
         m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
         x = lu(m)
 
-        @test keys.(axes(m[x.p, :])) == (keys(axes(m, 1))[x.p], 3:4)
+        @test axes_keys(m[x.p, :]) == (keys(axes(m, 1))[x.p], 3:4)
     end
 
     @testset "eigen" begin

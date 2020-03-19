@@ -1,14 +1,31 @@
 
+# this is necessary for when we get to the head to_index(::ToIndexStyle, ::AbstractAxis, inds)
+# `inds` needs to be a function but we don't know if it's a single element (==) or a collection (in)
+# Of course, if the user provides a function as input to the indexing in the first place this
+# isn't an issue at all.
+is_collection(::Type{T}) where {T} = false
+is_collection(::Type{T}) where {T<:F2Eq} = false
+is_collection(::Type{T}) where {T<:Function} = true
+is_collection(::Type{T}) where {T<:AbstractArray} = true
+is_collection(::Type{T}) where {T<:Tuple} = true
+is_collection(::Type{T}) where {T<:AbstractDict} = true
+
 """
     is_key_type(::T) -> Bool
 
 Returns `true` if `T` is always considered a key for indexing. Only `CartesianIndex`
 and subtypes of `Real` return `false`.
 """
-is_key_type(::Type{T}) where {T} = true
+is_key_type(::Type{<:Function}) = true
 is_key_type(::Type{<:CartesianIndex}) = false
-is_key_type(::Type{<:Real}) = false
-
+is_key_type(::Type{<:Integer}) = false
+function is_key_type(::Type{T}) where {T}
+    if is_collection(T)
+        return is_key_type(eltype(T))
+    else
+        return true
+    end
+end
 
 """
     CombineStyle
@@ -44,4 +61,5 @@ CombineStyle(::CombineStyle, ::CombineSimpleAxis) = CombineSimpleAxis()
 CombineStyle(::CombineSimpleAxis, ::CombineSimpleAxis) = CombineSimpleAxis()
 
 CombineStyle(x::CombineStyle, y::CombineStyle) = x
+
 

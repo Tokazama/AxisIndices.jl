@@ -96,7 +96,7 @@ for f in (:getindex, :view, :dotview)
     _f = Symbol(:_, f)
     @eval begin
         @propagate_inbounds function Base.$f(a::NIArray, inds...)
-            return $_f(a, to_indices(parent(a), axes(a), inds))
+            return $_f(a, to_indices(parent(a), inds))
         end
 
         @propagate_inbounds function Base.$f(a::NIArray, inds::Vararg{<:Integer})
@@ -204,3 +204,4 @@ function Base.show(io::IO,
         kwargs...
     )
 end
+

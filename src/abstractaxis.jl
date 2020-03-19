@@ -190,12 +190,12 @@ julia> x = SimpleAxis(2:10)
 SimpleAxis(2:10)
 
 julia> x[2]
-3
+2
 
 julia> x[==(2)]
 2
 
-julia> x[2] == x[==(3)]
+julia> x[2] == x[==(2)]  # keys and values are same
 true
 
 julia> x[>(2)]
@@ -382,7 +382,6 @@ end
 # This is required for performing `similar` on arrays
 Base.to_shape(r::AbstractAxis) = length(r)
 
-
 ###
 ### values
 ###
@@ -541,4 +540,14 @@ reverse_keys(a::AbstractSimpleAxis) = Axis(a, reverse(keys(a)), values(a))
 
 # TODO should this be a formal abstract type?
 const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
+
+function StaticRanges._findin(x::AbstractAxis{K,<:Integer}, xo, y::AbstractUnitRange{<:Integer}, yo) where {K}
+    return StaticRanges._findin(values(x), xo, y, yo)
+end
+function StaticRanges._findin(x::AbstractUnitRange{<:Integer}, xo, y::AbstractSimpleAxis{K,<:Integer}, yo) where {K}
+    return StaticRanges._findin(x, xo, values(y), yo)
+end
+function StaticRanges._findin(x::AbstractAxis{K1,<:Integer}, xo, y::AbstractAxis{K2,<:Integer}, yo) where {K1,K2}
+    return StaticRanges._findin(values(x), xo, values(y), yo)
+end
 

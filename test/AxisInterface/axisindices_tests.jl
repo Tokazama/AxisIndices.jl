@@ -34,7 +34,6 @@
     @test promote_shape(CartesianAxes((3,4,1,1,1)), CartesianAxes((3, 4))) ==
             (Base.OneTo(3), Base.OneTo(4), Base.OneTo(1), Base.OneTo(1), Base.OneTo(1))
 
-            promote_shape(CartesianIndices((3,4,1,1,1)), CartesianIndices((3, 4)))
     @test promote_shape(CartesianIndices((3,4,1,1,1)), CartesianAxes((3, 4))) ==
             (Base.OneTo(3), Base.OneTo(4), Base.OneTo(1), Base.OneTo(1), Base.OneTo(1))
 

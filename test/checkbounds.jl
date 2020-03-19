@@ -27,3 +27,4 @@
     # trigger errors when functions return bad indices
     @test_throws BoundsError Base.to_index(Axis(1:10), ==(11))
 end
+

@@ -1,11 +1,10 @@
 module AxisIndices
 
 using StaticRanges, LinearAlgebra, Statistics, Dates, PrettyTables, MappedArrays
-using Base: @propagate_inbounds, OneTo, to_index, tail, front
+using Base: @propagate_inbounds, OneTo, to_index, tail, front, Fix2
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base.Cartesian
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
-
+using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi, F2Eq
 export
     # Types
     AbstractAxisIndices,
@@ -50,8 +49,12 @@ export
 include("abstractaxis.jl")
 include("abstractarray.jl")
 include("traits.jl")
+
+include("indices.jl")
+
 include("broadcast_axis.jl")
 include("cat_axis.jl")
+
 include("append_axis.jl")
 include("indexing.jl")
 include("functions.jl")
