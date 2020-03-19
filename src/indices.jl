@@ -5,61 +5,6 @@
 2. Does `inds` refer to keys or indices?
 3. Does `inds` have the appropriate functional filter
 =#
-"""
-    ToIndexStyle
-
-`ToIndexStyle` specifies how `to_index` should convert provided indices into the
-native indexing of structure.
-"""
-abstract type ToIndexStyle end
-
-struct ToKeysCollection <: ToIndexStyle end
-
-struct ToKeysElement <: ToIndexStyle end
-
-struct ToIndicesCollection <: ToIndexStyle end
-
-struct ToIndicesElement <: ToIndexStyle end
-
-const ToCollection = Union{ToKeysCollection,ToIndicesCollection}
-const ToElement = Union{ToKeysElement,ToIndicesElement}
-
-const ToKeys = Union{ToKeysCollection,ToKeysElement}
-const ToIndices = Union{ToIndicesCollection,ToIndicesElement}
-
-
-@inline function ToIndexStyle(::Type{A}, ::Type{I}) where {A,I}
-    if is_collection(I)
-        if is_key_type(I)
-            return ToKeysCollection()
-        else
-            return ToIndicesCollection()
-        end
-    else
-        if is_key_type(I)
-            return ToKeysElement()
-        else
-            return ToIndicesElement()
-        end
-    end
-end
-
-
-# ensure that everything goes through an initial search step
-check_for_function(::ToCollection, x::Function) = x
-check_for_function(::ToCollection, x) = in(x)
-
-check_for_function(::ToElement, x::Function) = x
-check_for_function(::ToElement, x) = isequal(x)
-
-# retrieve values or keys
-keys_or_values(::ToKeys) = keys
-keys_or_values(::ToIndices) = values
-
-# choose find_all or find_first filter function
-choose_filter(::ToCollection) = find_all
-choose_filter(::ToElement) = find_first
-
 @propagate_inbounds function Base.to_index(axis::AbstractAxis, inds::CartesianIndex{1})
     return to_index(axis, first(inds.I))
 end
@@ -92,27 +37,6 @@ end
     end
     _getindex(axis, newi)
 end
-
-#=
-@propagate_inbounds function Base.to_index(s::ToCollection, axis::AbstractUnitRange{T}, inds) where {T}
-    newinds = find_all(check_for_function(s, inds), keys_or_values(s)(axis))
-
-    l = _get_length(inds)
-    @boundscheck if !isnothing(l) && l != length(newinds)
-        throw(BoundsError(axis, inds))
-    end
-    @inbounds getindex(values(axis), newinds)
-end
-
-@propagate_inbounds function Base.to_index(s::ToElement, axis::AbstractUnitRange{T}, i)::T where {T}
-    newi = find_first(check_for_function(s, i), keys_or_values(s)(axis))
-
-    @boundscheck if newi isa Nothing
-        throw(BoundsError(axis, i))
-    end
-    @inbounds(getindex(values(axis), newi))
-end
-=#
 
 ###
 ### to_indices
@@ -184,4 +108,3 @@ end
     Base.@_inline_meta
     return to_indices(A, inds, (first(I).I..., tail(I)...))
 end
-

@@ -9,6 +9,7 @@ makedocs(;
         "Quick Start" => "quick_start.md",
         "Axes" => [
             "The Axis" => "axis.md",
+            "Axis Traits" => "traits.md",
             "Broadcasting Axes" => "broadcasting_axes.md",
             "Concatenating Axes" => "concatenating_axes.md",
             "Appending Axes" => "appending_axes.md",

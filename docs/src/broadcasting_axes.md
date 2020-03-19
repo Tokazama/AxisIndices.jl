@@ -69,4 +69,3 @@ Customizing broadcasting behavior should be accomplished through either `AxisInd
 ```@docs
 AxisIndices.broadcast_axis
 ```
-
