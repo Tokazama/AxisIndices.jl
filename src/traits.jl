@@ -165,7 +165,3 @@ check_for_function(::ToElement, x) = isequal(x)
 keys_or_values(::ToKeys) = keys
 keys_or_values(::ToIndices) = values
 
-# choose find_all or find_first filter function
-choose_filter(::ToCollection) = find_all
-choose_filter(::ToElement) = find_first
-
