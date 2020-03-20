@@ -53,9 +53,7 @@ end
 
     @test AxisIndices.as_axis(a1) == a1
 
-    @test AxisIndices.as_axis(mrange(1, 2), 2) isa SimpleAxis{Int,OneToMRange{Int}}
-    @test AxisIndices.as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
- 
+
     @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
 end
 
@@ -101,6 +99,11 @@ include("broadcast_tests.jl")
             @test f(AxisIndices.as_axis(t, ax))
         end
     end
+
+    @test AxisIndices.as_axis(1:2, 2) isa SimpleAxis{Int,Base.OneTo{Int}}
+    @test AxisIndices.as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
+    @test AxisIndices.as_axis(mrange(1, 2), 2) isa SimpleAxis{Int,OneToMRange{Int}}
+    @test AxisIndices.as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
 end
 
 @testset "filter" begin
@@ -109,5 +112,11 @@ end
 
     @test axes_keys(filter(isodd, v)) == ([2, 4, 6, 8],)
     @test axes_keys(filter(isodd, a)) == (1:2,)
+end
+
+@testset "ToIndexStyle" begin
+    @test AxisIndices.ToIndexStyle(String) isa AxisIndices.SearchKeys
+    @test AxisIndices.ToIndexStyle(Int) isa AxisIndices.SearchIndices
+    @test AxisIndices.ToIndexStyle(Bool) isa AxisIndices.GetIndices
 end
 
