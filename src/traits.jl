@@ -165,3 +165,16 @@ check_for_function(::ToElement, x) = isequal(x)
 keys_or_values(::ToKeys) = keys
 keys_or_values(::ToIndices) = values
 
+# FIXME This bit has all sorts of stuff that scares me
+# 1. This isn't in Compat.jl yet so I can't just depend on it.
+# 2. Compat dependencies often give me errors when updating packages
+# 3. An anonymous function has a name based on its place in code, therefore we
+#    have to derive the name programmatically because it can change between
+#    versions of Julia
+if length(methods(isapprox, Tuple{Any})) == 0
+    Base.isapprox(y; kwargs...) = x -> isapprox(x, y; kwargs...)
+end
+const IsApproxFix = typeof(isapprox(Any)).name.wrapper
+
+is_collection(::Type{T}) where {T<:IsApproxFix} = false
+

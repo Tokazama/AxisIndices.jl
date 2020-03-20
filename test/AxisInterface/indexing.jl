@@ -40,7 +40,13 @@
     @testset "Functional indexing" begin
         a = Axis(2:10)
         @test a[1:5] == a[<(7)]
+
+        a = Axis(2.0:10.0)
+        @test a[2.0] == 1
+        @test a[2.0] == 1
+        @test a[isapprox(2)] == 1
+        @test a[isapprox(2.1; atol=1)] == 1
+        @test a[≈(3.1; atol=1)] == 2
     end
 end
-
 

@@ -4,6 +4,8 @@
 # `@propagate_inbounds` is widely used because indexing with filtering syntax
 # means we don't know that it's inbounds until we've passed the function through
 # `to_index`.
+
+
 @propagate_inbounds function Base.to_index(axis::AbstractAxis, inds::CartesianIndex{1})
     return to_index(axis, first(inds.I))
 end
