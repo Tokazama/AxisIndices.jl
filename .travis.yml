@@ -4,6 +4,7 @@ os:
     - linux
 julia:
     - 1.2
+    - 1.3
     - nightly
 
 codecov: true
