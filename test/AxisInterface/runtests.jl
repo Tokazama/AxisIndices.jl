@@ -53,7 +53,17 @@ end
 
     @test AxisIndices.as_axis(a1) == a1
 
+    @test AxisIndices.as_axis(mrange(1, 2), 2) isa SimpleAxis{Int,OneToMRange{Int}}
+    @test AxisIndices.as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
+ 
     @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
+end
+
+@testset "reverse_keys" begin
+    axis = Axis(1:10)
+    saxis = SimpleAxis(1:10)
+    @test AxisIndices.reverse_keys(axis) == AxisIndices.reverse_keys(saxis)
+    @test keys(AxisIndices.reverse_keys(axis)) == keys(AxisIndices.reverse_keys(saxis))
 end
 
 @testset "append tests" begin

@@ -1,36 +1,4 @@
 
-"""
-    cat_axes(x, y, dims) -> Tuple
-
-Returns the appropriate axes for `cat(x, y; dims)`. If any of `dims` are names
-then they should refer to the dimensions of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> AxisIndices.cat_axes(LinearAxes((2,3)), LinearAxes((2,3)), dims=(1,2))
-(SimpleAxis(Base.OneTo(4)), SimpleAxis(Base.OneTo(6)))
-```
-"""
-cat_axes(x::AbstractArray, y::AbstractArray; dims) = cat_axes(axes(x), axes(y), dims)
-cat_axes(x::Tuple, y::Tuple; dims) = cat_axes(x, y, dims)
-
-function cat_axes(x::Tuple{Vararg{<:Any,N}}, y::Tuple{Vararg{<:Any,N}}, dims::Int) where {N}
-    return cat_axes(x, y, (dims,))
-end
-function cat_axes(
-    x::Tuple{Vararg{<:Any,N}},
-    y::Tuple{Vararg{<:Any,N}},
-    dims::Tuple{Vararg{Int}}
-   ) where {N}
-
-    return Tuple([ifelse(in(i, dims),
-                         cat_axis(x[i], y[i]),
-                         broadcast_axis(x[i], y[i])
-                        ) for i in 1:N])
-end
-
 
 """
     vcat_axes(x, y) -> Tuple

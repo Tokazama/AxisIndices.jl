@@ -143,7 +143,6 @@ function Axis{K,V,Ks,Vs}(x::AbstractUnitRange{<:Integer}) where {K,V,Ks,Vs}
             return  Axis{K,V,Ks,Vs}(Ks(x), Vs(x))
         end
     end
-    return 
 end
 
 ###
@@ -546,7 +545,7 @@ end
 
 # for when we want the same underlying memory layout but reversed keys
 reverse_keys(a::AbstractAxis) = unsafe_reconstruct(a, reverse(keys(a)), values(a))
-reverse_keys(a::AbstractSimpleAxis) = Axis(a, reverse(keys(a)), values(a))
+reverse_keys(a::AbstractSimpleAxis) = Axis(reverse(keys(a)), values(a))
 
 # TODO should this be a formal abstract type?
 const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
