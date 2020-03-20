@@ -201,8 +201,7 @@ order to avoid ambiguities.
     inds::AbstractUnitRange{<:Integer}
 )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
 
-    @boundscheck checkbounds(a, inds)
-    @inbounds return to_index(a, inds)
+    return to_index(a, inds)
 end
 
 @propagate_inbounds function Base.getindex(
@@ -210,8 +209,7 @@ end
     i::Integer
 )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
 
-    @boundscheck checkbounds(a, i)
-    @inbounds return to_index(a, i)
+    return to_index(a, i)
 end
 
 @propagate_inbounds function Base.getindex(
@@ -251,16 +249,6 @@ _getindex(a::AbstractSimpleAxis, i::Integer) = @inbounds(values(a)[i])
 @propagate_inbounds function Base.setindex!(a::AbstractAxisIndices, value, inds...)
     return setindex!(parent(a), value, to_indices(a, inds)...)
 end
-
-#=
-@propagate_inbounds function Base.setindex!(a::AbstractAxisIndices{T,1}, val, i) where {T}
-    return setindex!(parent(a), val, Base.to_index(axes(a, 1), i))
-end
-
-@propagate_inbounds function Base.setindex!(a::AbstractAxisIndices{T,N}, val, i) where {T,N}
-    return setindex!(parent(a), val, i)
-end
-=#
 
 for f in (:getindex, :view, :dotview)
     _f = Symbol(:_, f)
