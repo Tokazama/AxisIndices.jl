@@ -1,20 +1,10 @@
 # Axis Traits
 
-## Combine Traits
-
-```@docs
-AxisIndices.CombineStyle
-AxisIndices.CombineAxis
-AxisIndices.CombineSimpleAxis
-AxisIndices.CombineResize
-AxisIndices.CombineStack
-```
-
 # Indexing Traits
 
 At its core, AxisIndices relies on a small change in processing indexing, permitting its unique abilities.
 Most arrays pass indexing arguments to the `to_indices` method at some point.
-Where a user provides perfomrs indexing as `A[arg1, arg2]`, the translation to native indexing space looks a bit like this:
+Where a user provides performs indexing as `A[arg1, arg2]`, the translation to native indexing space looks a bit like this:
 
 ```julia
 # `axes_of_A = axes(A)` and `indexing_arguments = (arg1, arg2)`
@@ -35,7 +25,7 @@ function to_indices(A, axes_of_A::Tuple, indexing_arguments::Tuple)
 end
 ```
 Now each translation to native indexing space occurs through the direction of each axis of `A`.
-This means that cusotmizing indexing behavior can _now_ be accomplished by either
+This means that customizing indexing behavior can _now_ be accomplished by either
 1. Overloading `to_indices` based on `A`.
 2. Overloading `to_index` based on each axis of `A` (e.g., `axes(A, 1), axes(A, 2)`)
 3. Overloading `to_index` based on each indexing argument (e.g., `arg1`, `arg2`)
@@ -66,5 +56,19 @@ AxisIndices.ToKeysCollection
 AxisIndices.ToKeysElement
 AxisIndices.ToIndicesCollection
 AxisIndices.ToIndicesElement
+```
+
+## Combine Traits
+
+One natural consequence of having axes as independent entities from the actual array data is that it complicates operations such as `cat` and `append!`.
+1. How should we propagate characteristics from the values of each axis so that the resulting array is still appropriately memory mapped.
+2. How should we combine keys of different types and that are not necessarily unique?
+
+```@docs
+AxisIndices.CombineStyle
+AxisIndices.CombineAxis
+AxisIndices.CombineSimpleAxis
+AxisIndices.CombineResize
+AxisIndices.CombineStack
 ```
 
