@@ -22,7 +22,7 @@ _get_length(x) = length(x)
     if is_collection(I)
         newinds = find_all(maybe_wrap_in(inds), keys(axis))
         l = _get_length(inds)
-        @boundscheck if !isnothing(l) && l != length(newinds)
+        @boundscheck if !(eltype(newinds) <: Integer) || !isnothing(l) && l != length(newinds)
             throw(BoundsError(axis, inds))
         end
     else
@@ -44,7 +44,7 @@ end
     else
         newinds = find_first(maybe_wrap_eq(inds), values(axis))
         @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, i))
+            throw(BoundsError(axis, newinds))
         end
     end
     return maybe_unsafe_reconstruct(axis, newinds)

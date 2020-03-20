@@ -17,16 +17,9 @@ is_collection(::Type{T}) where {T<:AbstractDict} = true
 Returns `true` if `T` is always considered a key for indexing. Only `CartesianIndex`
 and subtypes of `Real` return `false`.
 """
-is_key_type(::Type{<:Function}) = true
+is_key_type(::Type{T}) where {T} = true
 is_key_type(::Type{<:CartesianIndex}) = false
 is_key_type(::Type{<:Integer}) = false
-function is_key_type(::Type{T}) where {T}
-    if is_collection(T)
-        return is_key_type(eltype(T))
-    else
-        return true
-    end
-end
 
 """
     CombineStyle

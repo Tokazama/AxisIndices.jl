@@ -120,3 +120,10 @@ end
     @test AxisIndices.ToIndexStyle(Bool) isa AxisIndices.GetIndices
 end
 
+
+@testset "checkbounds" begin
+    a = Axis(1:2)
+    @test checkbounds(a, 2)
+    @test !checkbounds(a, 3)
+end
+

@@ -27,9 +27,10 @@
         @test to_index(x, :one) == 1
         @test to_index(x, [:one, :two]) == [1, 2]
 
-        #@test_throws BoundsError to_index(x, :three)
+        @test_throws BoundsError Base.to_index(x, 3)
+        @test_throws BoundsError Base.to_index(x, :three)
         # TODO this currently doesn't throw an error, just returns the indices that can be found
-        #@test_throws BoundsError to_index(x, [:one, :two, :three])
+        @test_throws BoundsError Base.to_index(x, [:one, :two, :three])
     end
 
     @testset "reindex" begin
