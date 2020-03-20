@@ -32,30 +32,22 @@ This means that customizing indexing behavior can _now_ be accomplished by eithe
 
 However, this does not mean that overloading `to_index` is always safe or even advisable.
 This portion of the indexing pipeline is responsible for mapping arguments to the underlying memory of arrays, so you can cause some significant problems if you don't know what you're doing.
-It's also easy to inadvertantly effect performance when changing how indexing works.
-Therefore, AxisIndices also provides some traits to ease this.
-
-### The `ToIndexStyle` trait
-
-Given `to_index(axis, inds) -> newinds` there are two components to indexing that we have to consider:
-1. Should `newinds` be a collection or a single element?
-2. Is the reference frame for `inds` the keys of `axis` or the values of `axis`?
-
+It's also easy to inadvertently effect performance when changing how indexing works.
+Therefore, AxisIndices also small trait system for handling this.
 This is accomplished through the use of `ToIndexStyle`, which is injected into the `to_index` schema as follows:
 ```julia
 function to_index(axis, inds)
-    return to_index(ToIndexStyle(typeof(axis), typeof(inds)), axis, inds)
+    return to_index(ToIndexStyle(eltype(inds)), axis, inds)
 end
 ```
 
-There are four resulting specializations based upon subtypes of `ToIndexStyle`, allowing users to customize indexing behavior without worrying about rewriting performance critical code.
+Several subtypes of `ToIndexStyle` are provided, allowing users to customize indexing behavior without worrying about rewriting performance critical code.
 
 ```@docs
 AxisIndices.ToIndexStyle
-AxisIndices.ToKeysCollection
-AxisIndices.ToKeysElement
-AxisIndices.ToIndicesCollection
-AxisIndices.ToIndicesElement
+AxisIndices.SearchKeys
+AxisIndices.SearchIndices
+AxisIndices.GetIndices
 ```
 
 ## Combine Traits

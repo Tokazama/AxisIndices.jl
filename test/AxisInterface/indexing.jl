@@ -34,19 +34,19 @@
 
     @testset "reindex" begin
         axs = (Axis(2:10), Axis(2:10), Axis(2:10))
-        @test reindex(axs, (1, 1:9, 1:9)) == (Axis(2:10), Axis(2:10))
+        @test @inferred(reindex(axs, (1, 1:9, 1:9))) == (Axis(2:10), Axis(2:10))
     end
 
     @testset "Functional indexing" begin
         a = Axis(2:10)
-        @test a[1:5] == a[<(7)]
+        @test @inferred(a[1:5]) == @inferred(a[<(7)])
 
         a = Axis(2.0:10.0)
-        @test a[2.0] == 1
-        @test a[2.0] == 1
-        @test a[isapprox(2)] == 1
-        @test a[isapprox(2.1; atol=1)] == 1
-        @test a[≈(3.1; atol=1)] == 2
+        @test @inferred(a[2.0]) == 1
+        @test @inferred(a[2.0]) == 1
+        @test @inferred(a[isapprox(2)]) == 1
+        @test @inferred(a[isapprox(2.1; atol=1)]) == 1
+        @test @inferred(a[≈(3.1; atol=1)]) == 2
     end
 end
 

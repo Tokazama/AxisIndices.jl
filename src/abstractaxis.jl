@@ -379,6 +379,16 @@ function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
     return similar_type(a, Ks, Vs)(ks, vs, false, false)
 end
 
+maybe_unsafe_reconstruct(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
+function maybe_unsafe_reconstruct(a::AbstractAxis, inds::AbstractUnitRange)
+    unsafe_reconstruct(a, @inbounds(keys(a)[inds]), @inbounds(values(a)[inds]))
+end
+
+maybe_unsafe_reconstruct(a::AbstractSimpleAxis, inds) = @inbounds(values(a)[inds])
+function maybe_unsafe_reconstruct(a::AbstractSimpleAxis, inds::AbstractUnitRange)
+    return unsafe_reconstruct(a, @inbounds(values(a)[inds]))
+end
+
 # This is required for performing `similar` on arrays
 Base.to_shape(r::AbstractAxis) = length(r)
 

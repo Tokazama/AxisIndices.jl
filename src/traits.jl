@@ -10,6 +10,7 @@ is_collection(::Type{T}) where {T<:AbstractArray} = true
 is_collection(::Type{T}) where {T<:Tuple} = true
 is_collection(::Type{T}) where {T<:AbstractDict} = true
 
+# TODO Not the greatest name
 """
     is_key_type(::T) -> Bool
 
@@ -84,86 +85,48 @@ CombineStyle(::CombineSimpleAxis, ::CombineSimpleAxis) = CombineSimpleAxis()
 
 CombineStyle(x::CombineStyle, y::CombineStyle) = x
 
+
 abstract type ToIndexStyle end
 
 """
     ToKeysCollection()
 
-Calling `to_index(::ToKeysCollection, axis, inds) -> newinds` results in:
+Calling `to_index(::SearchKeys, axis, inds) -> newinds` results in:
 1. Identifying the positions of `keys(axis)` that equal `inds`
 2. Retreiving the `values(axis)` that correspond to the identified positions.
 3. Attempt to reconstruct the axis type (e.g., `Axis` or `SimpleAxis`) with the relevant keys and values. This is only possible if `newinds isa AbstractUnitRange{Integer}` is `true`
 """
-struct ToKeysCollection <: ToIndexStyle end
+struct SearchKeys <: ToIndexStyle end
 
 """
-    ToKeysElement()
+    SearchIndices()
 
-Calling `to_index(::ToIndicesCollection, axis, inds) -> newinds` results in:
-1. Identifying the position of `key(axis)` that equal `inds`.
-2. Return the element of `values(axis)` that corresponds to the identified position.
-"""
-struct ToKeysElement <: ToIndexStyle end
-
-"""
-    ToIndicesCollection()
-
-Calling `to_index(::ToIndicesCollection, axis, inds) -> newinds` results in:
+Calling `to_index(::SearchIndices, axis, inds) -> newinds` results in:
 1. Identifying the positions of `values(axis)` that equal `inds`
 2. Attempt to reconstruct the axis type (e.g., `Axis` or `SimpleAxis`) with the relevant keys and values. This is only possible if `newinds isa AbstractUnitRange{Integer}` is `true`
 """
-struct ToIndicesCollection <: ToIndexStyle end
+struct SearchIndices <: ToIndexStyle end
 
 """
-    ToIndicesElement()
+    GetIndices()
 
-Calling `to_index(::ToIndicesCollection, axis, inds) -> newinds` results in:
-1. Identifying the position of `values(axis)` that equal `inds`.
-2. Return the element of `values(axis)` that corresponds to the identified position.
+Calling `to_index(::GetIndices, axis, inds) -> newinds` results in:
+1. Performs `getindex(values(axis), inds)`
+2. If the initual output is a subtype of `AbstractUnitRange{Integer}` then an axis type is returned. Otherwise just the initial output is returned.
 """
-struct ToIndicesElement <: ToIndexStyle end
-
-const ToCollection = Union{ToKeysCollection,ToIndicesCollection}
-const ToElement = Union{ToKeysElement,ToIndicesElement}
-
-const ToKeys = Union{ToKeysCollection,ToKeysElement}
-const ToIndices = Union{ToIndicesCollection,ToIndicesElement}
+struct GetIndices <: ToIndexStyle end
 
 """
     ToIndexStyle
 
 `ToIndexStyle` specifies how `to_index(axis, inds)` should convert a provided
-argument indices into the native indexing of structure. `ToIndexStyle(typeof(axis), tyepof(inds))`
-determines whether [`ToKeysCollection`](@ref), [`ToKeysElement`](@ref), [`ToIndicesCollection`](@ref),
-or [`ToIndicesElement`](@ref) is returned.
+argument indices into the native indexing of structure. `ToIndexStyle(eltype(inds))`
+determines whether [`SearchKeys`](@ref), [`SearchIndices`](@ref), or
+[`GetIndices`](@ref) is returned.
 """
-@inline function ToIndexStyle(::Type{A}, ::Type{I}) where {A,I}
-    if is_collection(I)
-        if is_key_type(I)
-            return ToKeysCollection()
-        else
-            return ToIndicesCollection()
-        end
-    else
-        if is_key_type(I)
-            return ToKeysElement()
-        else
-            return ToIndicesElement()
-        end
-    end
-end
-
-
-# ensure that everything goes through an initial search step
-check_for_function(::ToCollection, x::Function) = x
-check_for_function(::ToCollection, x) = in(x)
-
-check_for_function(::ToElement, x::Function) = x
-check_for_function(::ToElement, x) = isequal(x)
-
-# retrieve values or keys
-keys_or_values(::ToKeys) = keys
-keys_or_values(::ToIndices) = values
+ToIndexStyle(::Type{T}) where {T} = SearchKeys()
+ToIndexStyle(::Type{T}) where {T<:Integer} = SearchIndices()
+ToIndexStyle(::Type{T}) where {T<:Bool} = GetIndices()
 
 # FIXME This bit has all sorts of stuff that scares me
 # 1. This isn't in Compat.jl yet so I can't just depend on it.
@@ -177,4 +140,10 @@ end
 const IsApproxFix = typeof(isapprox(Any)).name.wrapper
 
 is_collection(::Type{T}) where {T<:IsApproxFix} = false
+
+maybe_wrap_in(x::Function) = x
+maybe_wrap_in(x) = in(x)
+
+maybe_wrap_eq(x::Function) = x
+maybe_wrap_eq(x) = isequal(x)
 
