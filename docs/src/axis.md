@@ -184,7 +184,7 @@ AxisIndices.next_type
 AxisIndices.prev_type
 ```
 
-## Axis Types
+## Axis Types and Related Methods
 
 ```@docs
 AxisIndices.AbstractAxis
@@ -195,7 +195,7 @@ AxisIndices.CartesianAxes
 AxisIndices.LinearAxes
 AxisIndices.values_type
 AxisIndices.keys_type
-AxisIndices.indices
-AxisIndices.axes_keys
+AxisIndices.first_key
+AxisIndices.last_key
 ```
 

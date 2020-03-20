@@ -7,6 +7,8 @@ The following describes many of the available methods for accommodating multidim
 ```@docs
 AxisIndices.AbstractAxisIndices
 AxisIndices.AxisIndicesArray
+AxisIndices.indices
+AxisIndices.axes_keys
 ```
 
 ## Swapping Dimensions
