@@ -81,7 +81,6 @@ include("promotions.jl")
 include("axisindices_tests.jl")
 include("indexing.jl")
 include("combine_tests.jl")
-include("cat_tests.jl")
 include("broadcast_tests.jl")
 
 # TODO organize these tests better
