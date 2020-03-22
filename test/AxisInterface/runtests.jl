@@ -114,16 +114,14 @@ end
     @test axes_keys(filter(isodd, a)) == (1:2,)
 end
 
-@testset "ToIndexStyle" begin
-    @test AxisIndices.ToIndexStyle(String) isa AxisIndices.SearchKeys
-    @test AxisIndices.ToIndexStyle(Int) isa AxisIndices.SearchIndices
-    @test AxisIndices.ToIndexStyle(Bool) isa AxisIndices.GetIndices
+
+@testset "traits" begin
+    @testset "ToIndexStyle" begin
+        @test @inferred(AxisIndices.ToIndexStyle(["a", "b"])) isa AxisIndices.SearchKeys
+        @test @inferred(AxisIndices.ToIndexStyle("a")) isa AxisIndices.SearchKeys
+        @test @inferred(AxisIndices.ToIndexStyle(1)) isa AxisIndices.SearchIndices
+        @test @inferred(AxisIndices.ToIndexStyle([1])) isa AxisIndices.SearchIndices
+        @test @inferred(AxisIndices.ToIndexStyle((1,))) isa AxisIndices.SearchIndices
+        @test @inferred(AxisIndices.ToIndexStyle(true)) isa AxisIndices.GetIndices
+    end
 end
-
-
-@testset "checkbounds" begin
-    a = Axis(1:2)
-    @test checkbounds(a, 2)
-    @test !checkbounds(a, 3)
-end
-

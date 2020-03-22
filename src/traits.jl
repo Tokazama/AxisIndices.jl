@@ -117,7 +117,14 @@ argument indices into the native indexing of structure. `ToIndexStyle(eltype(ind
 determines whether [`SearchKeys`](@ref), [`SearchIndices`](@ref), or
 [`GetIndices`](@ref) is returned.
 """
-ToIndexStyle(::Type{T}) where {T} = SearchKeys()
+ToIndexStyle(::T) where {T} = ToIndexStyle(T)
+function ToIndexStyle(::Type{T}) where {T}
+    if is_collection(T)
+        return ToIndexStyle(eltype(T))
+    else
+        return SearchKeys()
+    end
+end
 ToIndexStyle(::Type{T}) where {T<:Integer} = SearchIndices()
 ToIndexStyle(::Type{T}) where {T<:Bool} = GetIndices()
 

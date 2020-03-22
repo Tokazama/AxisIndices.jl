@@ -570,6 +570,10 @@ Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 # TODO specialize on types
 Base.collect(a::AbstractAxis) = collect(values(a))
 
+function Base.map(f, x::AbstractAxis...)
+    return maybe_unsafe_reconstruct(broadcast_axis(x), map(values.(x)...))
+end
+
 ###
 ### first
 ###
@@ -658,4 +662,6 @@ julia> last_key(Axis(2:10))
 ```
 """
 last_key(x) = last(keys(x))
+
+
 

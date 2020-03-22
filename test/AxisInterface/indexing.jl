@@ -49,5 +49,17 @@
         @test @inferred(a[isapprox(2.1; atol=1)]) == 1
         @test @inferred(a[≈(3.1; atol=1)]) == 2
     end
+
+    @testset "to_index(::SearchKeys,...)" begin
+        x = Axis(["a", "b"])
+        @test @inferred(Base.to_index(AxisIndices.SearchKeys(), x, "b")) == 2
+        # FIXME
+        #@test @inferred(Base.to_index(AxisIndices.SearchKeys(), x, ["a", "b"])) == [1, 2]
+    end
+end
+
+@testset "Floats as keys #13" begin
+    A = AxisIndicesArray(collect(1:5), 0.1:0.1:0.5)
+    @test @inferred(A[0.3]) == 3
 end
 
