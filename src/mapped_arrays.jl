@@ -1,14 +1,13 @@
 
 # We can't just make a type alias for mapped array types because this would require
-# multiple calls teh combine_axes for multi-mapped types for every axes call. It also
+# multiple calls to combine_axes for multi-mapped types for every axes call. It also
 # would require overloading a bunch of other methods to ensure they work correctly
 # (e.g., getindex, setindex!, view, show, etc...)
 #
 # We can't directly overload the head of each method because data::AbstractArray....
-# is too similar to Union{AbstractAxisIndices,AbstractArray} so I make the following
-# changes on method heads that handle multiple arrays.
-# * I have to limit it to AbstractAxisIndices...
-#   - this won't be called unless all methods are AbstractAxisIndices
+# is too similar to Union{AbstractAxisIndices,AbstractArray} so we only specialize
+# on method heads that handle all AbstractAxisIndices subtypes. Therefore, including
+# any other array type will miss these specific methods.
 
 function MappedArrays.mappedarray(f, data::AbstractAxisIndices)
     return unsafe_reconstruct(data, mappedarray(f, parent(data)), axes(data))

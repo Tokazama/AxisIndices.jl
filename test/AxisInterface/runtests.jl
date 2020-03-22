@@ -53,7 +53,15 @@ end
 
     @test AxisIndices.as_axis(a1) == a1
 
+
     @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
+end
+
+@testset "reverse_keys" begin
+    axis = Axis(1:10)
+    saxis = SimpleAxis(1:10)
+    @test AxisIndices.reverse_keys(axis) == AxisIndices.reverse_keys(saxis)
+    @test keys(AxisIndices.reverse_keys(axis)) == keys(AxisIndices.reverse_keys(saxis))
 end
 
 @testset "append tests" begin
@@ -73,7 +81,6 @@ include("promotions.jl")
 include("axisindices_tests.jl")
 include("indexing.jl")
 include("combine_tests.jl")
-include("cat_tests.jl")
 include("broadcast_tests.jl")
 
 # TODO organize these tests better
@@ -91,6 +98,11 @@ include("broadcast_tests.jl")
             @test f(AxisIndices.as_axis(t, ax))
         end
     end
+
+    @test AxisIndices.as_axis(1:2, 2) isa SimpleAxis{Int,Base.OneTo{Int}}
+    @test AxisIndices.as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
+    @test AxisIndices.as_axis(mrange(1, 2), 2) isa SimpleAxis{Int,OneToMRange{Int}}
+    @test AxisIndices.as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
 end
 
 @testset "filter" begin
@@ -101,3 +113,14 @@ end
     @test axes_keys(filter(isodd, a)) == (1:2,)
 end
 
+
+@testset "traits" begin
+    @testset "ToIndexStyle" begin
+        @test @inferred(AxisIndices.ToIndexStyle(["a", "b"])) isa AxisIndices.SearchKeys
+        @test @inferred(AxisIndices.ToIndexStyle("a")) isa AxisIndices.SearchKeys
+        @test @inferred(AxisIndices.ToIndexStyle(1)) isa AxisIndices.SearchIndices
+        @test @inferred(AxisIndices.ToIndexStyle([1])) isa AxisIndices.SearchIndices
+        @test @inferred(AxisIndices.ToIndexStyle((1,))) isa AxisIndices.SearchIndices
+        @test @inferred(AxisIndices.ToIndexStyle(true)) isa AxisIndices.GetIndices
+    end
+end

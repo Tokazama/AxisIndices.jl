@@ -68,28 +68,7 @@ end
 
 
 @testset "matmul" begin
-    #= TODO INDEX PROMOTION RULES:
-
-    @testset "matrix_prod_names" begin
-        @test matrix_prod_names((:foo, :bar), (:bar, :buzz)) == (:foo, :buzz)
-        @test matrix_prod_names((:foo, :bar), (:_, :buzz)) == (:foo, :buzz)
-        @test matrix_prod_names((:foo, :_), (:bar, :buzz)) == (:foo, :buzz)
-        @test matrix_prod_names((:foo, :_), (:_, :buzz)) == (:foo, :buzz)
-        @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope, :buzz))
-
-        @test matrix_prod_names((:foo,), (:bar, :buzz)) == (:foo, :buzz)
-        @test matrix_prod_names((:foo,), (:_, :buzz)) == (:foo, :buzz)
-        # No error case with name mismatch here, as a Vector has "virtual" wildcard second dimension
-
-        @test matrix_prod_names((:foo, :bar), (:bar,)) == (:foo,)
-        @test matrix_prod_names((:foo, :bar), (:_, )) == (:foo,)
-        @test matrix_prod_names((:foo, :_), (:bar,)) == (:foo,)
-        @test matrix_prod_names((:foo, :_), (:_,)) == (:foo,)
-        @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope,))
-    end
-    =#
-
-    @testset "Matrix-Matrix" begin
+   @testset "Matrix-Matrix" begin
         a = AxisIndicesArray(ones(2, 3), (3:4, 1:3));
         b = AxisIndicesArray(ones(3, 2), (2:4, 2:3));
 

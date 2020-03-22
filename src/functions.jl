@@ -88,3 +88,14 @@ for f in (:map, :map!)
     end
 end
 
+#= there are 
+function Base.filter(f, a::AbstractAxisIndices{T,1}) where {T}
+    inds = findall(f, parent(a))
+    return unsafe_reconstruct(
+        a,
+        @inbounds(getindex(pa), inds),
+        (@inbounds(reindex(axes(a, 1), inds)),)
+    )
+end
+Base.filter(f, a::AbstractAxisIndices{T,N}) where {L,T,N} = filter(f, parent(a))
+=#

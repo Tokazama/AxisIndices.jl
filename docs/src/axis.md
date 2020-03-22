@@ -78,27 +78,6 @@ Note in the last example that a vector was returned instead of an `AbstractAxis`
 An `AbstractAxis` is a subtype of `AbstractUnitRange` and therefore cannot be reformed after any operation that does not guarantee the return of another unit range.
 This is similar to the behavior of `UnitRange` in base.
 
-### How Does It Work?
-
-This package makes a small alteration in the indexing pipeline for arrays from base.
-Where an array typically passes indices along a similar path to:
-
-```
-getindex(A::Array, i1, i2, i3) -> to_indices(A, axes(), (i1, i2, i3))
-to_indices(A, (ax1, ax2, ax3), (i1, i2, i3)) ->
-(to_index(A, i1), to_index(A, i2), to_index(A, i3)) -> I
-_getindex(A, I)
-```
-
-This package does:
-```
-getindex(A::Array, i1, i2, i3) -> to_indices(A, axes(), (i1, i2, i3))
-to_indices(A, (ax1, ax2, ax3), (i1, i2, i3)) ->
-(to_index(ax1, i1), to_index(ax2, i2), to_index(ax3, i3)) -> I
-_getindex(A, I)
-```
-
-This allows customizing the initial arguments given to `getindex` per each axis instead of by the array type or the type of `i1/2/3`.
 
 ### Performance
 
@@ -205,7 +184,7 @@ AxisIndices.next_type
 AxisIndices.prev_type
 ```
 
-## Axis Types
+## Axis Types and Related Methods
 
 ```@docs
 AxisIndices.AbstractAxis
@@ -216,8 +195,7 @@ AxisIndices.CartesianAxes
 AxisIndices.LinearAxes
 AxisIndices.values_type
 AxisIndices.keys_type
-AxisIndices.indices
-AxisIndices.axes_keys
-AxisIndices.CombineStyle
+AxisIndices.first_key
+AxisIndices.last_key
 ```
 

@@ -10,6 +10,10 @@
     @test !checkbounds(Bool, Axis(1:2), CartesianIndex(3))
 
     x2 = Axis(1:2)
+
+    @test checkbounds(x2, 2)
+    @test !checkbounds(x2, 3)
+
     @test Base.checkindex(Bool, x2, x2 .> 3)
 
     @test Base.checkindex(Bool, x2, 1:2)
@@ -26,4 +30,6 @@
 
     # trigger errors when functions return bad indices
     @test_throws BoundsError Base.to_index(Axis(1:10), ==(11))
+
 end
+

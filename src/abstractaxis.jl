@@ -1,13 +1,11 @@
+# This file is for code that is only relevant to AbstractAxis
+#
+# * TODO list for AbstractAxis
+# - Is this necessary `Base.UnitRange{T}(a::AbstractAxis) where {T} = UnitRange{T}(values(a))`
+# - Should AbstractAxes be a formal type?
+# - is `nothing` what we want when there isn't a step in the keys
+# - specialize `collect` on first type argument
 
-###
-### iterators
-###
-# TODO does this make sense with vector values
-#Base.UnitRange{T}(a::AbstractAxis) where {T} = UnitRange{T}(values(a))
-
-###
-### Types
-###
 """
     AbstractAxis
 
@@ -16,29 +14,11 @@ An `AbstractVector` subtype optimized for indexing.
 abstract type AbstractAxis{K,V<:Integer,Ks,Vs} <: AbstractUnitRange{V} end
 
 """
-    unsafe_reconstruct(axis::AbstractAxis, keys::Ks, values::Vs)
-
-Reconstructs an `AbstractAxis` of the same type as `axis` but with keys of type `Ks` and values of type `Vs`.
-This method is considered unsafe because it bypasses checks  to ensure that `keys` and `values` have the same length and the all `keys` are unique.
-"""
-function unsafe_reconstruct(a::AbstractAxis, ks::Ks, vs::Vs) where {Ks,Vs}
-    return similar_type(a, Ks, Vs)(ks, vs)
-end
-
-"""
     AbstractSimpleAxis{V,Vs}
 
 A subtype of `AbstractAxis` where the keys and values are represented by a single collection.
 """
 abstract type AbstractSimpleAxis{V,Vs} <: AbstractAxis{V,V,Vs,Vs} end
-
-"""
-    unsafe_reconstruct(axis::AbstractSimpleAxis, values::Vs)
-
-Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of type `Vs`.
-"""
-unsafe_reconstruct(a::AbstractSimpleAxis, vs::Vs) where {Vs} = similar_type(a, Vs)(vs)
-
 
 """
     Axis(k[, v=OneTo(length(k))])
@@ -163,11 +143,6 @@ function Axis{K,V,Ks,Vs}(x::AbstractUnitRange{<:Integer}) where {K,V,Ks,Vs}
             return  Axis{K,V,Ks,Vs}(Ks(x), Vs(x))
         end
     end
-    return 
-end
-
-function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
-    return similar_type(a, Ks, Vs)(ks, vs, false, false)
 end
 
 ###
@@ -190,12 +165,12 @@ julia> x = SimpleAxis(2:10)
 SimpleAxis(2:10)
 
 julia> x[2]
-3
+2
 
 julia> x[==(2)]
 2
 
-julia> x[2] == x[==(3)]
+julia> x[2] == x[==(2)]  # keys and values are same
 true
 
 julia> x[>(2)]
@@ -379,9 +354,42 @@ function StaticRanges.similar_type(
     return similar_type(A, vs_type)
 end
 
+###
+### unsafe_reconstruct
+###
+"""
+    unsafe_reconstruct(axis::AbstractAxis, keys::Ks, values::Vs)
+
+Reconstructs an `AbstractAxis` of the same type as `axis` but with keys of type `Ks` and values of type `Vs`.
+This method is considered unsafe because it bypasses checks  to ensure that `keys` and `values` have the same length and the all `keys` are unique.
+"""
+function unsafe_reconstruct(a::AbstractAxis, ks::Ks, vs::Vs) where {Ks,Vs}
+    return similar_type(a, Ks, Vs)(ks, vs)
+end
+
+"""
+    unsafe_reconstruct(axis::AbstractSimpleAxis, values::Vs)
+
+Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of type `Vs`.
+"""
+unsafe_reconstruct(a::AbstractSimpleAxis, vs::Vs) where {Vs} = similar_type(a, Vs)(vs)
+
+function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
+    return similar_type(a, Ks, Vs)(ks, vs, false, false)
+end
+
+maybe_unsafe_reconstruct(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
+function maybe_unsafe_reconstruct(a::AbstractAxis, inds::AbstractUnitRange)
+    unsafe_reconstruct(a, @inbounds(keys(a)[inds]), @inbounds(values(a)[inds]))
+end
+
+maybe_unsafe_reconstruct(a::AbstractSimpleAxis, inds) = @inbounds(values(a)[inds])
+function maybe_unsafe_reconstruct(a::AbstractSimpleAxis, inds::AbstractUnitRange)
+    return unsafe_reconstruct(a, @inbounds(values(a)[inds]))
+end
+
 # This is required for performing `similar` on arrays
 Base.to_shape(r::AbstractAxis) = length(r)
-
 
 ###
 ### values
@@ -537,8 +545,123 @@ end
 
 # for when we want the same underlying memory layout but reversed keys
 reverse_keys(a::AbstractAxis) = unsafe_reconstruct(a, reverse(keys(a)), values(a))
-reverse_keys(a::AbstractSimpleAxis) = Axis(a, reverse(keys(a)), values(a))
+reverse_keys(a::AbstractSimpleAxis) = Axis(reverse(keys(a)), values(a))
 
 # TODO should this be a formal abstract type?
 const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
+
+function StaticRanges._findin(x::AbstractAxis{K,<:Integer}, xo, y::AbstractUnitRange{<:Integer}, yo) where {K}
+    return StaticRanges._findin(values(x), xo, y, yo)
+end
+function StaticRanges._findin(x::AbstractUnitRange{<:Integer}, xo, y::AbstractSimpleAxis{K,<:Integer}, yo) where {K}
+    return StaticRanges._findin(x, xo, values(y), yo)
+end
+function StaticRanges._findin(x::AbstractAxis{K1,<:Integer}, xo, y::AbstractAxis{K2,<:Integer}, yo) where {K1,K2}
+    return StaticRanges._findin(values(x), xo, values(y), yo)
+end
+
+###
+### Iterators
+###
+Base.eachindex(a::AbstractAxis) = values(a)
+
+Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
+
+# TODO specialize on types
+Base.collect(a::AbstractAxis) = collect(values(a))
+
+function Base.map(f, x::AbstractAxis...)
+    return maybe_unsafe_reconstruct(broadcast_axis(x), map(values.(x)...))
+end
+
+###
+### first
+###
+Base.first(a::AbstractAxis) = first(values(a))
+function StaticRanges.can_set_first(::Type{T}) where {T<:AbstractAxis}
+    return can_set_first(keys_type(T))
+end
+function StaticRanges.set_first!(x::AbstractAxis{K,V}, val::V) where {K,V}
+    can_set_first(x) || throw(MethodError(set_first!, (x, val)))
+    set_first!(values(x), val)
+    resize_first!(keys(x), length(values(x)))
+    return x
+end
+function StaticRanges.set_first(x::AbstractAxis{K,V}, val::V) where {K,V}
+    vs = set_first(values(x), val)
+    return unsafe_reconstruct(x, resize_first(keys(x), length(vs)), vs)
+end
+
+function StaticRanges.set_first(x::AbstractSimpleAxis{V}, val::V) where {V}
+    return unsafe_reconstruct(x, set_first(values(x), val))
+end
+function StaticRanges.set_first!(x::AbstractSimpleAxis{V}, val::V) where {K,V}
+    can_set_first(x) || throw(MethodError(set_first!, (x, val)))
+    set_first!(values(x), val)
+    return x
+end
+
+Base.firstindex(a::AbstractAxis) = firstindex(values(a))
+
+"""
+    first_key(x)
+
+Returns the first key of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> first_key(Axis(2:10))
+2
+```
+"""
+first_key(x) = first(keys(x))
+
+###
+### last
+###
+Base.last(a::AbstractAxis) = last(values(a))
+function StaticRanges.can_set_last(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs}
+    return StaticRanges.can_set_last(Ks) & StaticRanges.can_set_last(Vs)
+end
+function StaticRanges.set_last!(x::AbstractAxis{K,V}, val::V) where {K,V}
+    can_set_last(x) || throw(MethodError(set_last!, (x, val)))
+    set_last!(values(x), val)
+    resize_last!(keys(x), length(values(x)))
+    return x
+end
+function StaticRanges.set_last(x::AbstractAxis{K,V}, val::V) where {K,V}
+    vs = set_last(values(x), val)
+    return unsafe_reconstruct(x, resize_last(keys(x), length(vs)), vs)
+end
+
+function StaticRanges.set_last!(x::AbstractSimpleAxis{V}, val::V) where {V}
+    can_set_last(x) || throw(MethodError(set_last!, (x, val)))
+    set_last!(values(x), val)
+    return x
+end
+
+function StaticRanges.set_last(x::AbstractSimpleAxis{K}, val::K) where {K}
+    return unsafe_reconstruct(x, set_last(values(x), val))
+end
+
+Base.lastindex(a::AbstractAxis) = lastindex(values(a))
+
+"""
+    last_key(x)
+
+Returns the last key of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> last_key(Axis(2:10))
+10
+```
+"""
+last_key(x) = last(keys(x))
+
+
 

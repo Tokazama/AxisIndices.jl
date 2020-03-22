@@ -4,159 +4,127 @@
 # `@propagate_inbounds` is widely used because indexing with filtering syntax
 # means we don't know that it's inbounds until we've passed the function through
 # `to_index`.
-
-Base.IndexStyle(::Type{<:AbstractAxisIndices{T,N,A,AI}}) where {T,N,A,AI} = IndexStyle(A)
-
-###
-### first
-###
-Base.first(a::AbstractAxis) = first(values(a))
-function StaticRanges.can_set_first(::Type{T}) where {T<:AbstractAxis}
-    return can_set_first(keys_type(T))
-end
-function StaticRanges.set_first!(x::AbstractAxis{K,V}, val::V) where {K,V}
-    can_set_first(x) || throw(MethodError(set_first!, (x, val)))
-    set_first!(values(x), val)
-    resize_first!(keys(x), length(values(x)))
-    return x
-end
-function StaticRanges.set_first(x::AbstractAxis{K,V}, val::V) where {K,V}
-    vs = set_first(values(x), val)
-    return unsafe_reconstruct(x, resize_first(keys(x), length(vs)), vs)
+@propagate_inbounds function Base.to_index(axis::AbstractAxis, inds::CartesianIndex{1})
+    return to_index(axis, first(inds.I))
 end
 
-function StaticRanges.set_first(x::AbstractSimpleAxis{V}, val::V) where {V}
-    return unsafe_reconstruct(x, set_first(values(x), val))
-end
-function StaticRanges.set_first!(x::AbstractSimpleAxis{V}, val::V) where {K,V}
-    can_set_first(x) || throw(MethodError(set_first!, (x, val)))
-    set_first!(values(x), val)
-    return x
+Base.to_index(axis::AbstractAxis, inds::Base.Slice) = values(axis)
+
+@propagate_inbounds function Base.to_index(axis::AbstractAxis, inds)
+    return to_index(ToIndexStyle(eltype(inds)), axis, inds)
 end
 
-Base.firstindex(a::AbstractAxis) = firstindex(values(a))
+_get_length(x::Fix2{typeof(in)}) = length(x.x)
+_get_length(x::Function) = nothing
+_get_length(x) = length(x)
 
-###
-### last
-###
-Base.last(a::AbstractAxis) = last(values(a))
-function StaticRanges.can_set_last(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs}
-    return StaticRanges.can_set_last(Ks) & StaticRanges.can_set_last(Vs)
-end
-function StaticRanges.set_last!(x::AbstractAxis{K,V}, val::V) where {K,V}
-    can_set_last(x) || throw(MethodError(set_last!, (x, val)))
-    set_last!(values(x), val)
-    resize_last!(keys(x), length(values(x)))
-    return x
-end
-function StaticRanges.set_last(x::AbstractAxis{K,V}, val::V) where {K,V}
-    vs = set_last(values(x), val)
-    return unsafe_reconstruct(x, resize_last(keys(x), length(vs)), vs)
-end
-
-Base.lastindex(a::AbstractAxis) = lastindex(values(a))
-
-"""
-    last_keys(x)
-
-Returns the keys corresponding to all axes of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> AxisIndices.last_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(3, 4)
-```
-"""
-@inline last_keys(x) = map(last, axes_keys(x))
-
-function StaticRanges.set_last!(x::AbstractSimpleAxis{V}, val::V) where {V}
-    can_set_last(x) || throw(MethodError(set_last!, (x, val)))
-    set_last!(values(x), val)
-    return x
-end
-
-function StaticRanges.set_last(x::AbstractSimpleAxis{K}, val::K) where {K}
-    return unsafe_reconstruct(x, set_last(values(x), val))
-end
-
-###
-### to_index
-###
-@propagate_inbounds function Base.to_index(x::AbstractAxis, i::T) where {T}
-    if is_key_type(T)
-        return _maybe_throw_boundserror(x, findfirst(==(i), keys(x)))
+@propagate_inbounds function Base.to_index(::SearchKeys, axis::AbstractUnitRange{T}, inds::I) where {T,I}
+    if is_collection(I)
+        newinds = find_all(maybe_wrap_in(inds), keys(axis))
+        l = _get_length(inds)
+        @boundscheck if !(eltype(newinds) <: Integer) || !isnothing(l) && l != length(newinds)
+            throw(BoundsError(axis, inds))
+        end
     else
-        return _maybe_throw_boundserror(x, Int(i))
+        newinds = find_first(maybe_wrap_eq(inds), keys(axis))
+        @boundscheck if newinds isa Nothing
+            throw(BoundsError(axis, newinds))
+        end
     end
+    return maybe_unsafe_reconstruct(axis, newinds)
 end
 
-@propagate_inbounds function Base.to_index(x::AbstractAxis, f::Base.Fix2{<:Union{typeof(isequal),typeof(==)}})
-    return _maybe_throw_boundserror(x, find_first(f, keys(x)))
-end
-
-@propagate_inbounds Base.to_index(x::AbstractAxis, f::Function) = find_all(f, keys(x))
-
-@propagate_inbounds Base.to_index(x::AbstractAxis, i::CartesianIndex{1}) = first(i.I)
-
-@propagate_inbounds function _maybe_throw_boundserror(x, i)::Integer
-    @boundscheck if i isa Nothing
-        throw(BoundsError(x, i))
-    end
-    return i
-end
-
-@propagate_inbounds function _maybe_throw_boundserror(x, inds::AbstractVector)
-    @boundscheck if !(eltype(inds) <: Integer)
-        throw(BoundsError(x, i))
-    end
-    return inds
-end
-
-@propagate_inbounds function Base.to_index(x::AbstractAxis, inds::AbstractVector{T}) where {T<:Integer}
-    return to_index(inds)
-end
-
-@propagate_inbounds function Base.to_index(x::AbstractAxis, inds::AbstractVector{T}) where {T}
-    if is_key_type(T)
-        return _maybe_throw_boundserror(x, find_all(in(inds), keys(x)))
+@propagate_inbounds function Base.to_index(::SearchIndices, axis::AbstractUnitRange{T}, inds::I) where {T,I}
+    if is_collection(I)
+        newinds = find_all(maybe_wrap_in(inds), values(axis))
+        l = _get_length(inds)
+        @boundscheck if !isnothing(l) && l != length(newinds)
+            throw(BoundsError(axis, inds))
+        end
     else
-        return _maybe_throw_boundserror(x, inds)  # TODO should probably promote this somehow to Int elments
+        newinds = find_first(maybe_wrap_eq(inds), values(axis))
+        @boundscheck if newinds isa Nothing
+            throw(BoundsError(axis, newinds))
+        end
     end
+    return maybe_unsafe_reconstruct(axis, newinds)
 end
 
+@propagate_inbounds function Base.to_index(::GetIndices, axis::AbstractUnitRange{T}, inds::I) where {T,I}
+    @boundscheck checkbounds(values(axis), inds)
+    return maybe_unsafe_reconstruct(axis, inds)
+end
 ###
 ### to_indices
 ###
-function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{Any, Vararg{Any}})
+@propagate_inbounds function Base.to_indices(A::AbstractAxisIndicesVector, I::Tuple{Any})
+    Base.@_inline_meta
+    return (to_index(axes(A, 1), first(I)),)
+end
+
+@propagate_inbounds function Base.to_indices(A::AbstractAxisIndicesVector, I::Tuple{Integer})
+    Base.@_inline_meta
+    return (to_index(axes(A, 1), first(I)),)
+end
+
+# this is linear indexing over a multidimensional array so we ignore axes
+@propagate_inbounds function Base.to_indices(A::AbstractAxisIndices, I::Tuple{Any})
+    Base.@_inline_meta
+    return (to_index(eachindex(IndexLinear(), A), first(I)),)
+end
+
+@propagate_inbounds function Base.to_indices(A::AbstractAxisIndices, I::Tuple{CartesianIndex})
+    Base.@_inline_meta
+    return to_indices(A, first(I).I)
+end
+
+@propagate_inbounds function Base.to_indices(A::AbstractAxisIndices, I::Tuple{Integer})
+    Base.@_inline_meta
+    return (to_index(eachindex(IndexLinear(), A), first(I)),)
+end
+
+function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{Any, Vararg{Any}})
     Base.@_inline_meta
     return (to_index(first(inds), first(I)), to_indices(A, maybetail(inds), tail(I))...)
 end
 
-function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{Colon, Vararg{Any}})
+@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{Colon, Vararg{Any}})
     Base.@_inline_meta
     return (values(first(inds)), to_indices(A, maybetail(inds), tail(I))...)
 end
 
-function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndex, Vararg{Any}})
-    Base.@_inline_meta
-    return to_indices(A, inds, (I[1].I..., tail(I)...))
-end
-
-function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{CartesianIndex{N}},Vararg{Any}}) where N
+@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{CartesianIndex{N}},Vararg{Any}}) where N
     Base.@_inline_meta
     _, indstail = Base.IteratorsMD.split(inds, Val(N))
     return (to_index(A, first(I)), to_indices(A, indstail, tail(I))...)
 end
+
 # And boolean arrays behave similarly; they also skip their number of dimensions
-@inline function Base.to_indices(A, inds::Tuple{<:AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{Bool, N}, Vararg{Any}}) where N
+@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{Bool, N}, Vararg{Any}}) where N
+    Base.@_inline_meta
     _, indstail = Base.IteratorsMD.split(inds, Val(N))
-    return (to_index(A, I[1]), to_indices(A, indstail, tail(I))...)
+    return (to_index(A, first(I)), to_indices(A, indstail, tail(I))...)
 end
 
 maybetail(::Tuple{}) = ()
 maybetail(t::Tuple) = tail(t)
+@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndices, Vararg{Any}})
+    Base.@_inline_meta
+    return to_indices(A, inds, (first(I).indices..., tail(I)...))
+end
+
+@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndices{0},Vararg{Any}})
+    Base.@_inline_meta
+    return (first(I), to_indices(A, inds, tail(I))...)
+end
+
+# But some index types require more context spanning multiple indices
+# CartesianIndexes are simple; they just splat out
+@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndex, Vararg{Any}})
+    Base.@_inline_meta
+    return to_indices(A, inds, (first(I).I..., tail(I)...))
+end
+Base.IndexStyle(::Type{<:AbstractAxisIndices{T,N,A,AI}}) where {T,N,A,AI} = IndexStyle(A)
 
 ###
 ### checkbounds
@@ -209,20 +177,20 @@ constructed by indexing into the keys of `a` with `inds` (`keys(a)[inds]`) and t
 values have the same first element as `first(values(a))` but a length matching `inds`.
 
 ## Examples
+Note how in all cases the keys may change but values are still 1-based
 ```jldoctest
 julia> using AxisIndices
 
-julia> x, y, z = Axis(1:10, 2:11), Axis(1:10), SimpleAxis(1:10);
+julia> x, y, z = Axis(2:11, 1:10), Axis(1:10), SimpleAxis(1:10);
 
-julia>  reindex(x, collect(1:2:10))
-Axis([1, 3, 5, 7, 9] => 2:6)
+julia> reindex(x, 2:5)
+Axis(3:6 => 1:4)
 
-julia> reindex(y, collect(1:2:10))
-Axis([1, 3, 5, 7, 9] => Base.OneTo(5))
+julia> reindex(y, 2:5)
+Axis(2:5 => Base.OneTo(4))
 
-julia> reindex(z, collect(1:2:10))
-SimpleAxis(1:5)
-
+julia> reindex(z, 2:5)
+SimpleAxis(1:4)
 ```
 """
 @propagate_inbounds reindex(a::AbstractAxis, inds) = unsafe_reindex(a, to_index(a, inds))
@@ -277,58 +245,43 @@ order to avoid ambiguities.
     a::AbstractAxis{K,V,Ks,Vs},
     inds::AbstractUnitRange{<:Integer}
 )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-    @boundscheck checkbounds(a, inds)
-    @inbounds return _getindex(a, inds)
+
+    return to_index(a, inds)
 end
 
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     i::Integer
 )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-    @boundscheck checkbounds(a, i)
-    @inbounds return _getindex(a, i)
+
+    return to_index(a, i)
 end
+
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     inds::Function
 ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-    return getindex(a, to_index(a, inds))
+
+    return to_index(a, inds)
 end
 
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     i...
 ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+
     if length(i) > 1
         error(BoundsError(a, i...))
     else
-        return _getindex(a, to_index(a, first(i)))
+        return to_index(a, first(i))
     end
-end
-
-_getindex(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
-function _getindex(a::AbstractAxis, inds::AbstractUnitRange)
-    unsafe_reconstruct(a, @inbounds(keys(a)[inds]), @inbounds(values(a)[inds]))
-end
-_getindex(a::AbstractAxis, i::Integer) = @inbounds(values(a)[i])
-
-
-_getindex(a::AbstractSimpleAxis, inds) = @inbounds(values(a)[inds])
-function _getindex(a::AbstractSimpleAxis, inds::AbstractUnitRange)
-    return unsafe_reconstruct(a, @inbounds(values(a)[inds]))
-end
-_getindex(a::AbstractSimpleAxis, i::Integer) = @inbounds(values(a)[i])
-# TODO Type inference for things that we know produce UnitRange/GapRange, etc
-
-@propagate_inbounds function Base.setindex!(a::AbstractAxisIndices, value, inds...)
-    return setindex!(parent(a), value, to_indices(a, axes(a), inds)...)
 end
 
 for f in (:getindex, :view, :dotview)
     _f = Symbol(:_, f)
     @eval begin
         @propagate_inbounds function Base.$f(a::AbstractAxisIndices, inds...)
-            return $_f(a, to_indices(a, axes(a), inds))
+            return $_f(a, to_indices(a, inds))
         end
 
         @propagate_inbounds function $_f(a::AbstractAxisIndices, inds::Tuple{Vararg{<:Integer}})
@@ -345,15 +298,7 @@ for f in (:getindex, :view, :dotview)
     end
 end
 
-###
-### Iterators
-###
-Base.eachindex(a::AbstractAxis) = eachindex(values(a))
-
-Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
-
-StaticRanges.check_iterate(r::AbstractAxis, i) = check_iterate(values(r), last(i))
-StaticRanges.check_iterate(r::AbstractSimpleAxis, i) = check_iterate(values(r), i)
-
-Base.collect(a::AbstractAxis) = collect(values(a))
+@propagate_inbounds function Base.setindex!(a::AbstractAxisIndices, value, inds...)
+    return setindex!(parent(a), value, to_indices(a, inds)...)
+end
 

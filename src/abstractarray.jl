@@ -156,13 +156,12 @@ CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(
 
 function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
     Base.@_propagate_inbounds_meta
-    #return Base._getindex(IndexStyle(A), A, to_indices(A, A.indices, Tuple(inds))...)
     return CartesianIndex(map(getindex, axes(A), inds))
 end
 
 function Base.getindex(A::CartesianAxes, inds...)
     Base.@_propagate_inbounds_meta
-    return Base._getindex(IndexStyle(A), A, to_indices(A, A.indices, Tuple(inds))...)
+    return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
 end
 
 """
@@ -197,7 +196,7 @@ end
 
 function Base.getindex(A::LinearAxes, inds...)
     Base.@_propagate_inbounds_meta
-    return Base._getindex(IndexStyle(A), A, to_indices(A, axes(A), Tuple(inds))...)
+    return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
 end
 
 ###
