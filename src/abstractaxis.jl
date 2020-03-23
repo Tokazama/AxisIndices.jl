@@ -219,32 +219,68 @@ function as_axis(::T, i::Integer) where {T}
     end
 end
 
-function as_axis(::T, axis::Union{OneTo,OneToSRange,OneToMRange}) where {T}
-    if is_static(T)
+function as_axis(array::A, axis::StaticRanges.OneToUnion, check_length::Bool=true) where {A}
+    if is_static(A)
         return SimpleAxis(as_static(axis))
-    elseif is_fixed(T)
+    elseif is_fixed(A)
         return SimpleAxis(as_fixed(axis))
     else
         return SimpleAxis(as_dynamic(axis))
     end
 end
 
-function as_axis(::T, axis) where T
+function as_axis(::T, axis, check_length::Bool=true) where {T}
     if is_static(T)
-        return Axis(as_static(axis))
+        return Axis(as_static(axis), check_length)
     elseif is_fixed(T)
-        return Axis(as_fixed(axis))
+        return Axis(as_fixed(axis), check_length)
     else
-        return Axis(as_dynamic(axis))
+        return Axis(as_dynamic(axis), check_length)
     end
 end
 
-function as_axes(A::AbstractArray{T,N}, axs::Tuple{Vararg{<:Any,M}}) where {T,N,M}
+function as_axis(array::A, axis_keys::Ks, axis_values::Vs, check_length::Bool=true) where {A,Ks<:StaticRanges.OneToUnion,Vs<:StaticRanges.OneToUnion}
+    if is_static(A)
+        return SimpleAxis(as_static(axis_keys))
+    elseif is_fixed(A)
+        return SimpleAxis(as_fixed(axis_keys))
+    else
+        return SimpleAxis(as_dynamic(axis_keys))
+    end
+end
+
+function as_axis(array::A, axis_keys::Ks, axis_values::Vs, check_length::Bool=true) where {A,Ks,Vs}
+    if Ks <: AbstractAxis
+        if check_length
+            if length(axis_values) == length(axis_keys)
+                return axis_keys
+            else
+                error("All keys and values must have the same length as the respective axes of the parent array, got parent axis length = $(length(axis_values)) and keys length = $(length(axis_keys))")
+            end
+        else
+            return axis_keys
+        end
+    else
+        if is_static(A)
+            return Axis(as_static(axis_keys), as_static(axis_values), check_length)
+        elseif is_fixed(A)
+            return Axis(as_fixed(axis_keys), as_fixed(axis_values), check_length)
+        else  # is_dynamic(A)
+            if can_set_first(Ks)
+                return Axis(as_dynamic(axis_keys), as_dynamic(axis_values), check_length)
+            else
+                return Axis(as_dynamic(axis_keys), UnitMRange(axis_values), check_length)
+            end
+        end
+    end
+end
+
+function as_axes(array, axis_keys::Tuple{Vararg{<:Any,M}}, axis_values::Tuple{Vararg{<:Any,N}}, check_length::Bool=true) where {N,M}
     newaxs = ntuple(N) do i
         if i > M
-            as_axis(A, OneTo(size(A, i)))
+            as_axis(array, getfield(axis_values, i), check_length)
         else
-            as_axis(A, getfield(axs, i))
+            as_axis(array, getfield(axis_keys, i), getfield(axis_values, i), check_length)
         end
     end
     return newaxs
@@ -522,7 +558,7 @@ end
 for f in (:as_static, :as_fixed, :as_dynamic)
     @eval begin
         function StaticRanges.$f(x::AxisIndices.AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
-            return unsafe_reconstruct(x, StaticRanges.$f(values(x)), StaticRanges.$f(keys(x)))
+            return unsafe_reconstruct(x, StaticRanges.$f(keys(x)), StaticRanges.$f(values(x)))
         end
     end
 end

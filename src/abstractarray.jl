@@ -57,21 +57,16 @@ struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: Abstra
     axes::AI
 
     function AxisIndicesArray{T,N,P,A}(p::P, axs::A, check_length::Bool=true) where {T,N,P,A}
-        if check_length
-            for (i, axs_i) in enumerate(axs)
-                if size(p, i) != length(axs_i)
-                    error("All keys and values must have the same length as the respective axes of the parent array, got size(parent, $i) = $(size(p, i)) and length(key_i) = $(length(axs_i))")
-                else
-                    continue
-                end
-            end
-        end
-        return new{T,N,P,A}(p, axs)
+       return new{T,N,P,A}(p, axs)
     end
 end
 
-function AxisIndicesArray(x::AbstractArray{T,N}, axs::Tuple=axes(x), check_length::Bool=true) where {T,N}
-    axs = as_axes(x, axs)
+function AxisIndicesArray(x::AbstractArray{T,N}, axs::AbstractAxes{N}, check_length::Bool=true) where {T,N}
+    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
+end
+
+function AxisIndicesArray(x::AbstractArray{T,N}, axis_keys::Tuple, axis_values::Tuple=axes(x), check_length::Bool=true) where {T,N}
+    axs = as_axes(x, axis_keys, axis_values, check_length)
     return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
 end
 
@@ -94,7 +89,7 @@ Returns the indices corresponding to all axes of `x`.
 julia> using AxisIndices
 
 julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(OneToMRange(2), OneToMRange(2))
+(UnitMRange(1:2), UnitMRange(1:2))
 ```
 """
 indices(x) = map(values, axes(x))
@@ -110,7 +105,7 @@ Returns the indices corresponding to the `i` axis
 julia> using AxisIndices
 
 julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
-OneToMRange(2)
+UnitMRange(1:2)
 ```
 """
 indices(x, i) = values(axes(x, i))
@@ -265,7 +260,9 @@ function Base.similar(
     inds::Tuple{Vararg{<:AbstractVector,N}}
 ) where {T,N}
 
-    return unsafe_reconstruct(a, similar(parent(a), T, map(length, inds)), as_axes(a, inds))
+    p = similar(parent(a), T, map(length, inds))
+    axs = as_axes(p, inds, axes(p))
+    return unsafe_reconstruct(a, p, axs)
 end
 
 function Base.similar(
@@ -274,7 +271,9 @@ function Base.similar(
     inds::Tuple{Vararg{<:AbstractVector,N}}
 ) where {N}
 
-    return unsafe_reconstruct(a, similar(parent(a), t, map(length, inds)), as_axes(a, inds))
+    p = similar(parent(a), t, map(length, inds))
+    axs = as_axes(a, inds, axes(p))
+    return unsafe_reconstruct(a, p, axs)
 end
 
 """
@@ -296,3 +295,4 @@ function Base.reinterpret(::Type{T}, A::AbstractAxisIndices) where {T}
     axs = map(resize_last, axes(A), size(p))
     return unsafe_reconstruct(A, p, axs)
 end
+
