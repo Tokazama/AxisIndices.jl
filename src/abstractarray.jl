@@ -14,7 +14,7 @@ and developers should be able to freely customize the behavior of `AbstractAxisI
 abstract type AbstractAxisIndices{T,N,P,AI} <: AbstractArray{T,N} end
 
 
-# TODO this should all derived from the values of the axis
+# TODO this should all be derived from the values of the axis
 # Base.stride(x::AbstractAxisIndices) = axes_to_stride(axes(x))
 #axes_to_stride()
 
@@ -24,76 +24,33 @@ const AbstractAxisIndicesVector{T,P<:AbstractVector{T},A1} = AbstractAxisIndices
 
 const AbstractAxisIndicesVecOrMat{T} = Union{<:AbstractAxisIndicesMatrix{T},<:AbstractAxisIndicesVector{T}}
 
-"""
-    AxisIndicesArray(parent_array, tuple_of_keys) -> AxisIndicesArray(parent_array, Axis.(tuple_of_keys))
-    AxisIndicesArray(parent_array, tuple_of_axis) -> AxisIndicesArray
-
-An array struct that wraps any parent array and assigns it an `AbstractAxis` for
-each dimension. The first argument is the parent array and the second argument is
-a tuple of subtypes to `AbstractAxis` or keys that will be converted to subtypes
-of `AbstractAxis` with the provided keys.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> A = AxisIndicesArray(reshape(1:9, 3,3), (2:4, 3.0:5.0));
-
-julia> A[1, 1]
-1
-
-julia> A[==(2), ==(3.0)]
-1
-
-julia> A[1:2, 1:2] == [1 4; 2 5]
-true
-
-julia> A[<(4), <(5.0)] == [1 4; 2 5]
-true
-```
-"""
-struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: AbstractAxisIndices{T,N,P,AI}
-    parent::P
-    axes::AI
-
-    function AxisIndicesArray{T,N,P,A}(p::P, axs::A, check_length::Bool=true) where {T,N,P,A}
-       return new{T,N,P,A}(p, axs)
-    end
-end
-
-function AxisIndicesArray(x::AbstractArray{T,N}, axs::AbstractAxes{N}, check_length::Bool=true) where {T,N}
-    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
-end
-
-function AxisIndicesArray(x::AbstractArray{T,N}, axis_keys::Tuple, axis_values::Tuple=axes(x), check_length::Bool=true) where {T,N}
-    axs = as_axes(x, axis_keys, axis_values, check_length)
-    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
-end
-
-AxisIndicesArray(x::AbstractArray, args...) = AxisIndicesArray(x, args)
-
-###
-### values
-###
 function values_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
     return map(valtype, AI.parameters)
 end
 
-"""
-    indices(x)
+# axes
+StaticRanges.axes_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI} = AI
 
-Returns the indices corresponding to all axes of `x`.
+function Base.axes(x::AbstractAxisIndices{T,N}, i::Integer) where {T,N}
+    if i > N
+        return as_axis(x, 1)
+    else
+        return getfield(axes(x), i)
+    end
+end
 
-## Examples
-```jldoctest
-julia> using AxisIndices
+# size
+Base.size(x::AbstractAxisIndices, i) = length(axes(x, i))
 
-julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(UnitMRange(1:2), UnitMRange(1:2))
-```
-"""
-indices(x) = map(values, axes(x))
-indices(x::AbstractAxis) = values(x)
+Base.size(x::AbstractAxisIndices) = map(length, axes(x))
+
+# parent
+StaticRanges.parent_type(::Type{<:AbstractAxisIndices{T,N,P}}) where {T,N,P} = P
+
+Base.parentindices(x::AbstractAxisIndices) = axes(parent(x))
+
+# length
+Base.length(x::AbstractAxisIndices) = prod(size(x))
 
 """
     indices(x, i)
@@ -114,133 +71,31 @@ function keys_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
     return map(keytype, AI.parameters)
 end
 
-###
-### length
-###
-Base.length(x::AbstractAxisIndices) = prod(size(x))
-
-###
-### size
-###
-Base.size(x::AbstractAxisIndices, i) = length(axes(x, i))
-
-Base.size(x::AbstractAxisIndices) = map(length, axes(x))
-
 """
-    CartesianAxes
-Alias for LinearIndices where indices are subtypes of `AbstractAxis`.
+    indices(x)
+
+Returns the indices corresponding to all axes of `x`.
+
+## Examples
 ```jldoctest
 julia> using AxisIndices
 
-julia> cartaxes = CartesianAxes((Axis(2.0:5.0), Axis(1:4)));
-
-julia> cartinds = CartesianIndices((1:4, 1:4));
-
-julia> cartaxes[2, 2]
-CartesianIndex(2, 2)
-
-julia> cartinds[2, 2]
-CartesianIndex(2, 2)
+julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+(UnitMRange(1:2), UnitMRange(1:2))
 ```
 """
-const CartesianAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = CartesianIndices{N,R}
-
-
-CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = CartesianIndices(as_axis.(ks))
-CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
-
-function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
-    Base.@_propagate_inbounds_meta
-    return CartesianIndex(map(getindex, axes(A), inds))
-end
-
-function Base.getindex(A::CartesianAxes, inds...)
-    Base.@_propagate_inbounds_meta
-    return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
-end
-
-"""
-    LinearAxes
-
-Alias for LinearIndices where indices are subtypes of `AbstractAxis`.
-```jldoctest
-julia> using AxisIndices
-
-julia> linaxes = LinearAxes((Axis(2.0:5.0), Axis(1:4)));
-
-julia> lininds = LinearIndices((1:4, 1:4));
-
-julia> linaxes[2, 2]
-6
-
-julia> lininds[2, 2]
-6
-```
-"""
-const LinearAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = LinearIndices{N,R}
-
-LinearAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = LinearIndices(as_axis.(ks))
-LinearAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = LinearIndices(ks)
-
-
-function Base.getindex(iter::LinearAxes, i::Int)
-    Base.@_inline_meta
-    @boundscheck checkbounds(iter, i)
-    return i
-end
-
-function Base.getindex(A::LinearAxes, inds...)
-    Base.@_propagate_inbounds_meta
-    return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
-end
-
-###
-### axes
-###
-
-StaticRanges.axes_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI} = AI
-
-Base.axes(x::AxisIndicesArray) = getfield(x, :axes)
-
-function Base.axes(x::AbstractAxisIndices{T,N}, i::Integer) where {T,N}
-    if i > N
-        return as_axis(x, 1)
-    else
-        return getfield(axes(x), i)
-    end
-end
-
-Base.axes(A::LinearAxes) = getfield(A, :indices)
-
-Base.axes(A::CartesianAxes) = getfield(A, :indices)
+indices(x) = map(values, axes(x))
+indices(x::AbstractAxis) = values(x)
 
 ## return axes even when they are permuted
 function Base.axes(a::PermutedDimsArray{T,N,permin,permout,<:AbstractAxisIndices}) where {T,N,permin,permout}
     return permute_axes(parent(a), permin)
 end
 
-###
-### parent
-###
-
-StaticRanges.parent_type(::Type{<:AbstractAxisIndices{T,N,P}}) where {T,N,P} = P
-
-Base.parentindices(x::AbstractAxisIndices) = axes(parent(x))
-
-Base.parent(x::AxisIndicesArray) = getfield(x, :parent)
 
 ###
 ### similar
 ###
-
-function StaticRanges.similar_type(
-    ::AxisIndicesArray{T,N,P,AI},
-    ptype::Type=P,
-    axstype::Type=AI
-) where {T,N,P,AI}
-
-    return AxisIndicesArray{eltype(ptype), ndims(ptype), ptype, axstype}
-end
 
 function Base.similar(
     a::AbstractAxisIndices{T,N},
@@ -294,5 +149,197 @@ function Base.reinterpret(::Type{T}, A::AbstractAxisIndices) where {T}
     p = reinterpret(T, parent(A))
     axs = map(resize_last, axes(A), size(p))
     return unsafe_reconstruct(A, p, axs)
+end
+
+###
+### AxisIndicesArray
+###
+"""
+    AxisIndicesArray{T,N,P,AI}
+
+An array struct that wraps any parent array and assigns it an `AbstractAxis` for
+each dimension. The first argument is the parent array and the second argument is
+a tuple of subtypes to `AbstractAxis` or keys that will be converted to subtypes
+of `AbstractAxis` with the provided keys.
+"""
+struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: AbstractAxisIndices{T,N,P,AI}
+    parent::P
+    axes::AI
+
+    function AxisIndicesArray{T,N,P,A}(p::P, axs::A, check_length::Bool=true) where {T,N,P,A}
+       return new{T,N,P,A}(p, axs)
+    end
+end
+
+"""
+    AxisIndicesArray(parent::AbstractArray, axes::Tuple{Vararg{AbstractAxis}}[, check_length=true])
+
+Construct an `AxisIndicesArray` using `parent` and explicit subtypes of `AbstractAxis`.
+If `check_length` is `true` then each dimension of parent's length is checked to match
+the length of the corresponding axis (e.g., `size(parent 1) == length(axes[1])`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisIndicesArray(ones(2,2), (SimpleAxis(2), SimpleAxis(2)))
+2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+        1     2
+  1   1.0   1.0
+  2   1.0   1.0
+
+
+```
+"""
+function AxisIndicesArray(x::AbstractArray{T,N}, axs::AbstractAxes{N}, check_length::Bool=true) where {T,N}
+    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
+end
+
+# minimum interface
+Base.parent(x::AxisIndicesArray) = getfield(x, :parent)
+
+Base.axes(x::AxisIndicesArray) = getfield(x, :axes)
+
+function StaticRanges.similar_type(
+    ::AxisIndicesArray{T,N,P,AI},
+    ptype::Type=P,
+    axstype::Type=AI
+) where {T,N,P,AI}
+
+    return AxisIndicesArray{eltype(ptype), ndims(ptype), ptype, axstype}
+end
+
+"""
+    AxisIndicesArray(parent::AbstractArray, keys::Tuple[, values=axes(parent), check_length=true])
+
+Given an the some array `parent` and a tuple of vectors `keys` corresponding to
+each dimension of `parent` constructs an `AxisIndicesArray`. Each element of `keys`
+is paired with an element of `values` to compose a subtype of `AbstractAxis`.
+`values` map the `keys` to the indices of `parent`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisIndicesArray(ones(2,2), (["a", "b"], ["one", "two"]))
+2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+      one   two
+  a   1.0   1.0
+  b   1.0   1.0
+
+
+```
+"""
+function AxisIndicesArray(x::AbstractArray{T,N}, axis_keys::Tuple, axis_values::Tuple=axes(x), check_length::Bool=true) where {T,N}
+    axs = as_axes(x, axis_keys, axis_values, check_length)
+    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
+end
+
+"""
+    AxisIndicesArray(parent::AbstractArray, args...) -> AxisIndicesArray(parent, tuple(args))
+
+Passes `args` to a tuple for constructing an `AxisIndicesArray`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> A = AxisIndicesArray(reshape(1:9, 3,3), 2:4, 3.0:5.0);
+
+julia> A[1, 1]
+1
+
+julia> A[==(2), ==(3.0)]
+1
+
+julia> A[1:2, 1:2] == [1 4; 2 5]
+true
+
+julia> A[<(4), <(5.0)] == [1 4; 2 5]
+true
+```
+"""
+AxisIndicesArray(x::AbstractArray, args...) = AxisIndicesArray(x, args)
+
+###
+### LinearAxes
+###
+"""
+    LinearAxes
+
+Alias for LinearIndices where indices are subtypes of `AbstractAxis`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> linaxes = LinearAxes((Axis(2.0:5.0), Axis(1:4)));
+
+julia> lininds = LinearIndices((1:4, 1:4));
+
+julia> linaxes[2, 2]
+6
+
+julia> lininds[2, 2]
+6
+```
+"""
+const LinearAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = LinearIndices{N,R}
+
+LinearAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = LinearIndices(as_axis.(ks))
+LinearAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = LinearIndices(ks)
+
+Base.axes(A::LinearAxes) = getfield(A, :indices)
+
+function Base.getindex(iter::LinearAxes, i::Int)
+    Base.@_inline_meta
+    @boundscheck checkbounds(iter, i)
+    return i
+end
+
+function Base.getindex(A::LinearAxes, inds...)
+    Base.@_propagate_inbounds_meta
+    return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
+end
+
+###
+### CartesianAxes
+###
+"""
+    CartesianAxes
+
+Alias for LinearIndices where indices are subtypes of `AbstractAxis`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> cartaxes = CartesianAxes((Axis(2.0:5.0), Axis(1:4)));
+
+julia> cartinds = CartesianIndices((1:4, 1:4));
+
+julia> cartaxes[2, 2]
+CartesianIndex(2, 2)
+
+julia> cartinds[2, 2]
+CartesianIndex(2, 2)
+```
+"""
+const CartesianAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = CartesianIndices{N,R}
+
+
+CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = CartesianIndices(as_axis.(ks))
+CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
+
+Base.axes(A::CartesianAxes) = getfield(A, :indices)
+
+function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
+    Base.@_propagate_inbounds_meta
+    return CartesianIndex(map(getindex, axes(A), inds))
+end
+
+function Base.getindex(A::CartesianAxes, inds...)
+    Base.@_propagate_inbounds_meta
+    return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
 end
 
