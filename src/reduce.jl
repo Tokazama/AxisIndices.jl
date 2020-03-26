@@ -71,9 +71,6 @@ end
 indicesarray_result(original_ia, reduced_data, reduction_dims::Colon) = reduced_data
 
 
-################################################
-# Overloads
-
 # 1 Arg
 for (mod, funs) in (
     (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),

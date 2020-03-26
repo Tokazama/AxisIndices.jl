@@ -1,6 +1,7 @@
 module AxisIndices
 
-using StaticRanges, LinearAlgebra, Statistics, Dates, PrettyTables, MappedArrays
+using StaticRanges, LinearAlgebra, Statistics, Dates, IntervalSets
+using MappedArrays, PrettyTables
 using Base: @propagate_inbounds, OneTo, to_index, tail, front, Fix2
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base.Cartesian
@@ -45,7 +46,9 @@ export
     first_key,
     last_key,
     and,
+    ⩓,
     or,
+    ⩔,
     indices,
     reindex,
     axes_keys,

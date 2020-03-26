@@ -197,6 +197,36 @@ function SimpleAxis{V,Vs1}(x::Vs2) where {V,Vs1,Vs2<:AbstractUnitRange}
     return SimpleAxis{V,Vs1}(Vs1(values(x)))
 end
 
+"""
+    SimpleAxis(start::Integer, stop::Integer) -> SimpleAxis{UnitRange{Integer}}
+
+Passes `start` and `stop` arguments to `UnitRange` to construct the values of `SimpleAxis`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> SimpleAxis(1, 10)
+SimpleAxis(1:10)
+```
+"""
+SimpleAxis(start::Integer, stop::Integer) = SimpleAxis(UnitRange(start, stop))
+
+"""
+    SimpleAxis(stop::Integer) -> SimpleAxis{Base.OneTo{Integer}}
+
+Passes `stop` `Base.OneTo` to construct the values of `SimpleAxis`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> SimpleAxis(10)
+SimpleAxis(Base.OneTo(10))
+```
+"""
+SimpleAxis(stop::Integer) = SimpleAxis(Base.OneTo(stop))
+
 ###
 ### as_axis
 ###
@@ -219,7 +249,7 @@ function as_axis(::T, i::Integer) where {T}
     end
 end
 
-function as_axis(array::A, axis::StaticRanges.OneToUnion, check_length::Bool=true) where {A}
+function as_simple_axis(array::A, axis, check_length::Bool=true) where {A}
     if is_static(A)
         return SimpleAxis(as_static(axis))
     elseif is_fixed(A)
@@ -246,6 +276,30 @@ function as_axis(array::A, axis_keys::Ks, axis_values::Vs, check_length::Bool=tr
         return SimpleAxis(as_fixed(axis_keys))
     else
         return SimpleAxis(as_dynamic(axis_keys))
+    end
+end
+
+function as_axis(array::A, axis_keys::Ks, axis_values::Vs, check_length::Bool=true) where {A,Ks<:StaticRanges.UnitRangeUnion,Vs<:StaticRanges.UnitRangeUnion}
+    if axis_keys == axis_values
+        if is_static(A)
+            return SimpleAxis(as_static(axis_keys))
+        elseif is_fixed(A)
+            return SimpleAxis(as_fixed(axis_keys))
+        else
+            return SimpleAxis(as_dynamic(axis_keys))
+        end
+    else
+        if is_static(A)
+            return Axis(as_static(axis_keys), as_static(axis_values), check_length)
+        elseif is_fixed(A)
+            return Axis(as_fixed(axis_keys), as_fixed(axis_values), check_length)
+        else  # is_dynamic(A)
+            if can_set_first(Ks)
+                return Axis(as_dynamic(axis_keys), as_dynamic(axis_values), check_length)
+            else
+                return Axis(as_dynamic(axis_keys), UnitMRange(axis_values), check_length)
+            end
+        end
     end
 end
 
@@ -278,7 +332,7 @@ end
 function as_axes(array, axis_keys::Tuple{Vararg{<:Any,M}}, axis_values::Tuple{Vararg{<:Any,N}}, check_length::Bool=true) where {N,M}
     newaxs = ntuple(N) do i
         if i > M
-            as_axis(array, getfield(axis_values, i), check_length)
+            as_simple_axis(array, getfield(axis_values, i), check_length)
         else
             as_axis(array, getfield(axis_keys, i), getfield(axis_values, i), check_length)
         end
@@ -307,7 +361,7 @@ Retrieves the type of the keys of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia>  keys_type(Axis(1:2))
+julia> keys_type(Axis(1:2))
 UnitRange{Int64}
 
 julia> keys_type(typeof(Axis(1:2)))
@@ -637,7 +691,7 @@ function StaticRanges.set_first!(x::AbstractSimpleAxis{V}, val::V) where {K,V}
     return x
 end
 
-Base.firstindex(a::AbstractAxis) = firstindex(values(a))
+Base.firstindex(a::AbstractAxis) = first(values(a))
 
 """
     first_key(x)
@@ -682,7 +736,7 @@ function StaticRanges.set_last(x::AbstractSimpleAxis{K}, val::K) where {K}
     return unsafe_reconstruct(x, set_last(values(x), val))
 end
 
-Base.lastindex(a::AbstractAxis) = lastindex(values(a))
+Base.lastindex(a::AbstractAxis) = last(values(a))
 
 """
     last_key(x)
@@ -698,6 +752,4 @@ julia> last_key(Axis(2:10))
 ```
 """
 last_key(x) = last(keys(x))
-
-
 

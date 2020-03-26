@@ -15,11 +15,12 @@ makedocs(;
             "Appending Axes" => "appending_axes.md",
         ],
         "Arrays With Axes" => [
-            "AbstractAxisIndices" => "axisindicesarray.md",
+            "AbstractAxisIndices" => "array.md",
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
         ],
         "Examples" => [
+            "Indexing" => "indexing.md",
             "CoefTable" => "coeftable.md",
             "TimeAxis" => "time.md",
         ],
@@ -34,4 +35,3 @@ makedocs(;
 deploydocs(
     repo = "github.com/Tokazama/AxisIndices.jl.git",
 )
-

@@ -1,4 +1,7 @@
 
+###
+### AbstractAxisIndicesa interface
+###
 """
     AbstractAxisIndices
 
@@ -27,6 +30,8 @@ const AbstractAxisIndicesVecOrMat{T} = Union{<:AbstractAxisIndicesMatrix{T},<:Ab
 function values_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
     return map(valtype, AI.parameters)
 end
+
+Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))
 
 # axes
 StaticRanges.axes_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI} = AI
@@ -122,11 +127,11 @@ end
 
 function Base.similar(
     a::AbstractAxisIndices,
-    t::Type,
+    ::Type{T},
     inds::Tuple{Vararg{<:AbstractVector,N}}
-) where {N}
+) where {T,N}
 
-    p = similar(parent(a), t, map(length, inds))
+    p = similar(parent(a), T, map(length, inds))
     axs = as_axes(a, inds, axes(p))
     return unsafe_reconstruct(a, p, axs)
 end

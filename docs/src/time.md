@@ -3,9 +3,9 @@
 Here we define an axis that specifically supports time.
 This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
 ```jldoctest time_axis_example
-julia> using AxisIndices, Dates
+julia> using AxisIndices, Dates, Unitful, IntervalSets
 
-julia> struct TimeAxis{K<:Dates.AbstractTime,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
+julia> struct TimeAxis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
            axis::Axis{K,V,Ks,Vs}
            times::Dict{Symbol,Pair{K,K}}
            function TimeAxis{K,V,Ks,Vs}(axis::Axis{K,V,Ks,Vs}, times::Dict{Symbol,Pair{K,K}}) where {K,V,Ks,Vs}

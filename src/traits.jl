@@ -9,6 +9,7 @@ is_collection(::Type{T}) where {T<:Function} = true
 is_collection(::Type{T}) where {T<:AbstractArray} = true
 is_collection(::Type{T}) where {T<:Tuple} = true
 is_collection(::Type{T}) where {T<:AbstractDict} = true
+is_collection(::Type{T}) where {T<:Interval} = true
 
 # TODO Not the greatest name
 """

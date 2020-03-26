@@ -16,6 +16,7 @@ end
 
 _get_length(x::Fix2{typeof(in)}) = length(x.x)
 _get_length(x::Function) = nothing
+_get_length(x::Interval) = nothing
 _get_length(x) = length(x)
 
 @propagate_inbounds function Base.to_index(::SearchKeys, axis::AbstractUnitRange{T}, inds::I) where {T,I}
@@ -54,6 +55,7 @@ end
     @boundscheck checkbounds(values(axis), inds)
     return maybe_unsafe_reconstruct(axis, inds)
 end
+
 ###
 ### to_indices
 ###
@@ -252,6 +254,14 @@ end
 @propagate_inbounds function Base.getindex(
     a::AbstractAxis{K,V,Ks,Vs},
     i::Integer
+)  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
+
+    return to_index(a, i)
+end
+
+@propagate_inbounds function Base.getindex(
+    a::AbstractAxis{K,V,Ks,Vs},
+    i::StepRange{<:Integer}
 )  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
 
     return to_index(a, i)
