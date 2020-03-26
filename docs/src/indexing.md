@@ -27,10 +27,10 @@ julia> time1[2]
 julia> time2[2]
 2
 
-julia> time2[begin]
+julia> time2[firstindex(time2)]
 2
 ```
-Notice that `time2[begin]` returns `2`.
+Notice that `time2[firstindex(time2)]` returns `2`.
 This is because the indices of the `time2` axis don't contain a 1 and begins at 2.
 This allows an axis to map to any single dimensional memory mapping, even if it doesn't start at 1.
 
@@ -55,7 +55,7 @@ julia> time1[[1, 2, 3]]
  2
  3
 
-julia> time1[begin:end]
+julia> time1[firstindex(time1):end]
 Axis((1.5:0.5:10.0) s => 1:18)
 
 ```
