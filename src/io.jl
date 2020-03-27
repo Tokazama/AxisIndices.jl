@@ -1,5 +1,52 @@
 # This file is for I/O methods
 
+###
+### read/write
+###
+function Base.unsafe_convert(::Type{Ptr{T}}, x::AbstractAxisIndices{T}) where {T}
+    return Base.unsafe_convert(Ptr{T}, parent(x))
+end
+
+function Base.read!(io::IO, a::AbstractAxisIndices)
+    read!(io, parent(a))
+    return a
+end
+
+Base.write(io::IO, a::AbstractAxisIndices) = write(io, parent(a))
+
+###
+### show AbstractAxis
+###
+function Base.show(io::IO, ::MIME"text/plain", a::AbstractAxis)
+    print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
+end
+
+function Base.show(io::IO, a::AbstractAxis)
+    print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", a::AbstractSimpleAxis)
+    print(io, "$(typeof(a).name)($(values(a)))")
+end
+
+function Base.show(io::IO, a::AbstractSimpleAxis)
+    print(io, "$(typeof(a).name)($(values(a)))")
+end
+
+# This is different than how most of Julia does a summary, but it also makes errors
+# infinitely easier to read when wrapping things at multiple levels or using Unitfulkeys
+function Base.summary(io::IO, a::AbstractAxis)
+    return print(io, "$(length(a))-elment $(typeof(a).name)($(keys(a)) => $(values(a)))")
+end
+
+function Base.summary(io::IO, a::AbstractSimpleAxis)
+    return print(io, "$(length(a))-elment $(typeof(a).name)($(values(a))))")
+end
+
+###
+### show AbstractAxisIndices
+###
+
 function array_format(backend::Symbol)
     if backend === :text
         return TextFormat(borderless, header_line = false)
@@ -40,42 +87,6 @@ function array_format(backend::Symbol)
     end
 end
 
-###
-### read/write
-###
-function Base.unsafe_convert(::Type{Ptr{T}}, x::AbstractAxisIndices{T}) where {T}
-    return Base.unsafe_convert(Ptr{T}, parent(x))
-end
-
-function Base.read!(io::IO, a::AbstractAxisIndices)
-    read!(io, parent(a))
-    return a
-end
-
-Base.write(io::IO, a::AbstractAxisIndices) = write(io, parent(a))
-
-###
-### show AbstractAxis
-###
-function Base.show(io::IO, ::MIME"text/plain", a::AbstractAxis)
-    print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
-end
-
-function Base.show(io::IO, a::AbstractAxis)
-    print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
-end
-
-function Base.show(io::IO, ::MIME"text/plain", a::SimpleAxis)
-    print(io, "SimpleAxis($(values(a)))")
-end
-
-function Base.show(io::IO, a::SimpleAxis)
-    print(io, "SimpleAxis($(values(a)))")
-end
-
-###
-### show AbstractAxisIndices
-###
 function row_formatter(
     data;
     bold=true,

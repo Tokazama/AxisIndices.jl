@@ -29,7 +29,7 @@ _get_length(x) = length(x)
     else
         newinds = find_first(maybe_wrap_eq(inds), keys(axis))
         @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, newinds))
+            throw(BoundsError(axis, inds))
         end
     end
     return maybe_unsafe_reconstruct(axis, newinds)
@@ -45,7 +45,7 @@ end
     else
         newinds = find_first(maybe_wrap_eq(inds), values(axis))
         @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, newinds))
+            throw(BoundsError(axis, inds))
         end
     end
     return maybe_unsafe_reconstruct(axis, newinds)
@@ -55,7 +55,6 @@ end
     @boundscheck checkbounds(values(axis), inds)
     return maybe_unsafe_reconstruct(axis, inds)
 end
-
 ###
 ### to_indices
 ###

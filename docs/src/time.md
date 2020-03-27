@@ -3,7 +3,7 @@
 Here we define an axis that specifically supports time.
 This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
 ```jldoctest time_axis_example
-julia> using AxisIndices, Dates, Unitful, IntervalSets
+julia> using AxisIndices, Dates, Unitful
 
 julia> struct TimeAxis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
            axis::Axis{K,V,Ks,Vs}
@@ -56,6 +56,18 @@ Now we can access the time points of this access by the `Symbols` that correspon
 julia> t = TimeAxis(Second(1):Second(1):Second(10));
 
 julia> t[:time_1] = Pair(Second(1), Second(3));
+
+julia> t[:time_1] == 1:3
+true
+```
+
+This can also be done with Unitful elements.
+```jldoctest time_axis_example
+julia> using Unitful: s
+
+julia> t2 = TimeAxis((1:10)s);
+
+julia> t2[:time_1] = Pair(1s, 3s);
 
 julia> t[:time_1] == 1:3
 true

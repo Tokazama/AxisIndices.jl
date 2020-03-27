@@ -1,4 +1,3 @@
-
 # this is necessary for when we get to the head to_index(::ToIndexStyle, ::AbstractAxis, inds)
 # `inds` needs to be a function but we don't know if it's a single element (==) or a collection (in)
 # Of course, if the user provides a function as input to the indexing in the first place this
@@ -8,8 +7,8 @@ is_collection(::Type{T}) where {T<:F2Eq} = false
 is_collection(::Type{T}) where {T<:Function} = true
 is_collection(::Type{T}) where {T<:AbstractArray} = true
 is_collection(::Type{T}) where {T<:Tuple} = true
-is_collection(::Type{T}) where {T<:AbstractDict} = true
 is_collection(::Type{T}) where {T<:Interval} = true
+is_collection(::Type{T}) where {T<:AbstractDict} = true
 
 # TODO Not the greatest name
 """

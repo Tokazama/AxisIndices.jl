@@ -1,7 +1,8 @@
 # Indexing
 
 ## Indexing an Axis
-Here's the basic setup to go through these examples
+
+Setup for running axis examples.
 ```jldoctest indexing_examples
 julia> using AxisIndices, Unitful, IntervalSets
 
@@ -27,10 +28,11 @@ julia> time1[2]
 julia> time2[2]
 2
 
-julia> time2[firstindex(time2)]
-2
+julia> time2[1]
+ERROR: BoundsError: attempt to access 18-elment Axis((1.5:0.5:10.0) s => 2:19) at index [1]
+[...]
 ```
-Notice that `time2[firstindex(time2)]` returns `2`.
+Notice that `time2[1]` throws an error.
 This is because the indices of the `time2` axis don't contain a 1 and begins at 2.
 This allows an axis to map to any single dimensional memory mapping, even if it doesn't start at 1.
 
@@ -139,6 +141,7 @@ julia> time1[<(2.5s) ⩔ >(9.0s)]  # equivalent to `or` you can use \Or<TAB>
 
 ## Indexing an Array
 
+Setup for running array examples.
 ```jldoctest indexing_examples
 julia> A = AxisIndicesArray(reshape(1:9, 3,3),
                ((.1:.1:.3)s,        # first dimension has keys (0.1:0.1:0.3) s
@@ -210,6 +213,7 @@ julia> A[!=(.2s), in(["a", "c"])]
 By default `Axis` will have indices that start at one.
 However, if the first index along a dimension of something doesn't start at one this could force an index call to search outside of memory.
 
-```
-julia> OffsetArrays
-```
+!!! warning
+    If you're reading this it means that you're reading the development branch of the documentation.
+    There are a few corner cases that need to be resolved before fully presenting how this works.
+
