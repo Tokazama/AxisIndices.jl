@@ -9,6 +9,7 @@ using FixedPointNumbers, ColorTypes
 
 using Base: step_hp, OneTo
 
+include("to_index_tests.jl")
 include("AxisInterface/runtests.jl")
 include("staticness_tests.jl")
 include("checkbounds.jl")

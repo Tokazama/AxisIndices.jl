@@ -80,7 +80,6 @@ include("reduce.jl")
 include("promotions.jl")
 include("axisindices_tests.jl")
 include("indexing.jl")
-include("combine_tests.jl")
 include("broadcast_tests.jl")
 
 # TODO organize these tests better
@@ -114,13 +113,4 @@ end
 end
 
 
-@testset "traits" begin
-    @testset "ToIndexStyle" begin
-        @test @inferred(AxisIndices.ToIndexStyle(["a", "b"])) isa AxisIndices.SearchKeys
-        @test @inferred(AxisIndices.ToIndexStyle("a")) isa AxisIndices.SearchKeys
-        @test @inferred(AxisIndices.ToIndexStyle(1)) isa AxisIndices.SearchIndices
-        @test @inferred(AxisIndices.ToIndexStyle([1])) isa AxisIndices.SearchIndices
-        @test @inferred(AxisIndices.ToIndexStyle((1,))) isa AxisIndices.SearchIndices
-        @test @inferred(AxisIndices.ToIndexStyle(true)) isa AxisIndices.GetIndices
-    end
-end
+

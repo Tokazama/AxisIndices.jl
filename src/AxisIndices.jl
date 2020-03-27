@@ -56,7 +56,7 @@ export
 
 include("abstractaxis.jl")
 include("abstractarray.jl")
-include("traits.jl")
+include("to_index.jl")
 include("indexing.jl")
 include("broadcast_axis.jl")
 include("cat_axis.jl")

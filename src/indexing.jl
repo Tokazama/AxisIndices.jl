@@ -1,60 +1,5 @@
 # This file is for methods related to retreiving elements of collections
-#
-# Notes:
-# `@propagate_inbounds` is widely used because indexing with filtering syntax
-# means we don't know that it's inbounds until we've passed the function through
-# `to_index`.
-@propagate_inbounds function Base.to_index(axis::AbstractAxis, inds::CartesianIndex{1})
-    return to_index(axis, first(inds.I))
-end
 
-Base.to_index(axis::AbstractAxis, inds::Base.Slice) = values(axis)
-
-@propagate_inbounds function Base.to_index(axis::AbstractAxis, inds)
-    return to_index(ToIndexStyle(eltype(inds)), axis, inds)
-end
-
-_get_length(x::Fix2{typeof(in)}) = length(x.x)
-_get_length(x::Function) = nothing
-_get_length(x::Interval) = nothing
-_get_length(x) = length(x)
-
-@propagate_inbounds function Base.to_index(::SearchKeys, axis::AbstractUnitRange{T}, inds::I) where {T,I}
-    if is_collection(I)
-        newinds = find_all(maybe_wrap_in(inds), keys(axis))
-        l = _get_length(inds)
-        @boundscheck if !(eltype(newinds) <: Integer) || !isnothing(l) && l != length(newinds)
-            throw(BoundsError(axis, inds))
-        end
-    else
-        newinds = find_first(maybe_wrap_eq(inds), keys(axis))
-        @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, inds))
-        end
-    end
-    return maybe_unsafe_reconstruct(axis, newinds)
-end
-
-@propagate_inbounds function Base.to_index(::SearchIndices, axis::AbstractUnitRange{T}, inds::I) where {T,I}
-    if is_collection(I)
-        newinds = find_all(maybe_wrap_in(inds), values(axis))
-        l = _get_length(inds)
-        @boundscheck if !isnothing(l) && l != length(newinds)
-            throw(BoundsError(axis, inds))
-        end
-    else
-        newinds = find_first(maybe_wrap_eq(inds), values(axis))
-        @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, inds))
-        end
-    end
-    return maybe_unsafe_reconstruct(axis, newinds)
-end
-
-@propagate_inbounds function Base.to_index(::GetIndices, axis::AbstractUnitRange{T}, inds::I) where {T,I}
-    @boundscheck checkbounds(values(axis), inds)
-    return maybe_unsafe_reconstruct(axis, inds)
-end
 ###
 ### to_indices
 ###
@@ -125,6 +70,7 @@ end
     Base.@_inline_meta
     return to_indices(A, inds, (first(I).I..., tail(I)...))
 end
+
 Base.IndexStyle(::Type{<:AbstractAxisIndices{T,N,A,AI}}) where {T,N,A,AI} = IndexStyle(A)
 
 ###
