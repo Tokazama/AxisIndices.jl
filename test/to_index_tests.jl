@@ -7,7 +7,8 @@ using AxisIndices: CombineStyle, CombineStack, CombineSimpleAxis, CombineAxis, C
                         (SimpleAxis{Int,UnitRange{Int}},SimpleAxis{Int,UnitRange{Int}},CombineSimpleAxis),
                         (UnitRange{Int},UnitRange{Int},CombineResize),
                         (UnitRange{Int},LinearIndices{1},CombineResize),
-                       )
+                        (Vector{Int},SimpleAxis{Int,UnitRange{Int}},CombineSimpleAxis),
+                        (Vector{Int},Axis{Int,Int,UnitRange{Int},UnitRange{Int}},CombineAxis))
             @test @inferred(CombineStyle(x, y)) isa z
             @test @inferred(CombineStyle(y, x)) isa z
         end

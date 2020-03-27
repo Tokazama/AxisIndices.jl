@@ -1,3 +1,4 @@
+
 # Notes:
 # `@propagate_inbounds` is widely used because indexing with filtering syntax
 # means we don't know that it's inbounds until we've passed the function through
@@ -7,13 +8,24 @@
 # `inds` needs to be a function but we don't know if it's a single element (==) or a collection (in)
 # Of course, if the user provides a function as input to the indexing in the first place this
 # isn't an issue at all.
-is_collection(::Type{T}) where {T} = false
-is_collection(::Type{T}) where {T<:F2Eq} = false
-is_collection(::Type{T}) where {T<:Function} = true
-is_collection(::Type{T}) where {T<:AbstractArray} = true
-is_collection(::Type{T}) where {T<:Tuple} = true
-is_collection(::Type{T}) where {T<:Interval} = true
-is_collection(::Type{T}) where {T<:AbstractDict} = true
+
+abstract type IndexerStyle end
+
+# returns collection
+struct ToCollection <: IndexerStyle end
+
+# returns element
+struct ToElement <: IndexerStyle end
+
+IndexerStyle(::T) where {T} = IndexerStyle(T)
+IndexerStyle(::Type{T}) where {T} = ToElement()
+IndexerStyle(::Type{T}) where {T<:F2Eq} = ToElement()
+IndexerStyle(::Type{T}) where {T<:CartesianIndex} = ToElement()
+IndexerStyle(::Type{T}) where {T<:Function} = ToCollection()
+IndexerStyle(::Type{T}) where {T<:AbstractArray} = ToCollection()
+IndexerStyle(::Type{T}) where {T<:Tuple} = ToCollection()
+IndexerStyle(::Type{T}) where {T<:Interval} = ToCollection()
+IndexerStyle(::Type{T}) where {T<:AbstractDict} = ToCollection()
 
 # TODO Not the greatest name
 """
@@ -26,68 +38,11 @@ is_key_type(::Type{T}) where {T} = true
 is_key_type(::Type{<:CartesianIndex}) = false
 is_key_type(::Type{<:Integer}) = false
 
-"""
-    CombineStyle
-
-Abstract type that determines the behavior of `broadcast_axis`, `cat_axis`, `append_axis!`.
-"""
-abstract type CombineStyle end
-
-"""
-    CombineAxis
-
-Subtype of `CombineStyle` that informs relevant methods to produce a subtype of `AbstractAxis`.
-"""
-struct CombineAxis <: CombineStyle end
-
-"""
-    CombineSimpleAxis
-
-Subtype of `CombineStyle` that informs relevant methods to produce a subtype of `AbstractSimpleAxis`.
-"""
-struct CombineSimpleAxis <: CombineStyle end
-
-"""
-    CombineResize
-
-Subtype of `CombineStyle` that informs relevant methods that axes should be combined by
-resizing a collection (as opposed to by concatenation or appending).
-"""
-struct CombineResize <: CombineStyle end
-
-"""
-    CombineStack
-
-Subtype of `CombineStyle` that informs relevant methods that axes should be combined by
-stacking elements in some whay (as opposed to resizing a collection).
-"""
-struct CombineStack <: CombineStyle end
-
-CombineStyle(x, y) = CombineStyle(CombineStyle(x), CombineStyle(y))
-CombineStyle(::T) where {T} = CombineStyle(T)
-CombineStyle(::Type{T}) where {T} = CombineStack() # default
-CombineStyle(::Type{T}) where {T<:AbstractAxis} = CombineAxis()
-CombineStyle(::Type{T}) where {T<:AbstractSimpleAxis} = CombineSimpleAxis()
-CombineStyle(::Type{T}) where {T<:AbstractRange} = CombineResize()
-CombineStyle(::Type{T}) where {T<:LinearIndices{1}} = CombineResize()  # b/c it really is OneTo{Int}
-
-CombineStyle(::CombineAxis, ::CombineStyle) = CombineAxis()
-CombineStyle(::CombineStyle, ::CombineAxis) = CombineAxis()
-CombineStyle(::CombineAxis, ::CombineAxis) = CombineAxis()
-CombineStyle(::CombineSimpleAxis, ::CombineAxis) = CombineAxis()
-CombineStyle(::CombineAxis, ::CombineSimpleAxis) = CombineAxis()
-
-CombineStyle(::CombineSimpleAxis, ::CombineStyle) = CombineSimpleAxis()
-CombineStyle(::CombineStyle, ::CombineSimpleAxis) = CombineSimpleAxis()
-CombineStyle(::CombineSimpleAxis, ::CombineSimpleAxis) = CombineSimpleAxis()
-
-CombineStyle(x::CombineStyle, y::CombineStyle) = x
-
 
 abstract type ToIndexStyle end
 
 """
-    ToKeysCollection()
+    SearchKeys()
 
 Calling `to_index(::SearchKeys, axis, inds) -> newinds` results in:
 1. Identifying the positions of `keys(axis)` that equal `inds`
@@ -123,15 +78,12 @@ determines whether [`SearchKeys`](@ref), [`SearchIndices`](@ref), or
 [`GetIndices`](@ref) is returned.
 """
 ToIndexStyle(::T) where {T} = ToIndexStyle(T)
-function ToIndexStyle(::Type{T}) where {T}
-    if is_collection(T)
-        return ToIndexStyle(eltype(T))
-    else
-        return SearchKeys()
-    end
-end
-ToIndexStyle(::Type{T}) where {T<:Integer} = SearchIndices()
-ToIndexStyle(::Type{T}) where {T<:Bool} = GetIndices()
+ToIndexStyle(::Type{T}) where {T} = _to_index_style(IndexerStyle(T), T)
+_to_index_style(::ToCollection, ::Type{T}) where {T} = ToIndexStyle(eltype(T))
+_to_index_style(::ToElement, ::Type{T}) where {T} = SearchKeys()
+_to_index_style(::ToElement, ::Type{T}) where {T<:Integer} = SearchIndices()
+_to_index_style(::ToElement, ::Type{T}) where {T<:CartesianIndex} = SearchIndices()
+_to_index_style(::ToElement, ::Type{T}) where {T<:Bool} = GetIndices()
 
 # FIXME This bit has all sorts of stuff that scares me
 # 1. This isn't in Compat.jl yet so I can't just depend on it.
@@ -144,63 +96,49 @@ if length(methods(isapprox, Tuple{Any})) == 0
 end
 const IsApproxFix = typeof(isapprox(Any)).name.wrapper
 
-is_collection(::Type{T}) where {T<:IsApproxFix} = false
+IndexerStyle(::Type{T}) where {T<:IsApproxFix} = ToElement()
 
-maybe_wrap_in(x::Function) = x
-maybe_wrap_in(x) = in(x)
-
-maybe_wrap_eq(x::Function) = x
-maybe_wrap_eq(x) = isequal(x)
-
-@propagate_inbounds function Base.to_index(axis::AbstractAxis, inds::CartesianIndex{1})
-    return to_index(axis, first(inds.I))
-end
-
-Base.to_index(axis::AbstractAxis, inds::Base.Slice) = values(axis)
-
+###
+### to_index
+###
 @propagate_inbounds function Base.to_index(axis::AbstractAxis, inds)
-    return to_index(ToIndexStyle(eltype(inds)), axis, inds)
+    return to_index(ToIndexStyle(inds), axis, inds)
 end
-
-_get_length(x::Fix2{typeof(in)}) = length(x.x)
-_get_length(x::Function) = nothing
-_get_length(x::Interval) = nothing
-_get_length(x) = length(x)
-
-@propagate_inbounds function Base.to_index(::SearchKeys, axis::AbstractUnitRange{T}, inds::I) where {T,I}
-    if is_collection(I)
-        newinds = find_all(maybe_wrap_in(inds), keys(axis))
-        l = _get_length(inds)
-        @boundscheck if !(eltype(newinds) <: Integer) || !isnothing(l) && l != length(newinds)
-            throw(BoundsError(axis, inds))
-        end
-    else
-        newinds = find_first(maybe_wrap_eq(inds), keys(axis))
-        @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, inds))
-        end
-    end
-    return maybe_unsafe_reconstruct(axis, newinds)
+Base.to_index(axis::AbstractAxis, inds::Base.Slice) = values(axis)
+@propagate_inbounds function Base.to_index(style::SearchKeys, axis, inds)
+    return to_axis_index(IndexerStyle(inds), axis, keys(axis), inds)
 end
-
-@propagate_inbounds function Base.to_index(::SearchIndices, axis::AbstractUnitRange{T}, inds::I) where {T,I}
-    if is_collection(I)
-        newinds = find_all(maybe_wrap_in(inds), values(axis))
-        l = _get_length(inds)
-        @boundscheck if !isnothing(l) && l != length(newinds)
-            throw(BoundsError(axis, inds))
-        end
-    else
-        newinds = find_first(maybe_wrap_eq(inds), values(axis))
-        @boundscheck if newinds isa Nothing
-            throw(BoundsError(axis, inds))
-        end
-    end
-    return maybe_unsafe_reconstruct(axis, newinds)
+@propagate_inbounds function Base.to_index(style::SearchIndices, axis, inds)
+    return to_axis_index(IndexerStyle(inds), axis, values(axis), inds)
 end
-
-@propagate_inbounds function Base.to_index(::GetIndices, axis::AbstractUnitRange{T}, inds::I) where {T,I}
+@propagate_inbounds function Base.to_index(style::GetIndices, axis, inds)
     @boundscheck checkbounds(values(axis), inds)
     return maybe_unsafe_reconstruct(axis, inds)
+end
+
+_in(inds) = in(inds)
+_in(inds::Function) = inds
+_length_eq(inds::Fix2{typeof(in)}, newinds) = length(inds.x) == length(newinds)
+_length_eq(inds::Function, newinds) = true
+_length_eq(inds::Interval, newinds) = true
+_length_eq(inds, newinds) = length(inds) == length(newinds)
+
+@propagate_inbounds function to_axis_index(style::ToCollection, axis, collection, inds)
+    newinds = find_all(_in(inds), collection)
+    @boundscheck if !(eltype(newinds) <: Integer) | !_length_eq(inds, newinds)
+        throw(BoundsError(axis, inds))
+    end
+    return maybe_unsafe_reconstruct(axis, newinds)
+end
+
+_eq(inds) = isequal(inds)
+_eq(inds::CartesianIndex{1}) = isequal(first(inds.I))
+_eq(inds::Function) = inds
+@propagate_inbounds function to_axis_index(style::ToElement, axis, collection, inds)
+    newinds = find_first(_eq(inds), collection)
+    @boundscheck if newinds isa Nothing
+        throw(BoundsError(axis, inds))
+    end
+    return maybe_unsafe_reconstruct(axis, newinds)
 end
 
