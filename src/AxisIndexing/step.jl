@@ -17,6 +17,12 @@ julia> AxisIndices.step_key(Axis(1:2:10))
 
 julia> AxisIndices.step_key(rand(2))
 1
+
+julia> AxisIndices.step_key((1,))
+1
+
+julia> AxisIndices.step_key([1])  # LinearIndices are treate like unit ranges
+1
 ```
 """
 @inline step_key(x::AbstractVector) = _step_keys(keys(x))
