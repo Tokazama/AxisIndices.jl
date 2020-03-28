@@ -1,13 +1,16 @@
 module AxisIndices
 
-using StaticRanges, LinearAlgebra, Statistics, Dates, IntervalSets
-using MappedArrays, PrettyTables
+using StaticRanges
+using Statistics
+using Dates
+using IntervalSets
+using MappedArrays
+using PrettyTables
+using LinearAlgebra
 using Base: @propagate_inbounds, OneTo, to_index, tail, front, Fix2
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi, F2Eq
-
-import Base: rot180, rotr90, rotl90
 
 export
     # Types
@@ -19,6 +22,8 @@ export
     SimpleAxis,
     CartesianAxes,
     LinearAxes,
+    NamedIndicesArray,
+    NIArray,
     # Reexport types
     SimpleAxis,
     LinMRange,
@@ -38,6 +43,8 @@ export
     PromoteConvert,
     PromoteAxis,
     PromoteSimpleAxis,
+    dimnames,
+    dim,
     # methods
     srange,
     mrange,
@@ -54,25 +61,16 @@ export
     axes_keys,
     pretty_array
 
-include("abstractaxis.jl")
-include("abstractarray.jl")
-include("combine.jl")
-include("to_index.jl")
-include("indexing.jl")
-include("broadcast_axis.jl")
-include("cat_axis.jl")
-include("append_axis.jl")
-include("functions.jl")
-include("cat.jl")
-include("reduce.jl")
-include("dimensions.jl")
-include("rotations.jl")
-include("mutate.jl")
-include("promotion.jl")
-include("broadcast.jl")
-include("linear_algebra.jl")
-include("io.jl")
-include("mapped_arrays.jl")
-include("nameddims.jl")
+include("./ResizeVectors/ResizeVectors.jl")
+using .ResizeVectors
+
+include("./AxisIndexing/AxisIndexing.jl")
+using .AxisIndexing
+
+include("./AxisIndicesArrays/AxisIndicesArrays.jl")
+using .AxisIndicesArrays
+
+include("./NamedIndicesArrays/NamedIndicesArrays.jl")
+using .NamedIndicesArrays
 
 end

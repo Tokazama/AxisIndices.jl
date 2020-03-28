@@ -1,3 +1,5 @@
+using AxisIndices.NamedIndicesArrays
+
 @testset "NamedDims" begin
     A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
     @test @inferred(StaticRanges.axes_type(typeof(A))) <: typeof(axes(A))
@@ -11,6 +13,4 @@
           @inferred(parent(A)[["a", "b"], 1:2, 1:2, 1])
     @test @inferred(A[1:10]) == 1:10
 end
-
-
 

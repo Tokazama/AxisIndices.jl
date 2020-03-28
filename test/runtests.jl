@@ -1,6 +1,15 @@
-using AxisIndices, Test, Statistics, LinearAlgebra, StaticRanges, Documenter, Dates
-using AxisIndices: resize_last, resize_last!, resize_first, resize_first!, reduce_axis
-using AxisIndices: shrink_last, shrink_last!, grow_last, grow_last!
+using Test
+using Statistics
+using LinearAlgebra
+using StaticRanges
+using Documenter
+using Dates
+using AxisIndices
+using AxisIndices.ResizeVectors
+using AxisIndices.AxisIndexing
+using AxisIndices.AxisIndicesArrays
+using AxisIndices.NamedIndicesArrays
+
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 
@@ -9,8 +18,7 @@ using FixedPointNumbers, ColorTypes
 
 using Base: step_hp, OneTo
 
-include("to_index_tests.jl")
-include("AxisInterface/runtests.jl")
+include("AxisIndexing/runtests.jl")
 include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
