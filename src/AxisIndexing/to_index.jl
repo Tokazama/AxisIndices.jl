@@ -9,25 +9,6 @@
 # Of course, if the user provides a function as input to the indexing in the first place this
 # isn't an issue at all.
 
-abstract type IndexerStyle end
-
-# returns collection
-struct ToCollection <: IndexerStyle end
-
-# returns element
-struct ToElement <: IndexerStyle end
-
-IndexerStyle(::T) where {T} = IndexerStyle(T)
-IndexerStyle(::Type{T}) where {T} = ToElement()
-IndexerStyle(::Type{T}) where {T<:F2Eq} = ToElement()
-IndexerStyle(::Type{T}) where {T<:CartesianIndex} = ToElement()
-IndexerStyle(::Type{T}) where {T<:Function} = ToCollection()
-IndexerStyle(::Type{T}) where {T<:AbstractArray} = ToCollection()
-IndexerStyle(::Type{T}) where {T<:Tuple} = ToCollection()
-IndexerStyle(::Type{T}) where {T<:Interval} = ToCollection()
-IndexerStyle(::Type{T}) where {T<:AbstractDict} = ToCollection()
-IndexerStyle(::Type{T}) where {T<:AbstractSet} = ToCollection()
-
 abstract type ToIndexStyle end
 
 """
@@ -73,19 +54,6 @@ _to_index_style(::ToElement, ::Type{T}) where {T} = SearchKeys()
 _to_index_style(::ToElement, ::Type{T}) where {T<:Integer} = SearchIndices()
 _to_index_style(::ToElement, ::Type{T}) where {T<:CartesianIndex} = SearchIndices()
 _to_index_style(::ToElement, ::Type{T}) where {T<:Bool} = GetIndices()
-
-# FIXME This bit has all sorts of stuff that scares me
-# 1. This isn't in Compat.jl yet so I can't just depend on it.
-# 2. Compat dependencies often give me errors when updating packages
-# 3. An anonymous function has a name based on its place in code, therefore we
-#    have to derive the name programmatically because it can change between
-#    versions of Julia
-if length(methods(isapprox, Tuple{Any})) == 0
-    Base.isapprox(y; kwargs...) = x -> isapprox(x, y; kwargs...)
-end
-const IsApproxFix = typeof(isapprox(Any)).name.wrapper
-
-IndexerStyle(::Type{T}) where {T<:IsApproxFix} = ToElement()
 
 ###
 ### to_index

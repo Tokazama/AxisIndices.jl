@@ -29,24 +29,34 @@
         @test @inferred(IndexerStyle(Dict{Symbol,Any})) isa ToCollection
         @test @inferred(IndexerStyle(Vector{Int})) isa ToCollection
         @test @inferred(IndexerStyle(Set{Int})) isa ToCollection
+
+#t,s = (1,1), ToElement
+#@inferred(AxisIndices.AxisIndexing.combine(t))
+        for (t,s) in (((1,1), ToElement),
+                      ((1,:), ToCollection),
+                      ((:,:,1), ToCollection))
+            @test @inferred(AxisIndices.AxisIndexing.combine(t)) isa s
+            @test (@allocated AxisIndices.AxisIndexing.combine(t)) == 0
+        end
     end
 end
 
 @testset "to_index" begin
     a = Axis(2:10)
-    @test to_index(a, 1) == 1
-    @test to_index(a, 1:2) == 1:2
+    @test @inferred(to_index(a, 1)) == 1
+    @test @inferred(to_index(a, 1:2)) == 1:2
 
     x = Axis([:one, :two])
-    @test to_index(x, :one) == 1
-    @test to_index(x, [:one, :two]) == [1, 2]
+    @test @inferred(to_index(x, :one)) == 1
+    @test @inferred(to_index(x, [:one, :two])) == [1, 2]
 
-    @test_throws BoundsError Base.to_index(x, 3)
-    @test_throws BoundsError Base.to_index(x, 1:3)
+    x = Axis(0.1:0.1:0.5)
+    @test @inferred(to_index(x, 0.3)) == 3
+
 
     x = Axis(["a", "b"])
-    @test getindex(x, CartesianIndex(1)) == 1
-    @test Base.to_index(x, CartesianIndex(1)) == 1
+    @test @inferred(getindex(x, CartesianIndex(1))) == 1
+    @test @inferred(to_index(x, CartesianIndex(1))) == 1
 
     @testset "to_index(::SearchKeys,...)" begin
         @test @inferred(Base.to_index(SearchKeys(), x, ==("b"))) == 2

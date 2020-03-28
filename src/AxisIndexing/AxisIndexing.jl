@@ -47,6 +47,7 @@ export
     unsafe_reconstruct,
     maybe_unsafe_reconstruct
 
+include("indexer_style.jl")
 include("abstractaxis.jl")
 include("staticness.jl")
 include("combine.jl")

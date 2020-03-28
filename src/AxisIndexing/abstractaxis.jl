@@ -127,4 +127,3 @@ julia> indices(Axis(["a"], 1:1))
 """
 indices(x) = map(values, axes(x))
 indices(x::AbstractAxis) = values(x)
-

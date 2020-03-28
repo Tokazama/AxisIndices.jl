@@ -18,4 +18,3 @@ end
     A = AxisIndicesArray(collect(1:5), 0.1:0.1:0.5)
     @test @inferred(A[0.3]) == 3
 end
-

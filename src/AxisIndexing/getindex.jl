@@ -62,3 +62,69 @@ end
     end
 end
 
+@propagate_inbounds function unsafe_getindex(A, inds) where {T,N}
+    return unsafe_getindex(combine(inds), A, inds)
+end
+
+@propagate_inbounds function unsafe_getindex(::ToElement, A::AbstractArray{T,N}, inds::Tuple{Vararg{<:Integer}}) where {T,N}
+    return Base.getindex(parent(A), inds...)
+end
+
+@propagate_inbounds function unsafe_getindex(::ToCollection, A::AbstractArray{T,N}, inds::Tuple{Vararg{Any,M}}) where {T,N,M}
+    return Base.getindex(parent(A), inds...)
+end
+
+@propagate_inbounds function unsafe_getindex(::ToCollection, A::AbstractArray{T,N}, inds::Tuple{Vararg{Any,N}}) where {T,N}
+    return unsafe_reconstruct(A, Base.getindex(parent(A), inds...), reindex(axes(A), inds))
+end
+
+### view
+@propagate_inbounds function unsafe_view(
+    A::AbstractArray{T,N},
+    inds::Tuple{Vararg{<:Integer}}
+) where {T,N}
+
+    return Base.view(parent(A), inds...)
+end
+
+@propagate_inbounds function unsafe_view(
+    A::AbstractArray{T,N},
+    inds::Tuple{Vararg{Any,M}}
+) where {T,N,M}
+
+    return Base.view(parent(A), inds...)
+end
+
+@propagate_inbounds function unsafe_view(
+    A::AbstractArray{T,N},
+    inds::Tuple{Vararg{Any,N}}
+) where {T,N}
+
+    return unsafe_reconstruct(A, Base.view(parent(A), inds...), reindex(axes(A), inds))
+end
+
+### dotview
+@propagate_inbounds function unsafe_dotview(
+    A::AbstractArray{T,N},
+    inds::Tuple{Vararg{<:Integer}}
+) where {T,N}
+
+    return Base.dotview(parent(A), inds...)
+end
+
+@propagate_inbounds function unsafe_dotview(
+    A::AbstractArray{T,N},
+    inds::Tuple{Vararg{Any,M}}
+) where {T,N,M}
+
+    return Base.dotview(parent(A), inds...)
+end
+
+@propagate_inbounds function unsafe_dotview(
+    A::AbstractArray{T,N},
+    inds::Tuple{Vararg{Any,N}}
+) where {T,N}
+
+    return unsafe_reconstruct(A, Base.dotview(parent(A), inds...), reindex(axes(A), inds))
+end
+
