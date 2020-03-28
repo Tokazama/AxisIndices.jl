@@ -40,6 +40,20 @@ end
     @test Axis(a1) isa typeof(a1)
     @test SimpleAxis(Axis(1:2)) isa SimpleAxis
 
+    @test SimpleAxis{Int,UnitRange{Int}}(Base.OneTo(2)) isa SimpleAxis{Int,UnitRange{Int}}
+    @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
+    @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
+    @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
+    @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
+
+
+    @testset "similar_type" begin
+        @test similar_type(SimpleAxis(10), UnitRange{Int}) <: SimpleAxis{Int,UnitRange{Int}}
+        @test similar_type(typeof(SimpleAxis(10)), UnitRange{Int}) <: SimpleAxis{Int,UnitRange{Int}}
+        @test similar_type(Axis(1:10), UnitRange{UInt}) <: Axis{UInt64,Int64,UnitRange{UInt64},Base.OneTo{Int64}}
+        @test similar_type(typeof(Axis(1:10)), UnitRange{UInt}) <: Axis{UInt64,Int64,UnitRange{UInt64},Base.OneTo{Int64}}
+    end
+
     @testset "reverse_keys" begin
         axis = Axis(1:10)
         saxis = SimpleAxis(1:10)
@@ -80,6 +94,8 @@ include("indexing.jl")
     @test axes_keys(filter(isodd, v)) == ([2, 4, 6, 8],)
     @test axes_keys(filter(isodd, a)) == (1:2,)
 end
+
+@test Base.to_shape(SimpleAxis(1)) == 1
 
 
 

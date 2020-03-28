@@ -5,6 +5,8 @@
     @test size(x) == (2, 2)
     @test parentindices(x) == parentindices(parent(x))
 
+    @test similar_type(x, Array{Float64,2}) <: AxisIndicesArray{Float64,2,Array{Float64,2},Tuple{SimpleAxis{Int64,OneToMRange{Int64}},SimpleAxis{Int64,OneToMRange{Int64}}}}
+
     @test x[CartesianIndex(2,2)] == 4
     x[CartesianIndex(2,2)] = 5
     @test x[CartesianIndex(2,2)] == 5

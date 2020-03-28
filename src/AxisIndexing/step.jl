@@ -19,7 +19,6 @@ julia> AxisIndices.step_key(rand(2))
 1
 ```
 """
-@inline step_key(x::AbstractArray) = map(step_key, axes(x))
 @inline step_key(x::AbstractVector) = _step_keys(keys(x))
 @inline step_key(x) = _step_keys(keys(x))
 function _step_keys(ks)

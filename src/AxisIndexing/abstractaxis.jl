@@ -25,7 +25,8 @@ function StaticRanges.similar_type(
     ::A,
     ks_type::Type=keys_type(A),
     vs_type::Type=values_type(A)
-   ) where {A<:AbstractAxis}
+) where {A<:AbstractAxis}
+
     return similar_type(A, ks_type, vs_type)
 end
 
@@ -33,7 +34,8 @@ function StaticRanges.similar_type(
     ::A,
     ks_type::Type=keys_type(A),
     vs_type::Type=ks_type
-   ) where {A<:AbstractSimpleAxis}
+) where {A<:AbstractSimpleAxis}
+
     return similar_type(A, vs_type)
 end
 
@@ -118,6 +120,9 @@ julia> using AxisIndices
 
 julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
 (UnitMRange(1:2), UnitMRange(1:2))
+
+julia> indices(Axis(["a"], 1:1))
+1:1
 ```
 """
 indices(x) = map(values, axes(x))
