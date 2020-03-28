@@ -71,20 +71,7 @@ include("indexing.jl")
 @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
 @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
 
-@testset "as_axis" begin
-    for (t,f) in (([], is_dynamic),
-                  ((), is_static),
-                  (1:2, is_fixed))
-        for ax in (OneTo(10), 1:10)
-            @test f(as_axis(t, ax))
-        end
-    end
 
-    @test as_axis(1:2, 2) isa SimpleAxis{Int,Base.OneTo{Int}}
-    @test as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
-    @test as_axis(mrange(1, 2), 2) isa SimpleAxis{Int,OneToMRange{Int}}
-    @test as_axis(srange(1, 2), 2) isa SimpleAxis{Int,<:OneToSRange{Int}}
-end
 
 @testset "filter" begin
     a = AxisIndicesArray([11 12; 21 22], (2:3, 3:4))
@@ -136,5 +123,5 @@ include("reindex.jl")
 include("getindex.jl")
 include("to_index.jl")
 include("to_indices.jl")
-
+include("as_axis.jl")
 

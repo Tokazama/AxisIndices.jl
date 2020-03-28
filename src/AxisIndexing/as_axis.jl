@@ -73,15 +73,10 @@ end
 
 function as_axis(array::A, axis_keys::Ks, axis_values::Vs, check_length::Bool=true) where {A,Ks,Vs}
     if Ks <: AbstractAxis
-        if check_length
-            if length(axis_values) == length(axis_keys)
-                return axis_keys
-            else
-                error("All keys and values must have the same length as the respective axes of the parent array, got parent axis length = $(length(axis_values)) and keys length = $(length(axis_keys))")
-            end
-        else
-            return axis_keys
+        if check_length & (length(axis_values) != length(axis_keys))
+            error("All keys and values must have the same length as the respective axes of the parent array, got parent axis length = $(length(axis_values)) and keys length = $(length(axis_keys))")
         end
+        return axis_keys
     else
         if is_static(A)
             return Axis(as_static(axis_keys), as_static(axis_values), check_length)

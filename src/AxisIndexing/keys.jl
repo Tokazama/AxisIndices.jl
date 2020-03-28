@@ -26,10 +26,6 @@ keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
 keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
 
-# FIXME these docs
-@inline keys_type(::T, i) where {T} = keys_type(T, i)
-keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
-
 """
     axes_keys(x)
 
