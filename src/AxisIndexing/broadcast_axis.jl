@@ -65,8 +65,6 @@ julia> AxisIndices.broadcast_axis(1:2, Symbol.(1:2))
 broadcast_axis(x, y) = broadcast_axis(CombineStyle(x, y), x, y)
 broadcast_axis(x, ::Nothing) = copy(x)
 broadcast_axis(::Nothing, y) = copy(y)
-broadcast_axis(x, y, z...) = broadcast_axis(broadcast_axis(x, y), z...)
-broadcast_axis(x) = x
 
 function broadcast_axis(::CombineAxis, x::X, y::Y) where {X,Y}
     ks = broadcast_axis(keys_or_nothing(x), keys_or_nothing(y))

@@ -77,6 +77,9 @@ julia> x
  4
  5
 
+julia> AxisIndices.resize_first!(x, 6) === x
+true
+
 ```
 """
 function resize_first!(x, n::Integer)

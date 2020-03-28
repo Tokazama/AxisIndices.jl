@@ -30,3 +30,22 @@ values_type(::T) where {T} = values_type(T)
 values_type(::Type{T}) where {T} = T  
 values_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Vs
 
+"""
+    values_type(x, i)
+
+Retrieves axis values of the ith dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia>  values_type([1], 1)
+Base.OneTo{Int64}
+
+julia> values_type(typeof([1]), 1)
+Base.OneTo{Int64}
+```
+"""
+values_type(::T, i) where {T} = values_type(T, i)
+values_type(::Type{T}, i) where {T} = values_type(axes_type(T, i))
+

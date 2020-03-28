@@ -146,11 +146,3 @@ _bcsm(a, b) = a == b || length(b) == 1
 _bcsm(a, b::Number) = b == 1
 _bcsm(a::Number, b::Number) = a == b || b == 1
 
-
-function _combine_axes(x::Tuple, y::Tuple)
-    return (broadcast_axis(first(x), first(y)), _combine_axes(tail(x), tail(y))...)
-end
-_combine_axes(x::Tuple{}, y::Tuple) = (broadcast_axis(first(x), first(y)), tail(y)...)
-_combine_axes(x::Tuple, y::Tuple{}) = (broadcast_axis(first(x), first(y)), tail(x)...)
-_combine_axes(x::Tuple{}, y::Tuple{}) = ()
-

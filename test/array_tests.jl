@@ -32,3 +32,11 @@ end
 
     @test y == x
 end
+
+@testset "Interface" begin
+    A = typeof(AxisIndicesArray(ones(1), SimpleAxis(1)))
+    @test @inferred(AxisIndices.axes_type(A)) <: Tuple{SimpleAxis{Int,Base.OneTo{Int}}}
+    @test @inferred(AxisIndices.keys_type(A)) <: Base.OneTo{Int}
+    @test @inferred((A -> AxisIndices.values_type(A, 1))(A)) <: Base.OneTo{Int}
+    @test @inferred((A -> AxisIndices.keys_type(A, 1))(A)) <: Base.OneTo{Int}
+end

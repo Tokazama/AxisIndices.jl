@@ -21,6 +21,15 @@
         @test @inferred(ToIndexStyle((1,))) isa SearchIndices
         @test @inferred(ToIndexStyle(true)) isa GetIndices
     end
+
+    @testset "IndexerStyle" begin
+        @test @inferred(IndexerStyle(CartesianIndex{1})) isa ToElement
+        @test @inferred(IndexerStyle(Tuple{})) isa ToCollection
+        @test @inferred(IndexerStyle(Interval{:closed,:closed,Int})) isa ToCollection
+        @test @inferred(IndexerStyle(Dict{Symbol,Any})) isa ToCollection
+        @test @inferred(IndexerStyle(Vector{Int})) isa ToCollection
+        @test @inferred(IndexerStyle(Set{Int})) isa ToCollection
+    end
 end
 
 @testset "to_index" begin

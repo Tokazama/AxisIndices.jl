@@ -19,6 +19,8 @@
               axes_keys(hcat(b, a)) ==
               (["a", "b", "c", "d", "e"], OneToMRange(3))
         @test axes_keys(hcat(a, a)) == (["a", "b", "c", "d", "e"], 1:2)
+        @test @inferred(hcat(a)) isa AbstractMatrix
+        @test @inferred(hcat(hcat(a))) isa AbstractMatrix
     end
 
     @testset "vcat" begin
@@ -27,6 +29,7 @@
 
         @test axes_keys(vcat(a, b)) == axes_keys(vcat(b, a))
         @test axes_keys(vcat(a, a)) == (1:2, ["a", "b", "c", "d", "e"])
+        @test vcat(a) == a
     end
 
     @testset "cat" begin
@@ -47,4 +50,5 @@
 
     @test cat_axis(CombineStack(), [1, 2], [3, 4]) == [1, 2, 3, 4]
     @test_throws ErrorException cat_axis(CombineStack(), 1:3, 3:4)
+
 end

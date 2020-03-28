@@ -29,6 +29,10 @@ SimpleAxis(3:10)
 
 julia> x[>(2)]
 SimpleAxis(3:10)
+
+julia> x[1]
+ERROR: BoundsError: attempt to access 9-elment SimpleAxis(2:10)) at index [1]
+[...]
 ```
 """
 struct SimpleAxis{V,Vs<:AbstractUnitRange{V}} <: AbstractSimpleAxis{V,Vs}

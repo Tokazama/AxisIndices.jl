@@ -26,6 +26,10 @@ keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
 keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
 
+# FIXME these docs
+@inline keys_type(::T, i) where {T} = keys_type(T, i)
+keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
+
 """
     axes_keys(x)
 
@@ -48,7 +52,7 @@ axes_keys(x::AbstractAxis) = (keys(x),)
 """
     axes_keys(x, i)
 
-Returns the keys corresponding to the `i` axis
+Returns the axis keys corresponding of ith dimension of `x`.
 
 ## Examples
 ```jldoctest
@@ -59,4 +63,20 @@ UnitMRange(2:3)
 ```
 """
 axes_keys(x, i) = keys(axes(x, i))
+
+"""
+    keys_type(x, i)
+
+Retrieves axis keys of the ith dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> keys_type(AxisIndicesArray([1], ["a"]), 1)
+Array{String,1}
+```
+"""
+keys_type(::T, i) where {T} = keys_type(T, i)
+keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
 

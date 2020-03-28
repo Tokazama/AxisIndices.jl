@@ -24,10 +24,6 @@ const AbstractAxisIndicesVector{T,P<:AbstractVector{T},A1} = AbstractAxisIndices
 
 const AbstractAxisIndicesVecOrMat{T} = Union{<:AbstractAxisIndicesMatrix{T},<:AbstractAxisIndicesVector{T}}
 
-function values_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
-    return map(valtype, AI.parameters)
-end
-
 Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))
 
 # axes
@@ -53,10 +49,6 @@ Base.parentindices(x::AbstractAxisIndices) = axes(parent(x))
 
 # length
 Base.length(x::AbstractAxisIndices) = prod(size(x))
-
-function keys_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
-    return map(keytype, AI.parameters)
-end
 
 ## return axes even when they are permuted
 function Base.axes(a::PermutedDimsArray{T,N,permin,permout,<:AbstractAxisIndices}) where {T,N,permin,permout}
@@ -107,7 +99,7 @@ ensure the keys of each axis are unique and match the length of each dimension o
 `parent`. Therefore, this is not intended for interactive use and should only be
 used when it is clear all arguments are composed correctly.
 """
-function unsafe_reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs}
+function AxisIndexing.unsafe_reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs}
     return similar_type(A, P, Axs)(p, axs)
 end
 

@@ -26,18 +26,7 @@ IndexerStyle(::Type{T}) where {T<:AbstractArray} = ToCollection()
 IndexerStyle(::Type{T}) where {T<:Tuple} = ToCollection()
 IndexerStyle(::Type{T}) where {T<:Interval} = ToCollection()
 IndexerStyle(::Type{T}) where {T<:AbstractDict} = ToCollection()
-
-# TODO Not the greatest name
-"""
-    is_key_type(::T) -> Bool
-
-Returns `true` if `T` is always considered a key for indexing. Only `CartesianIndex`
-and subtypes of `Real` return `false`.
-"""
-is_key_type(::Type{T}) where {T} = true
-is_key_type(::Type{<:CartesianIndex}) = false
-is_key_type(::Type{<:Integer}) = false
-
+IndexerStyle(::Type{T}) where {T<:AbstractSet} = ToCollection()
 
 abstract type ToIndexStyle end
 

@@ -33,7 +33,7 @@ end
 
 function Base.hcat(A::AbstractAxisIndices{T,N}) where {T,N}
     if N === 1
-        return unsafe_reconstruct(hcat(parent(A)), (axes(A, 1), SimpleAxis(OneTo(1))))
+        return unsafe_reconstruct(A, hcat(parent(A)), (axes(A, 1), SimpleAxis(OneTo(1))))
     else
         return A
     end

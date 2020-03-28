@@ -36,4 +36,13 @@ function Base.getindex(A::CartesianAxes, inds...)
     Base.@_propagate_inbounds_meta
     return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
 end
-
+#= FIXME handle this
+ERROR: MethodError: getindex(::CartesianIndices{0,Tuple{}}) is ambiguous. Candidates:
+  getindex(iter::CartesianIndices{N,#s662} where #s662<:Tuple{Vararg{Base.OneTo,N}}, I::Vararg{Int64,N}) where N in B
+ase.IteratorsMD at multidimensional.jl:315
+  getindex(A::CartesianIndices{N,R} where R<:Tuple{Vararg{AbstractAxis,N}} where N, inds::Int64...) in AxisIndices.Ax
+isIndicesArrays at /Users/zchristensen/Box/Zachs_Lab_Notebook/AxisIndices.jl/src/AxisIndicesArrays/cartesianaxes.jl:3
+1
+Possible fix, define
+  getindex(::CartesianIndices{0,R} where R<:Tuple{})
+=#

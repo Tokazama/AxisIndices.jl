@@ -4,6 +4,7 @@ using LinearAlgebra
 using StaticRanges
 using Documenter
 using Dates
+using IntervalSets
 using AxisIndices
 using AxisIndices.ResizeVectors
 using AxisIndices.AxisIndexing
