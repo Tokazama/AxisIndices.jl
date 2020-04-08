@@ -17,35 +17,37 @@ using AxisIndices.AxisIndexing: to_index
     end
 end
 
-    #=
-    @testset "SearchStyle" begin
-        @test @inferred(SearchStyle(["a", "b"])) isa SearchKeys
-        @test @inferred(SearchStyle("a")) isa SearchKeys
-        @test @inferred(SearchStyle(1)) isa SearchIndices
-        @test @inferred(SearchStyle([1])) isa SearchIndices
-        @test @inferred(SearchStyle((1,))) isa SearchIndices
-        @test @inferred(SearchStyle(true)) isa GetIndices
-    end
+@testset "AxisIndicesStyles" begin
+    @test @inferred(AxisIndicesStyle(String)) isa KeyElement
+    @test @inferred(AxisIndicesStyle(Int)) isa IndexElement
+    @test @inferred(AxisIndicesStyle(Bool)) isa BoolElement
+    @test @inferred(AxisIndicesStyle(CartesianIndex{1})) isa CartesianElement
 
-    @testset "IndexerStyle" begin
-        @test @inferred(IndexerStyle(CartesianIndex{1})) isa ToElement
-        @test @inferred(IndexerStyle(Tuple{})) isa ToCollection
-        @test @inferred(IndexerStyle(Interval{:closed,:closed,Int})) isa ToCollection
-        @test @inferred(IndexerStyle(Dict{Symbol,Any})) isa ToCollection
-        @test @inferred(IndexerStyle(Vector{Int})) isa ToCollection
-        @test @inferred(IndexerStyle(Set{Int})) isa ToCollection
+    @test @inferred(AxisIndicesStyle(Vector{String})) isa KeysCollection
+    @test @inferred(AxisIndicesStyle(Vector{Int})) isa IndicesCollection
+    @test @inferred(AxisIndicesStyle(Vector{Bool})) isa BoolsCollection
 
-#t,s = (1,1), ToElement
-#@inferred(AxisIndices.AxisIndexing.combine(t))
-        for (t,s) in (((1,1), ToElement),
-                      ((1,:), ToCollection),
-                      ((:,:,1), ToCollection))
-            @test @inferred(AxisIndices.AxisIndexing.combine(t)) isa s
-            @test (@allocated AxisIndices.AxisIndexing.combine(t)) == 0
-        end
-    end
+    @test @inferred(AxisIndicesStyle(Colon)) isa SliceCollection
+    @test @inferred(AxisIndicesStyle(Base.Slice)) isa SliceCollection
+
+    @test @inferred(is_element(KeyElement))
+    @test @inferred(is_element(BoolElement))
+    @test @inferred(is_element(IndexElement))
+    @test @inferred(is_element(CartesianElement))
+    @test @inferred(is_element(KeyEquals))
+    @test @inferred(!is_element(Vector{Int}))
+
+    @test @inferred(is_collection([1]))
+
+    @test @inferred(is_index(1))
+    @test @inferred(!is_index(:a))
+    @test @inferred(!is_index(KeyElement))
+    @test @inferred(is_index(BoolElement))
+    @test @inferred(is_index(IndexElement))
+    @test @inferred(is_index(SliceCollection))
+
+    @test @inferred(is_key(:a))
 end
-=#
 
 @testset "to_index" begin
     a = Axis(2:10)

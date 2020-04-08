@@ -119,4 +119,3 @@ end
     @test map(keys, AxisIndices.AxisIndexing.drop_axes(axs, (2, 3))) == (["a", "b"], 1:2)
 end
 
-

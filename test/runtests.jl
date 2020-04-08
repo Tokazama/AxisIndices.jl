@@ -6,6 +6,7 @@ using Documenter
 using Dates
 using IntervalSets
 using AxisIndices
+using AxisIndices.AxisIndicesStyles
 using AxisIndices.AxisIndexing
 using AxisIndices.AxisIndicesArrays
 using AxisIndices.NamedIndicesArrays
