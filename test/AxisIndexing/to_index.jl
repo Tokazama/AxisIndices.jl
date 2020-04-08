@@ -36,10 +36,13 @@ end
     @test @inferred(is_element(CartesianElement))
     @test @inferred(is_element(KeyEquals))
     @test @inferred(!is_element(Vector{Int}))
+    @test @inferred(!is_element(KeysCollection))
 
     @test @inferred(is_collection([1]))
+    @test @inferred(is_collection(KeysCollection))
 
     @test @inferred(is_index(1))
+    @test @inferred(is_index(Int))
     @test @inferred(!is_index(:a))
     @test @inferred(!is_index(KeyElement))
     @test @inferred(is_index(BoolElement))
@@ -47,6 +50,7 @@ end
     @test @inferred(is_index(SliceCollection))
 
     @test @inferred(is_key(:a))
+    @test @inferred(is_key(Symbol))
 end
 
 @testset "to_index" begin
