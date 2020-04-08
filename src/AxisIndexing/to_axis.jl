@@ -21,11 +21,6 @@ end
     end
 end
 
-function to_axis(axis::AbstractSimpleAxis, ks::Ks, vs::Vs, check_length::Bool=true) where {Ks,Vs}
-    check_length && check_axis_length(ks, vs)
-    return unsafe_reconstruct(axis, vs)
-end
-
 @inline function to_axis(axis::AbstractAxis, ks::Ks, vs::Vs, check_length::Bool=true) where {Ks,Vs}
     check_length && check_axis_length(ks, vs)
 
@@ -37,28 +32,6 @@ end
         return unsafe_reconstruct(axis, as_dynamic(ks), as_dynamic(vs))
     end
 end
-
-#=
-function to_axes(
-    ks::Tuple{Vararg{Any,M}},
-    vs::Tuple{Vararg{Any,N}},
-    check_length::Bool=true
-) where {M,N}
-
-    ntuple(Val(N)) do i
-        if i > M
-            to_axis(getfield(vs, i))
-        else
-            to_axis(getfield(ks, i), getfield(vs, i), check_length)
-        end
-    end
-end
-    #return map((ks_i, vs_i) -> to_axis(ks_i, vs_i, check_length), ks, vs)
-
-function to_axes(axs::Tuple, ks::Tuple, vs::Tuple, check_length::Bool=true)
-    return map((axis, ks_i, vs_i) -> to_axis(axis, ks_i, vs_i, check_length), axs, ks, vs)
-end
-=#
 
 ### TODO CLEANUP THIS!
 function to_axis(old_axis::AbstractSimpleAxis, arg, index, new_indices)
@@ -123,16 +96,17 @@ end
     return to_axes(old_axes, tail(args), tail(inds), new_axes)
 end
 
+@inline function to_axis(ks::Ks, vs::AbstractAxis, check_length::Bool=true) where {Ks,Vs}
+    return to_axis(ks, values(vs), check_length)
+end
+
+#=
 @inline function to_axis(ks::AbstractAxis, vs::Vs, check_length::Bool=true) where {Vs}
     return to_axis(keys(ks), vs, check_length)
 end
 
 @inline function to_axis(ks::AbstractAxis, vs::AbstractAxis, check_length::Bool=true)
     return to_axis(keys(ks), values(vs), check_length)
-end
-
-@inline function to_axis(ks::Ks, vs::AbstractAxis, check_length::Bool=true) where {Ks,Vs}
-    return to_axis(ks, values(vs), check_length)
 end
 
 # this one is necessary to avoid ambiguitities
@@ -147,6 +121,12 @@ end
 @inline function to_axis(axis::AbstractAxis, ks::Ks, vs::AbstractAxis, check_length::Bool=true) where {Ks}
     return to_axis(axis, ks, values(vs), check_length)
 end
+
+function to_axis(axis::AbstractSimpleAxis, ks::Ks, vs::Vs, check_length::Bool=true) where {Ks,Vs}
+    check_length && check_axis_length(ks, vs)
+    return unsafe_reconstruct(axis, vs)
+end
+=#
 
 to_axes(::Tuple{}, ::Tuple{Int64}, ::Tuple{}, ::Tuple{}) = ()
 to_axes(::Tuple, ::Tuple{}, ::Tuple{}, ::Tuple) = ()

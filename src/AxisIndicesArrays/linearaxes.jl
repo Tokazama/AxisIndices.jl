@@ -31,9 +31,8 @@ LinearAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = LinearIndices(ks)
 
 Base.axes(A::LinearAxes) = getfield(A, :indices)
 
-function Base.getindex(iter::LinearAxes, i::Int)
-    Base.@_inline_meta
-    # @boundscheck checkbounds(iter, i)
+@boundscheck function Base.getindex(iter::LinearAxes, i::Int)
+    @boundscheck checkbounds(iter, i)
     return i
 end
 

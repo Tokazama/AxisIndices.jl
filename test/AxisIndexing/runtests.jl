@@ -56,6 +56,12 @@ end
     @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
     @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
 
+    @test @inferred(!StaticRanges.can_set_first(Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}))
+    @test @inferred(StaticRanges.can_set_first(Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}))
+    @test @inferred(!StaticRanges.can_set_length(Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}))
+    @test @inferred(StaticRanges.can_set_length(Axis{Int,Int,UnitMRange{Int},OneToMRange{Int}}))
+    @test step(a1) == 1
+
 
     @testset "similar_type" begin
         @test similar_type(SimpleAxis(10), UnitRange{Int}) <: SimpleAxis{Int,UnitRange{Int}}
@@ -101,6 +107,14 @@ end
 
 @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
 @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
+
+#=
+@testset "map" begin
+    x = Axis(2:10)
+    y = SimpleAxis(2:10)
+    map(+, x, y)
+end
+=#
 
 
 @testset "filter" begin

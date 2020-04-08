@@ -30,7 +30,17 @@ julia> similar(Axis(1.0:10.0, 1:10), [:one, :two])
 Axis([:one, :two] => 1:2)
 ```
 """
-function Base.similar(axis::AbstractAxis, new_keys::AbstractVector)
+function Base.similar(
+    axis::AbstractAxis{K,V,Ks,Vs},
+    new_keys::AbstractVector{T}
+) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
+    return similar(axis, new_keys, set_length(values(axis), length(new_keys)), false)
+end
+
+function Base.similar(
+    axis::AbstractAxis{K,V,Ks,Vs},
+    new_keys::AbstractUnitRange{T}
+) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
     return similar(axis, new_keys, set_length(values(axis), length(new_keys)), false)
 end
 
@@ -54,16 +64,26 @@ ERROR: keys and indices must have same length, got length(keys) = 2 and length(i
 ```
 """
 function Base.similar(
-    axis::AbstractAxis,
-    new_keys::AbstractVector,
+    axis::AbstractAxis{K,V,Ks,Vs},
+    new_keys::AbstractVector{T},
     new_indices::AbstractUnitRange{<:Integer},
     check_length::Bool=true
-)
+) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
 
     check_length && check_axis_length(new_keys, new_indices)
     return unsafe_reconstruct(axis, new_keys, new_indices)
 end
 
+function Base.similar(
+    axis::AbstractAxis{K,V,Ks,Vs},
+    new_keys::AbstractUnitRange{T},
+    new_indices::AbstractUnitRange{<:Integer},
+    check_length::Bool=true
+) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T<:Integer}
+
+    check_length && check_axis_length(new_keys, new_indices)
+    return unsafe_reconstruct(axis, new_keys, new_indices)
+end
 """
     similar(axis::AbstractSimpleAxis, new_indices::AbstractUnitRange{Integer}) -> AbstractSimpleAxis
 
@@ -77,7 +97,10 @@ julia> similar(SimpleAxis(1:10), 1:3)
 SimpleAxis(1:3)
 ```
 """
-function Base.similar(axis::AbstractSimpleAxis, new_keys::AbstractUnitRange{<:Integer})
+function Base.similar(
+    axis::AbstractSimpleAxis{V,Vs},
+    new_keys::AbstractUnitRange{<:Integer}
+) where {V<:Integer,Vs<:AbstractUnitRange{V}}
     return unsafe_reconstruct(axis, new_keys)
 end
 

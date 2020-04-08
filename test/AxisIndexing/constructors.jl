@@ -18,5 +18,13 @@
 
 
     @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
+
+    @test Axis{String,Int,Vector{String},Base.OneTo{Int}}(Axis(["a", "b"])) isa Axis{String,Int,Vector{String},Base.OneTo{Int}}
+
+    axis = Axis(1:10)
+    @test @inferred(keys(similar(axis, 2:3))) == 2:3
+    @test @inferred(keys(similar(axis, ["a", "b"]))) == ["a", "b"]
+    @test @inferred(similar(SimpleAxis(10), 2:3)) == 2:3
 end
+
 

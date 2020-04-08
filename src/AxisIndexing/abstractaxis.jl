@@ -54,19 +54,6 @@ Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of ty
 """
 unsafe_reconstruct(a::AbstractSimpleAxis, vs::Vs) where {Vs} = similar_type(a, Vs)(vs)
 
-#=
-Base.similar(axis::AbstractAxis, ks) = similar(axis, ks, axes(ks, 1), false)
-
-Base.similar(axis::AbstractSimpleAxis, ks) = unsafe_reconstruct(axis, ks)
-
-function Base.similar(axis::AbstractAxis, ks::Ks, vs::Vs, check_length::Bool=true) where {Ks,Vs}
-    if check_length
-        check_axis_length(ks, vs)
-    end
-    return unsafe_reconstruct(axis, ks, vs)
-end
-=#
-
 maybe_unsafe_reconstruct(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
 function maybe_unsafe_reconstruct(a::AbstractAxis, inds::AbstractUnitRange)
     unsafe_reconstruct(a, @inbounds(keys(a)[inds]), @inbounds(values(a)[inds]))
@@ -135,6 +122,10 @@ julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
 
 julia> indices(Axis(["a"], 1:1))
 1:1
+
+julia> indices(CartesianIndex(1,1))
+(1, 1)
+
 ```
 """
 indices(x) = map(values, axes(x))
@@ -547,7 +538,12 @@ end
 ###
 Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
-function Base.map(f, x::AbstractAxis...)
-    return maybe_unsafe_reconstruct(broadcast_axis(x), map(values.(x)...))
-end
+#=
+Base.map(f, x::AbstractAxis...) = _map(x, map(f, values.(x)...))
+_map(x::Tuple, vals::AbstractUnitRange{<:Integer}) = __map(broadcast_axis(x...), vals)
+__map(axis::AbstractAxis, vals) = unsafe_reconstruct(axis, keys(axis), vals)
+__map(axis::AbstractSimpleAxis, vals) = unsafe_reconstruct(axis, vals)
+_map(x::Tuple, vals) = vals
+
+=#
 
