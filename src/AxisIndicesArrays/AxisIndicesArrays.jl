@@ -6,18 +6,34 @@ using Statistics
 using StaticRanges
 using MappedArrays
 using PrettyTables
-using AxisIndices.ResizeVectors
 using AxisIndices.AxisIndexing
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
-using Base: @propagate_inbounds, OneTo, to_index, tail, front, Fix2
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi, F2Eq
+using Base: @propagate_inbounds, OneTo, tail, front, Fix2, to_index
+using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
+using StaticRanges:
+    prev_type,
+    next_type,
+    grow_first,
+    grow_first!,
+    grow_last,
+    grow_last!,
+    shrink_first,
+    shrink_first!,
+    shrink_last,
+    shrink_last!,
+    resize_first,
+    resize_first!,
+    resize_last,
+    resize_last!
+
 
 export
     AbstractAxisIndices,
     AxisIndicesArray,
     pretty_array,
     LinearAxes,
-    CartesianAxes
+    CartesianAxes,
+    get_factorization
 
 include("abstractaxisindices.jl")
 include("axisindicesarray.jl")

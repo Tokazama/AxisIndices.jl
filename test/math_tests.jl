@@ -137,7 +137,6 @@ end
     @test keys.(axes(inv(a) * a)) == (4:5, 4:5)
 end
 
-
 @testset "cov/cor" begin
     @testset "$f" for f in (cov, cor)
         @testset "matrix input, matrix result" begin

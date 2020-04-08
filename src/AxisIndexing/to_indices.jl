@@ -1,43 +1,45 @@
 
-function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{Any, Vararg{Any}})
-    Base.@_inline_meta
-    return (to_index(first(inds), first(I)), to_indices(A, maybetail(inds), tail(I))...)
+@propagate_inbounds function index_axis(A, dim, arg)
+    return to_index(axes(A, dim), arg)
 end
 
-@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{Colon, Vararg{Any}})
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{Any, Vararg{Any}})
     Base.@_inline_meta
-    return (values(first(inds)), to_indices(A, maybetail(inds), tail(I))...)
+    return (to_index(first(axs), first(args)), to_indices(A, maybetail(axs), tail(args))...)
 end
 
-@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{CartesianIndex{N}},Vararg{Any}}) where N
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{Colon, Vararg{Any}})
     Base.@_inline_meta
-    _, indstail = Base.IteratorsMD.split(inds, Val(N))
-    return (to_index(A, first(I)), to_indices(A, indstail, tail(I))...)
+    return (values(first(axs)), to_indices(A, maybetail(axs), tail(args))...)
+end
+
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{AbstractArray{CartesianIndex{N}},Vararg{Any}}) where N
+    Base.@_inline_meta
+    _, axstail = Base.IteratorsMD.split(axs, Val(N))
+    return (to_index(A, first(args)), to_indices(A, axstail, tail(args))...)
 end
 
 # And boolean arrays behave similarly; they also skip their number of dimensions
-@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{AbstractArray{Bool, N}, Vararg{Any}}) where N
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{AbstractArray{Bool, N}, Vararg{Any}}) where N
     Base.@_inline_meta
-    _, indstail = Base.IteratorsMD.split(inds, Val(N))
-    return (to_index(A, first(I)), to_indices(A, indstail, tail(I))...)
+    _, axes_tail = Base.IteratorsMD.split(axs, Val(N))
+    return (to_index(first(axs), first(args)), to_indices(A, axes_tail, tail(args))...)
 end
 
-maybetail(::Tuple{}) = ()
-maybetail(t::Tuple) = tail(t)
-@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndices, Vararg{Any}})
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{CartesianIndices, Vararg{Any}})
     Base.@_inline_meta
-    return to_indices(A, inds, (first(I).indices..., tail(I)...))
+    return to_indices(A, axs, (first(args).indices..., tail(args)...))
 end
 
-@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndices{0},Vararg{Any}})
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{CartesianIndices{0},Vararg{Any}})
     Base.@_inline_meta
-    return (first(I), to_indices(A, inds, tail(I))...)
+    return (first(args), to_indices(A, axs, tail(args))...)
 end
 
 # But some index types require more context spanning multiple indices
 # CartesianIndexes are simple; they just splat out
-@propagate_inbounds function Base.to_indices(A, inds::Tuple{AbstractAxis, Vararg{Any}}, I::Tuple{CartesianIndex, Vararg{Any}})
+@propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{CartesianIndex, Vararg{Any}})
     Base.@_inline_meta
-    return to_indices(A, inds, (first(I).I..., tail(I)...))
+    return to_indices(A, axs, (first(args).I..., tail(args)...))
 end
 

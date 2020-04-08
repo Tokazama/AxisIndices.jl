@@ -30,12 +30,13 @@
         m = AxisIndicesArray(ones(3, 3), (2:4, 3:5))
         s = 0
 
-        @test v .+ m == ones(3, 3) == m .+ v
-        @test s .+ m == ones(3, 3) == m .+ s
-        @test s .+ v .+ m == ones(3, 3) == m .+ s .+ v
+        @test @inferred(v .+ m) == ones(3, 3) == @inferred(m .+ v)
+        @test @inferred(s .+ m) == ones(3, 3) == @inferred(m .+ s)
+        @test @inferred(s .+ v .+ m) == ones(3, 3) == @inferred(m .+ s .+ v)
 
         @test keys.(axes(v .+ m)) == (2:4, 3:5) == keys.(axes(m .+ v))
         @test keys.(axes(s .+ m)) == (2:4, 3:5) == keys.(axes(m .+ s))
         @test keys.(axes(s .+ v .+ m)) == (2:4, 3:5) == keys.(axes(m .+ s .+ v))
     end
 end
+

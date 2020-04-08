@@ -6,11 +6,11 @@ const AIQRUnion{T} = Union{LinearAlgebra.QRCompactWY{T,<:AbstractAxisIndices},
                                      QRPivoted{T,<:AbstractAxisIndices},
                                      QR{T,<:AbstractAxisIndices}}
 
-function LinearAlgebra.qr(A::AbstractAxisIndices{T,2}, arg) where T
+function LinearAlgebra.qr(A::AbstractAxisIndices{T,2}, args...; kwargs...) where T
     Base.require_one_based_indexing(A)
     AA = similar(A, LinearAlgebra._qreltype(T), axes(A))
     copyto!(AA, A)
-    return qr!(AA, arg)
+    return qr!(AA, args...; kwargs...)
 end
 
 function LinearAlgebra.qr!(a::AbstractAxisIndices, args...; kwargs...)
@@ -25,14 +25,21 @@ function Base.parent(F::QR{<:Any,<:AbstractAxisIndices})
 end
 
 function _qr(a::AbstractAxisIndices, F::LinearAlgebra.QRCompactWY, axs::Tuple)
-    return LinearAlgebra.QRCompactWY(unsafe_reconstruct(a, getfield(F, :factors), axs), F.T)
+    return LinearAlgebra.QRCompactWY(
+        unsafe_reconstruct(a, getfield(F, :factors), axs),
+        F.T
+    )
 end
 function Base.parent(F::LinearAlgebra.QRCompactWY{<:Any, <:AbstractAxisIndices})
     return LinearAlgebra.QRCompactWY(parent(getfield(F, :factors)), getfield(F, :T))
 end
 
 function _qr(a::AbstractAxisIndices, F::QRPivoted, axs::Tuple)
-    return QRPivoted(unsafe_reconstruct(a, getfield(F, :factors), axs), getfield(F, :τ), getfield(F, :jpvt))
+    return QRPivoted(
+        unsafe_reconstruct(a, getfield(F, :factors), axs),
+        getfield(F, :τ),
+        getfield(F, :jpvt)
+    )
 end
 function Base.parent(F::QRPivoted{<:Any, <:AbstractAxisIndices})
     return QRPivoted(parent(getfield(F, :factors)), getfield(F, :τ), getfield(F, :jpvt))
@@ -244,7 +251,7 @@ julia> keys.(axes(F.P))
 (2:3, 2:3)
 
 julia> keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
-(2:3, UnitMRange(3:4))
+(2:3, 3:4)
 ```
 
 ## LU Factorization
@@ -306,22 +313,22 @@ get_factorization
 for (N1,N2) in ((2,2), (1,2), (2,1))
     @eval begin
         function Base.:*(a::AbstractAxisIndices{T1,$N1}, b::AbstractAxisIndices{T2,$N2}) where {T1,T2}
-            return _matmul(a, promote_type(T1, T2), *(parent(a), parent(b)), as_axis(a, matmul_axes(a, b)))
+            return _matmul(a, promote_type(T1, T2), *(parent(a), parent(b)), matmul_axes(a, b))
         end
         function Base.:*(a::AbstractArray{T1,$N1}, b::AbstractAxisIndices{T2,$N2}) where {T1,T2}
-            return _matmul(b, promote_type(T1, T2), *(a, parent(b)), as_axis(b, matmul_axes(a, b)))
+            return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
         end
         function Base.:*(a::AbstractAxisIndices{T1,$N1}, b::AbstractArray{T2,$N2}) where {T1,T2}
-            return _matmul(a, promote_type(T1, T2), *(parent(a), b), as_axis(a, matmul_axes(a, b)))
+            return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
         end
     end
 end
 
 function Base.:*(a::Diagonal{T1}, b::AbstractAxisIndices{T2,2}) where {T1,T2}
-    return _matmul(b, promote_type(T1, T2), *(a, parent(b)), as_axis(b, matmul_axes(a, b)))
+    return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
 end
 function Base.:*(a::AbstractAxisIndices{T1,2}, b::Diagonal{T2}) where {T1,T2}
-    return _matmul(a, promote_type(T1, T2), *(parent(a), b), as_axis(a, matmul_axes(a, b)))
+    return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
 end
 
 _matmul(A, ::Type{T}, a::T, axs) where {T} = a

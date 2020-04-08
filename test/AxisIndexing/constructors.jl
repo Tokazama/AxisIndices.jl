@@ -14,7 +14,7 @@
 
     @test Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}(1:10) isa Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}
 
-    @test AxisIndices.as_axis(a1) == a1
+    @test AxisIndices.to_axis(a1) == a1
 
 
     @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}

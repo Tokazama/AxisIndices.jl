@@ -5,7 +5,7 @@
     @test size(x) == (2, 2)
     @test parentindices(x) == parentindices(parent(x))
 
-    @test similar_type(x, Array{Float64,2}) <: AxisIndicesArray{Float64,2,Array{Float64,2},Tuple{SimpleAxis{Int64,OneToMRange{Int64}},SimpleAxis{Int64,OneToMRange{Int64}}}}
+    @test similar_type(x, Array{Float64,2}) <: AxisIndicesArray{Float64,2,Array{Float64,2},Tuple{SimpleAxis{Int64,OneTo{Int64}},SimpleAxis{Int64,OneTo{Int64}}}}
 
     @test x[CartesianIndex(2,2)] == 4
     x[CartesianIndex(2,2)] = 5
@@ -42,3 +42,4 @@ end
     @test @inferred((A -> AxisIndices.values_type(A, 1))(A)) <: Base.OneTo{Int}
     @test @inferred((A -> AxisIndices.keys_type(A, 1))(A)) <: Base.OneTo{Int}
 end
+

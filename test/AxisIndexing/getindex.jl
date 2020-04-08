@@ -11,3 +11,14 @@
     @test @inferred(a[≈(3.1; atol=1)]) == 2
 end
 
+#=
+b = Base.OneTo(10)
+x = SimpleAxis(b)
+
+@btime getindex(b, 2)
+
+@btime getindex(x, 2)
+
+find_first(==(2), x)
+
+=#

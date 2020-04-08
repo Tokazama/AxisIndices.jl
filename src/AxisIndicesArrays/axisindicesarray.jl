@@ -8,12 +8,25 @@ a tuple of subtypes to `AbstractAxis` or keys that will be converted to subtypes
 of `AbstractAxis` with the provided keys.
 """
 struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: AbstractAxisIndices{T,N,P,AI}
-    parent::P
-    axes::AI
+    _parent::P
+    _axes::AI
 
-    function AxisIndicesArray{T,N,P,A}(p::P, axs::A, check_length::Bool=true) where {T,N,P,A}
+    function AxisIndicesArray{T,N,P,A}(p::P, axs::A) where {T,N,P,A}
        return new{T,N,P,A}(p, axs)
     end
+end
+
+Base.parent(x::AxisIndicesArray) = getfield(x, :_parent)
+
+Base.axes(x::AxisIndicesArray) = getfield(x, :_axes)
+
+function StaticRanges.similar_type(
+    ::AxisIndicesArray{T,N,P,AI},
+    parent_type::Type=P,
+    axes_type::Type=AI
+) where {T,N,P,AI}
+
+    return AxisIndicesArray{eltype(parent_type), ndims(parent_type), parent_type, axes_type}
 end
 
 """
@@ -36,22 +49,18 @@ julia> AxisIndicesArray(ones(2,2), (SimpleAxis(2), SimpleAxis(2)))
 
 ```
 """
-function AxisIndicesArray(x::AbstractArray{T,N}, axs::AbstractAxes{N}, check_length::Bool=true) where {T,N}
-    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
-end
+function AxisIndicesArray(
+    x::AbstractArray{T,N},
+    axs::AbstractAxes{N},
+    check_length::Bool=true
+) where {T,N}
 
-# minimum interface
-Base.parent(x::AxisIndicesArray) = getfield(x, :parent)
-
-Base.axes(x::AxisIndicesArray) = getfield(x, :axes)
-
-function StaticRanges.similar_type(
-    ::AxisIndicesArray{T,N,P,AI},
-    ptype::Type=P,
-    axstype::Type=AI
-) where {T,N,P,AI}
-
-    return AxisIndicesArray{eltype(ptype), ndims(ptype), ptype, axstype}
+    if check_length
+        for i in 1:N
+            AxisIndexing.check_axis_length(getfield(axs, i), axes(x, i))
+        end
+    end
+    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 
 """
@@ -75,9 +84,15 @@ julia> AxisIndicesArray(ones(2,2), (["a", "b"], ["one", "two"]))
 
 ```
 """
-function AxisIndicesArray(x::AbstractArray{T,N}, axis_keys::Tuple, axis_values::Tuple=axes(x), check_length::Bool=true) where {T,N}
-    axs = as_axes(x, axis_keys, axis_values, check_length)
-    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs, check_length)
+function AxisIndicesArray(
+    x::AbstractArray{T,N},
+    axis_keys::Tuple,
+    axis_values::Tuple=axes(x),
+    check_length::Bool=true
+) where {T,N}
+
+    axs = to_axes(axis_keys, axis_values, check_length)
+    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 
 """
@@ -105,4 +120,29 @@ true
 ```
 """
 AxisIndicesArray(x::AbstractArray, args...) = AxisIndicesArray(x, args)
+
+# Vector is uniquely dynamic and its size is mutable
+function AxisIndicesArray(x::Vector)
+    return AxisIndicesArray(x, (SimpleAxis(as_dynamic(axes(x, 1))),), false)
+end
+
+function AxisIndicesArray(x::Vector{T}, axis_keys::AbstractAxis, check_length::Bool=true) where {T}
+    return AxisIndicesArray(x, (axis_keys,), check_length)
+end
+
+function AxisIndicesArray(x::Vector{T}, axis_keys::AbstractVector, check_length::Bool=true) where {T}
+    return AxisIndicesArray(x, (axis_keys,), (as_dynamic(axes(x, 1)),), check_length)
+end
+
+function AxisIndicesArray(x::Vector{T}, axis_keys::Tuple, check_length::Bool=true) where {T}
+    return AxisIndicesArray(x, (first(axis_keys),), (as_dynamic(axes(x, 1)),), check_length)
+end
+
+
+function AxisIndicesArray(x::Vector{T}, axs::AbstractAxes{1}, check_length::Bool=true) where {T}
+    if check_length
+        AxisIndexing.check_axis_length(first(axs), axes(x, 1))
+    end
+    return AxisIndicesArray{T,1,Vector{T},typeof(axs)}(x, axs)
+end
 

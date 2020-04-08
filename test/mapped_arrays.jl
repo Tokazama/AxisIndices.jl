@@ -1,3 +1,5 @@
+# test deps
+using FixedPointNumbers, ColorTypes
 
 @testset "ReadonlyMappedArray" begin
     a = AxisIndicesArray([1,4,9,16], ["one", "two", "three", "four"])
@@ -91,7 +93,7 @@ end
     @test @inferred(IndexStyle(M)) == IndexLinear()
     @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
     @test @inferred(size(M)) === size(a)
-    @test @inferred(axes(M)) === axes(a)
+    @test @inferred(axes(M)) == axes(a)
     @test M == a + b
     @test @inferred(M[1]) === 11.0f0
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
@@ -101,7 +103,7 @@ end
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexCartesian()
     @test @inferred(IndexStyle(typeof(M))) == IndexCartesian()
-    @test @inferred(axes(M)) === axes(c)
+    @test @inferred(axes(M)) == axes(c)
     @test M == c + b
     @test @inferred(M[1]) === 11.0f0
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
@@ -147,7 +149,7 @@ end
     @test a[1,2] == N0f8(0.25)
     @test b[1,2] == N0f8(0.35)
     @test c[1,2] == 0
-    R = reinterpret(N0f8, M)
+    R = reinterpret(N0f8, M)  # FIXME
     @test R == N0f8[0.1 0.25; 0.6 0.35; 0 0; 0.3 0.4; 0.4 0.3; 0 1]
     R[2,1] = 0.8
     @test b[1,1] === N0f8(0.8) === b["a", "one"]
@@ -157,7 +159,7 @@ end
     @test @inferred(eltype(M)) == RGB{N0f8}
     @test @inferred(IndexStyle(M)) == IndexCartesian()
     @test @inferred(IndexStyle(typeof(M))) == IndexCartesian()
-    @test @inferred(axes(M)) === axes(a)
+    @test @inferred(axes(M)) == axes(a)
     @test M[1,1] === RGB{N0f8}(0.1, 0.8, 0) === M["a", "one"]
     @test_throws ErrorException("indexed assignment fails for a reshaped range; consider calling collect") M[1,2] = RGB(0.25, 0.35, 0)
 
@@ -175,3 +177,4 @@ end
     end
 end
 =#
+

@@ -21,8 +21,14 @@ CartesianIndex(2, 2)
 """
 const CartesianAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = CartesianIndices{N,R}
 
+function CartesianAxes(ks::Tuple{Vararg{<:Integer,N}}) where {N}
+    return CartesianIndices(map(SimpleAxis, ks))
+end
 
-CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = CartesianIndices(as_axis.(ks))
+function CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N}
+    return CartesianIndices(map(ks_i -> to_axis(ks_i, OneTo(length(ks_i))), ks))
+end
+
 CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
 
 Base.axes(A::CartesianAxes) = getfield(A, :indices)

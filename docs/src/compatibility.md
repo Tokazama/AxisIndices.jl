@@ -15,29 +15,4 @@ In other words, the current version can only support multi-mapping multiple `Abs
 
 [NamedDims.jl](https://github.com/invenia/NamedDims.jl)
 
-```@docs
-AxisIndices.NamedIndicesArray
-AxisIndices.NIArray
-```
-
-
-## LinearAlgebra
-
-### Matrix Multiplication
-
-```@docs
-AxisIndices.matmul_axes
-```
-
-### Diagonal
-
-```@docs
-AxisIndices.diagonal_axes
-```
-
-### Factorizations
-
-```@docs
-AxisIndices.get_factorization
-```
 

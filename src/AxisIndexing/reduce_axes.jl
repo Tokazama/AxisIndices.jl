@@ -49,17 +49,11 @@ julia> AxisIndices.reduce_axis(1:4)
 1:1
 ```
 """
-function reduce_axis(x::AbstractAxis)
+function reduce_axis(x)
     if isempty(x)
         error("Cannot reduce empty index.")
     else
-        return unsafe_reindex(x, 1:1)
+        return set_length(x, 1)
     end
 end
-reduce_axis(x::OneTo{T}) where {T} = OneTo(one(T))
-reduce_axis(x::OneToSRange{T}) where {T} = OneToSRange(one(T))
-reduce_axis(x::OneToMRange{T}) where {T} = OneToMRange(one(T))
-reduce_axis(x::UnitRange{T}) where {T} = UnitRange{T}(one(T), one(T))
-reduce_axis(x::UnitSRange{T}) where {T} = UnitSRange{T}(one(T), one(T))
-reduce_axis(x::UnitMRange{T}) where {T} = UnitMRange{T}(one(T), one(T))
 

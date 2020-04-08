@@ -7,22 +7,23 @@ makedocs(;
     pages=[
         "Introduction" => "index.md",
         "Quick Start" => "quick_start.md",
-        "Axes" => [
+        "Manual" => [
             "The Axis" => "axis.md",
             "Axis Traits" => "traits.md",
-            "Broadcasting Axes" => "broadcasting_axes.md",
-            "Concatenating Axes" => "concatenating_axes.md",
-            "Appending Axes" => "appending_axes.md",
-        ],
-        "Arrays With Axes" => [
-            "AbstractAxisIndices" => "array.md",
+            "Combining Axes" => "combining_axes.md",
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
         ],
         "Examples" => [
-            "Indexing" => "indexing.md",
+            "Indexing Tutorial" => "indexing.md",
             "CoefTable" => "coeftable.md",
-            "TimeAxis" => "time.md",
+            "TimeAxis Guide" => "time.md",
+        ],
+        "Reference" => [
+            "AxisIndicesStyles" => "axis_indices_styles.md",
+            "AxisIndexing" => "axis_indexing.md",
+            "AxisIndicesArrays" => "axis_indices_arrays.md",
+            "NamedIndicesArrays" => "named_indices_arrays.md",
         ],
         "Comparison to Other Packages" => "comparison.md",
         "Acknowledgments" => "acknowledgments.md"
@@ -35,3 +36,4 @@ makedocs(;
 deploydocs(
     repo = "github.com/Tokazama/AxisIndices.jl.git",
 )
+

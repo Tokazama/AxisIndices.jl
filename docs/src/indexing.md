@@ -1,4 +1,4 @@
-# Indexing
+# Indexing Tutorial
 
 ## Indexing an Axis
 
@@ -29,7 +29,7 @@ julia> time2[2]
 2
 
 julia> time2[1]
-ERROR: BoundsError: attempt to access 18-elment Axis((1.5:0.5:10.0) s => 2:19) at index [1]
+ERROR: BoundsError: attempt to access 18-element Axis((1.5:0.5:10.0) s => 2:19) at index [1]
 [...]
 ```
 Notice that `time2[1]` throws an error.
@@ -93,26 +93,8 @@ Axis((3.5:0.5:10.0) s => 5:18)
 julia> time1[==(6.0s)]
 10
 
-julia> time1[!=(6.0s)]
-17-element Array{Int64,1}:
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
-
+julia> time1[!=(6.0s)] == vcat(1:9, 11:18)
+true
 ```
 
 These operators can also be combined to get more specific regions of an axis.
@@ -123,19 +105,11 @@ Axis((3.0:0.5:9.5) s => 4:17)
 julia> time1[>(2.5s) ⩓ <(10.0s)]  # equivalent to `and` you can use \And<TAB>
 Axis((3.0:0.5:9.5) s => 4:17)
 
-julia> time1[or(<(2.5s),  >(9.0s))]
-4-element Array{Int64,1}:
-  1
-  2
- 17
- 18
+julia> time1[or(<(2.5s),  >(9.0s))] == vcat(1:2, 17:18)
+true
 
-julia> time1[<(2.5s) ⩔ >(9.0s)]  # equivalent to `or` you can use \Or<TAB>
-4-element Array{Int64,1}:
-  1
-  2
- 17
- 18
+julia> time1[<(2.5s) ⩔ >(9.0s)] == vcat(1:2, 17:18) # equivalent to `or` you can use \Or<TAB>
+true
 
 ```
 

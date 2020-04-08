@@ -1,5 +1,8 @@
 # Axis Traits
 
+!!! warning "CORRECT THIS SECTION"
+    This section is wrong and needs to be completely rewritten.
+
 # Indexing Traits
 
 At its core, AxisIndices relies on a small change in processing indexing, permitting its unique abilities.
@@ -36,31 +39,10 @@ It's also easy to inadvertently effect performance when changing how indexing wo
 Therefore, AxisIndices also small trait system for handling this.
 This is accomplished through the use of `ToIndexStyle`, which is injected into the `to_index` schema as follows:
 ```julia
-function to_index(axis, inds)
-    return to_index(ToIndexStyle(eltype(inds)), axis, inds)
+function to_index(axis, arg)
+    return to_index(ToIndexStyle(), axis, arg)
 end
 ```
 
 Several subtypes of `ToIndexStyle` are provided, allowing users to customize indexing behavior without worrying about rewriting performance critical code.
-
-```@docs
-AxisIndices.ToIndexStyle
-AxisIndices.SearchKeys
-AxisIndices.SearchIndices
-AxisIndices.GetIndices
-```
-
-## Combine Traits
-
-One natural consequence of having axes as independent entities from the actual array data is that it complicates operations such as `cat` and `append!`.
-1. How should we propagate characteristics from the values of each axis so that the resulting array is still appropriately memory mapped.
-2. How should we combine keys of different types and that are not necessarily unique?
-
-```@docs
-AxisIndices.CombineStyle
-AxisIndices.CombineAxis
-AxisIndices.CombineSimpleAxis
-AxisIndices.CombineResize
-AxisIndices.CombineStack
-```
 

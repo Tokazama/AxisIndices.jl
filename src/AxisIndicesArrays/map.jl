@@ -38,12 +38,25 @@ function Base.mapreduce(f1, f2, a::AbstractAxisIndices; dims=:, kwargs...)
     return indicesarray_result(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
 end
 
+#=
 if VERSION > v"1.1-"
     function Base.eachslice(a::AbstractAxisIndices; dims, kwargs...)
         slices = eachslice(parent(a); dims=dims, kwargs...)
         return Base.Generator(slices) do slice
-            return unsafe_reconstruct(a, slice, drop_axes(a, dims))
+            return AxisIndicesArray(slice, drop_axes(a, dims))
         end
     end
 end
+
+if VERSION < v"1.1-"
+    @inline function Base.eachslice(A::AbstractArray; dims)
+        length(dims) == 1 || throw(ArgumentError("only single dimensions are supported"))
+        dim = first(dims)
+        dim <= ndims(A) || throw(DimensionMismatch("A doesn't have $dim dimensions"))
+        inds_before = ntuple(d->(:), dim-1)
+        inds_after = ntuple(d->(:), ndims(A)-dim)
+        return (view(A, inds_before..., i, inds_after...) for i in axes(A, dim))
+    end
+end
+=#
 

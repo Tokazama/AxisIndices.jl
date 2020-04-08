@@ -15,7 +15,7 @@ end
 
 for f in (:cumsum, :cumprod)
     @eval function Base.$f(a::AbstractAxisIndices; dims, kwargs...)
-        return AxisIndicesArray(Base.$f(parent(a); dims=dims, kwargs...), axes(a))
+        return unsafe_reconstruct(a, Base.$f(parent(a); dims=dims, kwargs...), axes(a))
     end
 
     # Vector case
@@ -50,5 +50,12 @@ for f in (:zero, :one, :copy)
             return unsafe_reconstruct(a, Base.$f(parent(a)), axes(a))
         end
     end
+end
+
+# FIXME All of these should use unsafe_reconstruct but spits out tons of
+# compilation code whenever called (still makes correct output)
+function Base.dropdims(a::AbstractAxisIndices; dims)
+    #return AxisIndicesArray(dropdims(parent(a); dims=dims), drop_axes(a, dims))
+    return unsafe_reconstruct(a, dropdims(parent(a); dims=dims), drop_axes(a, dims))
 end
 

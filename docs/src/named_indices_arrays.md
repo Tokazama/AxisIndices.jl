@@ -1,0 +1,5 @@
+# NamedIndicesArrays
+
+```@autodocs
+Modules = [NamedIndicesArrays]
+```

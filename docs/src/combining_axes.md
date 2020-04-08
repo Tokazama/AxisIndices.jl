@@ -1,3 +1,25 @@
+# Combining Axes
+
+One natural consequence of having axes as independent entities from the actual array data is that it complicates operations such as `cat` and `append!`.
+1. How should we propagate characteristics from the values of each axis so that the resulting array is still appropriately memory mapped.
+2. How should we combine keys of different types and that are not necessarily unique?
+
+### Appending Axes
+
+Appending axes works similar to concatenating axes except that the first argument is mutated.
+
+Customizing appending axes should be accomplished through either [`AxisIndices.CombineStyle`](@ref) or [`AxisIndices.append_axis!`](@ref).
+
+### Concatenating Axes
+
+Concatenating axes can happen by one of the following:
+1. Stacking two collections of completely unique elements
+2. Resizing a range of values
+
+The second only happens when the two collections provided are subtypes of `AbstractRange`.
+
+Customizing concatenating axes should be accomplished through either [`AxisIndices.CombineStyle`](@ref) or [`AxisIndices.cat_axis`](@ref).
+
 # Broadcasting Axes
 
 There are three things that determine the output of a broadcasting axes.
@@ -64,8 +86,5 @@ julia> axes_keys(d .+ c, 1) == [:a, :b, :c]
 true
 ```
 
-Customizing broadcasting behavior should be accomplished through either `AxisIndices.CombineStyle` or `AxisIndices.broadcast_axis`.
+Customizing broadcasting behavior should be accomplished through either [`AxisIndices.CombineStyle`](@ref) or [`AxisIndices.broadcast_axis`](@ref).
 
-```@docs
-AxisIndices.broadcast_axis
-```

@@ -13,14 +13,12 @@ end
 ################################################
 # map, collect
 
-#= there are 
-function Base.filter(f, a::AbstractAxisIndices{T,1}) where {T}
-    inds = findall(f, parent(a))
-    return unsafe_reconstruct(
-        a,
-        @inbounds(getindex(pa), inds),
-        (@inbounds(reindex(axes(a, 1), inds)),)
-    )
+function Base.filter(f, A::AbstractAxisIndices{T,1,P,Tuple{<:AbstractAxis{K,V,Ks,Vs}}}) where {T,P,K,V,Ks,Vs}
+    inds = findall(f, parent(A))
+    p = getindex(parent(A), inds)
+    return unsafe_reconstruct(A, p, (to_axis(axes(A, 1), getindex(axes_keys(A, 1)::Ks, inds), axes(p, 1)),))
 end
+
+#= there are 
 Base.filter(f, a::AbstractAxisIndices{T,N}) where {L,T,N} = filter(f, parent(a))
 =#

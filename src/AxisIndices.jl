@@ -7,12 +7,17 @@ using IntervalSets
 using MappedArrays
 using PrettyTables
 using LinearAlgebra
-using Base: @propagate_inbounds, OneTo, to_index, tail, front, Fix2
+using Base: @propagate_inbounds, OneTo, tail, front, Fix2
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base.Cartesian
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi, F2Eq
+using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
+    # Modules
+    AxisIndicesStyles,
+    AxisIndexing,
+    AxisIndicesArrays,
+    NamedIndicesArrays,
     # Types
     AbstractAxisIndices,
     AxisIndicesArray,
@@ -61,8 +66,8 @@ export
     axes_keys,
     pretty_array
 
-include("./ResizeVectors/ResizeVectors.jl")
-using .ResizeVectors
+include("AxisIndicesStyles.jl")
+using .AxisIndicesStyles
 
 include("./AxisIndexing/AxisIndexing.jl")
 using .AxisIndexing

@@ -20,13 +20,6 @@ for (tf, T, sf, S) in ((parent, :AbstractAxisIndicesVecOrMat, parent, :AbstractA
             end
         end
         p = cat($tf(A), $sf(B); dims=dims)
-        #=
-        Ndiff = ndims(p) - N
-        if Ndiff != 0
-            axs = (axs..., ntuple(_ -> SimpleAxis(OneTo(1)), Ndiff-1)..., SimpleAxis(OneTo(2)))
-        end
-        =#
-        #return cat(AxisIndicesArray(p, axs), Cs..., dims=dims)
         return cat(AxisIndicesArray(p, axs), Cs..., dims=dims)
     end
 end

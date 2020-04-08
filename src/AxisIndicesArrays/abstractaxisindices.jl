@@ -31,7 +31,7 @@ StaticRanges.axes_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI}
 
 function Base.axes(x::AbstractAxisIndices{T,N}, i::Integer) where {T,N}
     if i > N
-        return as_axis(x, 1)
+        return SimpleAxis(1)
     else
         return getfield(axes(x), i)
     end
@@ -74,7 +74,7 @@ function Base.similar(
 ) where {T,N}
 
     p = similar(parent(a), T, map(length, inds))
-    axs = as_axes(p, inds, axes(p))
+    axs = to_axes(inds, axes(p))
     return unsafe_reconstruct(a, p, axs)
 end
 
@@ -85,7 +85,19 @@ function Base.similar(
 ) where {T,N}
 
     p = similar(parent(a), T, map(length, inds))
-    axs = as_axes(a, inds, axes(p))
+    axs = to_axes(axes(a), inds, axes(p))
+    return unsafe_reconstruct(a, p, axs)
+end
+
+# Necessary to avoid ambiguities with OffsetArrays
+function Base.similar(
+    a::AbstractAxisIndices,
+    ::Type{T},
+    inds::Tuple{Union{Base.IdentityUnitRange, OneTo, UnitRange},Vararg{Union{Base.IdentityUnitRange, OneTo, UnitRange},N}}
+   ) where {T, N}
+
+    p = similar(parent(a), T, map(length, inds))
+    axs = to_axes(axes(a), inds, axes(p))
     return unsafe_reconstruct(a, p, axs)
 end
 
@@ -99,13 +111,24 @@ ensure the keys of each axis are unique and match the length of each dimension o
 `parent`. Therefore, this is not intended for interactive use and should only be
 used when it is clear all arguments are composed correctly.
 """
-function AxisIndexing.unsafe_reconstruct(A::AbstractAxisIndices, p::P, axs::Axs) where {P,Axs}
-    return similar_type(A, P, Axs)(p, axs)
+function AxisIndexing.unsafe_reconstruct(A::AbstractAxisIndices, p::P, axs::Ax) where {P,Ax}
+    return similar_type(A, P, Ax)(p, axs)
 end
 
-function Base.reinterpret(::Type{T}, A::AbstractAxisIndices) where {T}
-    p = reinterpret(T, parent(A))
-    axs = map(resize_last, axes(A), size(p))
+# FIXME
+# When I use Val(N) on the tuple the it spits out many lines of extra code.
+# But without it it loses inferrence
+function Base.reinterpret(::Type{Tnew}, A::AbstractAxisIndices{Told,N}) where {Tnew,Told,N}
+    p = reinterpret(Tnew, parent(A))
+    axs = ntuple(N) do i
+        resize_last(axes(A, i), size(p, i))
+    end
     return unsafe_reconstruct(A, p, axs)
+end
+
+function Base.resize!(x::AbstractAxisIndices{T,1}, n::Integer) where {T}
+    resize!(parent(x), n)
+    resize_last!(axes(x, 1), n)
+    return x
 end
 

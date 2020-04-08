@@ -3,7 +3,6 @@ module NamedIndicesArrays
 using StaticRanges
 using NamedDims
 using PrettyTables
-using AxisIndices.ResizeVectors
 using AxisIndices.AxisIndexing
 using AxisIndices.AxisIndicesArrays
 using AxisIndices.AxisIndicesArrays: array_format
@@ -71,7 +70,7 @@ julia> dimnames(A)
 (:x, :y, :z)
 
 julia> axes_keys(A)
-(["a", "b"], ["one", "two", "three"], UnitMRange(2:5))
+(["a", "b"], ["one", "two", "three"], 2:5)
 
 julia> B = A["a", :, :]
 2-dimensional NamedIndicesArray{Int64,2,Array{Int64,2}...}
@@ -101,6 +100,7 @@ function NIArray(x::AbstractArray, axs::NamedTuple{L}) where {L}
     return NamedDimsArray{L}(AxisIndicesArray(x, values(axs)))
 end
 
+#=
 for f in (:getindex, :view, :dotview)
     _f = Symbol(:_, f)
     @eval begin
@@ -127,6 +127,14 @@ for f in (:getindex, :view, :dotview)
         end
     end
 end
+
+@propagate_inbounds function Base.getindex(A::NIArray{T,N}, args::Integer...) where {T,N,M}
+    inds = to_indices(A, args)
+    p = AxisIndexing.unsafe_getindex(parent(A), args, inds)
+    L = NamedDims.remaining_dimnames_from_indexing(dimnames(A), inds)
+    return NamedDims.NamedDimsArray{L}(p)
+end
+=#
 
 function Base.show(io::IO,
     m::MIME"text/plain",

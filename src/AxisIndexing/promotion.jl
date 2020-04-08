@@ -95,14 +95,14 @@ function promote_axis_collections(x::X, y::Y) where {X,Y}
         Ty = eltype(Y)
         Tnew = promote_type(Tx, Ty)
         if Tnew == Any
-            if ToIndexStyle(Tx) isa SearchKeys
+            if is_key(Tx)
                 if Tx <: AbstractString
                     return promote_axis_collections(x, string.(y))
                 else
                     return promote_axis_collections(x, Tx.(y))
                 end
             else
-                if ToIndexStyle(Ty) isa SearchKeys
+                if is_key(Ty)
                     if Ty <: AbstractString
                         return promote_axis_collections(string.(x), y)
                     else

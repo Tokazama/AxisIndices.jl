@@ -1,12 +1,21 @@
 
 # These are base module methods that simply need to swap/drop axes positions
-function Base.permutedims(a::AbstractAxisIndices, perm)
+@inline function Base.permutedims(a::AbstractAxisIndices, perm)
     return unsafe_reconstruct(a, permutedims(parent(a), perm), permute_axes(a, perm))
 end
 
-#Base.selectdim(a::AbstractAxisIndices, d::Integer, i) = selectdim(a, d, i)
-
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
+
+@inline function Base.selectdim(A::AbstractAxisIndices{T,N}, d::Integer, i) where {T,N}
+    axs = ntuple(N) do dim_i
+        if dim_i == d
+            i
+        else
+            (:)
+        end
+    end
+    return view(A, axs...)
+end
 
 for f in (
     :(Base.transpose),
@@ -30,10 +39,6 @@ for f in (
     @eval function $f(a::AbstractAxisIndices{T,2}) where {T}
         return unsafe_reconstruct(a, $f(parent(a)), permute_axes(a))
     end
-end
-
-function Base.dropdims(a::AxisIndicesArray; dims)
-    return unsafe_reconstruct(a, dropdims(parent(a); dims=dims), drop_axes(a, dims))
 end
 
 # reshape
