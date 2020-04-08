@@ -53,3 +53,4 @@
     @test_throws ErrorException cat_axis(CombineStack(), 1:3, 3:4)
 
 end
+

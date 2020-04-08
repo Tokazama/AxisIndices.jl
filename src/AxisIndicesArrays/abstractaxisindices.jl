@@ -55,52 +55,6 @@ function Base.axes(a::PermutedDimsArray{T,N,permin,permout,<:AbstractAxisIndices
     return permute_axes(parent(a), permin)
 end
 
-function Base.similar(
-    a::AbstractAxisIndices{T,N},
-    eltype::Type=T,
-    dims::Tuple{Vararg{Int,M}}=size(a)
-) where {T,N,M}
-
-    return unsafe_reconstruct(
-        a,
-        similar(parent(a), eltype, dims),
-        ntuple(i -> resize_last(axes(a, i), getfield(dims, i)), M)
-    )
-end
-
-function Base.similar(
-    a::AbstractAxisIndices{T},
-    inds::Tuple{Vararg{<:AbstractVector,N}}
-) where {T,N}
-
-    p = similar(parent(a), T, map(length, inds))
-    axs = to_axes(inds, axes(p))
-    return unsafe_reconstruct(a, p, axs)
-end
-
-function Base.similar(
-    a::AbstractAxisIndices,
-    ::Type{T},
-    inds::Tuple{Vararg{<:AbstractVector,N}}
-) where {T,N}
-
-    p = similar(parent(a), T, map(length, inds))
-    axs = to_axes(axes(a), inds, axes(p))
-    return unsafe_reconstruct(a, p, axs)
-end
-
-# Necessary to avoid ambiguities with OffsetArrays
-function Base.similar(
-    a::AbstractAxisIndices,
-    ::Type{T},
-    inds::Tuple{Union{Base.IdentityUnitRange, OneTo, UnitRange},Vararg{Union{Base.IdentityUnitRange, OneTo, UnitRange},N}}
-   ) where {T, N}
-
-    p = similar(parent(a), T, map(length, inds))
-    axs = to_axes(axes(a), inds, axes(p))
-    return unsafe_reconstruct(a, p, axs)
-end
-
 """
     unsafe_reconstruct(A::AbstractAxisIndices, parent, axes)
 
@@ -130,5 +84,51 @@ function Base.resize!(x::AbstractAxisIndices{T,1}, n::Integer) where {T}
     resize!(parent(x), n)
     resize_last!(axes(x, 1), n)
     return x
+end
+
+function Base.similar(
+    a::AbstractAxisIndices{T,N},
+    eltype::Type=T,
+    dims::Tuple{Vararg{Int,M}}=size(a)
+) where {T,N,M}
+
+    return unsafe_reconstruct(
+        a,
+        similar(parent(a), eltype, dims),
+        ntuple(i -> resize_last(axes(a, i), getfield(dims, i)), M)
+    )
+end
+
+function Base.similar(
+    a::AbstractAxisIndices{T},
+    new_keys::Tuple{Vararg{<:AbstractVector,N}}
+) where {T,N}
+
+    p = similar(parent(a), T, map(length, new_keys))
+    axs = AxisIndexing.similar_axes(axes(a), new_keys, axes(p))
+    return unsafe_reconstruct(a, p, axs)
+end
+
+function Base.similar(
+    a::AbstractAxisIndices,
+    ::Type{T},
+    new_keys::Tuple{Vararg{<:AbstractVector,N}}
+) where {T,N}
+
+    p = similar(parent(a), T, map(length, new_keys))
+    axs = AxisIndexing.similar_axes(axes(a), new_keys, axes(p))
+    return unsafe_reconstruct(a, p, axs)
+end
+
+# Necessary to avoid ambiguities with OffsetArrays
+function Base.similar(
+    a::AbstractAxisIndices,
+    ::Type{T},
+    new_keys::Tuple{Union{Base.IdentityUnitRange, OneTo, UnitRange},Vararg{Union{Base.IdentityUnitRange, OneTo, UnitRange},N}}
+) where {T, N}
+
+    p = similar(parent(a), T, map(length, new_keys))
+    axs = AxisIndexing.similar_axes(axes(a), new_keys, axes(p))
+    return unsafe_reconstruct(a, p, axs)
 end
 

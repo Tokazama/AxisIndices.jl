@@ -139,7 +139,7 @@ for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:un
         ) where {T,N}
 
             p = Base.$f(parent(A), inds...)
-            return unsafe_reconstruct(A, p, to_axes(axes(p), axes(A), args, inds))
+            return unsafe_reconstruct(A, p, to_axes(axes(A), args, inds, axes(p)))
         end
     end
 end

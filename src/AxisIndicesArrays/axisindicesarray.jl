@@ -91,7 +91,7 @@ function AxisIndicesArray(
     check_length::Bool=true
 ) where {T,N}
 
-    axs = to_axes(axis_keys, axis_values, check_length)
+    axs = AxisIndexing.similar_axes((), axis_keys, axis_values, check_length)
     return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 

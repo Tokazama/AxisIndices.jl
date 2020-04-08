@@ -37,24 +37,6 @@ function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {
     return false
 end
 
-function StaticRanges.similar_type(
-    ::A,
-    ks_type::Type=keys_type(A),
-    vs_type::Type=values_type(A)
-) where {A<:AbstractAxis}
-
-    return similar_type(A, ks_type, vs_type)
-end
-
-function StaticRanges.similar_type(
-    ::A,
-    ks_type::Type=keys_type(A),
-    vs_type::Type=ks_type
-) where {A<:AbstractSimpleAxis}
-
-    return similar_type(A, vs_type)
-end
-
 """
     unsafe_reconstruct(axis::AbstractAxis, keys::Ks, values::Vs)
 
@@ -71,6 +53,19 @@ end
 Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of type `Vs`.
 """
 unsafe_reconstruct(a::AbstractSimpleAxis, vs::Vs) where {Vs} = similar_type(a, Vs)(vs)
+
+#=
+Base.similar(axis::AbstractAxis, ks) = similar(axis, ks, axes(ks, 1), false)
+
+Base.similar(axis::AbstractSimpleAxis, ks) = unsafe_reconstruct(axis, ks)
+
+function Base.similar(axis::AbstractAxis, ks::Ks, vs::Vs, check_length::Bool=true) where {Ks,Vs}
+    if check_length
+        check_axis_length(ks, vs)
+    end
+    return unsafe_reconstruct(axis, ks, vs)
+end
+=#
 
 maybe_unsafe_reconstruct(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
 function maybe_unsafe_reconstruct(a::AbstractAxis, inds::AbstractUnitRange)

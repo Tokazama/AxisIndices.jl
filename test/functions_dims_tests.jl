@@ -29,7 +29,7 @@ end
 
 # FIXME spits out Crazy errors
 @testset "selectdim" begin
-    a = AxisIndicesArray(reshape(1:6, (2, 3)), (2:3, 2:4))
+    a = AxisIndicesArray(reshape(1:6, (2, 3)), (2:3, 2:4));
 
     @test selectdim(a, 1, 1) == a[1, :]
     @test axes_keys(selectdim(a, 1, 1)) == (2:4,)

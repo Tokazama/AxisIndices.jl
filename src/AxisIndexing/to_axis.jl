@@ -1,25 +1,13 @@
 
 to_axis(axis::AbstractAxis) = axis
 
-function to_axis(axis)
+@inline function to_axis(axis)
     if is_static(axis)
         return SimpleAxis(as_static(axis))
     elseif is_fixed(axis)
         return SimpleAxis(as_fixed(axis))
     else
         return SimpleAxis(as_dynamic(axis))
-    end
-end
-
-### to_axis
-function to_axis(ks::OneToUnion, vs::OneToUnion, check_length::Bool=true) where {Ks,Vs}
-    check_length && check_axis_length(ks, vs)
-    if is_static(vs)
-        return SimpleAxis(as_static(vs))
-    elseif is_fixed(vs)
-        return SimpleAxis(as_fixed(vs))
-    else
-        return SimpleAxis(as_dynamic(vs))
     end
 end
 
@@ -50,6 +38,7 @@ end
     end
 end
 
+#=
 function to_axes(
     ks::Tuple{Vararg{Any,M}},
     vs::Tuple{Vararg{Any,N}},
@@ -69,6 +58,7 @@ end
 function to_axes(axs::Tuple, ks::Tuple, vs::Tuple, check_length::Bool=true)
     return map((axis, ks_i, vs_i) -> to_axis(axis, ks_i, vs_i, check_length), axs, ks, vs)
 end
+=#
 
 ### TODO CLEANUP THIS!
 function to_axis(old_axis::AbstractSimpleAxis, arg, index, new_indices)
@@ -80,77 +70,58 @@ function to_axis(old_axis::AbstractAxis, arg, index, new_indices)
 end
 
 @inline function to_axes(
-    new_indices,
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{T, Vararg{Any}},
-    inds::Tuple
+    inds::Tuple,
+    new_indices
 ) where {A,T}
 
     S = AxisIndicesStyle(A, T)
     if is_element(S)
         to_axes(
-            new_indices,
             maybetail(old_axes),
             maybetail(args),
-            maybetail(inds)
+            maybetail(inds),
+            new_indices,
         )
     else
         return (
-            to_axis(maybe_first(old_axes), maybe_first(args), maybe_first(inds), maybe_first(new_indices)),
+            to_axis(maybe_first(old_axes),
+                    maybe_first(args),
+                    maybe_first(inds),
+                    maybe_first(new_indices)
+            ),
             to_axes(
-                maybetail(new_indices),
                 maybetail(old_axes),
                 maybetail(args),
-                maybetail(inds)
+                maybetail(inds),
+                maybetail(new_indices)
             )...
         )
     end
 end
 
 @inline function to_axes(
-    new_axes,
-    old_axes,
+    old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{CartesianIndex{N},Vararg{Any}},
-    inds::Tuple
-) where {N}
+    inds::Tuple,
+    new_axes,
+) where {A,N}
 
-    return to_axes(
-        new_axes,
-        Base.IteratorsMD.split(old_axes, Val(N)),
-        tail(args),
-        Base.IteratorsMD.split(inds, Val(N))
-    )
+    _, old_axes2 = Base.IteratorsMD.split(old_axes, Val(N))
+    _, inds2 = Base.IteratorsMD.split(inds, Val(N))
+    return to_axes(old_axes2, tail(args), inds2, new_axes)
 end
 
-#=
 @inline function to_axes(
-    new_axes,
-    old_axes,
-    args::Tuple{CartesianIndex{N},Vararg{Any}},
-    inds::Tuple
-) where {N}
-
-    return to_axes(
-        tail(new_axes),
-        tail(old_axes),
-        tail(args),
-        tail(inds)
-    )
-end
-=#
-
-@inline function to_axes(
-    new_axes,
     old_axes,
     args::Tuple{CartesianIndices, Vararg{Any}},
-    inds::Tuple
+    inds::Tuple,
+    new_axes
 ) where {N}
 
-    return to_axes(new_axes, old_axes, tail(args), tail(inds))
+    return to_axes(old_axes, tail(args), tail(inds), new_axes)
 end
-
-
-
 
 @inline function to_axis(ks::AbstractAxis, vs::Vs, check_length::Bool=true) where {Vs}
     return to_axis(keys(ks), vs, check_length)
@@ -177,5 +148,6 @@ end
     return to_axis(axis, ks, values(vs), check_length)
 end
 
-to_axes(::Tuple{}, ::Tuple{}, ::Tuple{Int64}, ::Tuple{}) = ()
+to_axes(::Tuple{}, ::Tuple{Int64}, ::Tuple{}, ::Tuple{}) = ()
 to_axes(::Tuple, ::Tuple{}, ::Tuple{}, ::Tuple) = ()
+

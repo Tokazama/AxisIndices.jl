@@ -81,6 +81,8 @@ include("utils.jl")
 include("to_index.jl")
 include("to_indices.jl")
 
+include("similar.jl")
+
 include("combine.jl")
 include("find.jl")
 include("indexing.jl")
