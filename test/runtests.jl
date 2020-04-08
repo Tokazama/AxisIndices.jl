@@ -13,6 +13,7 @@ using AxisIndices.NamedIndicesArrays
 
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
+using OffsetArrays
 
 using Base: step_hp, OneTo
 
@@ -21,6 +22,7 @@ include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")
+include("offset_array_tests.jl")
 
 include("functions_tests.jl")
 include("concatenation_tests.jl")

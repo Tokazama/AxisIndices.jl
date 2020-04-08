@@ -43,3 +43,9 @@ end
     @test @inferred((A -> AxisIndices.keys_type(A, 1))(A)) <: Base.OneTo{Int}
 end
 
+@testset "resize!" begin
+    x = AxisIndicesArray(ones(3))
+    resize!(x, 2)
+    @test x == [1, 1]
+end
+

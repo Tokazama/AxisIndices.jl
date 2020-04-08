@@ -150,7 +150,7 @@ Wheter `T` is an `AxisIndicesStyle`, returns `true` if it's used to index a coll
 of indices.
 """
 is_collection(::T) where {T} = is_collection(T)
-is_collection(::Type{T}) where {T} = !is_element(AxisIndicesStyle(T))
+is_collection(::Type{T}) where {T} = !is_element(T)
 
 """
     is_index(::Type{T}) -> Bool

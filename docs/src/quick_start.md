@@ -44,6 +44,8 @@ This is the same as indexing an array by any vector (i.e., returns another array
 
 [^1]: Terminology here is important here. Keys, indices, and axes each have a specific meaning. Throughout the documentation the following functional definitions apply:
     * axis: maps a set of keys to a set of indices.
-    * indices: a set of integers (e.g., `<:Integer`) that locate the in memory locations of a elements.
+    * indices: a set of integers (e.g., `<:Integer`) that locate the in memory locations of elements.
     * keys: maps a set of any type to a set of indices
+    * indexing: anytime one calls `getindex` or uses square brackets to navigate the elements of a collection
+    Also note the use of argument (abbreviated `arg` in code) and arguments (abbreviated `args` in code). These terms specifically refer to what users pass to an indexing method. Therefore, an argument may be a key (`:a`), index (`1`), or something else that maps to one of the two (`==(1)`).
 
