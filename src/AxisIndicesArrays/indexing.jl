@@ -26,12 +26,6 @@ for T in (Any, Integer, CartesianIndex{1}, AbstractVector)
     end
 end
 
-# this is linear indexing over a multidimensional array so we ignore axes
-@propagate_inbounds function Base.to_indices(A::AbstractAxisIndices, args::Tuple{Any})
-    Base.@_inline_meta
-    return (AxisIndexing.to_index(eachindex(IndexLinear(), A), first(args)),)
-end
-
 # These are extra indices that just need to be ensured are in bounds
 @propagate_inbounds function Base.to_indices(
     A::AbstractAxisIndices{T,N},
