@@ -9,7 +9,7 @@ makedocs(;
         "Quick Start" => "quick_start.md",
         "Manual" => [
             "The Axis" => "axis.md",
-            "Internals of Indexing" => "traits.md",
+            "Internals of Indexing" => "internals_of_indexing.md",
             "Combining Axes" => "combining_axes.md",
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
