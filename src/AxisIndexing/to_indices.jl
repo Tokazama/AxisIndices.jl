@@ -1,8 +1,4 @@
 
-@propagate_inbounds function index_axis(A, dim, arg)
-    return to_index(axes(A, dim), arg)
-end
-
 @propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{Any, Vararg{Any}})
     Base.@_inline_meta
     return (to_index(first(axs), first(args)), to_indices(A, maybetail(axs), tail(args))...)

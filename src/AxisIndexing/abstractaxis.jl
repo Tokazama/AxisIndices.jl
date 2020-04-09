@@ -494,7 +494,7 @@ function Base.show(io::IO, a::AbstractSimpleAxis)
 end
 
 # This is different than how most of Julia does a summary, but it also makes errors
-# infinitely easier to read when wrapping things at multiple levels or using Unitfulkeys
+# infinitely easier to read when wrapping things at multiple levels or using Unitful keys
 function Base.summary(io::IO, a::AbstractAxis)
     return print(io, "$(length(a))-element $(typeof(a).name)($(keys(a)) => $(values(a)))")
 end
@@ -503,16 +503,5 @@ function Base.summary(io::IO, a::AbstractSimpleAxis)
     return print(io, "$(length(a))-element $(typeof(a).name)($(values(a))))")
 end
 
-###
-### other
-###
 Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
-#=
-Base.map(f, x::AbstractAxis...) = _map(x, map(f, values.(x)...))
-_map(x::Tuple, vals::AbstractUnitRange{<:Integer}) = __map(broadcast_axis(x...), vals)
-__map(axis::AbstractAxis, vals) = unsafe_reconstruct(axis, keys(axis), vals)
-__map(axis::AbstractSimpleAxis, vals) = unsafe_reconstruct(axis, vals)
-_map(x::Tuple, vals) = vals
-
-=#
