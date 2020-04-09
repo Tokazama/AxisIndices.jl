@@ -108,14 +108,6 @@ end
 @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
 @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
 
-#=
-@testset "map" begin
-    x = Axis(2:10)
-    y = SimpleAxis(2:10)
-    map(+, x, y)
-end
-=#
-
 
 @testset "filter" begin
     a = AxisIndicesArray([11 12; 21 22], (2:3, 3:4))

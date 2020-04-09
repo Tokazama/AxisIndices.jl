@@ -39,7 +39,7 @@ end
         end
     else
         if StaticRanges.has_offset_axes(keys_type(A))
-            return index + (1 - firstindex(keys(axis)))
+            return index + (firstindex(keys(axis)) - 1)
         else
             return index
         end

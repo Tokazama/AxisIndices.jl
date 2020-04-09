@@ -94,6 +94,7 @@ include("broadcast_axis.jl")
 include("append_axes.jl")
 include("dimensions.jl")
 include("reduce_axes.jl")
+include("cat_axes.jl")
 
 include("axis.jl")
 include("simpleaxis.jl")

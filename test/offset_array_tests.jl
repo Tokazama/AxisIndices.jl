@@ -8,7 +8,7 @@ using OffsetArrays: IdOffsetRange, IdentityUnitRange, no_offset_view
     a = Axis(oneto)
     b = Axis(oneto, IdOffsetRange(oneto, 1))
     c = Axis(IdOffsetRange(oneto, 1), IdOffsetRange(oneto, 1))
-    d = 
+    d = Axis(IdOffsetRange(oneto, 2), IdOffsetRange(oneto, 1))
     e = SimpleAxis(values(b))
     f = SimpleAxis(2:3)
 
@@ -55,11 +55,11 @@ using OffsetArrays: IdOffsetRange, IdentityUnitRange, no_offset_view
 
     @testset "keys -> values" begin
         # firstindex(keys(axis)) == 3, firstindex(axis) == 2
-        @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(IdOffsetRange(1:10, 2), IdOffsetRange(1:10, 1)), 2)) == 3
+        @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(IdOffsetRange(1:10, 2), IdOffsetRange(1:10, 1)), 3)) == 2
         # firstindex(keys(axis)) == 3, firstindex(axis) == 1
-        @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(IdOffsetRange(1:10, 2), 1:10), 1)) == 3
+        @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(IdOffsetRange(1:10, 2), 1:10), 3)) == 1
         # firstindex(keys(axis)) == 1, firstindex(axis) == 2
-        @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(1:10, IdOffsetRange(1:10, 1)), 2)) == 1
+        @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(1:10, IdOffsetRange(1:10, 1)), 1)) == 2
         # firstindex(keys(axis)) == 1, firstindex(axis) == 1
         @test @inferred(AxisIndices.AxisIndexing._k2v(Axis(1:10, 1:10), 1)) == 1
 

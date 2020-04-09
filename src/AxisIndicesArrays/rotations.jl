@@ -1,19 +1,5 @@
 
-import Base: rot180, rotr90, rotl90
-
-function Base.rotl90(x::AbstractAxisIndices)
-    return unsafe_reconstruct(x, rotl90(parent(x)), rotl90_axes(x))
-end
-
-function Base.rotr90(x::AbstractAxisIndices)
-    return unsafe_reconstruct(x, rotr90(parent(x)), rotr90_axes(x))
-end
-
-function Base.rot180(x::AbstractAxisIndices)
-    return unsafe_reconstruct(x, rot180(parent(x)), rot180_axes(x))
-end
-
-rot180_doc = """
+"""
 ## AxisIndices Examples
 ```jldoctest
 julia> using AxisIndices
@@ -43,8 +29,12 @@ julia> a["a", "one"] == b["a", "one"] == c["a", "one"]
 true
 ```
 """
+function Base.rot180(x::AbstractAxisIndices)
+    return unsafe_reconstruct(x, rot180(parent(x)), rot180_axes(x))
+end
 
-rotr90_doc = """
+
+"""
 ## AxisIndices Examples
 ```jldoctest
 julia> using AxisIndices
@@ -67,8 +57,12 @@ julia> a["a", "one"] == b["one", "a"]
 true
 ```
 """
+function Base.rotr90(x::AbstractAxisIndices)
+    return unsafe_reconstruct(x, rotr90(parent(x)), rotr90_axes(x))
+end
 
-rotl90_doc = """
+
+"""
 ## AxisIndices Examples
 ```jldoctest
 julia> using AxisIndices
@@ -91,8 +85,7 @@ julia> a["a", "one"] == b["one", "a"]
 true
 ```
 """
-
-@doc rot180_doc rot180
-@doc rotr90_doc rotr90
-@doc rotl90_doc rotl90
+function Base.rotl90(x::AbstractAxisIndices)
+    return unsafe_reconstruct(x, rotl90(parent(x)), rotl90_axes(x))
+end
 

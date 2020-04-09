@@ -86,17 +86,10 @@ function Base.resize!(x::AbstractAxisIndices{T,1}, n::Integer) where {T}
     return x
 end
 
-function Base.similar(
-    a::AbstractAxisIndices{T,N},
-    eltype::Type=T,
-    dims::Tuple{Vararg{Int,M}}=size(a)
-) where {T,N,M}
-
-    return unsafe_reconstruct(
-        a,
-        similar(parent(a), eltype, dims),
-        ntuple(i -> resize_last(axes(a, i), getfield(dims, i)), M)
-    )
+function Base.similar(a::AbstractAxisIndices, dims::Tuple{Vararg{Int}})
+    p = similar(parent(a), dims)
+    axs = AxisIndexing.similar_axes(axes(a), (), axes(p))
+    return unsafe_reconstruct(a, p, axs)
 end
 
 function Base.similar(
@@ -120,7 +113,22 @@ function Base.similar(
     return unsafe_reconstruct(a, p, axs)
 end
 
-# Necessary to avoid ambiguities with OffsetArrays
+###
+### Necessary to avoid ambiguities with OffsetArrays
+###
+
+function Base.similar(a::AbstractAxisIndices, ::Type{T}, dims::Tuple{Vararg{Int}}) where {T}
+    p = similar(parent(a), T, dims)
+    axs = AxisIndexing.similar_axes(axes(a), (), axes(p))
+    return unsafe_reconstruct(a, p, axs)
+end
+
+function Base.similar(a::AbstractAxisIndices, ::Type{T}) where {T,N,M}
+    p = similar(parent(a), T)
+    axs = AxisIndexing.similar_axes(axes(a), (), axes(p))
+    return unsafe_reconstruct(a, p, axs)
+end
+
 function Base.similar(
     a::AbstractAxisIndices,
     ::Type{T},
@@ -132,3 +140,24 @@ function Base.similar(
     return unsafe_reconstruct(a, p, axs)
 end
 
+function Base.similar(
+    A::AbstractAxisIndices,
+    ::Type{T},
+    new_keys::Tuple{OneTo,Vararg{OneTo,N}}
+) where {T, N}
+
+    p = similar(parent(A), T, map(length, new_keys))
+    axs = AxisIndexing.similar_axes(axes(A), new_keys, axes(p))
+    return unsafe_reconstruct(A, p, axs)
+end
+
+#= TODO delet if we can just be explicit about this
+function Base.similar(
+    a::AbstractAxisIndices{T,N},
+    t::Type=T,
+    dims::Tuple{Vararg{Int,M}}=size(a)
+) where {T,N,M}
+
+    return similar(a, t, ntuple(OneTo, Val(M)))
+end
+=#

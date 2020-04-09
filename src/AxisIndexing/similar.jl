@@ -112,13 +112,18 @@ function similarish(axis::AbstractSimpleAxis, new_keys, new_indices, check_lengt
     return similar(axis, new_keys)
 end
 
-function similarish(axis::AbstractAxis, new_keys, new_indices, check_length::Bool)
-    return similar(axis, new_keys, new_indices, check_length)
-end
-similarish(axis::AbstractSimpleAxis, new_keys::AbstractAxis, new_indices, check_length::Bool) = new_keys
+similarish(axis::AbstractAxis, new_keys,               new_indices, check_length::Bool) = similar(axis, new_keys, new_indices, check_length)
 similarish(axis::AbstractAxis, new_keys::AbstractAxis, new_indices, check_length::Bool) = new_keys
+# FIXME
+similarish(         ::Nothing, new_keys::AbstractAxis, new_indices, check_length::Bool) = to_axis(new_keys, keys(new_keys), new_indices, check_length)
+similarish(         ::Nothing, new_keys,               new_indices, check_length::Bool) = to_axis(new_keys, new_indices, check_length)
+# FIXME
+similarish(axis::AbstractAxis,              ::Nothing, new_indices, check_length::Bool) = similar(axis, resize_last(keys(axis), length(new_indices)), new_indices, false)
+similarish(         ::Nothing,              ::Nothing, new_indices, check_length::Bool) = to_axis(new_indices)
+
+similarish(axis::AbstractSimpleAxis, new_keys::AbstractAxis, new_indices, check_length::Bool) = new_keys
+similarish(axis::AbstractSimpleAxis,              ::Nothing, new_indices, check_length::Bool) = similar(axis, new_indices)
 similarish(new_keys::AbstractAxis, new_indices, check_length::Bool) = new_keys
-similarish(new_keys, new_indices, check_length::Bool) = to_axis(new_keys, new_indices, check_length)
 similarish(new_keys) = to_axis(new_keys)
 
 # similar_axes iterates over old axes and new indices with provided keys to try
@@ -128,13 +133,19 @@ function similar_axes(old_axes::Tuple, new_keys::Tuple, new_indices::Tuple, chec
             similar_axes(tail(old_axes), tail(new_keys), tail(new_indices), check_length)...)
 end
 
+function similar_axes(old_axes::Tuple, new_keys::Tuple{}, new_indices::Tuple, check_length::Bool=true)
+    return (similarish(first(old_axes), nothing, first(new_indices), check_length),
+            similar_axes(tail(old_axes), (), tail(new_indices), check_length)...)
+end
+
 function similar_axes(old_axes::Tuple{}, new_keys::Tuple, new_indices::Tuple, check_length::Bool=true)
-    return (similarish(first(new_keys), first(new_indices), check_length),
+    return (similarish(nothing, first(new_keys), first(new_indices), check_length),
             similar_axes((), tail(new_keys), tail(new_indices), check_length)...)
 end
 
 function similar_axes(old_axes::Tuple{}, new_keys::Tuple{}, new_indices::Tuple, check_length::Bool=true)
-    return (similarish(first(new_indices)), similar_axes((), (), tail(new_indices), check_length)...)
+    return (similarish(nothing, nothing, first(new_indices), check_length),
+            similar_axes((), (), tail(new_indices), check_length)...)
 end
 
 similar_axes(::Tuple{}, ::Tuple{}, ::Tuple{}, check_length::Bool) = ()
