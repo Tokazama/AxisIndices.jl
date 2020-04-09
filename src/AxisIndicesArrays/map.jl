@@ -38,25 +38,24 @@ function Base.mapreduce(f1, f2, a::AbstractAxisIndices; dims=:, kwargs...)
     return indicesarray_result(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
 end
 
-#=
-if VERSION > v"1.1-"
-    function Base.eachslice(a::AbstractAxisIndices; dims, kwargs...)
-        slices = eachslice(parent(a); dims=dims, kwargs...)
-        return Base.Generator(slices) do slice
-            return AxisIndicesArray(slice, drop_axes(a, dims))
-        end
+
+for f in (:sort, :sort!)
+    @eval function Base.$f(a::AbstractAxisIndices; dims, kwargs...)
+        return AxisIndicesArray(Base.$f(parent(a); dims=dims, kwargs...), axes(a))
+    end
+
+    # Vector case
+    @eval function Base.$f(a::AbstractAxisIndices{T,1}; kwargs...) where {T}
+        return unsafe_reconstruct(a, Base.$f(parent(a); kwargs...), axes(a))
     end
 end
 
-if VERSION < v"1.1-"
-    @inline function Base.eachslice(A::AbstractArray; dims)
-        length(dims) == 1 || throw(ArgumentError("only single dimensions are supported"))
-        dim = first(dims)
-        dim <= ndims(A) || throw(DimensionMismatch("A doesn't have $dim dimensions"))
-        inds_before = ntuple(d->(:), dim-1)
-        inds_after = ntuple(d->(:), ndims(A)-dim)
-        return (view(A, inds_before..., i, inds_after...) for i in axes(A, dim))
-    end
+################################################
+# map, collect
+
+function Base.filter(f, A::AbstractAxisIndices{T,1,P,Tuple{<:AbstractAxis{K,V,Ks,Vs}}}) where {T,P,K,V,Ks,Vs}
+    inds = findall(f, parent(A))
+    p = getindex(parent(A), inds)
+    return unsafe_reconstruct(A, p, (to_axis(axes(A, 1), getindex(axes_keys(A, 1)::Ks, inds), axes(p, 1)),))
 end
-=#
 

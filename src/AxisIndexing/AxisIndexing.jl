@@ -74,12 +74,13 @@ export
     to_axes,
     maybe_unsafe_reconstruct,
     to_index,
-    to_key
+    to_keys
 
 include("abstractaxis.jl")
 include("utils.jl")
 include("to_index.jl")
 include("to_indices.jl")
+include("to_keys.jl")
 
 include("similar.jl")
 

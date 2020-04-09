@@ -33,6 +33,7 @@ const AbstractOneToSimpleAxis{V,Vs<:StaticRanges.OneToUnion} = AbstractSimpleAxi
 function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:AbstractUnitRange}
     return true
 end
+
 function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:OneToUnion}
     return false
 end
@@ -382,37 +383,6 @@ Array{String,1}
 keys_type(::T, i) where {T} = keys_type(T, i)
 keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
 
-"""
-    to_key([::AxisIndicesStyle,] axis, arg, index)
-
-This method is the reverse of `AxisIndices.to_index`. `arg` refers to an argument
-originally passed to `AxisIndices.to_index` and `index` refers to the index produced
-by that same call to `AxisIndices.to_index`.
-
-This method assumes to all arguments have passed through `AxisIndices.to_index` and
-have been checked to be in bounds. Therefore, this is unsafe and intended only for
-internal use.
-"""
-@inline to_key(axis, arg, index) = to_key(AxisIndicesStyle(axis, arg), axis, arg, index)
-
-@inline function to_key(::IndicesCollection, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
-end
-
-@inline function to_key(::KeysFix2, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
-end
-
-@inline function to_key(::IntervalCollection, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
-end
-
-@inline to_key(::KeysIn, axis, arg, index) = arg.x
-
-@inline to_key(::KeysCollection, axis, arg, index) = arg
-
-@inline to_key(::SliceCollection, axis, arg, index) = keys(axis)
-
 ###
 ### values
 ###
@@ -546,4 +516,3 @@ __map(axis::AbstractSimpleAxis, vals) = unsafe_reconstruct(axis, vals)
 _map(x::Tuple, vals) = vals
 
 =#
-

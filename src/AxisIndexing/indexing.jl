@@ -51,7 +51,7 @@ order to avoid ambiguities.
 ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
 
     index = to_index(axis, arg)
-    return unsafe_reconstruct(axis, to_key(axis, arg, index), index)
+    return unsafe_reconstruct(axis, to_keys(axis, arg, index), index)
 end
 
 @propagate_inbounds function Base.getindex(
@@ -103,7 +103,7 @@ end
 end
 
 function _axis_getindex(s, axis::AbstractAxis, arg, index::AbstractUnitRange)
-    return unsafe_reconstruct(axis, to_key(s, axis, arg, index), index)
+    return unsafe_reconstruct(axis, to_keys(s, axis, arg, index), index)
 end
 _axis_getindex(s, axis::AbstractAxis, arg, index) = index
 

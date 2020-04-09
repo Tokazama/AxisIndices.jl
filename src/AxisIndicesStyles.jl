@@ -186,9 +186,9 @@ AxisIndicesStyle(::Type{Bool}) = BoolElement()
 AxisIndicesStyle(::Type{CartesianIndex{1}}) = CartesianElement()
 
 # Collections
-AxisIndicesStyle(::Type{<:AbstractVector{T}}) where {T} = KeysCollection()
-AxisIndicesStyle(::Type{<:AbstractVector{<:Integer}}) = IndicesCollection()
-AxisIndicesStyle(::Type{<:AbstractVector{Bool}}) = BoolsCollection()
+AxisIndicesStyle(::Type{<:AbstractArray{T}}) where {T} = KeysCollection()
+AxisIndicesStyle(::Type{<:AbstractArray{<:Integer}}) = IndicesCollection()
+AxisIndicesStyle(::Type{<:AbstractArray{Bool}}) = BoolsCollection()
 AxisIndicesStyle(::Type{<:Interval}) = IntervalCollection()
 
 # Functions

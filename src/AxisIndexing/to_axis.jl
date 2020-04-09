@@ -39,7 +39,7 @@ function to_axis(old_axis::AbstractSimpleAxis, arg, index, new_indices)
 end
 
 function to_axis(old_axis::AbstractAxis, arg, index, new_indices)
-    return to_axis(old_axis, to_key(old_axis, arg, index), new_indices)
+    return to_axis(old_axis, to_keys(old_axis, arg, index), new_indices)
 end
 
 @inline function to_axes(

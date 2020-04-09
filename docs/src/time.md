@@ -57,8 +57,8 @@ julia> function AxisIndices.to_index(::TimeStampCollection, axis, arg)
            return AxisIndices.to_index(t.axis, t.times[arg])
        end
 
-julia> function AxisIndices.to_key(::TimeStampCollection, axis, arg, index)
-           return AxisIndices.to_key(t.axis, t.times[arg], index)
+julia> function AxisIndices.to_keys(::TimeStampCollection, axis, arg, index)
+           return AxisIndices.to_keys(t.axis, t.times[arg], index)
        end
 ```
 
