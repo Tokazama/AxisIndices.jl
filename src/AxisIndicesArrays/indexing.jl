@@ -53,8 +53,6 @@ end
     to_indices(A, axes(A), args)
 end
 
-Base.to_indices(::AbstractAxisIndices, ::Tuple{}, ::Tuple{}) = ()
-
 Base.IndexStyle(::Type{<:AbstractAxisIndices{T,N,A,AI}}) where {T,N,A,AI} = IndexStyle(A)
 
 for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:unsafe_dotview, :dotview))

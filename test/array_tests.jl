@@ -22,18 +22,6 @@ using AxisIndices.AxisIndexing: similar_axes
     @test @inferred(x[[true,true], CartesianIndex(1,1)]) == parent(parent(x)[[true,true], CartesianIndex(1,1)])
 end
 
-@testset "similar" begin
-    x = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]);
-    @test @inferred(similar(x, (1,1))) isa AxisIndicesArray{eltype(x),2}
-    @test @inferred(similar(x, Int, (1,1))) isa AxisIndicesArray{Int,2}
-    @test @inferred(axes_keys(similar(x, (Base.OneTo(10),Base.OneTo(10))))[1]) == 1:10
-    @test @inferred(axes_keys(similar(x, (2:3,)))[1]) == 2:3
-
-    @test eltype(@inferred(similar(x, Int, (Base.OneTo(10),Base.OneTo(10))))) <: Int
-    @test eltype(@inferred(similar(x, Int, (2:3,)))) <: Int
-    @test @inferred(axes_keys(similar(x, (["x", "y"],)))[1]) == ["x", "y"]
-end
-
 @testset "PermuteDimsArray" begin
     x = AxisIndicesArray(ones(2,2))
     y = PermutedDimsArray(x, (2, 1))

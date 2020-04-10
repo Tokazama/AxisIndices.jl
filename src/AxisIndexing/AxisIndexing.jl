@@ -2,9 +2,12 @@ module AxisIndexing
 
 using AxisIndices.AxisIndicesStyles
 using NamedDims
-using StaticRanges, IntervalSets
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
-using StaticRanges: OneToUnion
+
+using IntervalSets
+
+using StaticRanges
+using StaticRanges: can_set_first, can_set_last, can_set_length, same_type,
+    checkindexlo, checkindexhi, OneToUnion
 using Base: @propagate_inbounds, OneTo, tail, front, Fix2
 
 using StaticRanges:
@@ -77,13 +80,14 @@ export
     to_keys
 
 include("abstractaxis.jl")
+include("keys.jl")
+include("values.jl")
 include("utils.jl")
 include("to_index.jl")
 include("to_indices.jl")
 include("to_keys.jl")
-
+include("checkbounds.jl")
 include("similar.jl")
-
 include("combine.jl")
 include("find.jl")
 include("indexing.jl")

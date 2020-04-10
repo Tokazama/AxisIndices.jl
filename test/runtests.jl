@@ -1,3 +1,4 @@
+
 using Test
 using Statistics
 using LinearAlgebra
@@ -10,19 +11,62 @@ using AxisIndices.AxisIndicesStyles
 using AxisIndices.AxisIndexing
 using AxisIndices.AxisIndicesArrays
 using AxisIndices.NamedIndicesArrays
+using AxisIndices.AxisIndexing: CombineStyle, CombineStack, CombineSimpleAxis, CombineAxis, CombineResize
+using AxisIndices.AxisIndexing: to_axis, to_axes, to_index
 
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using OffsetArrays
 
 using Base: step_hp, OneTo
+using AxisIndices.AxisIndexing: broadcast_axis
+using Base.Broadcast: broadcasted
+bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
-include("AxisIndexing/runtests.jl")
+struct Axis2{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
+    keys::Ks
+    values::Vs
+end
+
+Axis2(ks, vs) = Axis2{eltype(ks),eltype(vs),typeof(ks),typeof(vs)}(ks, vs)
+Base.keys(a::Axis2) = getfield(a, :keys)
+Base.values(a::Axis2) = getfield(a, :values)
+function StaticRanges.similar_type(
+    ::Type{A},
+    ks_type::Type=keys_type(A),
+    vs_type::Type=values_type(A)
+   ) where {A<:Axis2}
+    return Axis2{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
+end
+
+@test Base.to_shape(SimpleAxis(1)) == 1
+
+include("to_index_tests.jl")
+include("getindex_tests.jl")
+include("values_tests.jl")
+include("keys_tests.jl")
+include("size_tests.jl")
+include("pop_tests.jl")
+include("popfirst_tests.jl")
+include("first_tests.jl")
+include("step_tests.jl")
+include("last_tests.jl")
+include("length_tests.jl")
+include("cartesianaxes.jl")
+include("linearaxes.jl")
+include("append_tests.jl")
+include("filter_tests.jl")
+include("promotion_tests.jl")
+
+include("similar_tests.jl")
+include("reduce_tests.jl")
 include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")
 include("offset_array_tests.jl")
+
+include("drop_tests.jl")
 
 include("functions_tests.jl")
 include("concatenation_tests.jl")

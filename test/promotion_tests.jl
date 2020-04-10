@@ -1,3 +1,4 @@
+
 @testset "AbstractAxis promotions" begin
     a1 = Axis(1:10)
     a2 = Axis(1.0:10.0)
@@ -35,3 +36,4 @@
     @test Base.promote_rule(typeof(a2), typeof(oneto)) <: Axis{Float64,Int64,StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}},Base.OneTo{Int}}
     @test Base.promote_rule(typeof(oneto), typeof(a2)) <: Axis{Float64,Int64,StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}},Base.OneTo{Int}}
 end
+

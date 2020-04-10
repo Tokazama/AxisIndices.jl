@@ -26,9 +26,9 @@ A subtype of `AbstractAxis` where the keys and values are represented by a singl
 """
 abstract type AbstractSimpleAxis{V,Vs} <: AbstractAxis{V,V,Vs,Vs} end
 
-const AbstractOneToAxis{K,V,Ks,Vs<:StaticRanges.OneToUnion} = AbstractAxis{K,V,Ks,Vs}
+const AbstractOneToAxis{K,V,Ks,Vs<:OneToUnion} = AbstractAxis{K,V,Ks,Vs}
 
-const AbstractOneToSimpleAxis{V,Vs<:StaticRanges.OneToUnion} = AbstractSimpleAxis{V,Vs}
+const AbstractOneToSimpleAxis{V,Vs<:OneToUnion} = AbstractSimpleAxis{V,Vs}
 
 function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:AbstractUnitRange}
     return true
@@ -298,148 +298,6 @@ end
 StaticRanges.Size(::Type{T}) where {T<:AbstractAxis} = StaticRanges.Size(values_type(T))
 
 Base.size(a::AbstractAxis) = (length(a),)
-
-###
-### keys
-###
-Base.keytype(::Type{<:AbstractAxis{K}}) where {K} = K
-
-Base.haskey(a::AbstractAxis{K}, key::K) where {K} = key in keys(a)
-
-reverse_keys(a::AbstractAxis) = unsafe_reconstruct(a, reverse(keys(a)), values(a))
-
-reverse_keys(a::AbstractSimpleAxis) = Axis(reverse(keys(a)), values(a))
-
-"""
-    keys_type(x)
-
-Retrieves the type of the keys of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> keys_type(Axis(1:2))
-UnitRange{Int64}
-
-julia> keys_type(typeof(Axis(1:2)))
-UnitRange{Int64}
-
-julia> keys_type(UnitRange{Int})
-Base.OneTo{Int64}
-```
-"""
-keys_type(::T) where {T} = keys_type(T)
-keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
-keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
-
-"""
-    axes_keys(x)
-
-Returns the keys corresponding to all axes of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(2:3, 3:4)
-
-julia> axes_keys(Axis(1:2))
-(1:2,)
-```
-"""
-axes_keys(x) = map(keys, axes(x))
-axes_keys(x::AbstractAxis) = (keys(x),)
-
-"""
-    axes_keys(x, i)
-
-Returns the axis keys corresponding of ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
-2:3
-```
-"""
-axes_keys(x, i) = axes_keys(x)[i]
-
-"""
-    keys_type(x, i)
-
-Retrieves axis keys of the ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> keys_type(AxisIndicesArray([1], ["a"]), 1)
-Array{String,1}
-```
-"""
-keys_type(::T, i) where {T} = keys_type(T, i)
-keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
-
-###
-### values
-###
-
-Base.valtype(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = V
-
-Base.allunique(a::AbstractAxis) = true
-
-Base.in(x::Integer, a::AbstractAxis) = in(x, values(a))
-
-Base.collect(a::AbstractAxis) = collect(values(a))
-
-Base.eachindex(a::AbstractAxis) = values(a)
-
-"""
-    values_type(x)
-
-Retrieves the type of the values of `x`. This should be functionally equivalent
-to `typeof(values(x))`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia>  values_type(Axis(1:2))
-Base.OneTo{Int64}
-
-julia> values_type(typeof(Axis(1:2)))
-Base.OneTo{Int64}
-
-julia> values_type(typeof(1:2))
-UnitRange{Int64}
-```
-"""
-values_type(::T) where {T} = values_type(T)
-# if it's not a subtype of AbstractAxis assume it is the collection of values
-values_type(::Type{T}) where {T} = T  
-values_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Vs
-
-"""
-    values_type(x, i)
-
-Retrieves axis values of the ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia>  values_type([1], 1)
-Base.OneTo{Int64}
-
-julia> values_type(typeof([1]), 1)
-Base.OneTo{Int64}
-```
-"""
-values_type(::T, i) where {T} = values_type(T, i)
-values_type(::Type{T}, i) where {T} = values_type(axes_type(T, i))
 
 
 ###

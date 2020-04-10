@@ -1,4 +1,7 @@
 
+@testset "reduce" begin
+
+
 @testset "reduce_axis" begin
     @test @inferred(reduce_axis(Base.OneTo(10))) == Base.OneTo(1)
     @test @inferred(reduce_axis(OneToSRange(10))) == OneToSRange(1)
@@ -11,3 +14,4 @@
     @test_throws ErrorException reduce_axis(SimpleAxis(1:0))
 end
 
+end
