@@ -5,21 +5,27 @@
 julia> using AxisIndices
 
 julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"])
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
+ • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
       one   two
   a     1     2
   b     3     4
 
 
 julia> b = rot180(a)
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["b", "a"] => OneToMRange(2))
+ • dim_2 - Axis(["two", "one"] => OneToMRange(2))
       two   one
   b     4     3
   a     2     1
 
 
 julia> c = rotr90(rotr90(a))
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["b", "a"] => OneToMRange(2))
+ • dim_2 - Axis(["two", "one"] => OneToMRange(2))
       two   one
   b     4     3
   a     2     1
@@ -46,14 +52,18 @@ end
 julia> using AxisIndices
 
 julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"])
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
+ • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
       one   two
   a     1     2
   b     3     4
 
 
 julia> b = rotr90(a)
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["one", "two"] => OneToMRange(2))
+ • dim_2 - Axis(["b", "a"] => OneToMRange(2))
         b   a
   one   3   1
   two   4   2
@@ -79,14 +89,18 @@ end
 julia> using AxisIndices
 
 julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"])
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
+ • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
       one   two
   a     1     2
   b     3     4
 
 
 julia> b = rotl90(a)
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(["two", "one"] => OneToMRange(2))
+ • dim_2 - Axis(["a", "b"] => OneToMRange(2))
         a   b
   two   2   4
   one   1   3

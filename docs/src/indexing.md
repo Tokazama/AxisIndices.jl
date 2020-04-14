@@ -134,7 +134,8 @@ julia> A[1]
 
 ```jldoctest indexing_examples
 julia> A[1,:]
-1-dimensional AxisIndicesArray{Int64,1,Array{Int64,1}...}
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - Axis(["a", "b", "c"] => OneToMRange(3))
 
   a   1
   b   4
@@ -142,11 +143,12 @@ julia> A[1,:]
 
 
 julia> A[1:2,1:2]
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis((0.1:0.1:0.2) s => Base.OneTo(2))
+ • dim_2 - Axis(["a", "b"] => OneToMRange(2))
           a   b
   0.1 s   1   4
   0.2 s   2   5
-
 
 
 julia> A[1:3]
@@ -164,7 +166,9 @@ julia> A[.1s, "a"]
 1
 
 julia> A[0.1s..0.3s, ["a", "b"]]
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis((0.1:0.1:0.3) s => Base.OneTo(3))
+ • dim_2 - Axis(["a", "b"] => OneToMRange(2))
           a   b
   0.1 s   1   4
   0.2 s   2   5
@@ -177,20 +181,13 @@ julia> A[0.1s..0.3s, ["a", "b"]]
 
 ```jldoctest indexing_examples
 julia> A[!=(.2s), in(["a", "c"])]
-2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(Unitful.Quantity{Float64,𝐓,Unitful.FreeUnits{(s,),𝐓,nothing}}[0.1 s, 0.3 s] => Base.OneTo(2))
+ • dim_2 - Axis(["a", "c"] => OneToMRange(2))
           a   c
   0.1 s   1   7
   0.3 s   3   9
 
 
 ```
-
-## When Indexing Doesn't Start at One
-
-By default `Axis` will have indices that start at one.
-However, if the first index along a dimension of something doesn't start at one this could force an index call to search outside of memory.
-
-!!! warning
-    If you're reading this it means that you're reading the development branch of the documentation.
-    There are a few corner cases that need to be resolved before fully presenting how this works.
 

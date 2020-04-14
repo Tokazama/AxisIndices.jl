@@ -41,7 +41,9 @@ the length of the corresponding axis (e.g., `size(parent 1) == length(axes[1])`.
 julia> using AxisIndices
 
 julia> AxisIndicesArray(ones(2,2), (SimpleAxis(2), SimpleAxis(2)))
-2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+AxisIndicesArray{Float64,2,Array{Float64,2}...}
+ • dim_1 - SimpleAxis(Base.OneTo(2))
+ • dim_2 - SimpleAxis(Base.OneTo(2))
         1     2
   1   1.0   1.0
   2   1.0   1.0
@@ -76,7 +78,9 @@ is paired with an element of `values` to compose a subtype of `AbstractAxis`.
 julia> using AxisIndices
 
 julia> AxisIndicesArray(ones(2,2), (["a", "b"], ["one", "two"]))
-2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+AxisIndicesArray{Float64,2,Array{Float64,2}...}
+ • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
+ • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
       one   two
   a   1.0   1.0
   b   1.0   1.0

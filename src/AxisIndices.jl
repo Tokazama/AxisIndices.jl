@@ -29,6 +29,7 @@ export
     CartesianAxes,
     LinearAxes,
     NamedIndicesArray,
+    NamedDimsArray,
     NIArray,
     # Reexport types
     SimpleAxis,
@@ -62,6 +63,7 @@ export
     ⩓,
     or,
     ⩔,
+    ..,
     indices,
     reindex,
     axes_keys,

@@ -1,6 +1,6 @@
 
 function pretty_array_text(
-    io::IO,
+    io,
     data::AbstractVecOrMat,
     row=axes(data, 1),
     col=axes(data, 2);
@@ -22,12 +22,13 @@ function pretty_array_text(
     row_name_column_title=get_row_name_column_title(row),
     row_name_header_crayon::Crayon = text_row_name_header_crayon(row),
     same_column_size::Bool = get_same_column_size(row, col),
-    #show_row_number::Bool = false,
-    #sortkeys::Bool = false,
+    show_row_number::Bool = false,
+    sortkeys::Bool = false,
     tf::TextFormat = text_format(row, col),
     hlines::Union{Nothing,Symbol,AbstractVector} = get_hlines(row, col),
     vlines::Union{Nothing,Symbol,AbstractVector} = get_vlines(row, col),
-    formatters=get_formatters(data)
+    formatters=get_formatters(data),
+    kwargs...
 )
     pretty_table(
         io,
@@ -55,7 +56,8 @@ function pretty_array_text(
         tf=tf,
         hlines=hlines,
         vlines=vlines,
-        formatters=formatters
+        formatters=formatters,
+        kwargs...
     )
 end
 

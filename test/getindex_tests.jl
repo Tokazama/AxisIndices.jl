@@ -12,6 +12,12 @@
         @test @inferred(a[≈(3.1; atol=1)]) == 2
     end
 
+    @testset "SimpleAxis" begin
+        a = SimpleAxis(2:10)
+        @test @inferred(a[in(2:3)]) === SimpleAxis(2:3)
+        @test @inferred(a[2:3]) === SimpleAxis(2:3)
+    end
+
     @testset "CartesianAxes" begin
         x = CartesianAxes((2,2))
         @test getindex(x, 1, :) == CartesianAxes((2,2))[1, 1:2]

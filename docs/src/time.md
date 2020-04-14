@@ -3,7 +3,7 @@
 Here we define an axis that specifically supports time.
 This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
 ```jldoctest time_axis_example
-julia> using AxisIndices, Dates, Unitful, IntervalSets
+julia> using AxisIndices, Dates, Unitful
 
 julia> struct TimeAxis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
            axis::Axis{K,V,Ks,Vs}
@@ -91,7 +91,8 @@ And now we have a time series array.
 julia> x = AxisIndicesArray(collect(1:2:20), t);
 
 julia> x[:time_1]
-1-dimensional AxisIndicesArray{Int64,1,Array{Int64,1}...}
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - TimeAxis(1 second:1 second:3 seconds => Base.OneTo(3))
 
    1 second   1
   2 seconds   3

@@ -90,7 +90,7 @@ julia> cfa[1,:]
 
 We can actually do even better if this format should always be the default by making a new axis type and redefining the `coefarray` method.
 Note that this is a quick and dirty way of getting a new axis.
-See [`TimeAxis Guide`](@ref) for a better guide on making an axis.
+See `TimeAxis Guide` for a better guide on making an axis.
 ```julia
 julia> struct CoefHeader <: AbstractAxis{String,Int,Vector{String},Base.OneTo{Int}} end
 

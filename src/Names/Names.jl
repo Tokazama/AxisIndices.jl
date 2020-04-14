@@ -50,26 +50,26 @@ assigned value is sent to the corresponding axis when constructing the underlyin
 julia> using AxisIndices
 
 julia> A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
-3-dimensional NamedDimsArray{Int64,3,Base.ReshapedArray{Int64,3,UnitRange{Int64},Tuple{}}...}
-[x, y, z[1]] =
+NamedDimsArray{Int64,3,Base.ReshapedArray{Int64,3,UnitRange{Int64},Tuple{}}...}
+ • x - Axis(["a", "b"] => Base.OneTo(2))
+ • y - Axis(["one", "two", "three"] => Base.OneTo(3))
+ • z - Axis(2:5 => Base.OneTo(4))
+[x, y, z[2]] =
       one   two   three
   a     1     3       5
   b     2     4       6
 
-
-[x, y, z[2]] =
+[x, y, z[3]] =
       one   two   three
   a     7     9      11
   b     8    10      12
 
-
-[x, y, z[3]] =
+[x, y, z[4]] =
       one   two   three
   a    13    15      17
   b    14    16      18
 
-
-[x, y, z[4]] =
+[x, y, z[5]] =
       one   two   three
   a    19    21      23
   b    20    22      24
@@ -82,7 +82,9 @@ julia> axes_keys(A)
 (["a", "b"], ["one", "two", "three"], 2:5)
 
 julia> B = A["a", :, :]
-2-dimensional NamedDimsArray{Int64,2,Array{Int64,2}...}
+NamedDimsArray{Int64,2,Array{Int64,2}...}
+ • y - Axis(["one", "two", "three"] => OneToMRange(3))
+ • z - Axis(2:5 => Base.OneTo(4))
           2    3    4    5
     one   1    7   13   19
     two   3    9   15   21
@@ -90,7 +92,8 @@ julia> B = A["a", :, :]
 
 
 julia> C = B["one",:]
-1-dimensional NamedDimsArray{Int64,1,Array{Int64,1}...}
+NamedDimsArray{Int64,1,Array{Int64,1}...}
+ • z - Axis(2:5 => Base.OneTo(4))
 
   2    1
   3    7

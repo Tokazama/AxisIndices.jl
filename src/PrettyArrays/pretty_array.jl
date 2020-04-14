@@ -1,4 +1,31 @@
 
+"""
+    pretty_array([io::IO,] A::AbstractArray[, axs::NamedTuple=named_axes(A)]; kwargs...)
+
+Prints to `io` the array `A` with the keys `key_names` along each dimension of `A`.
+Printing of multidimensional arrays is accomplished in a similar manner to `Array`, where the final two dimensions are sliced producing a series of matrices.
+`kwargs...` are passed to `pretty_table` for 1/2D slice produced.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> pretty_array(ones(Int, 2,2,2),
+           (x = Axis(2:3),
+            y = Axis([:one, :two]),
+            z = Axis(["a", "b"])))
+[x, y, z[a]] =
+      one   two
+  2     1     1
+  3     1     1
+
+[x, y, z[b]] =
+      one   two
+  2     1     1
+  3     1     1
+
+```
+"""
 function pretty_array(
     io::IO,
     A::AbstractArray,
@@ -42,9 +69,9 @@ function pretty_array(
 
         print(io, "[$(L[1]), $(L[2]), ")
         for i in 1:(nd-1)
-            print(io, "$(L[i])[$(keyinds[i][idxs[i]])], ")
+            print(io, "$(L[i])[$(keys(keyinds[i])[idxs[i]])], ")
         end
-        println(io, "$(L[end])[", keyinds[end][idxs[end]], "]] =")
+        println(io, "$(L[end])[", keys(keyinds[end])[idxs[end]], "]] =")
         axs2 = (axs[1], axs[2])
         pretty_array(
             io,
@@ -53,7 +80,7 @@ function pretty_array(
             backend;
             kwargs...
         )
-        print(io, idxs == map(last,tailinds) ? "" : "\n\n")
+        print(io, idxs == map(last,tailinds) ? "" : "\n")
         @label skip
     end
 end
@@ -111,5 +138,12 @@ function pretty_array(
     kwargs...
 )
     return pretty_array(stdout, parent(A), axs, backend; kwargs...)
+end
+
+
+function pretty_array(::Type{String}, A::AbstractArray, axs::NamedTuple=named_axes(A); kwargs...)
+    io = IOBuffer()
+    pretty_array(io, A, axs; kwargs...)
+    return String(take!(io))
 end
 
