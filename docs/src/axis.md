@@ -61,7 +61,7 @@ SimpleAxis(3:5)
 
 This also allows certain syntax special treatment because they are obviously not referring to traditional integer based indexing.
 ```jldoctest intro_axis_examples
-julia> x, y, z = Axis((:one, :two, :three)), Axis(["one", "two", "three"]), Axis(Second(1):Second(1):Second(3));
+julia> x, y, z = Axis([:one, :two, :three]), Axis(["one", "two", "three"]), Axis(Second(1):Second(1):Second(3));
 
 julia> x[:one]
 1

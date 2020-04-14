@@ -136,15 +136,17 @@ julia> A[1]
 julia> A[1,:]
 1-dimensional AxisIndicesArray{Int64,1,Array{Int64,1}...}
 
-  a   1.0
-  b   4.0
-  c   7.0
+  a   1
+  b   4
+  c   7
+
 
 julia> A[1:2,1:2]
 2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
-            a     b
-  0.1 s   1.0   4.0
-  0.2 s   2.0   5.0
+          a   b
+  0.1 s   1   4
+  0.2 s   2   5
+
 
 
 julia> A[1:3]
@@ -163,10 +165,11 @@ julia> A[.1s, "a"]
 
 julia> A[0.1s..0.3s, ["a", "b"]]
 2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
-            a     b
-  0.1 s   1.0   4.0
-  0.2 s   2.0   5.0
-  0.3 s   3.0   6.0
+          a   b
+  0.1 s   1   4
+  0.2 s   2   5
+  0.3 s   3   6
+
 
 ```
 
@@ -175,9 +178,9 @@ julia> A[0.1s..0.3s, ["a", "b"]]
 ```jldoctest indexing_examples
 julia> A[!=(.2s), in(["a", "c"])]
 2-dimensional AxisIndicesArray{Int64,2,Array{Int64,2}...}
-            a     c
-  0.1 s   1.0   7.0
-  0.3 s   3.0   9.0
+          a   c
+  0.1 s   1   7
+  0.3 s   3   9
 
 
 ```

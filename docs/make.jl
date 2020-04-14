@@ -19,12 +19,7 @@ makedocs(;
             "CoefTable" => "coeftable.md",
             "TimeAxis Guide" => "time.md",
         ],
-        "Reference" => [
-            "AxisIndicesStyles" => "axis_indices_styles.md",
-            "AxisIndexing" => "axis_indexing.md",
-            "AxisIndicesArrays" => "axis_indices_arrays.md",
-            "NamedIndicesArrays" => "named_indices_arrays.md",
-        ],
+        "Reference" => "references.md",
         "Comparison to Other Packages" => "comparison.md",
         "Acknowledgments" => "acknowledgments.md"
     ],

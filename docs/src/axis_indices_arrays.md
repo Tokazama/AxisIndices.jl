@@ -1,6 +1,0 @@
-# AxisIndicesArrays
-
-```@autodocs
-Modules = [AxisIndicesArrays]
-```
-

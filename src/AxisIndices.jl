@@ -1,3 +1,4 @@
+
 module AxisIndices
 
 using StaticRanges
@@ -8,16 +9,16 @@ using MappedArrays
 using PrettyTables
 using LinearAlgebra
 using Base: @propagate_inbounds, OneTo, tail, front, Fix2
-using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
     # Modules
-    AxisIndicesStyles,
-    AxisIndexing,
-    AxisIndicesArrays,
-    NamedIndicesArrays,
+    # Interface,
+    # Indexing,
+    # Arrays,
+    # Math,
+    # Names,
     # Types
     AbstractAxisIndices,
     AxisIndicesArray,
@@ -66,16 +67,26 @@ export
     axes_keys,
     pretty_array
 
-include("AxisIndicesStyles.jl")
-using .AxisIndicesStyles
+include("./AxisCore/AxisCore.jl")
+using .AxisCore
 
-include("./AxisIndexing/AxisIndexing.jl")
-using .AxisIndexing
+include("./Indexing/Indexing.jl")
+using .Indexing
 
-include("./AxisIndicesArrays/AxisIndicesArrays.jl")
-using .AxisIndicesArrays
+include("./Basics/Basics.jl")
+using .Basics
 
-include("./NamedIndicesArrays/NamedIndicesArrays.jl")
-using .NamedIndicesArrays
+include("./Math/Math.jl")
+using .Math
+
+include("./Mapped/Mapped.jl")
+using .Mapped
+
+include("./Names/Names.jl")
+using .Names
+
+include("./PrettyArrays/PrettyArrays.jl")
+using .PrettyArrays
 
 end
+

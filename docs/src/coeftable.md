@@ -1,6 +1,9 @@
 # Making a CoefTable
 
-Let's see if we can recreate the coefficient table from StatsBase.jl.
+This example will guide you through manipulating the pretty printing framework.
+We'll motivate this by trying to recreate the coefficient table from StatsBase.jl.
+
+## Creating the Table 
 ```julia
 julia> using AxisIndices, DataFrames, GLM, Distributions
 
@@ -23,9 +26,9 @@ julia> ols = lm(@formula(Y ~ X), DataFrame(X=[1,2,3], Y=[2,4,7]));
 
 julia> cfa = coefarray(ols)
 2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
-                Estimate   Std. Error   t value   Pr(>|t|)   Lower 95%   Upper 95%
-  (Intercept)     -0.667        0.624    -1.069      0.479       -8.59       7.257
-            X        2.5        0.289      8.66      0.073      -1.168       6.168
+                   Estimate   Std. Error       t value     Pr(>|t|)     Lower 95%    Upper 95%
+  (Intercept)   -0.66666667   0.62360956   -1.06904497   0.47876359   -8.59037747   7.25704413
+            X           2.5   0.28867513    8.66025404    0.0731864   -1.16796536   6.16796536
 
 ```
 
@@ -33,7 +36,7 @@ But we can do better. Let's use the underlying `pretty_array` method to get this
 ```julia
 julia> using PrettyTables
 
-ctf = const array_text_format = TextFormat(
+ctf = array_text_format = TextFormat(
     up_right_corner = ' ',
     up_left_corner = ' ',
     bottom_left_corner=' ',
@@ -44,21 +47,17 @@ ctf = const array_text_format = TextFormat(
     middle_intersection= '─',
     bottom_intersection= '─',
     column= ' ',
-    left_border= ' ',
-    right_border= ' ',
+    hlines=[ :begin, :header, :end]
     #    row= ' ',
-    top_line=true,
-    header_line=true,
-    bottom_line=true
 )
 
-julia> pretty_array(cfa; tf=ctf, linebreaks=false)
- ──────────────────────────────────────────────────────────────────────────────────
-                Estimate   Std. Error   t value   Pr(>|t|)   Lower 95%   Upper 95%
- ──────────────────────────────────────────────────────────────────────────────────
-  (Intercept)     -0.667        0.624    -1.069      0.479      -8.590       7.257
-            X      2.500        0.289     8.660      0.073      -1.168       6.168
- ──────────────────────────────────────────────────────────────────────────────────
+julia> pretty_array(cfa; tf=ctf)
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+                   Estimate   Std. Error       t value     Pr(>|t|)     Lower 95%    Upper 95%
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+  (Intercept)   -0.66666667   0.62360956   -1.06904497   0.47876359   -8.59037747   7.25704413
+            X           2.5   0.28867513    8.66025404    0.0731864   -1.16796536   6.16796536
+ ──────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 This looks pretty good but the nicest part is that we can now treat this as a typical matrix.
@@ -86,3 +85,47 @@ julia> cfa[1,:]
    Upper 95%    7.257
 
 ```
+
+## Automating the table
+
+We can actually do even better if this format should always be the default by making a new axis type and redefining the `coefarray` method.
+Note that this is a quick and dirty way of getting a new axis.
+See [`TimeAxis Guide`](@ref) for a better guide on making an axis.
+```julia
+julia> struct CoefHeader <: AbstractAxis{String,Int,Vector{String},Base.OneTo{Int}} end
+
+julia> Base.keys(::CoefHeader) = ["Estimate","Std. Error","t value","Pr(>|t|)","Lower 95%","Upper 95%"]
+
+julia> Base.values(::CoefHeader) = Base.OneTo(5)
+
+julia> AxisIndices.text_format(axis, ::CoefHeader) = ctf
+
+julia> AxisIndices.unsafe_reconstruct(::CoefHeader, args...) = CoefHeader()
+
+julia> function coefarray(mm::StatsModels.TableRegressionModel; level::Real=0.95)
+           cc = coef(mm)
+           se = stderror(mm)
+           tt = cc ./ se
+           p = ccdf.(Ref(FDist(1, dof_residual(mm))), abs2.(tt))
+           ci = se*quantile(TDist(dof_residual(mm)), (1-level)/2)
+           levstr = isinteger(level*100) ? string(Integer(level*100)) : string(level*100)
+           ct = AxisIndicesArray(
+               hcat(cc,se,tt,p,cc+ci,cc-ci),
+               (coefnames(mm),
+               CoefHeader())
+           )
+       end;
+```
+
+Now any array with a `CoefHeader` prints exactly how we'd like it to by default.
+```julia
+julia> cfa = coefarray(ols)
+2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+                   Estimate   Std. Error       t value     Pr(>|t|)     Lower 95%    Upper 95%
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+  (Intercept)   -0.66666667   0.62360956   -1.06904497   0.47876359   -8.59037747   7.25704413
+            X           2.5   0.28867513    8.66025404    0.0731864   -1.16796536   6.16796536
+ ──────────────────────────────────────────────────────────────────────────────────────────────
+ ```
+

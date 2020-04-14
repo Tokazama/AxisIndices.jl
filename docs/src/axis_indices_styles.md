@@ -1,6 +1,0 @@
-# AxisIndicesStyles
-
-```@autodocs
-Modules = [AxisIndicesStyles]
-```
-

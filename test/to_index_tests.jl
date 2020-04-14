@@ -1,6 +1,6 @@
 
-using AxisIndices.AxisIndexing: to_index
-#using AxisIndices.AxisIndexing: axis_indices_styles
+using AxisIndices.Indexing: to_index
+#using AxisIndices.Indexing: axis_indices_styles
 
 @testset "traits" begin
     @testset "CombineStyle" begin
@@ -146,25 +146,25 @@ end
                          (2:4,        # first dimension has keys 2:4
                           3.0:5.0));  # second dimension has keys 3.0:5.0
 
-    @test @inferred(axis_indices_styles(axes(A), (:, 2))) == (AxisIndices.AxisIndexing.SliceCollection(), AxisIndices.AxisIndexing.IndexElement())
+    @test @inferred(axis_indices_styles(axes(A), (:, 2))) == (AxisIndices.Indexing.SliceCollection(), AxisIndices.Indexing.IndexElement())
     #=
     julia> @btime axis_indices_styles($(axes(A)), (:,2))
       0.035 ns (0 allocations: 0 bytes)
     =#
 
-    @test @inferred(axis_indices_styles(axes(A), (2, :))) == (AxisIndices.AxisIndexing.IndexElement(), AxisIndices.AxisIndexing.SliceCollection())
+    @test @inferred(axis_indices_styles(axes(A), (2, :))) == (AxisIndices.Indexing.IndexElement(), AxisIndices.Indexing.SliceCollection())
     #=
     julia> @btime axis_indices_styles($(axes(A)), (2, :))
       0.035 ns (0 allocations: 0 bytes)
     =#
 
-    @test @inferred(axis_indices_styles(axes(A), (1, 2))) == (AxisIndices.AxisIndexing.IndexElement(), AxisIndices.AxisIndexing.IndexElement())
+    @test @inferred(axis_indices_styles(axes(A), (1, 2))) == (AxisIndices.Indexing.IndexElement(), AxisIndices.Indexing.IndexElement())
     #=
     julia> @btime axis_indices_styles($(axes(A)), (1, 2))
       0.035 ns (0 allocations: 0 bytes)
     =#
 
-    @test @inferred(axis_indices_styles(axes(A), (1:2, 2))) == (AxisIndices.AxisIndexing.IndicesCollection(), AxisIndices.AxisIndexing.IndexElement())
+    @test @inferred(axis_indices_styles(axes(A), (1:2, 2))) == (AxisIndices.Indexing.IndicesCollection(), AxisIndices.Indexing.IndexElement())
     #=
     julia> @btime axis_indices_styles($(axes(A)), $((1:2, 2)))
     =#

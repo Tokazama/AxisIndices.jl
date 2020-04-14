@@ -7,19 +7,16 @@ using Documenter
 using Dates
 using IntervalSets
 using AxisIndices
-using AxisIndices.AxisIndicesStyles
-using AxisIndices.AxisIndexing
-using AxisIndices.AxisIndicesArrays
-using AxisIndices.NamedIndicesArrays
-using AxisIndices.AxisIndexing: CombineStyle, CombineStack, CombineSimpleAxis, CombineAxis, CombineResize
-using AxisIndices.AxisIndexing: to_axis, to_axes, to_index
-
+using AxisIndices.AxisCore
+using AxisIndices.Indexing
+using AxisIndices.Basics
+using AxisIndices.Names
+using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using OffsetArrays
 
 using Base: step_hp, OneTo
-using AxisIndices.AxisIndexing: broadcast_axis
 using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
@@ -35,7 +32,7 @@ function StaticRanges.similar_type(
     ::Type{A},
     ks_type::Type=keys_type(A),
     vs_type::Type=values_type(A)
-   ) where {A<:Axis2}
+) where {A<:Axis2}
     return Axis2{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
 end
 

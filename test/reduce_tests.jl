@@ -10,8 +10,6 @@
     @test @inferred(reduce_axis(UnitRange(1, 10))) == UnitRange(1, 1)
     @test @inferred(reduce_axis(UnitSRange(1, 10))) == UnitSRange(1, 1)
     @test @inferred(reduce_axis(UnitMRange(1, 10))) == UnitMRange(1, 1)
-
-    @test_throws ErrorException reduce_axis(SimpleAxis(1:0))
 end
 
 end

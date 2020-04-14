@@ -45,11 +45,11 @@ Here are some extras to make it more useful.
 ```jldoctest time_axis_example
 julia> Base.setindex!(t::TimeAxis, val, i::Symbol) = t.times[i] = val
 
-julia> struct TimeStampCollection <: AxisIndicesStyles.AxisIndicesStyle end
+julia> struct TimeStampCollection <: AxisIndices.AxisIndicesStyle end
 
-julia> AxisIndicesStyles.is_element(::Type{TimeStampCollection}) = false
+julia> AxisIndices.is_element(::Type{TimeStampCollection}) = false
 
-julia> function AxisIndicesStyles.AxisIndicesStyle(::Type{<:TimeAxis}, ::Type{Symbol})
+julia> function AxisIndices.AxisIndicesStyle(::Type{<:TimeAxis}, ::Type{Symbol})
            return TimeStampCollection()
        end
 
@@ -93,9 +93,10 @@ julia> x = AxisIndicesArray(collect(1:2:20), t);
 julia> x[:time_1]
 1-dimensional AxisIndicesArray{Int64,1,Array{Int64,1}...}
 
-   1 second   1.0
-  2 seconds   3.0
-  3 seconds   5.0
+   1 second   1
+  2 seconds   3
+  3 seconds   5
+
 
 ```
 

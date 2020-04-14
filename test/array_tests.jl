@@ -1,4 +1,4 @@
-using AxisIndices.AxisIndexing: similar_axes
+using AxisIndices.Indexing: similar_axes
 
 @testset "Array Interface" begin
     x = AxisIndicesArray([1 2; 3 4])

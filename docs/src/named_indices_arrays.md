@@ -1,5 +1,0 @@
-# NamedIndicesArrays
-
-```@autodocs
-Modules = [NamedIndicesArrays]
-```

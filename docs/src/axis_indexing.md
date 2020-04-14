@@ -1,5 +1,0 @@
-# AxisIndexing
-
-```@autodocs
-Modules = [AxisIndexing]
-```
