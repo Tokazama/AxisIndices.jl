@@ -36,7 +36,7 @@ function pretty_array(
 
     limit::Bool = get(io, :limit, false)
     if isempty(A)
-        return
+        return nothing
     end
     tailinds = tail(tail(axes(A)))
     keyinds = tail(tail(axs))

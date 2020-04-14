@@ -4,6 +4,8 @@ function pretty_array_text(
     data::AbstractVecOrMat,
     row=axes(data, 1),
     col=axes(data, 2);
+    alignment=get_alignment(row, col),
+    cell_alignment=get_cell_alignment(row, col),
     border_crayon::Crayon =text_border_crayon(row, col),
     header_crayon::Union{Crayon,Vector{Crayon}} = text_header_crayon(col),
     subheader_crayon::Union{Crayon,Vector{Crayon}} = text_subheader_crayon(row, col),
@@ -34,6 +36,8 @@ function pretty_array_text(
         io,
         data,
         keys(col);
+        alignment=alignment,
+        cell_alignment=cell_alignment,
         row_names=keys(row),
         row_name_column_title=row_name_column_title,
         border_crayon=border_crayon,
@@ -70,13 +74,11 @@ text_rownum_header_crayon(row) = Crayon(bold = true)
 An instance of `Highlighter` or a tuple with a list of text highlighters (see the
 section `Text highlighters`)
 =#
-text_highlighters(x) = text_highlighters(axes(x, 1), axes(x, 2))
 text_highlighters(row::AbstractUnitRange, col::AbstractUnitRange) = ()
 
 #=
     text_row_name_crayon(x) -> Crayon
 =#
-text_row_name_crayon(x) = text_row_name_crayon(axes(x, 1))
 text_row_name_crayon(row::AbstractUnitRange) = Crayon(bold = true)
 
 #=
@@ -84,7 +86,6 @@ text_row_name_crayon(row::AbstractUnitRange) = Crayon(bold = true)
 
 Crayon to print the header.
 =#
-text_header_crayon(x) = text_header_crayon(axes(x, 2))
 text_header_crayon(col::AbstractUnitRange) = Crayon(bold = true)
 
 #=
@@ -116,7 +117,6 @@ If `true`, then the text will be wrapped on spaces to fit the column. Notice tha
 this function requires `linebreaks = true` and the column must have a fixed size
 (see `columns_width`).
 =#
-get_autowrap(x) = get_autowrap(axes(x, 1), axes(x, 2))
 get_autowrap(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 
@@ -125,7 +125,6 @@ get_autowrap(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 Sets default for `Crayon` that prints border.
 =#
-text_border_crayon(x) = text_border_crayon(axes(x, 1), axes(x, 2))
 text_border_crayon(row::AbstractUnitRange, col::AbstractUnitRange) = Crayon()
 
 
@@ -135,7 +134,6 @@ text_border_crayon(row::AbstractUnitRange, col::AbstractUnitRange) = Crayon()
 This variable controls where the vertical lines will be drawn.
 It can be `nothing`, `:all`, `:none` or a vector of integers.
 =#
-get_vlines(x) = get_vlines(axes(x, 1), axes(x, 2))
 get_vlines(row::AbstractUnitRange, col::AbstractUnitRange) = nothing
 
 #=
@@ -144,7 +142,6 @@ get_vlines(row::AbstractUnitRange, col::AbstractUnitRange) = nothing
 This variable controls where the horizontal lines will be drawn.
 It can be `nothing`, `:all`, `:none` or a vector of integers.
 =#
-get_hlines(x) = get_hlines(axes(x, 1), axes(x, 2))
 get_hlines(row::AbstractUnitRange, col::AbstractUnitRange) = nothing
 
 #=
@@ -152,7 +149,6 @@ get_hlines(row::AbstractUnitRange, col::AbstractUnitRange) = nothing
 
 If `true`, then `\\n` will break the line inside the cells. (**Default** = `false`)
 =#
-get_linebreaks(x) = get_linebreaks(axes(x, 1), axes(x, 2))
 get_linebreaks(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 #=
@@ -161,7 +157,6 @@ get_linebreaks(row::AbstractUnitRange, col::AbstractUnitRange) = false
 If `true`, then the header will not be printed. Notice that all keywords and
 parameters related to the header and sub-headers will be ignored. (**Default** = `false`)
 =#
-get_noheader(x) = get_noheader(axes(x, 1), axes(x, 2))
 get_noheader(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 #=
@@ -171,7 +166,6 @@ If `true`, then the sub-header will not be printed, *i.e.* the header will conta
 only one line. Notice that this option has no effect if `noheader = true`.
 (**Default** = `false`)
 =#
-get_nosubheader(x) = get_nosubheader(axes(x, 1), axes(x, 2))
 get_nosubheader(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 #=
@@ -179,7 +173,6 @@ get_nosubheader(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 If `true`, then all the columns will have the same size. (**Default** = `false`)
 =#
-get_same_column_size(x) = get_same_column_size(axes(x, 1), axes(x, 2))
 get_same_column_size(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
 #=
@@ -190,7 +183,6 @@ lower than 0, then it will be automatically computed to fit the large cell in
 the column. If it is a single integer, then this number will be used as the size
 of all columns. (**Default** = 0)
 =#
-get_columns_width(x) = get_columns_width(axes(x, 1))
 get_columns_width(row::AbstractUnitRange, col::AbstractUnitRange) = 0
 
 #=
@@ -201,7 +193,6 @@ size (see `screen_size`). It can be `:both` to crop on vertical and horizontal
 direction, `:horizontal` to crop only on horizontal direction, `:vertical` to
 crop only on vertical direction, or `:none` to do not crop the data at all.
 =#
-get_crop(x::AbstractArray) = get_crop(axes(x, 1), axes(x, 2))
 get_crop(row::AbstractUnitRange, col::AbstractUnitRange) = :both
 
 #=
@@ -215,7 +206,6 @@ intersection, the right intersection, and the row. If it
 is `nothing`, then it will use the same format specified
 in `tf`. (**Default** = `nothing`)
 =#
-get_body_hlines_format(x) = get_body_hlines_format(axes(x, 1), axes(x, 2))
 get_body_hlines_format(row::AbstractUnitRange, col::AbstractUnitRange) = nothing
 
 #=
@@ -228,6 +218,5 @@ appended to the one in `hlines`, but the indices here are related to the printed
 rows of the body. Thus, if `1` is added to `body_hlines`, then a horizontal line
 will be drawn after the first data row. (**Default** = `Int[]`)
 =#
-get_body_hlines(x) = get_body_hlines(axes(x, 1), axes(x, 2))
 get_body_hlines(row::AbstractUnitRange, col::AbstractUnitRange) = Int[]
 

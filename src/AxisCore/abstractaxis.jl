@@ -478,4 +478,7 @@ const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 # Vectors should have a mutable axis
 true_axes(x::Vector) = (OneToMRange(length(x)),)
 true_axes(x) = axes(x)
+true_axes(x::Vector, i) = (OneToMRange(length(x)),)
+true_axes(x, i) = axes(x, i)
+
 

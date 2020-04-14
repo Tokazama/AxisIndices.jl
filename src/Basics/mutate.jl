@@ -72,16 +72,6 @@ Base.isempty(a::AbstractAxis) = isempty(values(a))
 
 #Base.axes(a::AbstractAxis) = values(a)
 
-maybe_unsafe_reconstruct(a::AbstractAxis, inds) = @inbounds(values(a)[inds])
-function maybe_unsafe_reconstruct(a::AbstractAxis, inds::AbstractUnitRange)
-    unsafe_reconstruct(a, @inbounds(keys(a)[inds]), @inbounds(values(a)[inds]))
-end
-
-maybe_unsafe_reconstruct(a::AbstractSimpleAxis, inds) = @inbounds(values(a)[inds])
-function maybe_unsafe_reconstruct(a::AbstractSimpleAxis, inds::AbstractUnitRange)
-    return unsafe_reconstruct(a, @inbounds(values(a)[inds]))
-end
-
 
 # This is required for performing `similar` on arrays
 Base.to_shape(r::AbstractAxis) = length(r)
