@@ -5,6 +5,7 @@ using IntervalSets
 using StaticRanges
 using LinearAlgebra
 using AxisIndices.AxisCore
+using AxisIndices.AxisIndicesStyles
 using AxisIndices.Indexing
 using LazyArrays
 using LazyArrays: Vcat
@@ -29,8 +30,10 @@ export
     reduce_axes,
     reduce_axis,
     drop_axes,
+    promote_axis_collections,
     unwrap_broadcasted
  
+include("promote_axis_collections.jl")
 include("combine.jl")
 include("append.jl")
 include("pop.jl")

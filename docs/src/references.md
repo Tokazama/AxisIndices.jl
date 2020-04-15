@@ -1,9 +1,19 @@
 # References
 
+AxisIndices is composed of several submodules corresponding to each of the following subsections.
+
+<!--TODO separate into public and private API -->
+
 ## AxisCore
 
 ```@autodocs
 Modules = [AxisIndices.AxisCore]
+```
+
+## AxisIndicesStyles
+
+```@autodocs
+Modules = [AxisIndices.AxisIndicesStyles]
 ```
 
 ## Indexing

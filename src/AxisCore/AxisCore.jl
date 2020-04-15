@@ -18,22 +18,6 @@ export
     AbstractSimpleAxis,
     Axis,
     SimpleAxis,
-    KeyedAxis,
-    IndexedAxis,
-    # Traits
-    AxisIndicesStyle,
-    KeyElement,
-    IndexElement,
-    BoolElement,
-    CartesianElement,
-    KeysCollection,
-    IndicesCollection,
-    IntervalCollection,
-    BoolsCollection,
-    KeysIn,
-    KeyEquals,
-    KeysFix2,
-    SliceCollection,
     # methods
     axes_keys,
     first_key,
@@ -41,16 +25,9 @@ export
     last_key,
     similar_axis,
     similar_axes,
-    promote_axis_collections,
     keys_type,
     indices,
     values_type,
-    is_element,
-    is_index,
-    is_collection,
-    is_key,
-    to_index,
-    to_keys,
     unsafe_reconstruct,
     maybetail,
     to_axis,
@@ -62,7 +39,6 @@ include("axis.jl")
 include("simpleaxis.jl")
 include("abstractaxisindices.jl")
 include("axisindicesarray.jl")
-include("styles.jl")
 include("promotion.jl")
 include("show.jl")
 

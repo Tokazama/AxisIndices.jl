@@ -9,7 +9,7 @@
         end
     end
 
-    @test step(SimpleAxis(2)) == 1
-    @test firstindex(Axis(1:10)) == firstindex(1:10)
+    @test @inferred(step(SimpleAxis(2))) == 1
+    @test @inferred(firstindex(Axis(1:10))) == firstindex(1:10)
 end
 

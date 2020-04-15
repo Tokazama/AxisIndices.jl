@@ -1,6 +1,4 @@
 
-using AxisIndices.Indexing: to_index
-#using AxisIndices.Indexing: axis_indices_styles
 
 @testset "traits" begin
     @testset "CombineStyle" begin

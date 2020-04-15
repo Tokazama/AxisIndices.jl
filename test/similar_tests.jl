@@ -7,7 +7,13 @@
     @test similar_type(typeof(Axis(1:10)), UnitRange{UInt}) <: Axis{UInt64,Int64,UnitRange{UInt64},Base.OneTo{Int64}}
 end
 
-@testset "similar" begin
+@testset "similar axes" begin
+    @test @inferred(similar(Axis(1:10), 1:10)) isa Axis{Int,Int,UnitRange{Int}}
+    @test @inferred(similar(Axis(UnitMRange(1, 10)), 1:10)) isa Axis{Int,Int,UnitMRange{Int}}
+    @test similar(Axis(UnitSRange(1, 10)), 1:10) isa Axis{Int,Int,<:UnitSRange{Int}}
+end
+
+@testset "similar arrays" begin
     x = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]);
     @test @inferred(similar(x, (1,1))) isa AxisIndicesArray{eltype(x),2}
     @test @inferred(similar(x, Int, (1,1))) isa AxisIndicesArray{Int,2}

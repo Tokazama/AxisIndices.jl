@@ -3,6 +3,7 @@ module Indexing
 
 using StaticRanges
 using AxisIndices.AxisCore
+using AxisIndices.AxisIndicesStyles
 using Base: @propagate_inbounds, OneTo, tail
 
 export

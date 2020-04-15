@@ -1,3 +1,32 @@
+module AxisIndicesStyles
+
+using IntervalSets
+using StaticRanges
+using AxisIndices.AxisCore
+using AxisIndices.AxisCore: _v2k, _k2v
+using Base: @propagate_inbounds, tail, Fix2
+
+export
+    AxisIndicesStyle,
+    # Traits
+    KeyElement,
+    IndexElement,
+    BoolElement,
+    CartesianElement,
+    KeysCollection,
+    IndicesCollection,
+    IntervalCollection,
+    BoolsCollection,
+    KeysIn,
+    KeyEquals,
+    KeysFix2,
+    SliceCollection,
+    is_element,
+    is_index,
+    is_collection,
+    is_key,
+    to_index,
+    to_keys
 
 if length(methods(isapprox, Tuple{Any})) == 0
     Base.isapprox(y; kwargs...) = x -> isapprox(x, y; kwargs...)
@@ -310,3 +339,4 @@ to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 @inline AxisIndicesStyle(::A, ::T) where {A, T} = AxisIndicesStyle(A, T)
 AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)
 
+end

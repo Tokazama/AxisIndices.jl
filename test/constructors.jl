@@ -22,7 +22,10 @@
 
     @test AxisIndices.to_axis(a1) == a1
 
+    @test Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(1:2) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
+    @test Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(UnitRange(UInt(1), UInt(2))) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
 
+    @test SimpleAxis{Int,UnitMRange{Int}}(Base.OneTo(10)) isa SimpleAxis{Int,UnitMRange{Int}}
     @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
 
     @test Axis{String,Int,Vector{String},Base.OneTo{Int}}(Axis(["a", "b"])) isa Axis{String,Int,Vector{String},Base.OneTo{Int}}

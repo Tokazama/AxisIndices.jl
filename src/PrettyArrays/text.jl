@@ -4,26 +4,26 @@ function pretty_array_text(
     data::AbstractMatrix,
     row=axes(data, 1),
     col=axes(data, 2);
-    alignment=get_alignment(row, col),
-    cell_alignment=get_cell_alignment(row, col),
+    #alignment=get_alignment(row, col),
+    #cell_alignment=get_cell_alignment(row, col),
     border_crayon::Crayon =text_border_crayon(row, col),
     header_crayon::Union{Crayon,Vector{Crayon}} = text_header_crayon(col),
     subheader_crayon::Union{Crayon,Vector{Crayon}} = text_subheader_crayon(row, col),
     text_crayon::Crayon = get_text_crayon(row, col),
-    autowrap::Bool = get_autowrap(row, col),
+    #autowrap::Bool = get_autowrap(row, col),
     body_hlines::Vector{Int} = get_body_hlines(row, col),
     body_hlines_format::Union{Nothing,NTuple{4,Char}} = get_body_hlines_format(row, col),
     crop::Symbol = get_crop(row, col),
-    columns_width::Union{Integer,AbstractVector{Int}} = get_columns_width(row, col),
-    highlighters::Union{Highlighter,Tuple} = text_highlighters(row, col),
-    linebreaks::Bool = get_linebreaks(row, col),
-    noheader::Bool = get_noheader(row, col),
-    nosubheader::Bool = get_nosubheader(row, col),
+    #columns_width::Union{Integer,AbstractVector{Int}} = get_columns_width(row, col),
+    #highlighters::Union{Highlighter,Tuple} = text_highlighters(row, col),
+    #linebreaks::Bool = get_linebreaks(row, col),
+    #noheader::Bool = get_noheader(row, col),
+    #nosubheader::Bool = get_nosubheader(row, col),
     rownum_header_crayon::Crayon = text_rownum_header_crayon(row),
     row_name_crayon::Crayon = text_row_name_crayon(row),
-    row_name_column_title=get_row_name_column_title(row),
+    #row_name_column_title=get_row_name_column_title(row),
     row_name_header_crayon::Crayon = text_row_name_header_crayon(row),
-    same_column_size::Bool = get_same_column_size(row, col),
+    #same_column_size::Bool = get_same_column_size(row, col),
     show_row_number::Bool = false,
     sortkeys::Bool = false,
     tf::TextFormat = text_format(row, col),
@@ -36,27 +36,27 @@ function pretty_array_text(
         io,
         data,
         keys(col);
-        alignment=alignment,
-        cell_alignment=cell_alignment,
+        #alignment=alignment,
+        #cell_alignment=cell_alignment,
         row_names=keys(row),
-        row_name_column_title=row_name_column_title,
+        #row_name_column_title=row_name_column_title,
         border_crayon=border_crayon,
         header_crayon=header_crayon,
         subheader_crayon=subheader_crayon,
         rownum_header_crayon=rownum_header_crayon,
         text_crayon=text_crayon,
-        autowrap=autowrap,
+        #autowrap=autowrap,
         body_hlines=body_hlines,
         body_hlines_format=body_hlines_format,
         crop=crop,
-        columns_width=columns_width,
-        highlighters=highlighters,
-        linebreaks=linebreaks,
-        noheader=noheader,
-        nosubheader=nosubheader,
+        #columns_width=columns_width,
+        #highlighters=highlighters,
+        #linebreaks=linebreaks,
+        #noheader=noheader,
+        #nosubheader=nosubheader,
         row_name_crayon=row_name_crayon,
         row_name_header_crayon=row_name_header_crayon,
-        same_column_size=same_column_size,
+        #same_column_size=same_column_size,
         tf=tf,
         hlines=hlines,
         vlines=vlines,
@@ -70,26 +70,26 @@ function pretty_array_text(
     data::AbstractVector,
     row=axes(data, 1);
     col=Base.OneTo(1),
-    alignment=get_alignment(row, col),
-    cell_alignment=get_cell_alignment(row, col),
+    #alignment=get_alignment(row, col),
+    #cell_alignment=get_cell_alignment(row, col),
     border_crayon::Crayon =text_border_crayon(row, col),
     header_crayon::Union{Crayon,Vector{Crayon}} = text_header_crayon(col),
     subheader_crayon::Union{Crayon,Vector{Crayon}} = text_subheader_crayon(row, col),
     text_crayon::Crayon = get_text_crayon(row, col),
-    autowrap::Bool = get_autowrap(row, col),
+    #autowrap::Bool = get_autowrap(row, col),
     body_hlines::Vector{Int} = get_body_hlines(row, col),
     body_hlines_format::Union{Nothing,NTuple{4,Char}} = get_body_hlines_format(row, col),
     crop::Symbol = get_crop(row, col),
-    columns_width::Union{Integer,AbstractVector{Int}} = get_columns_width(row, col),
-    highlighters::Union{Highlighter,Tuple} = text_highlighters(row, col),
-    linebreaks::Bool = get_linebreaks(row, col),
-    noheader::Bool = get_noheader(row, col),
-    nosubheader::Bool = get_nosubheader(row, col),
+    #columns_width::Union{Integer,AbstractVector{Int}} = get_columns_width(row, col),
+    #highlighters::Union{Highlighter,Tuple} = text_highlighters(row, col),
+    #linebreaks::Bool = get_linebreaks(row, col),
+    #noheader::Bool = get_noheader(row, col),
+    #nosubheader::Bool = get_nosubheader(row, col),
     rownum_header_crayon::Crayon = text_rownum_header_crayon(row),
     row_name_crayon::Crayon = text_row_name_crayon(row),
-    row_name_column_title=get_row_name_column_title(row),
+    #row_name_column_title=get_row_name_column_title(row),
     row_name_header_crayon::Crayon = text_row_name_header_crayon(row),
-    same_column_size::Bool = get_same_column_size(row, col),
+    #same_column_size::Bool = get_same_column_size(row, col),
     show_row_number::Bool = false,
     sortkeys::Bool = false,
     tf::TextFormat = text_format(row, col),
@@ -102,27 +102,27 @@ function pretty_array_text(
         io,
         data,
         [""];
-        alignment=alignment,
-        cell_alignment=cell_alignment,
+        #alignment=alignment,
+        #cell_alignment=cell_alignment,
         row_names=keys(row),
-        row_name_column_title=row_name_column_title,
+        #row_name_column_title=row_name_column_title,
         border_crayon=border_crayon,
         header_crayon=header_crayon,
         subheader_crayon=subheader_crayon,
         rownum_header_crayon=rownum_header_crayon,
         text_crayon=text_crayon,
-        autowrap=autowrap,
+        #autowrap=autowrap,
         body_hlines=body_hlines,
         body_hlines_format=body_hlines_format,
         crop=crop,
-        columns_width=columns_width,
-        highlighters=highlighters,
-        linebreaks=linebreaks,
-        noheader=noheader,
-        nosubheader=nosubheader,
+        #columns_width=columns_width,
+        #highlighters=highlighters,
+        #linebreaks=linebreaks,
+        #noheader=noheader,
+        #nosubheader=nosubheader,
         row_name_crayon=row_name_crayon,
         row_name_header_crayon=row_name_header_crayon,
-        same_column_size=same_column_size,
+        #same_column_size=same_column_size,
         tf=tf,
         hlines=hlines,
         vlines=vlines,
@@ -139,8 +139,9 @@ text_rownum_header_crayon(row) = Crayon(bold = true)
 
 An instance of `Highlighter` or a tuple with a list of text highlighters (see the
 section `Text highlighters`)
-=#
+
 text_highlighters(row::AbstractUnitRange, col::AbstractUnitRange) = ()
+=#
 
 #=
     text_row_name_crayon(x) -> Crayon
@@ -182,9 +183,9 @@ get_text_crayon(row, col) = Crayon()
 If `true`, then the text will be wrapped on spaces to fit the column. Notice that
 this function requires `linebreaks = true` and the column must have a fixed size
 (see `columns_width`).
-=#
-get_autowrap(row::AbstractUnitRange, col::AbstractUnitRange) = false
 
+get_autowrap(row::AbstractUnitRange, col::AbstractUnitRange) = false
+=#
 
 #=
     text_border_crayon(row, col)
@@ -214,16 +215,18 @@ get_hlines(row::AbstractUnitRange, col::AbstractUnitRange) = nothing
     get_linebreaks(x) -> Bool
 
 If `true`, then `\\n` will break the line inside the cells. (**Default** = `false`)
-=#
+
 get_linebreaks(row::AbstractUnitRange, col::AbstractUnitRange) = false
+=#
 
 #=
     get_noheader(x) -> Bool
 
 If `true`, then the header will not be printed. Notice that all keywords and
 parameters related to the header and sub-headers will be ignored. (**Default** = `false`)
-=#
+
 get_noheader(row::AbstractUnitRange, col::AbstractUnitRange) = false
+=#
 
 #=
     get_nosubheader -> Bool
@@ -231,15 +234,17 @@ get_noheader(row::AbstractUnitRange, col::AbstractUnitRange) = false
 If `true`, then the sub-header will not be printed, *i.e.* the header will contain
 only one line. Notice that this option has no effect if `noheader = true`.
 (**Default** = `false`)
-=#
+
 get_nosubheader(row::AbstractUnitRange, col::AbstractUnitRange) = false
+=#
 
 #=
     get_same_column_size -> Bool
 
 If `true`, then all the columns will have the same size. (**Default** = `false`)
-=#
+
 get_same_column_size(row::AbstractUnitRange, col::AbstractUnitRange) = false
+=#
 
 #=
     get_columns_width(row, col)
@@ -248,8 +253,9 @@ A set of integers specifying the width of each column. If the width is equal or
 lower than 0, then it will be automatically computed to fit the large cell in
 the column. If it is a single integer, then this number will be used as the size
 of all columns. (**Default** = 0)
-=#
+
 get_columns_width(row::AbstractUnitRange, col::AbstractUnitRange) = 0
+=#
 
 #=
     get_crop(row, col)

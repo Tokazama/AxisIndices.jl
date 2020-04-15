@@ -8,6 +8,7 @@ using Dates
 using IntervalSets
 using AxisIndices
 using AxisIndices.AxisCore
+using AxisIndices.AxisIndicesStyles
 using AxisIndices.Indexing
 using AxisIndices.Basics
 using AxisIndices.Names

@@ -46,10 +46,6 @@ export
     StepSRange,
     UnitMRange,
     UnitSRange,
-    PromoteStyle,
-    PromoteConvert,
-    PromoteAxis,
-    PromoteSimpleAxis,
     dimnames,
     dim,
     # methods
@@ -65,7 +61,6 @@ export
     ⩔,
     ..,
     indices,
-    reindex,
     axes_keys,
     pretty_array
 
@@ -74,6 +69,9 @@ using .PrettyArrays
 
 include("./AxisCore/AxisCore.jl")
 using .AxisCore
+
+include("./AxisIndicesStyles/AxisIndicesStyles.jl")
+using .AxisIndicesStyles
 
 include("./Indexing/Indexing.jl")
 using .Indexing
