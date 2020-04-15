@@ -1,6 +1,11 @@
 # TimeAxis Guide
 
 Here we define an axis that specifically supports time.
+First, we compose the type and necessary methods for accessing it's properties and constructing it.
+Second, we define a new trait that changes indexing.
+
+## 1. The TimeAxis Type
+
 This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
 ```jldoctest time_axis_example
 julia> using AxisIndices, Dates, Unitful
@@ -41,7 +46,14 @@ julia> function AxisIndices.similar_type(
        end
 ```
 
-Here are some extras to make it more useful.
+## 2. The TimeStampCollection Trait
+
+Not only do we want to store discrete intervals of time with labels in the axis, but we want to reference them in a very simple way for indexing.
+In other words, if we have previously assigned `:time1` the interval of 1 to 3 seconds, then we should be able to do `axis[:time1]` to index the axis instead of doing `axis[axis.times[:time1]]`.
+However, the default indexing behavior is to look for a `Symbol` in the keys of an axis.
+We want to tell the indexing pipeline that when we provide a `Symbol` with a `TimeAxis` we want to lookup the argument in `axis.times` and then pass the result to the typical indexing protocol.
+So we make a new trait that for this.
+
 ```jldoctest time_axis_example
 julia> Base.setindex!(t::TimeAxis, val, i::Symbol) = t.times[i] = val
 
@@ -61,6 +73,8 @@ julia> function AxisIndices.to_keys(::TimeStampCollection, axis, arg, index)
            return AxisIndices.to_keys(t.axis, t.times[arg], index)
        end
 ```
+
+## TimeAxis in Action
 
 Now we can access the time points of this access by the `Symbols` that correspond to intervals of time.
 ```jldoctest time_axis_example
@@ -86,7 +100,7 @@ true
 
 ```
 
-And now we have a time series array.
+This can naturally turn any array that is an `AbstractAxisIndices` subtype into a collection of time series data.
 ```jldoctest time_axis_example
 julia> x = AxisIndicesArray(collect(1:2:20), t);
 

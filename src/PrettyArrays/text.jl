@@ -1,7 +1,7 @@
 
 function pretty_array_text(
     io,
-    data::AbstractVecOrMat,
+    data::AbstractMatrix,
     row=axes(data, 1),
     col=axes(data, 2);
     alignment=get_alignment(row, col),
@@ -36,6 +36,72 @@ function pretty_array_text(
         io,
         data,
         keys(col);
+        alignment=alignment,
+        cell_alignment=cell_alignment,
+        row_names=keys(row),
+        row_name_column_title=row_name_column_title,
+        border_crayon=border_crayon,
+        header_crayon=header_crayon,
+        subheader_crayon=subheader_crayon,
+        rownum_header_crayon=rownum_header_crayon,
+        text_crayon=text_crayon,
+        autowrap=autowrap,
+        body_hlines=body_hlines,
+        body_hlines_format=body_hlines_format,
+        crop=crop,
+        columns_width=columns_width,
+        highlighters=highlighters,
+        linebreaks=linebreaks,
+        noheader=noheader,
+        nosubheader=nosubheader,
+        row_name_crayon=row_name_crayon,
+        row_name_header_crayon=row_name_header_crayon,
+        same_column_size=same_column_size,
+        tf=tf,
+        hlines=hlines,
+        vlines=vlines,
+        formatters=formatters,
+        kwargs...
+    )
+end
+
+function pretty_array_text(
+    io,
+    data::AbstractVector,
+    row=axes(data, 1);
+    col=Base.OneTo(1),
+    alignment=get_alignment(row, col),
+    cell_alignment=get_cell_alignment(row, col),
+    border_crayon::Crayon =text_border_crayon(row, col),
+    header_crayon::Union{Crayon,Vector{Crayon}} = text_header_crayon(col),
+    subheader_crayon::Union{Crayon,Vector{Crayon}} = text_subheader_crayon(row, col),
+    text_crayon::Crayon = get_text_crayon(row, col),
+    autowrap::Bool = get_autowrap(row, col),
+    body_hlines::Vector{Int} = get_body_hlines(row, col),
+    body_hlines_format::Union{Nothing,NTuple{4,Char}} = get_body_hlines_format(row, col),
+    crop::Symbol = get_crop(row, col),
+    columns_width::Union{Integer,AbstractVector{Int}} = get_columns_width(row, col),
+    highlighters::Union{Highlighter,Tuple} = text_highlighters(row, col),
+    linebreaks::Bool = get_linebreaks(row, col),
+    noheader::Bool = get_noheader(row, col),
+    nosubheader::Bool = get_nosubheader(row, col),
+    rownum_header_crayon::Crayon = text_rownum_header_crayon(row),
+    row_name_crayon::Crayon = text_row_name_crayon(row),
+    row_name_column_title=get_row_name_column_title(row),
+    row_name_header_crayon::Crayon = text_row_name_header_crayon(row),
+    same_column_size::Bool = get_same_column_size(row, col),
+    show_row_number::Bool = false,
+    sortkeys::Bool = false,
+    tf::TextFormat = text_format(row, col),
+    hlines::Union{Nothing,Symbol,AbstractVector} = get_hlines(row, col),
+    vlines::Union{Nothing,Symbol,AbstractVector} = get_vlines(row, col),
+    formatters=get_formatters(data),
+    kwargs...
+)
+    pretty_table(
+        io,
+        data,
+        [""];
         alignment=alignment,
         cell_alignment=cell_alignment,
         row_names=keys(row),

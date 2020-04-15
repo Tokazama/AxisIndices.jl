@@ -10,7 +10,7 @@ makedocs(;
         "Manual" => [
             "The Axis" => "axis.md",
             "Internals of Indexing" => "internals_of_indexing.md",
-            "Combining Axes" => "combining_axes.md",
+            #"Combining Axes" => "combining_axes.md", TODO better document this and test LazyArrays.Vcat more
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
         ],

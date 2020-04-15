@@ -15,4 +15,7 @@ In other words, the current version can only support multi-mapping multiple `Abs
 
 [NamedDims.jl](https://github.com/invenia/NamedDims.jl)
 
+## OffsetArrays
+
+Many of the tests used for `OffsetArrays` package have been incorporated into the tests of `AxisIndices` to ensure compatibility.
 

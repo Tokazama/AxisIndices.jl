@@ -69,6 +69,9 @@ export
     axes_keys,
     pretty_array
 
+include("./PrettyArrays/PrettyArrays.jl")
+using .PrettyArrays
+
 include("./AxisCore/AxisCore.jl")
 using .AxisCore
 
@@ -86,9 +89,6 @@ using .Mapped
 
 include("./Names/Names.jl")
 using .Names
-
-include("./PrettyArrays/PrettyArrays.jl")
-using .PrettyArrays
 
 end
 

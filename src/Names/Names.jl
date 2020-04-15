@@ -3,7 +3,7 @@ module Names
 
 using StaticRanges
 using NamedDims
-using PrettyTables
+using AxisIndices.PrettyArrays
 using AxisIndices.AxisCore
 using Base: @propagate_inbounds
 
@@ -145,6 +145,14 @@ end
     return NamedDims.NamedDimsArray{L}(p)
 end
 =#
+
+Base.show(io::IO, x::NIArray; kwargs...) = show(io, MIME"text/plain"(), x, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", x::NIArray{L,T,N}; kwargs...) where {L,T,N}
+    println(io, "$(typeof(x).name.name){$T,$N,$(parent_type(parent(x)))...}")
+    return show_array(io, x, axes(x), dimnames(x); kwargs...)
+    #println(io, "$N-dimensional $(typeof(x).name.name){$T,$N,$(parent_type(parent(x)))...}")
+    #return pretty_array(io, parent(parent(x)), named_axes(x); kwargs...)
+end
 
 end
 

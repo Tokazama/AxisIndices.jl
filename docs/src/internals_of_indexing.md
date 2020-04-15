@@ -1,9 +1,13 @@
 # Internals of Indexing
 
-Indexing has 3 steps.
-1. Mapping to indices
-2. Retrieving elements
-3. Reconstructing axes
+This section is those who want to understand how indexing is implemented in `AxisIndices` and some of the logic behind it.
+It goes over:
+
+* The three steps of indexing.
+    1. Mapping to indices
+    2. Retrieving elements
+    3. Reconstructing axes
+* Introduction to `AxisIndicesStyle` traits
 
 ## Mapping to Indices
 
@@ -50,7 +54,18 @@ Instead of passing each argument to `to_index` they're passed to `to_key` [^2].
 AxisIndices.to_key(axis, arg, index) = to_key(AxisIndicesStyle(axis, arg), axis, arg, index)
 ```
 
-The resulting keys produced are combined with the relevant indices of the new array to reconstruct the axis.
+The resulting keys produced are combined with the relevant indices of the new array to reconstruct the axis[^3].
 
-[^1]: There's absolutely no functionality provided from `Base.to_index` that isn't already available with `AxisIndices.to_index`. Therefore, even though it isn't absolutely necessary it provides a clean break from what happens in `Base`.
-[^2]: Why do we need the `index` produced in the previous `to_index` method? Technically we don't, but it allows use to avoid looking up indices a second time and ensuring they are inbounds.
+## AxisIndicesStyle
+
+You may have noticed that `AxisIndicesStyle` is in the last part of `to_index` and `to_key` described.
+`AxisIndicesStyle` is the supertype for a set of traits that determine what each argument means in the context of an axis.
+For example, `AxisIndicesStyle(::AbstractAxis, ::Integer)` returns `IndexElement`, telling `to_index` and `to_key` that the provided argument directly corresponds to an index with an axis.
+Contrast this with `KeyElement` which tells `to_index` to find the position of the provided argument within the keys and return the corresponding index.
+These traits are fully responsible for dispatch to `to_index` and `to_keys`.
+Therefore, new subtypes of `AxisIndicesStyle` must define a `to_index` and `to_keys` method.
+
+
+[^1]: There's absolutely no functionality provided from `Base.to_index` that isn't already available with `AxisIndices.to_index`. Providing a seperate implementation is meant to avoid causing any unecessary ambiguities in this or any other packages that may be simultaneously loaded.
+[^2]: Why do we need the `index` produced in the previous `to_index` method to reconstruct keys? Technically we don't, but it allows use to avoid looking up indices a second time and ensuring they are inbounds.
+[^3]: It is at this point that `unsafe_reconstruct` is called. This is only important to know if you want to create a new axis type that has keys that require some unique procedure to reconstruct.

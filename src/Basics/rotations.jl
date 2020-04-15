@@ -1,6 +1,10 @@
 
 """
-## AxisIndices Examples
+    rot180(A::AbstractAxisIndices)
+
+Rotate `A` 180 degrees, along with its axes keys.
+
+## Examples
 ```jldoctest
 julia> using AxisIndices
 
@@ -47,7 +51,11 @@ end
 
 
 """
-## AxisIndices Examples
+    rotr90(A::AbstractAxisIndices)
+
+Rotate `A` right 90 degrees, along with its axes keys.
+
+## Examples
 ```jldoctest
 julia> using AxisIndices
 
@@ -84,7 +92,11 @@ function unsafe_rotr90(x::AbstractAxisIndices, p::AbstractArray)
 end
 
 """
-## AxisIndices Examples
+    rotl90(A::AbstractAxisIndices)
+
+Rotate `A` left 90 degrees, along with its axes keys.
+
+## Examples
 ```jldoctest
 julia> using AxisIndices
 

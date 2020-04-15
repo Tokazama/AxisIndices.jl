@@ -1,13 +1,13 @@
 
 module AxisCore
 
-using StaticRanges
+using AxisIndices.PrettyArrays
 using IntervalSets
-using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
-using Base: @propagate_inbounds, OneTo, tail, front, Fix2
+using StaticRanges
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type,
     checkindexlo, checkindexhi, OneToUnion
-
+using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using Base: @propagate_inbounds, OneTo, tail, front, Fix2
 export
     AbstractAxisIndices,
     AbstractAxisIndicesMatrix,
