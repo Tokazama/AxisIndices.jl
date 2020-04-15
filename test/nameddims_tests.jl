@@ -12,5 +12,3 @@
     @test @inferred(A[1:10]) == 1:10
 end
 
-
-

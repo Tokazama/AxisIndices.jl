@@ -1,11 +1,13 @@
 @testset "Linear Algebra" begin
     @testset "lu" begin
         m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
-        x = lu(m)
+        x = @inferred(lu(m))
 
         @test axes_keys(m[x.p, :]) == (keys(axes(m, 1))[x.p], 3:4)
+        @test x.factors == lu(parent(m)).factors
     end
 
+    # FIXME inferrence for eigen
     @testset "eigen" begin
         m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
         x = eigen(m)
@@ -23,15 +25,22 @@
         @test keys.(axes(x.S)) == (1:2,)
     end
 
+    @testset "LQ" begin
+        m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
+        x = @inferred(lq(m))
+        @test x.factors == lq(parent(m)).factors
+    end
+
     @testset "qr" begin
         for pivot in (true, false)
             for data in ([1.0 2; 3 4], [big"1.0" 2; 3 4])
                 m = AxisIndicesArray(data, (2:3, 3:4))
-                x = qr(m, Val(pivot));
+                x = @inferred(qr(m, Val(pivot)));
 
                 @test keys.(axes(x.Q)) == (2:3, 1:2)
                 @test keys.(axes(x.R)) == (1:2, 3:4)
                 @test keys.(axes(x.Q * x.R)) == (2:3, 3:4)
+                @test x.factors == qr(parent(m), Val(pivot)).factors
 
                 pivot && @testset "pivoted" begin
                     @test x isa QRPivoted

@@ -29,7 +29,7 @@
     @test !Base.checkindex(Bool, x2, 1:1:3)
 
     # trigger errors when functions return bad indices
-    @test_throws BoundsError Base.to_index(Axis(1:10), ==(11))
+    @test_throws BoundsError to_index(Axis(1:10), ==(11))
 
 end
 

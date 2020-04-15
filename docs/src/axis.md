@@ -61,7 +61,7 @@ SimpleAxis(3:5)
 
 This also allows certain syntax special treatment because they are obviously not referring to traditional integer based indexing.
 ```jldoctest intro_axis_examples
-julia> x, y, z = Axis((:one, :two, :three)), Axis(["one", "two", "three"]), Axis(Second(1):Second(1):Second(3));
+julia> x, y, z = Axis([:one, :two, :three]), Axis(["one", "two", "three"]), Axis(Second(1):Second(1):Second(3));
 
 julia> x[:one]
 1
@@ -147,55 +147,7 @@ However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
 
-
-## Reindexing Axes
-
-```@docs
-AxisIndices.reindex
-AxisIndices.unsafe_reindex
-```
-## Reducing Axes
-
-```@docs
-AxisIndices.reduce_axes
-AxisIndices.reduce_axis
-```
 ## Resizing Axes
 
 These methods help with operations that need to resize axes, either dynamically or by creating a new instance of an axis. In addition to helping with operations related to array resizing, these may be useful for managing the axis of a vector throughout a `push!`, `pushfirst!`, `pop`, and `popfirst!` operation.
-
-```@docs
-AxisIndices.resize_first
-AxisIndices.resize_first!
-AxisIndices.resize_last
-AxisIndices.resize_last!
-
-AxisIndices.grow_first
-AxisIndices.grow_first!
-AxisIndices.grow_last
-AxisIndices.grow_last!
-
-AxisIndices.shrink_first
-AxisIndices.shrink_first!
-AxisIndices.shrink_last
-AxisIndices.shrink_last!
-
-AxisIndices.next_type
-AxisIndices.prev_type
-```
-
-## Axis Types and Related Methods
-
-```@docs
-AxisIndices.AbstractAxis
-AxisIndices.AbstractSimpleAxis
-AxisIndices.Axis
-AxisIndices.SimpleAxis
-AxisIndices.CartesianAxes
-AxisIndices.LinearAxes
-AxisIndices.values_type
-AxisIndices.keys_type
-AxisIndices.first_key
-AxisIndices.last_key
-```
 

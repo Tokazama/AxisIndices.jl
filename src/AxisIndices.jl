@@ -1,14 +1,24 @@
+
 module AxisIndices
 
-using StaticRanges, LinearAlgebra, Statistics, Dates, PrettyTables, MappedArrays
-using Base: @propagate_inbounds, OneTo, to_index, tail, front, Fix2
-using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using StaticRanges
+using Statistics
+using Dates
+using IntervalSets
+using MappedArrays
+using PrettyTables
+using LinearAlgebra
+using Base: @propagate_inbounds, OneTo, tail, front, Fix2
 using Base.Cartesian
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi, F2Eq
-
-import Base: rot180, rotr90, rotl90
+using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
+    # Modules
+    # Interface,
+    # Indexing,
+    # Arrays,
+    # Math,
+    # Names,
     # Types
     AbstractAxisIndices,
     AxisIndicesArray,
@@ -18,6 +28,9 @@ export
     SimpleAxis,
     CartesianAxes,
     LinearAxes,
+    NamedIndicesArray,
+    NamedDimsArray,
+    NIArray,
     # Reexport types
     SimpleAxis,
     LinMRange,
@@ -33,10 +46,8 @@ export
     StepSRange,
     UnitMRange,
     UnitSRange,
-    PromoteStyle,
-    PromoteConvert,
-    PromoteAxis,
-    PromoteSimpleAxis,
+    dimnames,
+    dim,
     # methods
     srange,
     mrange,
@@ -45,29 +56,37 @@ export
     first_key,
     last_key,
     and,
+    ⩓,
     or,
+    ⩔,
+    ..,
     indices,
-    reindex,
     axes_keys,
     pretty_array
 
-include("abstractaxis.jl")
-include("abstractarray.jl")
-include("traits.jl")
-include("indexing.jl")
-include("broadcast_axis.jl")
-include("cat_axis.jl")
-include("append_axis.jl")
-include("functions.jl")
-include("cat.jl")
-include("reduce.jl")
-include("dimensions.jl")
-include("mutate.jl")
-include("promotion.jl")
-include("broadcast.jl")
-include("linear_algebra.jl")
-include("io.jl")
-include("mapped_arrays.jl")
-include("nameddims.jl")
+include("./PrettyArrays/PrettyArrays.jl")
+using .PrettyArrays
+
+include("./AxisCore/AxisCore.jl")
+using .AxisCore
+
+include("./AxisIndicesStyles/AxisIndicesStyles.jl")
+using .AxisIndicesStyles
+
+include("./Indexing/Indexing.jl")
+using .Indexing
+
+include("./Basics/Basics.jl")
+using .Basics
+
+include("./Math/Math.jl")
+using .Math
+
+include("./Mapped/Mapped.jl")
+using .Mapped
+
+include("./Names/Names.jl")
+using .Names
 
 end
+
