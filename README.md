@@ -9,3 +9,4 @@ Here are some reasons you should try AxisIndices
 
 The linked documentation provides a very brief ["Quick Start"](https://tokazama.github.io/AxisIndices.jl/dev/quick_start/) section along with detailed documentation of internal methods and types.
 
+<img src="docs/src/images/julia_dots.png" width="400">
