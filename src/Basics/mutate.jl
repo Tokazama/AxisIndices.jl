@@ -146,7 +146,6 @@ julia> using AxisIndices
 julia> x = AxisIndicesArray([1, 2, 3, 4]);
 
 julia> deleteat!(x, 3)
-
 AxisIndicesArray{Int64,1,Array{Int64,1}...}
  • dim_1 - SimpleAxis(OneToMRange(3))
 
