@@ -93,12 +93,13 @@ internal use.
 
 """
     to_index(axis, arg) -> to_index(AxisIndicesStyle(axis, arg), axis, arg)
+
+Unique implementation of `to_index` for the `AxisIndices` package that specializes
+based on each axis and indexing argument (as opposed to the array and indexing argument).
 """
 @propagate_inbounds function to_index(axis, arg)
     return to_index(AxisIndicesStyle(axis, arg), axis, arg)
 end
-
-
 
 """
     KeyElement
@@ -119,8 +120,7 @@ AxisIndicesStyle(::Type{T}) where {T} = KeyElement()
     end
     return _k2v(axis, mapping)
 end
-
-
+to_keys(::KeyElement, axis, arg, index) = arg
 
 """
     IndexElement
@@ -140,6 +140,10 @@ AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
         throw(BoundsError(axis, arg))
     end
     return arg
+end
+
+function to_keys(::IndexElement, axis, arg, index)
+    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
 end
 
 """
@@ -336,7 +340,7 @@ AxisIndicesStyle(::Type{<:Base.Slice}) = SliceCollection()
 to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 
 # we throw `axis` in there in case someone want's to change the default
-@inline AxisIndicesStyle(::A, ::T) where {A, T} = AxisIndicesStyle(A, T)
+@inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)
 AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)
 
 end

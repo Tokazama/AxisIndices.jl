@@ -80,6 +80,7 @@ end
     @testset "KeyElement" begin
         @test @inferred(to_index(x, "b")) == 2
         @test_throws BoundsError to_index(x, "c")
+        @test @inferred(to_keys(x, "b", 2)) == "b"
     end
 
     @testset "KeysCollection" begin
@@ -95,6 +96,7 @@ end
     @testset "IndexElement" begin
         @test @inferred(to_index(x, 2)) == 2
         @test_throws BoundsError to_index(x, 3)
+        @test @inferred(to_keys(x, 2, 2)) == "b"
     end
     @testset "IndicesCollection" begin
         @test @inferred(to_index(x, 1:2)) == [1, 2]
