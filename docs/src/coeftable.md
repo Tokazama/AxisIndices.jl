@@ -89,6 +89,7 @@ julia> cfa[1,:]
 ## Automating the table
 
 We can actually do even better if this format should always be the default by making a new axis type and redefining the `coefarray` method.
+The following will result in any array with a `CoefHeader` printing exactly how we'd like it to by default.
 Note that this is a quick and dirty way of getting a new axis.
 See `TimeAxis Guide` for a better guide on making an axis.
 ```julia
@@ -115,10 +116,7 @@ julia> function coefarray(mm::StatsModels.TableRegressionModel; level::Real=0.95
                CoefHeader())
            )
        end;
-```
 
-Now any array with a `CoefHeader` prints exactly how we'd like it to by default.
-```julia
 julia> cfa = coefarray(ols)
 2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
  ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -127,5 +125,5 @@ julia> cfa = coefarray(ols)
   (Intercept)   -0.66666667   0.62360956   -1.06904497   0.47876359   -8.59037747   7.25704413
             X           2.5   0.28867513    8.66025404    0.0731864   -1.16796536   6.16796536
  ──────────────────────────────────────────────────────────────────────────────────────────────
- ```
 
+```
