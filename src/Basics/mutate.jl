@@ -129,3 +129,57 @@ end
 
 Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
+
+"""
+    deleteat!(a::AbstractAxisIndicesVector, arg)
+
+Remove the items corresponding to `A[arg]`, and return the modified `a`. Subsequent
+items are shifted to fill the resulting gap. If the axis of `a` is an `AbstractSimpleAxis`
+then it is shortened to match the length of `a`. If the 
+
+  inds can be either an iterator or a collection of sorted and unique integer indices, or a boolean vector of the same length as a with true indicating entries to delete.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> x = AxisIndicesArray([1, 2, 3, 4]);
+
+julia> deleteat!(x, 3)
+
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - SimpleAxis(OneToMRange(3))
+
+  1   1
+  2   2
+  3   4
+
+
+julia> x = AxisIndicesArray([1, 2, 3, 4], ["a", "b", "c", "d"]);
+
+julia> deleteat!(x, "c")
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - Axis(["a", "b", "d"] => OneToMRange(3))
+
+  a   1
+  b   2
+  d   4
+
+
+```
+"""
+function Base.deleteat!(A::AbstractAxisIndices{T,1,P,Tuple{Ax1}}, arg) where {T,P,Ax1<:AbstractSimpleAxis}
+    inds = to_index(axes(A, 1), arg)
+    StaticRanges.shrink_last!(axes(A, 1), length(inds))
+    deleteat!(parent(A), inds)
+    return A
+end
+
+function Base.deleteat!(A::AbstractAxisIndices{T,1,P,Tuple{Ax1}}, arg) where {T,P,Ax1<:AbstractAxis}
+    inds = to_index(axes(A, 1), arg)
+    deleteat!(axes_keys(A, 1), inds)
+    StaticRanges.shrink_last!(indices(A, 1), length(inds))
+    deleteat!(parent(A), inds)
+    return A
+end
+
