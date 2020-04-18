@@ -1,10 +1,10 @@
 
-"""
+#=
     AxisIndicesArrayStyle{S}
 
 This is a `BroadcastStyle` for AxisIndicesArray's It preserves the dimension
 names. `S` should be the `BroadcastStyle` of the wrapped type.
-"""
+=#
 struct AxisIndicesArrayStyle{S <: BroadcastStyle} <: AbstractArrayStyle{Any} end
 AxisIndicesArrayStyle(::S) where {S} = AxisIndicesArrayStyle{S}()
 AxisIndicesArrayStyle(::S, ::Val{N}) where {S,N} = AxisIndicesArrayStyle(S(Val(N)))
@@ -30,13 +30,13 @@ Base.BroadcastStyle(a::A, ::AxisIndicesArrayStyle{B}) where {A, B} = AxisIndices
 Base.BroadcastStyle(::AxisIndicesArrayStyle{A}, b::DefaultArrayStyle) where {A} = AxisIndicesArrayStyle(A(), b)
 Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::AxisIndicesArrayStyle{B}) where {B,M} = AxisIndicesArrayStyle(a, B())
 
-"""
+#=
     unwrap_broadcasted
 
 Recursively unwraps `AbstractAxisIndices`s and `AxisIndicesArrayStyle`s.
 replacing the `AbstractAxisIndices`s with the wrapped array,
 and `AxisIndicesArrayStyle` with the wrapped `BroadcastStyle`.
-"""
+=#
 function unwrap_broadcasted(bc::Broadcasted{AxisIndicesArrayStyle{S}}) where S
     return Broadcasted{S}(bc.f, map(unwrap_broadcasted, bc.args))
 end

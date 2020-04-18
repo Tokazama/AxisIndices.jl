@@ -1,32 +1,33 @@
 
 """
-    diagonal_axes(x::Tuple{<:AbstractAxis,<:AbstractAxis}) -> collection
+    diag(M::AbstractAxisIndicesMatrix, k::Integer=0; dim::Val=Val(1))
 
-Determines the appropriate axis for the resulting vector from a call to
-`diag(::AxisIndicesMatrix)`. The default behavior is to place the smallest axis
-at the beginning of a call to `combine` (e.g., `broadcast_axis(small_axis, big_axis)`).
+The `k`th diagonal of an `AbstractAxisIndicesMatrix`, `M`. The keyword argument
+`dim` specifies which which dimension's axis to preserve, with the default being
+the first dimension. This can be change by specifying `dim=Val(2)` instead.
 
-## Examples
 ```jldoctest
-julia> using AxisIndices
+julia> using AxisIndices, LinearAlgebra
 
-julia> AxisIndices.diagonal_axes((Axis(string.(2:5)), SimpleAxis(1:2)))
-Axis(["1", "2"] => UnitMRange(1:2))
+julia> A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
 
-julia> AxisIndices.diagonal_axes((SimpleAxis(1:3), Axis(string.(2:5))))
-Axis(["1", "2", "3"] => UnitMRange(1:3))
+
+julia> diag(A)
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - Axis(["a", "b", "c"] => OneToMRange(3))
+
+  a   1
+  b   5
+  c   9
+
+
+julia> axes(diag(A, 1; dim=Val(2)), 1)
+Axis([:one, :two] => OneToMRange(2))
+
 ```
 """
-function diagonal_axes(x::NTuple{2,Any})
-    m, n = length(first(x)), length(last(x))
-    if m > n
-        return broadcast_axis(last(x), first(x))
-    else
-        return broadcast_axis(first(x), last(x))
-    end
-end
-
-function LinearAlgebra.diag(x::AbstractAxisIndices{T,2}) where {T}
-    return AxisIndicesArray(diag(parent(x)), (diagonal_axes(axes(x)),))
+function LinearAlgebra.diag(M::AbstractAxisIndices{T,2}, k::Integer=0; dim::Val{D}=Val(1)) where {T,D}
+    p = diag(parent(M), k)
+    return unsafe_reconstruct(M, p, (assign_indices(axes(M, D), axes(p, 1)),))
 end
 

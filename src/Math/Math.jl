@@ -9,7 +9,7 @@ using AxisIndices.Basics
 
 using Base: OneTo
 
-export diagonal_axes, covcor_axes, matmul_axes, get_factorization
+export matmul_axes, get_factorization
 
 """
     get_factorization(F::Factorization, A::AbstractArray, d::Symbol)

@@ -46,7 +46,6 @@
                     @test x isa QRPivoted
                     @test keys.(axes(x.p)) == (2:3,)
                     @test keys.(axes(x.P)) == (2:3, 2:3)
-
                     @test keys.(axes(x.P * m)) == (2:3, 3:4)
                     @test keys.(axes(m[x.p, :])) == (keys(axes(m, 1))[x.p], 3:4)
                 end
@@ -55,8 +54,10 @@
     end
 
     @testset "diagonal" begin
-        m = AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))
-        @test diag(m) == diag(parent(m))
+        m = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"]);
+        @test @inferred(diag(m)) == diag(parent(m))
+        @test @inferred(diag(m, 1)) == diag(parent(m), 1)
+        @test @inferred(diag(m, 1; dim=Val(2))) == diag(parent(m), 1)
     end
 end
 

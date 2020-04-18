@@ -1,16 +1,8 @@
 
-function Base.parent(F::LU{T,<:AxisIndicesArray}) where {T}
-    return LU(parent(getfield(F, :factors)), getfield(F, :ipiv), getfield(F, :info))
-end
+@doc """
+    lu(A::AbstractAxisArray, args...; kwargs...)
 
-@inline function Base.getproperty(F::LU{T,<:AxisIndicesArray}, d::Symbol) where {T}
-    return get_factorization(parent(F), getfield(F, :factors), d)
-end
-
-"""
-    get_factorization(F::LU, A::AbstractArray, d::Symbol)
-
-Returns a component of the LU decomposition `F` with the appropriate axes given `A`.
+Compute the LU factorization of an `AbstractAxisIndices` `A`.
 
 ## Examples
 ```jldoctest
@@ -38,7 +30,25 @@ julia> keys.(axes(F.P * m))
 julia> keys.(axes(F.L * F.U))
 (2:3, 3:4)
 ```
-"""
+""" lu
+
+function LinearAlgebra.lu!(a::AxisIndicesArray, args...; kwargs...)
+    inner_lu = lu!(parent(a), args...; kwargs...)
+    return LU(
+        AxisIndicesArray(getfield(inner_lu, :factors), axes(a)),
+        getfield(inner_lu, :ipiv),
+        getfield(inner_lu, :info)
+       )
+end
+
+function Base.parent(F::LU{T,<:AxisIndicesArray}) where {T}
+    return LU(parent(getfield(F, :factors)), getfield(F, :ipiv), getfield(F, :info))
+end
+
+@inline function Base.getproperty(F::LU{T,<:AxisIndicesArray}, d::Symbol) where {T}
+    return get_factorization(parent(F), getfield(F, :factors), d)
+end
+
 function get_factorization(F::LU, A::AbstractArray, d::Symbol)
     inner = getproperty(F, d)
     if d === :L

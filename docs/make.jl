@@ -1,5 +1,5 @@
 
-using Documenter, AxisIndices
+using Documenter, AxisIndices, LinearAlgebra, Statistics
 
 makedocs(;
     modules=[AxisIndices],
@@ -19,7 +19,12 @@ makedocs(;
             "CoefTable" => "coeftable.md",
             "TimeAxis Guide" => "time.md",
         ],
-        "Reference" => "references.md",
+        "Reference" => [
+            "Public API" => "public_api.md",
+            "Standard Library API" => "standard_library_api.md",
+            "Internal API" => "internal_api.md",
+            "Experimental API" => "experimental.md",
+        ],
         "Comparison to Other Packages" => "comparison.md",
         "Acknowledgments" => "acknowledgments.md"
     ],

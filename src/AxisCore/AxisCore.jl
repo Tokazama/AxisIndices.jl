@@ -31,7 +31,8 @@ export
     unsafe_reconstruct,
     maybetail,
     to_axis,
-    true_axes
+    true_axes,
+    assign_indices
 
 include("abstractaxis.jl")
 include("utils.jl")

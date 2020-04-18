@@ -4,6 +4,32 @@ struct AxisIndicesSVD{T,F<:SVD{T},A<:AbstractAxisIndices} <: Factorization{T}
     axes_indices::A
 end
 
+"""
+    svd(F::AbstractAxisArray, args...; kwargs...)
+
+Compute the singular value decomposition (SVD) of an `AbstractAxisIndices` `A`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices, LinearAlgebra
+
+julia> m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+
+julia> F = svd(m);
+
+julia> axes(F.U)
+(Axis(2:3 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+
+julia> axes(F.V)
+(Axis(3:4 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+
+julia> axes(F.Vt)
+(SimpleAxis(Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+
+julia> axes(F.U * Diagonal(F.S) * F.Vt)
+(Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+```
+"""
 function LinearAlgebra.svd(A::AbstractAxisIndices, args...; kwargs...)
     return AxisIndicesSVD(svd(parent(A), args...; kwargs...), A)
 end
@@ -45,32 +71,6 @@ Base.iterate(S::AxisIndicesSVD, ::Val{:done}) = nothing
     return get_factorization(parent(F), getfield(F, :axes_indices), d)
 end
 
-"""
-    get_factorization(F::SVD, A::AbstractArray, d::Symbol)
-
-Returns a component of the SVD decomposition `F` with the appropriate axes given `A`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices, LinearAlgebra
-
-julia> m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
-
-julia> F = svd(m);
-
-julia> axes(F.U)
-(Axis(2:3 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
-
-julia> axes(F.V)
-(Axis(3:4 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
-
-julia> axes(F.Vt)
-(SimpleAxis(Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
-
-julia> axes(F.U * Diagonal(F.S) * F.Vt)
-(Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
-```
-"""
 function get_factorization(F::SVD, A::AbstractArray, d::Symbol)
     inner = getproperty(F, d)
     if d === :U

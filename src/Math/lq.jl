@@ -1,25 +1,10 @@
 
-LinearAlgebra.lq(A::AbstractAxisIndices, args...; kws...) = lq!(copy(A), args...; kws...)
-function LinearAlgebra.lq!(A::AbstractAxisIndices, args...; kwargs...)
-    F = lq!(parent(A), args...; kwargs...)
-    inner = getfield(F, :factors)
-    return LQ(unsafe_reconstruct(A, inner, axes(A)), getfield(F, :τ))
-end
-function Base.parent(F::LQ{T,<:AbstractAxisIndices}) where {T}
-    return LQ(parent(getfield(F, :factors)), getfield(F, :τ))
-end
-
-@inline function Base.getproperty(F::LQ{T,<:AbstractAxisIndices}, d::Symbol) where {T}
-    return get_factorization(parent(F), getfield(F, :factors), d)
-end
-
 """
+    lq(A::AbstractAxisArray, args...; kwargs...)
 
-    get_factorization(F::LQ, A::AbstractArray, d::Symbol)
+Compute the LQ factorization of an `AbstractAxisIndices` `A`.
 
-Returns a component of the LQ decomposition `F` with the appropriate axes given `A`.
-
-## LQ Factorization
+## Examples
 ```jldoctest
 julia> using AxisIndices, LinearAlgebra
 
@@ -37,6 +22,20 @@ julia> keys.(axes(F.L * F.Q))
 (2:3, 3:4)
 ```
 """
+LinearAlgebra.lq(A::AbstractAxisIndices, args...; kws...) = lq!(copy(A), args...; kws...)
+function LinearAlgebra.lq!(A::AbstractAxisIndices, args...; kwargs...)
+    F = lq!(parent(A), args...; kwargs...)
+    inner = getfield(F, :factors)
+    return LQ(unsafe_reconstruct(A, inner, axes(A)), getfield(F, :τ))
+end
+function Base.parent(F::LQ{T,<:AbstractAxisIndices}) where {T}
+    return LQ(parent(getfield(F, :factors)), getfield(F, :τ))
+end
+
+@inline function Base.getproperty(F::LQ{T,<:AbstractAxisIndices}, d::Symbol) where {T}
+    return get_factorization(parent(F), getfield(F, :factors), d)
+end
+
 function get_factorization(F::LQ, A::AbstractArray, d::Symbol)
     inner = getproperty(F, d)
     if d === :L
@@ -46,13 +45,5 @@ function get_factorization(F::LQ, A::AbstractArray, d::Symbol)
     else
         return inner
     end
-end
-function LinearAlgebra.lu!(a::AxisIndicesArray, args...; kwargs...)
-    inner_lu = lu!(parent(a), args...; kwargs...)
-    return LU(
-        AxisIndicesArray(getfield(inner_lu, :factors), axes(a)),
-        getfield(inner_lu, :ipiv),
-        getfield(inner_lu, :info)
-       )
 end
 

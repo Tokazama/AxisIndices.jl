@@ -3,6 +3,39 @@ const AIQRUnion{T} = Union{LinearAlgebra.QRCompactWY{T,<:AbstractAxisIndices},
                                      QRPivoted{T,<:AbstractAxisIndices},
                                      QR{T,<:AbstractAxisIndices}}
 
+"""
+    qr(F::AbstractAxisArray, args...; kwargs...)
+
+Compute the QR factorization of an `AbstractAxisIndices` `A`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices, LinearAlgebra
+
+julia> m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+
+julia> F = qr(m, Val(true));
+
+julia> keys.(axes(F.Q))
+(2:3, Base.OneTo(2))
+
+julia> keys.(axes(F.R))
+(Base.OneTo(2), 3:4)
+
+julia> keys.(axes(F.Q * F.R))
+(2:3, 3:4)
+
+julia> keys.(axes(F.p))
+(2:3,)
+
+julia> keys.(axes(F.P))
+(2:3, 2:3)
+
+julia> keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
+(2:3, 3:4)
+```
+
+"""
 function LinearAlgebra.qr(A::AbstractAxisIndices{T,2}, args...; kwargs...) where T
     Base.require_one_based_indexing(A)
     AA = similar(A, LinearAlgebra._qreltype(T), axes(A))
@@ -46,39 +79,6 @@ end
     return get_factorization(parent(F), getfield(F, :factors), d)
 end
 
-"""
-    get_factorization(F::Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}, A::AbstractArray, d::Symbol)
-
-Returns a component of the QR decomposition `F` with the appropriate axes given `A`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices, LinearAlgebra
-
-julia> m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
-
-julia> F = qr(m, Val(true));
-
-julia> keys.(axes(F.Q))
-(2:3, Base.OneTo(2))
-
-julia> keys.(axes(F.R))
-(Base.OneTo(2), 3:4)
-
-julia> keys.(axes(F.Q * F.R))
-(2:3, 3:4)
-
-julia> keys.(axes(F.p))
-(2:3,)
-
-julia> keys.(axes(F.P))
-(2:3, 2:3)
-
-julia> keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
-(2:3, 3:4)
-```
-
-"""
 function get_factorization(F::Q, A::AbstractArray, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
     inner = getproperty(F, d)
     if d === :Q

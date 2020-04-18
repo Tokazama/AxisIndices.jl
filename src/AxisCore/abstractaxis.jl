@@ -474,6 +474,16 @@ end
 
 const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 
+#= assign_indices(axis, indices)
+
+Reconstructs `axis` but with `indices` replacing the indices/values
+Useful for reconstructing an AbstractAxisIndices when the parent array may change
+types after udergoing some algorithm.
+=#
+assign_indices(axs::AbstractSimpleAxis, inds) = similar(axs, inds)
+function assign_indices(axs::AbstractAxis, inds)
+    return similar(axs, StaticRanges.shrink_last(keys(axs), length(axs) - length(inds)), inds)
+end
 
 # Vectors should have a mutable axis
 true_axes(x::Vector) = (OneToMRange(length(x)),)
