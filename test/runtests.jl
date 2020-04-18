@@ -15,8 +15,7 @@ using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using OffsetArrays
-import IntervalSets
-using IntervalSets.EllipsisNotation
+
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
