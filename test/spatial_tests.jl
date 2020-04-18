@@ -3,18 +3,14 @@
 using AxisIndices.SpatialDims
 
 @testset "spatial" begin
-    nia = NIArray(reshape(1:6, 2, 3), x = 2:3, time = 3.0:5.0)
-    @test has_timedim(nia)
-    @test !has_timedim(parent(nia))
-    @test @inferred(time_keys(nia)) == 3:5
-    @test @inferred(ntime(nia)) == 3
-    @test @inferred(time_indices(nia)) == 1:3
-    @test @inferred(timedim(nia)) == 2
-    @test @inferred(select_timedim(nia, 2)) == selectdim(parent(parent(nia)), 2, 2)
-    @test @inferred(time_axis_type(nia)) <: Float64
-    @test @inferred(time_end(nia)) == 5.0
-    @test @inferred(onset(nia)) == 3.0
-    @test @inferred(duration(nia)) == 3
-    @test @inferred(sampling_rate(nia)) == 1
+    nia = NIArray(reshape(1:12, 2, 3, 2), x = 2:3, time = 3.0:5.0, obs = 1:2)
+    @test @inferred(spatial_order(nia)) == (:x,)
+    @test @inferred(spatialdims(nia)) == (1,)
+    @test @inferred(spatial_axes(nia)) == (Axis(2:3 => Base.OneTo(2)),)
+    @test @inferred(spatial_offset(nia)) == (2,)
+    @test @inferred(spatial_keys(nia)) == (2:3,)
+    @test @inferred(spatial_indices(nia)) == (1:2,)
+    @test @inferred(spatial_size(nia)) == (2,)
+    @test @inferred(pixel_spacing(nia)) == (1,)
 end
 

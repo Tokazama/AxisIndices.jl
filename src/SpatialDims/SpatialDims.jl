@@ -14,11 +14,12 @@ export
     spatial_keys,
     spatial_indices,
     spatial_size,
-    spatial_units,
     pixel_spacing
 
 """
     spatial_order(x) -> Tuple{Vararg{Symbol}}
+
+Returns the `dimnames` of `x` that correspond to spatial dimensions.
 """
 spatial_order(x::X) where {X} = _spatial_order(Val(dimnames(X)))
 @generated function _spatial_order(::Val{L}) where {L}
@@ -44,6 +45,8 @@ Note that a better strategy may be to use ImagesAxes and take slices along the t
 
 """
     spatial_axes(x) -> Tuple
+
+Returns a tuple of each axis corresponding to a spatial dimensions.
 """
 @inline spatial_axes(x) = _spatial_axes(named_axes(x), spatial_order(x))
 function _spatial_axes(na::NamedTuple, spo::Tuple{Vararg{Symbol}})
@@ -61,7 +64,7 @@ Return a tuple listing the sizes of the spatial dimensions of the image.
     spatial_indices(x)
 
 Return a tuple with the indices of the spatial dimensions of the
-image. Defaults to the same as `indices`, but using ImagesAxes you can
+image. Defaults to the same as `indices`, but using `NamedDimsArrah` you can
 mark some axes as being non-spatial.
 """
 @inline spatial_indices(x) = map(values, spatial_axes(x))
@@ -73,10 +76,11 @@ mark some axes as being non-spatial.
 
 """
     pixel_spacing(x)
+
+Return a tuple representing the separation between adjacent pixels along each axis
+of the image. Derived from the step size of each element of `spatial_keys`.
 """
 @inline pixel_spacing(x) = map(step, spatial_keys(x))
-
-spatial_eltype(x) = map(eltype, spatial_axes(x))
 
 """
     spatial_offset(x)
