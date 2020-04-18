@@ -135,8 +135,6 @@ Base.length(x::AbstractAxisIndices) = prod(size(x))
 
 Base.size(x::AbstractAxisIndices) = map(length, axes(x))
 
-Base.size(x::AbstractAxisIndices, i) = length(axes(x, i))
-
 StaticRanges.axes_type(::Type{<:AbstractAxisIndices{T,N,P,AI}}) where {T,N,P,AI} = AI
 
 function Base.axes(x::AbstractAxisIndices{T,N}, i::Integer) where {T,N}

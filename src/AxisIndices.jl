@@ -13,13 +13,6 @@ using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
-    # Modules
-    # Interface,
-    # Indexing,
-    # Arrays,
-    # Math,
-    # Names,
-    # Types
     AbstractAxisIndices,
     AxisIndicesArray,
     AbstractAxis,
@@ -87,6 +80,18 @@ using .Mapped
 
 include("./Names/Names.jl")
 using .Names
+
+include("./ObservationDims/ObservationDims.jl")
+using .ObservationDims
+
+include("./TimeDims/TimeDims.jl")
+using .TimeDims
+
+include("./ColorDims/ColorDims.jl")
+using .ColorDims
+
+include("./SpatialDims/SpatialDims.jl")
+using .SpatialDims
 
 end
 

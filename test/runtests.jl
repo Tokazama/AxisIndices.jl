@@ -5,7 +5,6 @@ using LinearAlgebra
 using StaticRanges
 using Documenter
 using Dates
-using IntervalSets
 using AxisIndices
 using AxisIndices.AxisCore
 using AxisIndices.AxisIndicesStyles
@@ -16,7 +15,8 @@ using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using OffsetArrays
-
+import IntervalSets
+import IntervalSets.:(..)
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
@@ -82,6 +82,11 @@ pretty_array(io, AxisIndicesArray(reshape(1:33, (1, 11, 3))))
 str = String(take!(io))
 @test str == "[dim1, dim2, dim3[1]] =\n          1       2       3       4       5       6       7       8       9       10       11  \n  1   1.000   2.000   3.000   4.000   5.000   6.000   7.000   8.000   9.000   10.000   11.000  \n\n\n[dim1, dim2, dim3[2]] =\n           1        2        3        4        5        6        7        8        9       10       11  \n  1   12.000   13.000   14.000   15.000   16.000   17.000   18.000   19.000   20.000   21.000   22.000  \n\n\n[dim1, dim2, dim3[3]] =\n           1        2        3        4        5        6        7        8        9       10       11  \n  1   23.000   24.000   25.000   26.000   27.000   28.000   29.000   30.000   31.000   32.000   33.000  \n"
 =#
+
+include("observation_tests.jl")
+include("time_tests.jl")
+include("color_tests.jl")
+include("spatial_tests.jl")
 
 if !(VERSION < v"1.4")
     @testset "docs" begin
