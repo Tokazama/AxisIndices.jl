@@ -16,10 +16,11 @@ using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using OffsetArrays
 import IntervalSets
-import IntervalSets.:(..)
+using IntervalSets.EllipsisNotation
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
+
 
 struct Axis2{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
     keys::Ks
