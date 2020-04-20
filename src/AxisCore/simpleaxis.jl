@@ -39,7 +39,7 @@ struct SimpleAxis{V,Vs<:AbstractUnitRange{V}} <: AbstractSimpleAxis{V,Vs}
     values::Vs
 
     function SimpleAxis{V,Vs}(vs::Vs) where {V,Vs<:AbstractUnitRange}
-        eltype(vs) <: V || error("keytype of keys and keytype do no match, got $(eltype(Vs)) and $K")
+        eltype(vs) <: V || error("keytype of keys and keytype do no match, got $(eltype(Vs)) and $V")
         return new{V,Vs}(vs)
     end
 end

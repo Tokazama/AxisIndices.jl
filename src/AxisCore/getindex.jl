@@ -101,7 +101,7 @@ for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:un
         end
 
         @propagate_inbounds function Base.$f(A::AbstractAxisIndices, args...)
-            return Indexing.$unsafe_f(A, args, to_indices(A, args))
+            return $unsafe_f(A, args, to_indices(A, args))
         end
     end
 end

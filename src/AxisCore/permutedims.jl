@@ -86,22 +86,24 @@ permute_axes(x::NTuple{2,Any}) = (last(x), first(x))
 Permute axes of `old_array` and replace indices with those of `new_array`.
 =#
 function permute_axes(old_array::AbstractVector, new_array::AbstractMatrix)
-    (SimpleAxis(axes(new_array, 1)),
-     similar_axis(axes(old_array, 1), nothing, axes(new_array, 2), false))
+    return (
+        SimpleAxis(axes(new_array, 1)),
+        assign_indices(axes(old_array, 1), axes(new_array, 2))
+    )
 end
 
 function permute_axes(old_array::AbstractMatrix, new_array::AbstractMatrix)
-    (similar_axis(axes(old_array, 2), nothing, axes(new_array, 1), false),
-     similar_axis(axes(old_array, 1), nothing, axes(new_array, 2), false))
+    (assign_indices(axes(old_array, 2), axes(new_array, 1)),
+     assign_indices(axes(old_array, 1), axes(new_array, 2)))
 end
 
 function permute_axes(old_array::AbstractMatrix, new_array::AbstractVector)
-    (similar_axis(axes(old_array, 2), nothing, axes(new_array, 1), false),)
+    (assign_indices(axes(old_array, 2), axes(new_array, 1)),)
 end
 
 function permute_axes(old_array::AbstractArray{T1,N}, new_array::AbstractArray{T2,N}, perms) where {T1,T2,N}
     ntuple(Val(N)) do i
-        similar_axis(axes(old_array, i), nothing, axes(new_array, perms[i]), false)
+        assign_indices(axes(old_array, i), axes(new_array, perms[i]))
     end
 end
 

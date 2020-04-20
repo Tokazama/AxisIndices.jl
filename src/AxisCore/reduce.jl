@@ -33,7 +33,7 @@ function reduce_axes(old_axes::Tuple{Vararg{Any,N}}, new_axes::Tuple, dims) wher
         if i in dims
             reduce_axis(getfield(old_axes, i), getfield(new_axes, i))
         else
-            similar_axis(getfield(old_axes, i), nothing, getfield(new_axes, i), false)
+            assign_indices(getfield(old_axes, i), getfield(new_axes, i))
         end
     end
 end

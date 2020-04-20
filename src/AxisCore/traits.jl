@@ -1,38 +1,4 @@
-module AxisIndicesStyles
 
-using IntervalSets
-using StaticRanges
-using AxisIndices.AxisCore
-using AxisIndices.AxisCore: _v2k, _k2v
-using Base: @propagate_inbounds, tail, Fix2
-
-export
-    AxisIndicesStyle,
-    # Traits
-    KeyElement,
-    IndexElement,
-    BoolElement,
-    CartesianElement,
-    KeysCollection,
-    IndicesCollection,
-    IntervalCollection,
-    BoolsCollection,
-    KeysIn,
-    KeyEquals,
-    KeysFix2,
-    SliceCollection,
-    is_element,
-    is_index,
-    is_collection,
-    is_key,
-    to_index,
-    to_keys
-
-if length(methods(isapprox, Tuple{Any})) == 0
-    Base.isapprox(y; kwargs...) = x -> isapprox(x, y; kwargs...)
-end
-
-const IsApproxFix = typeof(isapprox(Any)).name.wrapper
 
 """
     AxisIndicesStyle
@@ -118,7 +84,7 @@ AxisIndicesStyle(::Type{T}) where {T} = KeyElement()
     @boundscheck if mapping isa Nothing
         throw(BoundsError(axis, arg))
     end
-    return _k2v(axis, mapping)
+    return k2v(axis, mapping)
 end
 to_keys(::KeyElement, axis, arg, index) = arg
 
@@ -143,7 +109,7 @@ AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
 end
 
 function to_keys(::IndexElement, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
 """
@@ -198,10 +164,8 @@ to_keys(::KeysCollection, axis, arg, index) = arg
     @boundscheck if length(arg) != length(mapping)
         throw(BoundsError(axis, arg))
     end
-    return _k2v(axis, mapping)
+    return k2v(axis, mapping)
 end
-
-
 
 """
     IndicesCollection
@@ -213,7 +177,7 @@ struct IndicesCollection <: AxisIndicesStyle end
 AxisIndicesStyle(::Type{<:AbstractArray{<:Integer}}) = IndicesCollection()
 
 @inline function to_keys(::IndicesCollection, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
 # if we're referring to an element than we just need to know if it's inbounds
@@ -253,12 +217,12 @@ struct IntervalCollection <: AxisIndicesStyle end
 AxisIndicesStyle(::Type{<:Interval}) = IntervalCollection()
 
 @inline function to_keys(::IntervalCollection, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
 function to_index(::IntervalCollection, axis, arg)
     mapping = findin(arg, keys(axis))
-    return _k2v(axis, mapping)
+    return k2v(axis, mapping)
 end
 
 """
@@ -278,7 +242,7 @@ to_keys(::KeysIn, axis, arg, index) = arg.x
     @boundscheck if length(arg.x) != length(mapping)
         throw(BoundsError(axis, arg))
     end
-    return _k2v(axis, mapping)
+    return k2v(axis, mapping)
 end
 
 
@@ -292,7 +256,7 @@ struct KeyEquals <: AxisIndicesStyle end
 
 is_element(::Type{KeyEquals}) = true
 
-AxisIndicesStyle(::Type{<:IsApproxFix}) = KeyEquals()
+AxisIndicesStyle(::Type{<:Approx}) = KeyEquals()
 
 AxisIndicesStyle(::Type{<:Fix2{<:Union{typeof(isequal),typeof(==)}}}) = KeyEquals()
 
@@ -301,8 +265,10 @@ AxisIndicesStyle(::Type{<:Fix2{<:Union{typeof(isequal),typeof(==)}}}) = KeyEqual
     @boundscheck if mapping isa Nothing
         throw(BoundsError(axis, arg))
     end
-    return _k2v(axis, mapping)
+    return k2v(axis, mapping)
 end
+
+to_keys(::KeyEquals, axis, arg, index) = arg.x
 
 """
     KeysFix2
@@ -317,10 +283,10 @@ AxisIndicesStyle(::Type{<:Fix2}) = KeysFix2()
 AxisIndicesStyle(::Type{<:StaticRanges.ChainedFix}) = KeysFix2()
 
 @inline function to_keys(::KeysFix2, axis, arg, index)
-    return @inbounds(getindex(keys(axis), _v2k(axis, index)))
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
-@inline to_index(::KeysFix2, axis, arg) = _k2v(axis, find_all(arg, keys(axis)))
+@inline to_index(::KeysFix2, axis, arg) = k2v(axis, find_all(arg, keys(axis)))
 
 """
     SliceCollection
@@ -343,4 +309,63 @@ to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 @inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)
 AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)
 
-end
+###
+### Combine traits
+###
+"""
+    CombineStyle
+
+Abstract type that determines the behavior of `broadcast_axis`, `cat_axis`, `append_axis!`.
+"""
+abstract type CombineStyle end
+
+"""
+    CombineAxis
+
+Subtype of `CombineStyle` that informs relevant methods to produce a subtype of `AbstractAxis`.
+"""
+struct CombineAxis <: CombineStyle end
+
+"""
+    CombineSimpleAxis
+
+Subtype of `CombineStyle` that informs relevant methods to produce a subtype of `AbstractSimpleAxis`.
+"""
+struct CombineSimpleAxis <: CombineStyle end
+
+"""
+    CombineResize
+
+Subtype of `CombineStyle` that informs relevant methods that axes should be combined by
+resizing a collection (as opposed to by concatenation or appending).
+"""
+struct CombineResize <: CombineStyle end
+
+"""
+    CombineStack
+
+Subtype of `CombineStyle` that informs relevant methods that axes should be combined by
+stacking elements in some whay (as opposed to resizing a collection).
+"""
+struct CombineStack <: CombineStyle end
+
+CombineStyle(x, y...) = CombineStyle(CombineStyle(x), CombineStyle(y...))
+CombineStyle(::T) where {T} = CombineStyle(T)
+CombineStyle(::Type{T}) where {T} = CombineStack() # default
+CombineStyle(::Type{T}) where {T<:AbstractAxis} = CombineAxis()
+CombineStyle(::Type{T}) where {T<:AbstractSimpleAxis} = CombineSimpleAxis()
+CombineStyle(::Type{T}) where {T<:AbstractRange} = CombineResize()
+CombineStyle(::Type{T}) where {T<:LinearIndices{1}} = CombineResize()  # b/c it really is OneTo{Int}
+
+CombineStyle(::CombineAxis, ::CombineStyle) = CombineAxis()
+CombineStyle(::CombineStyle, ::CombineAxis) = CombineAxis()
+CombineStyle(::CombineAxis, ::CombineAxis) = CombineAxis()
+CombineStyle(::CombineSimpleAxis, ::CombineAxis) = CombineAxis()
+CombineStyle(::CombineAxis, ::CombineSimpleAxis) = CombineAxis()
+
+CombineStyle(::CombineSimpleAxis, ::CombineStyle) = CombineSimpleAxis()
+CombineStyle(::CombineStyle, ::CombineSimpleAxis) = CombineSimpleAxis()
+CombineStyle(::CombineSimpleAxis, ::CombineSimpleAxis) = CombineSimpleAxis()
+
+CombineStyle(x::CombineStyle, y::CombineStyle) = x
+

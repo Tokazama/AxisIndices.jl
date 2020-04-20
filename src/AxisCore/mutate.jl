@@ -16,20 +16,20 @@ function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange
 end
 
 function Base.push!(A::AbstractAxisIndices{T,1}, items...) where {T}
-    StaticRanges.grow_last!(axes(A, 1), length(items))
+    grow_last!(axes(A, 1), length(items))
     push!(parent(A), items...)
     return A
 end
 
 function Base.pushfirst!(A::AbstractAxisIndices{T,1}, items...) where {T}
-    StaticRanges.grow_first!(axes(A, 1), length(items))
+    grow_first!(axes(A, 1), length(items))
     pushfirst!(parent(A), items...)
     return A
 end
 
 function Base.empty!(a::AbstractAxisIndices)
     for ax_i in axes(a)
-        if !StaticRanges.can_set_length(ax_i)
+        if !can_set_length(ax_i)
             error("Cannot perform `empty!` on AbstractAxisIndices that has an axis with a fixed size.")
         end
     end
@@ -66,7 +66,6 @@ Base.isempty(a::AbstractAxis) = isempty(values(a))
 # * TODO list for AbstractAxis
 # - Is this necessary `Base.UnitRange{T}(a::AbstractAxis) where {T} = UnitRange{T}(values(a))`
 # - Should AbstractAxes be a formal type?
-# - is `nothing` what we want when there isn't a step in the keys
 # - specialize `collect` on first type argument
 
 
@@ -99,14 +98,14 @@ const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 function Base.reinterpret(::Type{Tnew}, A::AbstractAxisIndices{Told,N}) where {Tnew,Told,N}
     p = reinterpret(Tnew, parent(A))
     axs = ntuple(N) do i
-        StaticRanges.resize_last(axes(A, i), size(p, i))
+        resize_last(axes(A, i), size(p, i))
     end
     return unsafe_reconstruct(A, p, axs)
 end
 
 function Base.resize!(x::AbstractAxisIndices{T,1}, n::Integer) where {T}
     resize!(parent(x), n)
-    StaticRanges.resize_last!(axes(x, 1), n)
+    resize_last!(axes(x, 1), n)
     return x
 end
 
@@ -121,7 +120,7 @@ function Base.reverse(x::AbstractAxisIndices{T,N}; dims::Integer) where {T,N}
         if i in dims
             reverse_keys(axes(x, i), axes(p, i))
         else
-            similar_axis(axes(x, i), nothing, axes(p, i), false)
+            assign_indices(axes(x, i), axes(p, i))
         end
     end
     return unsafe_reconstruct(x, p, axs)
@@ -129,15 +128,12 @@ end
 
 Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
-
 """
     deleteat!(a::AbstractAxisIndicesVector, arg)
 
 Remove the items corresponding to `A[arg]`, and return the modified `a`. Subsequent
 items are shifted to fill the resulting gap. If the axis of `a` is an `AbstractSimpleAxis`
 then it is shortened to match the length of `a`. If the 
-
-  inds can be either an iterator or a collection of sorted and unique integer indices, or a boolean vector of the same length as a with true indicating entries to delete.
 
 ## Examples
 ```jldoctest
@@ -169,7 +165,7 @@ AxisIndicesArray{Int64,1,Array{Int64,1}...}
 """
 function Base.deleteat!(A::AbstractAxisIndices{T,1,P,Tuple{Ax1}}, arg) where {T,P,Ax1<:AbstractSimpleAxis}
     inds = to_index(axes(A, 1), arg)
-    StaticRanges.shrink_last!(axes(A, 1), length(inds))
+    shrink_last!(axes(A, 1), length(inds))
     deleteat!(parent(A), inds)
     return A
 end
@@ -177,8 +173,7 @@ end
 function Base.deleteat!(A::AbstractAxisIndices{T,1,P,Tuple{Ax1}}, arg) where {T,P,Ax1<:AbstractAxis}
     inds = to_index(axes(A, 1), arg)
     deleteat!(axes_keys(A, 1), inds)
-    StaticRanges.shrink_last!(indices(A, 1), length(inds))
+    shrink_last!(indices(A, 1), length(inds))
     deleteat!(parent(A), inds)
     return A
 end
-

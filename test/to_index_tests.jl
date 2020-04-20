@@ -75,6 +75,7 @@ end
     @testset "KeyEquals" begin
         @test @inferred(to_index(x, ==("b"))) == 2
         @test_throws BoundsError to_index(x, ==("c"))
+        @test @inferred(to_keys(x, ==("b"), 2)) == "b"
     end
 
     @testset "KeyElement" begin

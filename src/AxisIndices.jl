@@ -63,14 +63,8 @@ using .PrettyArrays
 include("./AxisCore/AxisCore.jl")
 using .AxisCore
 
-include("./AxisIndicesStyles/AxisIndicesStyles.jl")
-using .AxisIndicesStyles
-
-include("./Indexing/Indexing.jl")
-using .Indexing
-
-include("./Basics/Basics.jl")
-using .Basics
+include("./KeyedAxes/KeyedAxes.jl")
+using .AxisCore
 
 include("./Math/Math.jl")
 using .Math

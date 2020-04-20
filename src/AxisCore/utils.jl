@@ -11,9 +11,8 @@ maybe_first(x::Tuple) = first(x)
 
 maybetail(::Tuple{}) = ()
 maybetail(t::Tuple) = tail(t)
-
 # handle offsets
-@inline function _k2v(axis::A, index::AbstractVector) where {A<:AbstractAxis}
+@inline function k2v(axis::A, index::AbstractVector) where {A<:AbstractAxis}
     if StaticRanges.has_offset_axes(A)
         if StaticRanges.has_offset_axes(keys_type(A))
             return index .+ (first(axis) - firstindex(keys(axis)))
@@ -30,7 +29,7 @@ maybetail(t::Tuple) = tail(t)
 end
 
 # move index from key indices space to values indices space
-@inline function _k2v(axis::A, index::Integer) where {A<:AbstractAxis}
+@inline function k2v(axis::A, index::Integer) where {A<:AbstractAxis}
     if StaticRanges.has_offset_axes(A)
         if StaticRanges.has_offset_axes(keys_type(A))
             return index + (first(axis) - firstindex(keys(axis)))
@@ -47,7 +46,7 @@ end
 end
 
 ## values -> keys
-@inline function _v2k(axis::A, index::AbstractVector) where {A<:AbstractAxis}
+@inline function v2k(axis::A, index::AbstractVector) where {A<:AbstractAxis}
     if StaticRanges.has_offset_axes(A)
         if StaticRanges.has_offset_axes(keys_type(A))
             return index .+ (firstindex(keys(axis)) - first(axis))
@@ -63,7 +62,7 @@ end
     end
 end
 
-@inline function _v2k(axis::A, index::Integer) where {A<:AbstractAxis}
+@inline function v2k(axis::A, index::Integer) where {A<:AbstractAxis}
     if StaticRanges.has_offset_axes(A)
         if StaticRanges.has_offset_axes(keys_type(A))
             return index + (firstindex(keys(axis)) - first(axis))

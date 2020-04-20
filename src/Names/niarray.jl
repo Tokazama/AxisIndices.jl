@@ -136,4 +136,3 @@ function Base.show(io::IO, m::MIME"text/plain", x::NIArray{L,T,N}; kwargs...) wh
     println(io, "$(typeof(x).name.name){$T,$N,$(parent_type(parent(x)))...}")
     return show_array(io, x, axes(x), dimnames(x); kwargs...)
 end
-

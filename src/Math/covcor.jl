@@ -52,7 +52,7 @@ end
 # TODO get rid of indicesarray_result
 for f in (:mean, :std, :var, :median)
     @eval function Statistics.$f(a::AbstractAxisIndices; dims=:, kwargs...)
-        return Basics.reconstruct_reduction(a, Statistics.$f(parent(a); dims=dims, kwargs...), dims)
+        return reconstruct_reduction(a, Statistics.$f(parent(a); dims=dims, kwargs...), dims)
     end
 end
 

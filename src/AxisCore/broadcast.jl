@@ -68,27 +68,27 @@ function _similar_type(A::AbstractAxisIndices, p, axs=axes(A))
 end
 _similar_type(::Nothing, p, axs=nothing) = AxisIndicesArray(p)
 
-function _mayb_similar_axis_type(x::AbstractAxis, vs::AbstractUnitRange)
+function _maybe_similar_axis_type(x::AbstractAxis, vs::AbstractUnitRange)
     ks = keys(x)
     return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
 end
 
-function _mayb_similar_axis_type(x::AbstractSimpleAxis, vs::AbstractUnitRange)
+function _maybe_similar_axis_type(x::AbstractSimpleAxis, vs::AbstractUnitRange)
     return similar_type(x, typeof(vs))(vs)
 end
 
-_mayb_similar_axis_type(x::AbstractAxis, vs) = vs
-_mayb_similar_axis_type(x::AbstractSimpleAxis, vs) = vs
+_maybe_similar_axis_type(x::AbstractAxis, vs) = vs
+_maybe_similar_axis_type(x::AbstractSimpleAxis, vs) = vs
 
 for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:+, typeof(+), Real),
                      (:*, typeof(*), Real))
     @eval begin
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            return _mayb_similar_axis_type(r, (broadcast($f, x, values(r))))
+            return _maybe_similar_axis_type(r, (broadcast($f, x, values(r))))
         end
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            return _mayb_similar_axis_type(r, broadcast($f, values(r), x))
+            return _maybe_similar_axis_type(r, broadcast($f, values(r), x))
         end
     end
 end

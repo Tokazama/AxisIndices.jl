@@ -3,9 +3,7 @@ module Math
 using LinearAlgebra
 using Statistics
 using StaticRanges
-using AxisIndices.Indexing
 using AxisIndices.AxisCore
-using AxisIndices.Basics
 
 using Base: OneTo
 

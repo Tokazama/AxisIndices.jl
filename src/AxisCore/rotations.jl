@@ -86,7 +86,7 @@ function unsafe_rotr90(x::AbstractAxisIndices, p::AbstractArray)
     unsafe_reconstruct(
         x,
         p,
-        (similar_axis(axes(x, 2), nothing, axes(p, 1), false),
+        (assign_indices(axes(x, 2), axes(p, 1)),
          reverse_keys(axes(x, 1), axes(p, 2)))
     )
 end
@@ -128,8 +128,7 @@ function unsafe_rotl90(x::AbstractAxisIndices, p::AbstractArray)
     unsafe_reconstruct(
         x,
         p,
-        (reverse_keys(axes(x, 2), axes(p, 1)),
-         similar_axis(axes(x, 1), nothing, axes(p, 2), false))
+        (reverse_keys(axes(x, 2), axes(p, 1)), assign_indices(axes(x, 1), axes(p, 2)))
     )
 end
 

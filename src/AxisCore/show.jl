@@ -1,5 +1,4 @@
 
-
 function Base.show(io::IO, ::MIME"text/plain", a::AbstractAxis)
     print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
 end

@@ -94,7 +94,5 @@ for T in (AbstractAxis,AbstractSimpleAxis)
         end
     end
 end
-        #to_axes(::Tuple{}, ::Tuple{Int64}, ::Tuple{}, ::Tuple{}) = ()
-        #to_axes(::Tuple, ::Tuple{}, ::Tuple{}, ::Tuple) = ()
-to_axes(::Tuple{}, ::Tuple, ::Tuple, ::Tuple{}) = ()
 
+to_axes(::Tuple{}, ::Tuple, ::Tuple, ::Tuple{}) = ()
