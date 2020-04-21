@@ -30,6 +30,6 @@ function Base.show(io::IO, x::AbstractAxisIndices; kwargs...)
 end
 function Base.show(io::IO, m::MIME"text/plain", x::AbstractAxisIndices{T,N}; kwargs...) where {T,N}
     println(io, "$(typeof(x).name.name){$T,$N,$(parent_type(x))...}")
-    return show_array(io, x; kwargs...)
+    return show_array(io, parent(x), axes(x); kwargs...)
 end
 

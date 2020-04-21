@@ -28,6 +28,8 @@ export
     AbstractSimpleAxis,
     Axis,
     SimpleAxis,
+    Indices,
+    Keys,
     # methods
     axes_keys,
     first_key,
@@ -71,8 +73,11 @@ export
     IntervalCollection,
     BoolsCollection,
     KeysIn,
+    IndicesIn,
     KeyEquals,
+    IndexEquals,
     KeysFix2,
+    IndicesFix2,
     SliceCollection,
     CombineStyle,
     CombineAxis,
@@ -103,7 +108,6 @@ include("promote_axis_collections.jl")
 include("append.jl")
 include("pop.jl")
 include("popfirst.jl")
-include("find.jl")
 include("broadcast_axis.jl")
 include("broadcast.jl")
 include("dropdims.jl")

@@ -1,4 +1,21 @@
 
+"""
+    Indices(arg)
+
+Forces `arg` to refer to indices when indexing.
+"""
+struct Indices{T}
+    x::T
+end
+
+"""
+    Keys(arg)
+
+Forces `arg` to refer to keys when indexing.
+"""
+struct Keys{T}
+    x::T
+end
 
 """
     AxisIndicesStyle
@@ -55,7 +72,17 @@ This method assumes to all arguments have passed through `AxisIndices.to_index` 
 have been checked to be in bounds. Therefore, this is unsafe and intended only for
 internal use.
 """
-@inline to_keys(axis, arg, index) = to_keys(AxisIndicesStyle(axis, arg), axis, arg, index)
+@inline function to_keys(axis, arg, index)
+    return to_keys(AxisIndicesStyle(axis, arg), axis, arg, index)
+end
+
+@inline function to_keys(axis, arg::Indices, index)
+    return to_keys(AxisIndicesStyle(axis, arg), axis, arg.x, index)
+end
+
+@inline function to_keys(axis, arg::Keys, index)
+    return to_keys(AxisIndicesStyle(axis, arg), axis, arg.x, index)
+end
 
 """
     to_index(axis, arg) -> to_index(AxisIndicesStyle(axis, arg), axis, arg)
@@ -65,6 +92,14 @@ based on each axis and indexing argument (as opposed to the array and indexing a
 """
 @propagate_inbounds function to_index(axis, arg)
     return to_index(AxisIndicesStyle(axis, arg), axis, arg)
+end
+
+@propagate_inbounds function to_index(axis, arg::Indices)
+    return to_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+end
+
+@propagate_inbounds function to_index(axis, arg::Keys)
+    return to_index(AxisIndicesStyle(axis, arg), axis, arg.x)
 end
 
 """
@@ -144,7 +179,9 @@ AxisIndicesStyle(::Type{CartesianIndex{1}}) = CartesianElement()
 
 @propagate_inbounds function to_index(::CartesianElement, axis, arg)
     index = first(arg.I)
-    @boundscheck checkbounds(axis, index)
+    @boundscheck if !checkindex(Bool, values(axis), index)
+        throw(BoundsError(axis, arg))
+    end
     return index
 end
 
@@ -245,6 +282,25 @@ to_keys(::KeysIn, axis, arg, index) = arg.x
     return k2v(axis, mapping)
 end
 
+"""
+    IndicesIn
+
+A subtype of `AxisIndicesStyle` for mapping all keys given `in(keys)` to a collection
+of indices.
+"""
+struct IndicesIn <: AxisIndicesStyle end
+
+function to_keys(::IndicesIn, axis, arg, index)
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
+end
+
+@propagate_inbounds function to_index(::IndicesIn, axis, arg)
+    mapping = findin(arg.x, values(axis))
+    @boundscheck if length(arg.x) != length(mapping)
+        throw(BoundsError(axis, arg))
+    end
+    return mapping
+end
 
 """
     KeyEquals
@@ -271,6 +327,27 @@ end
 to_keys(::KeyEquals, axis, arg, index) = arg.x
 
 """
+    IndexEquals
+
+A subtype of `AxisIndicesStyle` for mapping a single index in a `isequal(index)` argument
+to a single index.
+"""
+struct IndexEquals <: AxisIndicesStyle end
+
+is_element(::Type{IndexEquals}) = true
+
+@propagate_inbounds function to_index(::IndexEquals, axis, arg)
+    @boundscheck if !checkbounds(Bool, values(axis), arg.x)
+        throw(BoundsError(axis, arg.x))
+    end
+    return arg.x
+end
+
+function to_keys(::IndexEquals, axis, arg, index)
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
+end
+
+"""
     KeysFix2
 
 A subtype of `AxisIndicesStyle` for mapping all keys from fixed argument (e.g., `>(key)`)
@@ -287,6 +364,20 @@ AxisIndicesStyle(::Type{<:StaticRanges.ChainedFix}) = KeysFix2()
 end
 
 @inline to_index(::KeysFix2, axis, arg) = k2v(axis, find_all(arg, keys(axis)))
+
+"""
+    IndicesFix2
+
+A subtype of `AxisIndicesStyle` for mapping all indices from fixed argument (e.g., `>(indices)`)
+to the corresponding collection of indices.
+"""
+struct IndicesFix2 <: AxisIndicesStyle end
+
+@inline function to_keys(::IndicesFix2, axis, arg, index)
+    return @inbounds(getindex(keys(axis), v2k(axis, index)))
+end
+
+@inline to_index(::IndicesFix2, axis, arg) = find_all(arg, values(axis))
 
 """
     SliceCollection
@@ -308,6 +399,17 @@ to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 # we throw `axis` in there in case someone want's to change the default
 @inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)
 AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)
+
+AxisIndicesStyle(::Type{Indices{T}}) where {T} = force_indices(AxisIndicesStyle(T))
+force_indices(S::AxisIndicesStyle) = S
+force_indices(::KeyEquals) = IndexEquals()
+force_indices(::KeysFix2) = IndicesFix2()
+force_indices(::KeysIn) = IndicesIn()
+
+AxisIndicesStyle(::Type{Keys{T}}) where {T} = force_keys(AxisIndicesStyle(T))
+force_keys(S::AxisIndicesStyle) = S
+force_keys(S::IndicesCollection) = KeysCollection()
+force_keys(S::IndexElement) = KeyElement()
 
 ###
 ### Combine traits

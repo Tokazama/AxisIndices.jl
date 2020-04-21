@@ -1,4 +1,4 @@
-
+# TODO IndicesFix2 tests
 
 @testset "traits" begin
     @testset "CombineStyle" begin
@@ -64,13 +64,12 @@ end
     @test @inferred(to_index(x, 0.3)) == 3
 
     x = Axis(["a", "b"])
-    @inferred(to_index(x, "a")) == 1
-    #=
+    @test @inferred(to_index(x, "a")) == 1
+
     @testset "CartesianElement" begin
         @test @inferred(to_index(x, CartesianIndex(1))) == 1
         @test_throws BoundsError to_index(x, CartesianIndex(3))
     end
-    =#
 
     @testset "KeyEquals" begin
         @test @inferred(to_index(x, ==("b"))) == 2
@@ -78,10 +77,24 @@ end
         @test @inferred(to_keys(x, ==("b"), 2)) == "b"
     end
 
+    @testset "IndexEquals" begin
+        @test @inferred(to_index(x, Indices(==(2)))) == 2
+        @test_throws BoundsError to_index(x, Indices(==(3)))
+        @test @inferred(to_keys(x, Indices(==(2)), 2)) == "b"
+    end
+
     @testset "KeyElement" begin
         @test @inferred(to_index(x, "b")) == 2
         @test_throws BoundsError to_index(x, "c")
         @test @inferred(to_keys(x, "b", 2)) == "b"
+    end
+
+    @testset "IndexElement" begin
+        @test @inferred(to_index(x, 2)) == 2
+        @test @inferred(to_index(x, Indices(2))) == 2
+        @test_throws BoundsError to_index(x, 3)
+        @test @inferred(to_keys(x, 2, 2)) == "b"
+        @test @inferred(to_keys(x, Indices(2), 2)) == "b"
     end
 
     @testset "KeysCollection" begin
@@ -94,11 +107,16 @@ end
         @test_throws BoundsError to_index(x, in(["a", "b", "c"]))
     end
 
-    @testset "IndexElement" begin
-        @test @inferred(to_index(x, 2)) == 2
-        @test_throws BoundsError to_index(x, 3)
-        @test @inferred(to_keys(x, 2, 2)) == "b"
+    @testset "IndicesFix2" begin
+        @test @inferred(to_index(x, Indices(<(2)))) == [1]
+        @test @inferred(to_keys(x, Indices(<(2)), [1])) == ["a"]
     end
+
+    @testset "IndicesFix2" begin
+        @test @inferred(to_index(x, 1:2)) == [1, 2]
+        @test_throws BoundsError to_index(x, 1:3)
+    end
+
     @testset "IndicesCollection" begin
         @test @inferred(to_index(x, 1:2)) == [1, 2]
         @test_throws BoundsError to_index(x, 1:3)
@@ -140,35 +158,4 @@ end
     @test @inferred(to_indices(A, (CartesianIndices((1,)), 1))) == (Axis(1:1 => 1:1), 1)
     @test @inferred(to_indices(A, (1, 1.0))) == (1,1)
 end
-
-#=
-@testset "axis_indices_styles" begin
-    A = AxisIndicesArray(reshape(1:9, 3,3),
-                         (2:4,        # first dimension has keys 2:4
-                          3.0:5.0));  # second dimension has keys 3.0:5.0
-
-    @test @inferred(axis_indices_styles(axes(A), (:, 2))) == (AxisIndices.Indexing.SliceCollection(), AxisIndices.Indexing.IndexElement())
-    #=
-    julia> @btime axis_indices_styles($(axes(A)), (:,2))
-      0.035 ns (0 allocations: 0 bytes)
-    =#
-
-    @test @inferred(axis_indices_styles(axes(A), (2, :))) == (AxisIndices.Indexing.IndexElement(), AxisIndices.Indexing.SliceCollection())
-    #=
-    julia> @btime axis_indices_styles($(axes(A)), (2, :))
-      0.035 ns (0 allocations: 0 bytes)
-    =#
-
-    @test @inferred(axis_indices_styles(axes(A), (1, 2))) == (AxisIndices.Indexing.IndexElement(), AxisIndices.Indexing.IndexElement())
-    #=
-    julia> @btime axis_indices_styles($(axes(A)), (1, 2))
-      0.035 ns (0 allocations: 0 bytes)
-    =#
-
-    @test @inferred(axis_indices_styles(axes(A), (1:2, 2))) == (AxisIndices.Indexing.IndicesCollection(), AxisIndices.Indexing.IndexElement())
-    #=
-    julia> @btime axis_indices_styles($(axes(A)), $((1:2, 2)))
-    =#
-end
-=#
 

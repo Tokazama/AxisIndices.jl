@@ -24,8 +24,9 @@ export
     NamedIndicesArray,
     NamedDimsArray,
     NIArray,
+    Indices,
+    Keys,
     # Reexport types
-    SimpleAxis,
     LinMRange,
     LinSRange,
     OneToRange,
@@ -63,9 +64,6 @@ using .PrettyArrays
 include("./AxisCore/AxisCore.jl")
 using .AxisCore
 
-include("./KeyedAxes/KeyedAxes.jl")
-using .AxisCore
-
 include("./Math/Math.jl")
 using .Math
 
@@ -88,4 +86,3 @@ include("./SpatialDims/SpatialDims.jl")
 using .SpatialDims
 
 end
-

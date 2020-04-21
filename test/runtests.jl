@@ -85,6 +85,7 @@ include("time_tests.jl")
 include("color_tests.jl")
 include("spatial_tests.jl")
 
+# this avoids errors due to differences in how Symbols are printing between versions of Julia
 if !(VERSION < v"1.4")
     @testset "docs" begin
         doctest(AxisIndices)

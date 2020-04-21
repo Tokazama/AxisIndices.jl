@@ -28,8 +28,11 @@ AxisIndices.IndicesCollection
 AxisIndices.IntervalCollection
 AxisIndices.BoolsCollection
 AxisIndices.KeysIn
+AxisIndices.IndicesIn
 AxisIndices.KeyEquals
+AxisIndices.IndexEquals
 AxisIndices.KeysFix2
+AxisIndices.IndicesFix2
 AxisIndices.SliceCollection
 AxisIndices.is_element
 AxisIndices.is_index
