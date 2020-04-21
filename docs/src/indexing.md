@@ -80,6 +80,24 @@ julia> time1[3s..4.5s]
 Axis((3.0:0.5:4.5) s => 4:7)
 ```
 
+## `Keys` and `Indices`
+
+If our keys are integers and we want to ensure that we always refer keys we can use `Keys`
+```jldoctest indexing_examples
+julia> Axis((2:11), 1:10)[Keys(<(5))]
+Axis(2:4 => 1:3)
+
+julia> Axis((2:11), 1:10)[Indices(<(5))]
+Axis(2:5 => 1:4)
+
+julia> Axis((2:11), 1:10)[Keys(3)]
+2
+
+julia> Axis((2:11), 1:10)[Indices(3)]
+3
+
+```
+
 ### Indexing With Functions
 
 Operators that typically return `true` or `false` can often 

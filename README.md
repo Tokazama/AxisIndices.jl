@@ -9,18 +9,26 @@ Here are some reasons you should try AxisIndices
 
 The linked documentation provides a very brief ["Quick Start"](https://tokazama.github.io/AxisIndices.jl/dev/quick_start/) section along with detailed documentation of internal methods and types.
 
-
+<!--
+This needs context
 <img src="docs/src/images/julia_dots.png" width="400" align="center">
+-->
 
-|                              Code |     | Result                             |
-| --------------------------------: | --- | ---------------------------------- |
-|         `Axis((1:10)s, 2:11)[1s]` | ->  | `2`                                |
-|          `Axis((1:10)s, 2:11)[2]` | ->  | `2`                                |
-|     `Axis((1:10)s, 2:11)[1s..3s]` | ->  | `Axis((1:3)s, 2:4)`                |
-|        `Axis((1:10)s, 2:11)[2:4]` | ->  | `Axis((1:3)s, 2:4)`                |
-|      `Axis((1:10)s, 2:11)[>(5s)]` | ->  | `Axis((6:10)s, 7:11)`              |
-|      `Axis((1:10)s, 2:11)[<(5s)]` | ->  | `Axis((1:4)s, 2:5)`                |
-|     `Axis((1:10)s, 2:11)[==(5s)]` | ->  | `6`                                |
-|     `Axis((1:10)s, 2:11)[!=(5s)]` | ->  | `[1, 2, 3, 4, 5, 7, 8, 9, 10, 11]` |
-| `Axis((1:10)s, 2:11)[in((1:2)s)]` | ->  | `Axis((1:2)s, 2:3)`                |
+## Cheat Sheet
+
+The following can be replicated by using Unitful seconds (i.e., `using Unitful: s`)
+| Code                                |    | Result                             |
+|------------------------------------:|----|------------------------------------|
+| `Axis((1:10)s, 2:11)[1s]`           | -> | `2`                                |
+| `Axis((1:10)s, 2:11)[2]`            | -> | `2`                                |
+| `Axis((1:10)s, 2:11)[1s..3s]`       | -> | `Axis((1:3)s, 2:4)`                |
+| `Axis((1:10)s, 2:11)[2:4]`          | -> | `Axis((1:3)s, 2:4)`                |
+| `Axis((1:10)s, 2:11)[>(5s)]`        | -> | `Axis((6:10)s, 7:11)`              |
+| `Axis((1:10)s, 2:11)[<(5s)]`        | -> | `Axis((1:4)s, 2:5)`                |
+| `Axis((1:10)s, 2:11)[==(5s)]`       | -> | `6`                                |
+| `Axis((1:10)s, 2:11)[!=(5s)]`       | -> | `[1, 2, 3, 4, 5, 7, 8, 9, 10, 11]` |
+| `Axis((1:10)s, 2:11)[in((1:2)s)]`   | -> | `Axis((1:2)s, 2:3)`                |
+| `Axis((2:11), 1:10)[Keys(5)]`       | -> | `5`                                |
+| `Axis((2:11), 1:10)[Indices(<(5))]` | -> | `Axis(2:5 => 1:4)`                 |
+| `SimpleAxis(1:10)[<(5)]`            | -> | `SimpleAxis(1:4)`                  |
 

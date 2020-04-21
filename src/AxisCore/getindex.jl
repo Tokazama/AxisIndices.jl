@@ -41,34 +41,18 @@ end
 end
 
 @propagate_inbounds function Base.getindex(axis::AbstractAxis{K,V,Ks,Vs}, arg) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-    s = AxisIndicesStyle(axis, arg)
-    index = to_index(s, axis, arg)
-    if is_element(s)
-        return index
-    else
-        return _axis_getindex(s, axis, arg, index)
-    end
+    return _axis_getindex(axis, arg, to_index(axis, arg))
 end
 
-@propagate_inbounds function Base.getindex(axis::AbstractSimpleAxis{V,Vs}, arg) where {V<:Integer,Vs<:AbstractUnitRange{V}}
-    s = AxisIndicesStyle(axis, arg)
-    index = to_index(s, axis, arg)
-    if is_element(s)
-        return index
-    else
-        return _axis_getindex(s, axis, arg, index)
-    end
+@inline function _axis_getindex(axis::AbstractAxis, arg, index::AbstractUnitRange)
+    return unsafe_reconstruct(axis, to_keys(axis, arg, index), index)
 end
+_axis_getindex(axis::AbstractAxis, arg, index) = index
 
-function _axis_getindex(s, axis::AbstractAxis, arg, index::AbstractUnitRange)
-    return unsafe_reconstruct(axis, to_keys(s, axis, arg, index), index)
-end
-_axis_getindex(s, axis::AbstractAxis, arg, index) = index
-
-function _axis_getindex(s, axis::AbstractSimpleAxis, arg, index::AbstractUnitRange)
+@inline function _axis_getindex(axis::AbstractSimpleAxis, arg, index::AbstractUnitRange)
     return unsafe_reconstruct(axis, index)
 end
-_axis_getindex(s, axis::AbstractSimpleAxis, arg, index) = index
+_axis_getindex(axis::AbstractSimpleAxis, arg, index) = index
 
 for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:unsafe_dotview, :dotview))
     @eval begin

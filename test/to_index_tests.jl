@@ -33,6 +33,7 @@ end
     @test @inferred(is_element(IndexElement))
     @test @inferred(is_element(CartesianElement))
     @test @inferred(is_element(KeyEquals))
+    @test @inferred(is_element(IndexEquals))
     @test @inferred(!is_element(Vector{Int}))
     @test @inferred(!is_element(KeysCollection))
 
@@ -55,6 +56,10 @@ end
     a = Axis(2:10)
     @test @inferred(to_index(a, 1)) == 1
     @test @inferred(to_index(a, 1:2)) == 1:2
+    @test @inferred(to_index(a, Keys(2:3))) == 1:2
+    @test @inferred(to_keys(a, Keys(2:3), 1:2)) == 2:3
+    @test @inferred(to_index(a, Keys(2))) == 1
+    @test @inferred(to_keys(a, Keys(2), 1)) == 2
 
     x = Axis([:one, :two])
     @test @inferred(to_index(x, :one)) == 1
@@ -112,9 +117,10 @@ end
         @test @inferred(to_keys(x, Indices(<(2)), [1])) == ["a"]
     end
 
-    @testset "IndicesFix2" begin
-        @test @inferred(to_index(x, 1:2)) == [1, 2]
-        @test_throws BoundsError to_index(x, 1:3)
+    @testset "IndicesIn" begin
+        @test @inferred(to_index(x, Indices(in(1:2)))) == [1, 2]
+        @test_throws BoundsError to_index(x, Indices(in(1:3)))
+        @test @inferred(to_keys(x, Indices(in(1:2)), [1, 2])) == ["a", "b"]
     end
 
     @testset "IndicesCollection" begin
@@ -126,6 +132,7 @@ end
         @test @inferred(to_index(x, [false, true])) == [2]
         @test @inferred(to_index(x, [true, true])) == [1, 2]
         @test_throws BoundsError to_index(x, [true, true, true])
+        @test @inferred(to_keys(x, [true, true], [1, 2])) == ["a", "b"]
     end
 
     @testset "BoolElement" begin
