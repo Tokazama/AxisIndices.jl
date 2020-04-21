@@ -98,6 +98,25 @@ julia> Axis((2:11), 1:10)[Indices(3)]
 
 ```
 
+## Approximate Indexing
+
+```jldoctest indexing_examples
+julia> axis = Axis([pi + 0, pi + 1]);
+
+julia> axis[3.141592653589793]
+1
+
+julia> axis[3.14159265358979]
+ERROR: BoundsError: attempt to access 2-element Axis([3.141592653589793, 4.141592653589793] => OneToMRange(2)) at index [3.14159265358979]
+[...]
+
+julia> axis[isapprox(3.14159265358979)]
+1
+
+julia> axis[isapprox(3.14, atol=1e-2)]
+1
+```
+
 ### Indexing With Functions
 
 Operators that typically return `true` or `false` can often 
