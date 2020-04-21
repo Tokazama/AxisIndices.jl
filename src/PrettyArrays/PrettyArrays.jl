@@ -24,7 +24,14 @@ function show_array(
     for i in 1:N
         println(io, " • $(getfield(dnames, i)) - $(getfield(axs, i))")
     end
-    return pretty_array(io, x, axs, dnames; kwargs...)
+
+    io_has_color = get(io, :color, false)
+    buf_io       = IOBuffer()
+    buf          = IOContext(buf_io, :color => io_has_color)
+
+    pretty_array(buf, x, axs, dnames; kwargs...)
+    print(io, chomp(String(take!(buf_io))))
+    return nothing
 end
 
 end

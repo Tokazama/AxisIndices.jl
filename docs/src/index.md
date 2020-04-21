@@ -28,3 +28,4 @@ Look at the [TimeAxis Guide](@ref), which implements a custom axis type.
 
 If you've read the appropriate docstrings (under "References" or available in the REPL) and still have questions then various sections under "Manual" are a good place to look.
 If that doesn't help then create an issue in the AxisIndices repo.
+

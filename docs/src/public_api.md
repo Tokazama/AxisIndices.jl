@@ -17,5 +17,7 @@ pretty_array
 keys_type
 first_key
 last_key
+Indices
+Keys
 ```
 

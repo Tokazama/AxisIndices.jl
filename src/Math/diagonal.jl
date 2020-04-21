@@ -11,18 +11,11 @@ julia> using AxisIndices, LinearAlgebra
 
 julia> A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
 
+julia> axes_keys(diag(A))
+(["a", "b", "c"],)
 
-julia> diag(A)
-AxisIndicesArray{Int64,1,Array{Int64,1}...}
- • dim_1 - Axis(["a", "b", "c"] => OneToMRange(3))
-
-  a   1
-  b   5
-  c   9
-
-
-julia> axes(diag(A, 1; dim=Val(2)), 1)
-Axis([:one, :two] => OneToMRange(2))
+julia> axes_keys(diag(A, 1; dim=Val(2)))
+([:one, :two],)
 
 ```
 """

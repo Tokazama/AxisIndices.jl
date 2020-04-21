@@ -8,32 +8,17 @@ Rotate `A` 180 degrees, along with its axes keys.
 ```jldoctest
 julia> using AxisIndices
 
-julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"])
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
- • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
-      one   two
-  a     1     2
-  b     3     4
+julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"]);
 
+julia> b = rot180(a);
 
-julia> b = rot180(a)
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["b", "a"] => OneToMRange(2))
- • dim_2 - Axis(["two", "one"] => OneToMRange(2))
-      two   one
-  b     4     3
-  a     2     1
+julia> axes_keys(b)
+(["b", "a"], ["two", "one"])
 
+julia> c = rotr90(rotr90(a));
 
-julia> c = rotr90(rotr90(a))
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["b", "a"] => OneToMRange(2))
- • dim_2 - Axis(["two", "one"] => OneToMRange(2))
-      two   one
-  b     4     3
-  a     2     1
-
+julia> axes_keys(c)
+(["b", "a"], ["two", "one"])
 
 julia> a["a", "one"] == b["a", "one"] == c["a", "one"]
 true
@@ -59,23 +44,12 @@ Rotate `A` right 90 degrees, along with its axes keys.
 ```jldoctest
 julia> using AxisIndices
 
-julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"])
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
- • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
-      one   two
-  a     1     2
-  b     3     4
+julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"]);
 
+julia> b = rotr90(a);
 
-julia> b = rotr90(a)
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["one", "two"] => OneToMRange(2))
- • dim_2 - Axis(["b", "a"] => OneToMRange(2))
-        b   a
-  one   3   1
-  two   4   2
-
+julia> axes_keys(b)
+(["one", "two"], ["b", "a"])
 
 julia> a["a", "one"] == b["one", "a"]
 true
@@ -100,23 +74,12 @@ Rotate `A` left 90 degrees, along with its axes keys.
 ```jldoctest
 julia> using AxisIndices
 
-julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"])
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
- • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
-      one   two
-  a     1     2
-  b     3     4
+julia> a = AxisIndicesArray([1 2; 3 4], ["a", "b"], ["one", "two"]);
 
+julia> b = rotl90(a);
 
-julia> b = rotl90(a)
-AxisIndicesArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(["two", "one"] => OneToMRange(2))
- • dim_2 - Axis(["a", "b"] => OneToMRange(2))
-        a   b
-  two   2   4
-  one   1   3
-
+julia> axes_keys(b)
+(["two", "one"], ["a", "b"])
 
 julia> a["a", "one"] == b["one", "a"]
 true

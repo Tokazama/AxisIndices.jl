@@ -141,25 +141,13 @@ julia> using AxisIndices
 
 julia> x = AxisIndicesArray([1, 2, 3, 4]);
 
-julia> deleteat!(x, 3)
-AxisIndicesArray{Int64,1,Array{Int64,1}...}
- • dim_1 - SimpleAxis(OneToMRange(3))
-
-  1   1
-  2   2
-  3   4
-
+julia> axes_keys(deleteat!(x, 3))
+(OneToMRange(3),)
 
 julia> x = AxisIndicesArray([1, 2, 3, 4], ["a", "b", "c", "d"]);
 
-julia> deleteat!(x, "c")
-AxisIndicesArray{Int64,1,Array{Int64,1}...}
- • dim_1 - Axis(["a", "b", "d"] => OneToMRange(3))
-
-  a   1
-  b   2
-  d   4
-
+julia> axes_keys(deleteat!(x, "c"))
+(["a", "b", "d"],)
 
 ```
 """
