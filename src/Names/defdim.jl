@@ -1,12 +1,4 @@
 
-function getdim_error(x, condition::Symbol)
-    throw(ArgumentError("Specified name ($(repr(condition))) does not match any dimension names for $(repr(x)))"))
-end
-
-function getdim_error(x, condition::Function)
-    throw(ArgumentError("Method $(Symbol(condition)) is not true for any dimensions of $(repr(x)))"))
-end
-
 # I have to abuse @pure here to get type inference to propagate to the axes methods
 # So `condition` also has to be pure, which shouldn't be hard because it should basically
 # just be comparing symbols
@@ -86,6 +78,8 @@ macro defdim(name, condition)
     Return `x` view of all the data of `x` where the index for the $name dimension equals `i`.
     """
 
+    err_msg = "Method $(Symbol(condition)) is not true for any dimensions of "
+
     esc(quote
         Base.@pure function $dim_noerror_name(x::Tuple{Vararg{Symbol,N}}) where {N}
             for i in Base.OneTo(N)
@@ -98,7 +92,7 @@ macro defdim(name, condition)
         @inline function $name_dim(x)
             d = $dim_noerror_name(dimnames(x))
             if d === 0
-                AxisIndices.Names.getdim_error(x, $condition)
+                throw(ArgumentError($err_msg * repr(x)))
             else
                 return d
             end

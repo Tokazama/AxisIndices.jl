@@ -34,7 +34,30 @@ assigned value is sent to the corresponding axis when constructing the underlyin
 ```jldoctest
 julia> using AxisIndices
 
-julia> A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5);
+julia> A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
+NamedDimsArray{Int64,3,Base.ReshapedArray{Int64,3,UnitRange{Int64},Tuple{}}...}
+ • x - Axis(["a", "b"] => Base.OneTo(2))
+ • y - Axis(["one", "two", "three"] => Base.OneTo(3))
+ • z - Axis(2:5 => Base.OneTo(4))
+[x, y, z[2]] =
+      one   two   three
+  a     1     3       5
+  b     2     4       6
+
+[x, y, z[3]] =
+      one   two   three
+  a     7     9      11
+  b     8    10      12
+
+[x, y, z[4]] =
+      one   two   three
+  a    13    15      17
+  b    14    16      18
+
+[x, y, z[5]] =
+      one   two   three
+  a    19    21      23
+  b    20    22      24
 
 julia> dimnames(A)
 (:x, :y, :z)
@@ -42,21 +65,23 @@ julia> dimnames(A)
 julia> axes_keys(A)
 (["a", "b"], ["one", "two", "three"], 2:5)
 
-julia> B = A["a", :, :];
+julia> B = A["a", :, :]
+NamedDimsArray{Int64,2,Array{Int64,2}...}
+ • y - Axis(["one", "two", "three"] => OneToMRange(3))
+ • z - Axis(2:5 => Base.OneTo(4))
+          2    3    4    5
+    one   1    7   13   19
+    two   3    9   15   21
+  three   5   11   17   23
 
-julia> dimnames(B)
-(:y, :z)
+julia> C = B["one",:]
+NamedDimsArray{Int64,1,Array{Int64,1}...}
+ • z - Axis(2:5 => Base.OneTo(4))
 
-julia> axes_keys(B)
-(["one", "two", "three"], 2:5)
-
-julia> C = B["one",:];
-
-julia> dimnames(C)
-(:z,)
-
-julia> axes_keys(C)
-(2:5,)
+  2    1
+  3    7
+  4   13
+  5   19
 
 ```
 """
