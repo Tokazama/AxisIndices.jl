@@ -17,4 +17,3 @@ using AxisIndices.TimeDims
     @test @inferred(sampling_rate(nia)) == 1
     @test_throws ArgumentError timedim(NIArray(reshape(1:6, 2, 3), x = 2:3, y = 3.0:5.0))
 end
-
