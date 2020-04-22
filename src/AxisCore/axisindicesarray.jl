@@ -8,17 +8,19 @@ a tuple of subtypes to `AbstractAxis` or keys that will be converted to subtypes
 of `AbstractAxis` with the provided keys.
 """
 struct AxisIndicesArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: AbstractAxisIndices{T,N,P,AI}
-    _parent::P
-    _axes::AI
+    "The parent array."
+    parent::P
+    "The axes for each dimension of the parent array."
+    axes::AI
 
     function AxisIndicesArray{T,N,P,A}(p::P, axs::A) where {T,N,P,A}
        return new{T,N,P,A}(p, axs)
     end
 end
 
-Base.parent(x::AxisIndicesArray) = getfield(x, :_parent)
+Base.parent(x::AxisIndicesArray) = getfield(x, :parent)
 
-Base.axes(x::AxisIndicesArray) = getfield(x, :_axes)
+Base.axes(x::AxisIndicesArray) = getfield(x, :axes)
 
 function StaticRanges.similar_type(
     ::AxisIndicesArray{T,N,P,AI},
