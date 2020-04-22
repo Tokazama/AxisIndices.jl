@@ -112,13 +112,13 @@ include("broadcast_axis.jl")
 include("broadcast.jl")
 include("dropdims.jl")
 include("map.jl")
-include("mutate.jl")
 include("rotations.jl")
 include("reduce.jl")
 include("permutedims.jl")
 include("arraymath.jl")
 include("cat.jl")
 include("io.jl")
+include("resize.jl")
 
 include("linearaxes.jl")
 include("cartesianaxes.jl")
@@ -131,6 +131,70 @@ include("getindex.jl")
 to_axis(axis::AbstractAxis) = axis
 to_axis(axis::OneToUnion) = SimpleAxis(axis)
 to_axis(axis::AbstractVector) = Axis(axis)
+
+Base.allunique(a::AbstractAxis) = true
+
+Base.in(x::Integer, a::AbstractAxis) = in(x, values(a))
+
+Base.collect(a::AbstractAxis) = collect(values(a))
+
+Base.eachindex(a::AbstractAxis) = values(a)
+
+function reverse_keys(old_axis::AbstractAxis, new_index::AbstractUnitRange)
+    return similar(old_axis, reverse(keys(old_axis)), new_index, false)
+end
+
+function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
+    return Axis(reverse(keys(old_axis)), new_index, false)
+end
+
+#Base.axes(a::AbstractAxis) = values(a)
+
+# This is required for performing `similar` on arrays
+Base.to_shape(r::AbstractAxis) = length(r)
+
+###
+### static traits
+###
+# for when we want the same underlying memory layout but reversed keys
+
+# TODO should this be a formal abstract type?
+const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
+
+
+# TODO this should all be derived from the values of the axis
+# Base.stride(x::AbstractAxisIndices) = axes_to_stride(axes(x))
+#axes_to_stride()
+
+# FIXME
+# When I use Val(N) on the tuple the it spits out many lines of extra code.
+# But without it it loses inferrence
+function Base.reinterpret(::Type{Tnew}, A::AbstractAxisIndices{Told,N}) where {Tnew,Told,N}
+    p = reinterpret(Tnew, parent(A))
+    axs = ntuple(N) do i
+        resize_last(axes(A, i), size(p, i))
+    end
+    return unsafe_reconstruct(A, p, axs)
+end
+
+function Base.reverse(x::AbstractAxisIndices{T,1}) where {T}
+    p = reverse(parent(x))
+    return unsafe_reconstruct(x, p, (reverse_keys(axes(x, 1), axes(p, 1)),))
+end
+
+function Base.reverse(x::AbstractAxisIndices{T,N}; dims::Integer) where {T,N}
+    p = reverse(parent(x), dims=dims)
+    axs = ntuple(Val(N)) do i
+        if i in dims
+            reverse_keys(axes(x, i), axes(p, i))
+        else
+            assign_indices(axes(x, i), axes(p, i))
+        end
+    end
+    return unsafe_reconstruct(x, p, axs)
+end
+
+Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
 end
 

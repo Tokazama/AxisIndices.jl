@@ -11,6 +11,8 @@ using AxisIndices.Names
 using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
+using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
+using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!
 using OffsetArrays
 
 using Base: step_hp, OneTo
@@ -52,8 +54,9 @@ include("linearaxes.jl")
 include("append_tests.jl")
 include("filter_tests.jl")
 include("promotion_tests.jl")
-
 include("similar_tests.jl")
+include("resize_tests.jl")
+
 include("reduce_tests.jl")
 include("staticness_tests.jl")
 include("checkbounds.jl")
