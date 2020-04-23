@@ -18,9 +18,10 @@ export
     onset,
     duration,
     select_timedim,
-    sampling_rate
+    sampling_rate,
+    assert_timedim_last
 
-Base.@pure is_time(x::Symbol) = x === :time
+Base.@pure is_time(x::Symbol) = (x === :time) || (x === :Time)
 
 @defdim time is_time
 
@@ -53,6 +54,13 @@ end
 
 Number of samples per second.
 """
-sampling_rate(x) = 1 / step(time_axis(x))
+sampling_rate(x) = 1 / step(time_keys(x))
+
+"""
+    assert_timedim_last(x)
+
+Throw an error if the `x` has a time dimension that is not the last dimension.
+"""
+@inline assert_timedim_last(x) = is_time(last(dimnames(x)))
 
 end

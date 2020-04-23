@@ -50,7 +50,6 @@ AxisIndicesArray{Float64,2,Array{Float64,2}...}
   1   1.0   1.0
   2   1.0   1.0
 
-
 ```
 """
 function AxisIndicesArray(
@@ -86,7 +85,6 @@ AxisIndicesArray{Float64,2,Array{Float64,2}...}
       one   two
   a   1.0   1.0
   b   1.0   1.0
-
 
 ```
 """
