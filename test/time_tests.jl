@@ -4,6 +4,8 @@ using AxisIndices.TimeDims
 @testset "time" begin
     nia = NIArray(reshape(1:6, 2, 3), x = 2:3, time = 3.0:5.0)
     @test has_timedim(nia)
+    @test @inferred(assert_timedim_last(nia))
+    @test @inferred(!assert_timedim_last(NIArray(reshape(1:6, 3, 2), time = 3.0:5.0, x = 2:3)))
     @test !has_timedim(parent(nia))
     @test @inferred(time_keys(nia)) == 3:5
     @test @inferred(ntime(nia)) == 3
