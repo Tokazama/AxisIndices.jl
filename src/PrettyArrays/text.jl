@@ -13,7 +13,7 @@ function pretty_array_text(
     #autowrap::Bool = get_autowrap(row, col),
     body_hlines::Vector{Int} = get_body_hlines(row, col),
     body_hlines_format::Union{Nothing,NTuple{4,Char}} = get_body_hlines_format(row, col),
-    crop::Symbol = get_crop(row, col),
+    #crop::Symbol = get_crop(row, col),
     #columns_width::Union{Integer,AbstractVector{Int}} = get_columns_width(row, col),
     #highlighters::Union{Highlighter,Tuple} = text_highlighters(row, col),
     #linebreaks::Bool = get_linebreaks(row, col),
@@ -48,7 +48,7 @@ function pretty_array_text(
         #autowrap=autowrap,
         body_hlines=body_hlines,
         body_hlines_format=body_hlines_format,
-        crop=crop,
+        #crop=crop,
         #columns_width=columns_width,
         #highlighters=highlighters,
         #linebreaks=linebreaks,
@@ -265,7 +265,7 @@ size (see `screen_size`). It can be `:both` to crop on vertical and horizontal
 direction, `:horizontal` to crop only on horizontal direction, `:vertical` to
 crop only on vertical direction, or `:none` to do not crop the data at all.
 =#
-get_crop(row::AbstractUnitRange, col::AbstractUnitRange) = :both
+#get_crop(row::AbstractUnitRange, col::AbstractUnitRange) = :both
 
 #=
 
