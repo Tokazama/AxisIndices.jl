@@ -86,6 +86,7 @@ export
     CombineStack,
     CoVector,
     # methods
+    is_simple_axis,
     is_element,
     is_index,
     is_collection,
