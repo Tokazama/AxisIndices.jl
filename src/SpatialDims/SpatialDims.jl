@@ -139,11 +139,6 @@ function spatial_directions(x::AbstractArray{T,N}) where {T,N}
     end
 end
 
-function _spatial_directions(ps::NTuple{N,Any}) where N
-    return ntuple(i->ntuple(d->d==i ? ps[d] : zero(ps[d]),
-                            Val(N)), Val(N))
-end
-
 """
     sdims(x)
 
