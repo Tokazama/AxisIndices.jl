@@ -12,7 +12,7 @@ using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
-using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!
+using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
 using OffsetArrays
 
 using Base: step_hp, OneTo
@@ -74,6 +74,11 @@ include("linear_algebra.jl")
 
 include("mapped_arrays.jl")
 include("nameddims_tests.jl")
+
+@testset "pretty_array" begin
+    A = AxisIndicesArray(Array{Int,0}(undef, ()))
+    @test pretty_array(String, A) == repr(A[1])
+end
 
 
 #= TODO this needs to be formally tested
