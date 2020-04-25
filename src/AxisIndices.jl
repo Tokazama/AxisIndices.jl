@@ -43,6 +43,7 @@ export
     dimnames,
     dim,
     # methods
+    parent_type,
     srange,
     mrange,
     values_type,

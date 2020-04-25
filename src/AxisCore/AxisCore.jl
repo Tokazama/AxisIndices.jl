@@ -129,8 +129,20 @@ include("getindex.jl")
 
 
 to_axis(axis::AbstractAxis) = axis
-to_axis(axis::OneToUnion) = SimpleAxis(axis)
+to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
 to_axis(axis::AbstractVector) = Axis(axis)
+to_axis(len::Integer) = SimpleAxis(len)
+function to_axis(axis::AbstractAxis, index::AbstractUnitRange, check_length::Bool=true)
+    check_length && check_axis_length(axis, index)
+    return axis
+end
+function to_axis(axis::AbstractVector, new_indices::AbstractUnitRange, check_length::Bool=true)
+    return Axis(new_keys, new_indices, check_length)
+end
+function to_axis(axis::OneToUnion, new_indices::OneToUnion, check_length::Bool=true)
+    check_length && check_axis_length(axis, index)
+    return to_axis(axis)
+end
 
 Base.allunique(a::AbstractAxis) = true
 

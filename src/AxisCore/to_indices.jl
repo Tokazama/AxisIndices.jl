@@ -66,6 +66,8 @@ for T in (Any, Integer, CartesianIndex{1}, AbstractVector)
     end
 end
 
+Base.to_indices(A::AbstractAxisIndices{T,0}, args::Tuple{Integer}) where {T} = args
+
 # These are extra indices that just need to be ensured are in bounds
 @propagate_inbounds function Base.to_indices(
     A::AbstractAxisIndices{T,N},
@@ -92,4 +94,7 @@ end
     Base.@_inline_meta
     to_indices(A, axes(A), args)
 end
+
+# avoid ambiguities with `to_indices(A, I::Tuple{})
+Base.to_indices(A::AbstractAxisIndices, I::Tuple{}) = ()
 
