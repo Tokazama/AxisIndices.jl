@@ -471,3 +471,11 @@ CombineStyle(::CombineSimpleAxis, ::CombineSimpleAxis) = CombineSimpleAxis()
 
 CombineStyle(x::CombineStyle, y::CombineStyle) = x
 
+"""
+    is_simple_axis(x) -> Bool
+
+If `true` then `x` is an axis type where `keys(x) === values(x)`
+"""
+is_simple_axis(::T) where {T} = is_simple_axis(T)
+is_simple_axis(::Type{T}) where {T} = false
+is_simple_axis(::Type{T}) where {T<:AbstractSimpleAxis} = true

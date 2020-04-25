@@ -302,5 +302,3 @@ end
 
 Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))
 
-Base.firstindex(A::AbstractAxisIndicesVector) = firstindex(axes(A, 1))
-

@@ -94,12 +94,14 @@ function pretty_array(
 
     if backend === :text
         return pretty_array_text(io, A, axs[1]; kwargs...)
+    #=
     elseif backend === :html
         return pretty_array_html(io, A, axs[1]; kwargs...)
     elseif backed === :latex
         return pretty_array_latex(io, A, axs[1]; kwargs...)
     else
         error("unsupported backend specified")
+    =#
     end
 end
 
@@ -113,13 +115,26 @@ function pretty_array(
 )
     if backend === :text
         return pretty_array_text(io, A, axs[1], axs[2]; kwargs...)
+    #=
     elseif backend === :html
         return pretty_array_html(io, A, axs[1], axs[2]; kwargs...)
     elseif backed === :latex
         return pretty_array_latex(io, A, axs[1], axs[2]; kwargs...)
     else
         error("unsupported backend specified")
+    =#
     end
+end
+
+function pretty_array(
+    io::IO,
+    A::AbstractArray{T,0},
+    axs::Tuple=(),
+    dnames::Tuple=(),
+    backend::Symbol=:text;
+    kwargs...
+) where {T}
+    return print(io, A[1])
 end
 
 function pretty_array(

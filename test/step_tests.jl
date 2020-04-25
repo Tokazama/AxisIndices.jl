@@ -11,5 +11,6 @@
 
     @test @inferred(step(SimpleAxis(2))) == 1
     @test @inferred(firstindex(Axis(1:10))) == firstindex(1:10)
+    @test @inferred(AxisIndices.step_key([1])) == 1
 end
 

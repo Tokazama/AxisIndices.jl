@@ -1,6 +1,8 @@
 module SpatialDims
 
 using NamedDims
+using StaticRanges
+using AxisIndices.AxisCore
 using AxisIndices.Names
 using AxisIndices.ObservationDims
 using AxisIndices.TimeDims
@@ -14,7 +16,14 @@ export
     spatial_keys,
     spatial_indices,
     spatial_size,
-    pixel_spacing
+    pixel_spacing,
+    spatial_directions,
+    sdims
+
+# yes, I'm abusing @pure
+Base.@pure function is_spatial(x::Symbol)
+    return !is_time(x) && !is_color(x) && !is_observation(x)
+end
 
 """
     spatial_order(x) -> Tuple{Vararg{Symbol}}
@@ -25,7 +34,7 @@ spatial_order(x::X) where {X} = _spatial_order(Val(dimnames(X)))
 @generated function _spatial_order(::Val{L}) where {L}
     keep_names = []
     for n in L
-        if !(is_time(n) | is_color(n) | is_observation(n))
+        if is_spatial(n)
             push!(keep_names, n)
         end
     end
@@ -64,7 +73,7 @@ Return a tuple listing the sizes of the spatial dimensions of the image.
     spatial_indices(x)
 
 Return a tuple with the indices of the spatial dimensions of the
-image. Defaults to the same as `indices`, but using `NamedDimsArrah` you can
+image. Defaults to the same as `indices`, but using `NamedDimsArray` you can
 mark some axes as being non-spatial.
 """
 @inline spatial_indices(x) = map(values, spatial_axes(x))
@@ -74,13 +83,22 @@ mark some axes as being non-spatial.
 """
 @inline spatial_keys(x) = map(keys, spatial_axes(x))
 
+# FIXME account for keys with no steps
 """
     pixel_spacing(x)
 
 Return a tuple representing the separation between adjacent pixels along each axis
 of the image. Derived from the step size of each element of `spatial_keys`.
 """
-@inline pixel_spacing(x) = map(step, spatial_keys(x))
+@inline function pixel_spacing(x)
+    map(spatial_keys(x)) do ks_i
+        if StaticRanges.has_step(ks_i)
+            return step(ks_i)
+        else
+            return 0
+        end
+    end
+end
 
 """
     spatial_offset(x)
@@ -88,5 +106,54 @@ of the image. Derived from the step size of each element of `spatial_keys`.
 The offset of each dimension (i.e., where each spatial axis starts).
 """
 spatial_offset(x) = map(first, spatial_keys(x))
+
+"""
+    space_directions(x) -> (axis1, axis2, ...)
+
+Return a tuple-of-tuples, each `axis[i]` representing the displacement
+vector between adjacent pixels along spatial axis `i` of the image
+array, relative to some external coordinate system ("physical
+coordinates").
+
+By default this is computed from `pixel_spacing`, but you can set this
+manually using ImagesMeta.
+"""
+function spatial_directions(x::AbstractArray{T,N}) where {T,N}
+    ntuple(Val(N)) do i
+        ntuple(Val(N)) do d
+            if d === i
+                if is_spatial(dimnames(x, i))
+                    ks = axes_keys(x, i)
+                    if StaticRanges.has_step(ks)
+                        return step(ks)
+                    else
+                        return 1  # TODO If keys are not range does it make sense to return this?
+                    end
+                else
+                    return 0
+                end
+            else
+                return 0
+            end
+        end
+    end
+end
+
+"""
+    sdims(x)
+
+Return the number of spatial dimensions in the image. Defaults to the same as
+`ndims`, but with `NamedDimsArray` you can specify that some dimensions
+correspond to other quantities (e.g., time) and thus not included by `sdims`.
+"""
+@inline function sdims(x)
+    cnt = 0
+    for name in dimnames(x)
+        if is_spatial(name)
+            cnt += 1
+        end
+    end
+    return cnt
+end
 
 end

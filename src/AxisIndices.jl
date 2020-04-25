@@ -43,6 +43,7 @@ export
     dimnames,
     dim,
     # methods
+    parent_type,
     srange,
     mrange,
     values_type,
@@ -56,7 +57,9 @@ export
     ..,
     indices,
     axes_keys,
-    pretty_array
+    pretty_array,
+    # traits,
+    is_simple_axis
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays

@@ -86,6 +86,7 @@ export
     CombineStack,
     CoVector,
     # methods
+    is_simple_axis,
     is_element,
     is_index,
     is_collection,
@@ -129,8 +130,9 @@ include("getindex.jl")
 
 
 to_axis(axis::AbstractAxis) = axis
-to_axis(axis::OneToUnion) = SimpleAxis(axis)
+to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
 to_axis(axis::AbstractVector) = Axis(axis)
+to_axis(len::Integer) = SimpleAxis(len)
 
 Base.allunique(a::AbstractAxis) = true
 
