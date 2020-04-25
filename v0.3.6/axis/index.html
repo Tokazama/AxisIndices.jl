@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>The Axis · AxisIndices.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AxisIndices.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../quick_start/">Quick Start</a></li><li><span class="tocitem">Manual</span><ul><li class="is-active"><a class="tocitem" href>The Axis</a><ul class="internal"><li><a class="tocitem" href="#Introduction-1"><span>Introduction</span></a></li><li><a class="tocitem" href="#Resizing-Axes-1"><span>Resizing Axes</span></a></li></ul></li><li><a class="tocitem" href="../internals_of_indexing/">Internals of Indexing</a></li><li><a class="tocitem" href="../pretty_printing/">Pretty Printing</a></li><li><a class="tocitem" href="../compatibility/">Compatibility</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../indexing/">Indexing Tutorial</a></li><li><a class="tocitem" href="../coeftable/">CoefTable</a></li><li><a class="tocitem" href="../time/">TimeAxis Guide</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../public_api/">Public API</a></li><li><a class="tocitem" href="../standard_library_api/">Standard Library API</a></li><li><a class="tocitem" href="../internal_api/">Internal API</a></li><li><a class="tocitem" href="../experimental/">Experimental API</a></li></ul></li><li><a class="tocitem" href="../comparison/">Comparison to Other Packages</a></li><li><a class="tocitem" href="../acknowledgments/">Acknowledgments</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>The Axis</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>The Axis</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Tokazma/AxisIndices.jl/blob/master/docs/src/axis.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="The-Axis-Interface-1"><a class="docs-heading-anchor" href="#The-Axis-Interface-1">The Axis Interface</a><a class="docs-heading-anchor-permalink" href="#The-Axis-Interface-1" title="Permalink"></a></h1><p>The following describes the components necessary to construct and manipulate existing and new subtypes of <code>AbstractAxis</code>.</p><h2 id="Introduction-1"><a class="docs-heading-anchor" href="#Introduction-1">Introduction</a><a class="docs-heading-anchor-permalink" href="#Introduction-1" title="Permalink"></a></h2><p>The supertype to all axis types herein is the <code>AbstractAxis</code>, which is a subtype of <code>AbstractUnitRange{&lt;:Integer}</code>.</p><p>If we have a set of keys <code>a b c</code> and a set of indices <code>1 2 3</code> then the key <code>a</code> maps to the index <code>1</code>. Given these definitions, the <code>AbstractAxis</code> differs from the classic dictionary in the following two ways:</p><ol><li>The <code>valtype</code> of <code>AbstractAxis</code> is always an integer.</li><li>The <code>values</code> are always unique and continuous.</li></ol><p>The two main axis types defined here are <code>Axis</code> and <code>SimpleAxis</code>. The standard syntax for indexing doesn&#39;t change at all for these types.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, Dates
+
+julia&gt; sa = SimpleAxis(1:10)
+SimpleAxis(1:10)
+
+julia&gt; sa[2]
+2
+
+julia&gt; sa[&gt;(2)]
+SimpleAxis(3:10)
+
+julia&gt; a = Axis(1:10)
+Axis(1:10 =&gt; Base.OneTo(10))
+
+julia&gt; a[2]
+2
+
+julia&gt; a[2:3]
+Axis(2:3 =&gt; 2:3)</code></pre><p>But now we can also use functions to index by the keys of an <code>AbstractAxis</code>.</p><pre><code class="language-julia-repl">julia&gt; a = Axis(2.0:11.0, 1:10)
+Axis(2.0:1.0:11.0 =&gt; 1:10)
+
+julia&gt; a[1]
+1
+
+julia&gt; a[isequal(2.0)]
+1
+
+julia&gt; a[&gt;(2)]
+Axis(3.0:1.0:11.0 =&gt; 2:10)
+
+julia&gt; a[&gt;(2.0)]
+Axis(3.0:1.0:11.0 =&gt; 2:10)
+
+julia&gt; a[and(&gt;(2.0), &lt;(8.0))]
+Axis(3.0:1.0:7.0 =&gt; 2:6)
+
+julia&gt; sa[in(3:5)]
+SimpleAxis(3:5)</code></pre><p>This also allows certain syntax special treatment because they are obviously not referring to traditional integer based indexing.</p><pre><code class="language-julia-repl">julia&gt; x, y, z = Axis([:one, :two, :three]), Axis([&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]), Axis(Second(1):Second(1):Second(3));
+
+julia&gt; x[:one]
+1
+
+julia&gt; x[:one] == y[&quot;one&quot;] == z[Second(1)]
+true
+
+julia&gt; x[[:one, :two]]
+2-element Array{Int64,1}:
+ 1
+ 2</code></pre><p>Note in the last example that a vector was returned instead of an <code>AbstractAxis</code>. An <code>AbstractAxis</code> is a subtype of <code>AbstractUnitRange</code> and therefore cannot be reformed after any operation that does not guarantee the return of another unit range. This is similar to the behavior of <code>UnitRange</code> in base.</p><h3 id="Performance-1"><a class="docs-heading-anchor" href="#Performance-1">Performance</a><a class="docs-heading-anchor-permalink" href="#Performance-1" title="Permalink"></a></h3><p>Indexing <code>CartesianAxes</code> is comparable to that of <code>CartesianIndices</code>.</p><pre><code class="language-julia">julia&gt; using AxisIndices, BenchmarkTools
+
+julia&gt; cartaxes = CartesianAxes((Axis(2.0:5.0), Axis(1:4)));
+
+julia&gt; cartinds = CartesianIndices((1:4, 1:4));
+
+julia&gt; @btime getindex(cartaxes, 2, 2)
+  20.848 ns (1 allocation: 32 bytes)
+CartesianIndex(2, 2)
+
+julia&gt; @btime getindex(cartinds, 2, 2)
+  22.317 ns (1 allocation: 32 bytes)
+CartesianIndex(2, 2)
+
+julia&gt; @btime getindex(cartaxes, ==(3.0), 2)
+  444.374 ns (7 allocations: 416 bytes)
+CartesianIndex(2, 2)</code></pre><p>Indexing <code>LinearAxes</code> is comparable to that of <code>LinearIndices</code></p><pre><code class="language-julia">julia&gt; using AxisIndices, BenchmarkTools
+
+julia&gt; linaxes = LinearAxes((Axis(1.0:4.0), Axis(1:4)));
+
+julia&gt; lininds = LinearIndices((1:4, 1:4));
+
+julia&gt; @btime getindex(linaxes, 2, 2)
+  18.275 ns (0 allocations: 0 bytes)
+6
+
+julia&gt; @btime getindex(lininds, 2, 2)
+  18.849 ns (0 allocations: 0 bytes)
+6
+
+julia&gt; @btime getindex(linaxes, ==(3.0), 2)
+  381.098 ns (6 allocations: 384 bytes)
+7</code></pre><p>You may notice there&#39;s significant overhead for using the filtering syntax. However, the filtering syntax takes advantage of a special type in base, <code>Fix2</code>. This means that we can take advantage of filtering methods that have been optimized for specific types of keys.  Here we do the same thing as above but we create a function that knows it&#39;s going to perform filtering.</p><pre><code class="language-julia">julia&gt; getindex_filter(a, i1, i2) = a[==(i1), ==(i2)]
+getindex_filter (generic function with 1 method)
+
+julia&gt; @btime getindex_filter(linaxes, 3.0, 2)
+  57.216 ns (0 allocations: 0 bytes)
+7
+
+julia&gt; linaxes2 = LinearAxes((Axis(Base.OneTo(4)), Axis(Base.OneTo(4))));
+
+julia&gt; @btime getindex_filter(linaxes2, 3, 2)
+  22.070 ns (0 allocations: 0 bytes)
+7</code></pre><p>Indexing <code>linaxes</code> is much faster now that it can be optimized inside of a function call. However, it&#39;s still a little over twice as slow as normal indexing. That&#39;s largely because of the cost of searching <code>1.0:4.0</code> (which is a <code>StepRangeLen</code> type in this case). The second benchmark demonstrates how close we really are to standard indexing given similar range types.</p><h2 id="Resizing-Axes-1"><a class="docs-heading-anchor" href="#Resizing-Axes-1">Resizing Axes</a><a class="docs-heading-anchor-permalink" href="#Resizing-Axes-1" title="Permalink"></a></h2><p>These methods help with operations that need to resize axes, either dynamically or by creating a new instance of an axis. In addition to helping with operations related to array resizing, these may be useful for managing the axis of a vector throughout a <code>push!</code>, <code>pushfirst!</code>, <code>pop</code>, and <code>popfirst!</code> operation.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quick_start/">« Quick Start</a><a class="docs-footer-nextpage" href="../internals_of_indexing/">Internals of Indexing »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 25 April 2020 16:55">Saturday 25 April 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
