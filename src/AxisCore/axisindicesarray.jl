@@ -163,7 +163,17 @@ end
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
 """
-    AxisIndicesArray{T,N}(undef, axes)
+    AxisIndicesArray{T,N}(undef, dims::NTuple{N,Integer})
+
+Construct an uninitialized `N`-dimensional array containing elements of type `T` were
+the size of each dimension is equal to the corresponding integer in `dims`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> size(AxisIndicesArray{Int,2}(undef, (2,2)))
+(2, 2)
 
 """
 function AxisIndicesArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{<:Integer}}) where {T,N}
@@ -171,23 +181,18 @@ function AxisIndicesArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{<:Integ
 end
 
 """
-    AxisIndicesArray{T,N}(undef, dims)
+    AxisIndicesArray{T,N}(undef, keys::NTuple{N,AbstractVector})
 
-
-Construct an uninitialized `N`-dimensional Array containing elements of type `T`.
-`N` can either be supplied explicitly, as in `AxisIndicesArray{T,N}(undef, args)`,
-or be determined by the length or number of `args`. `args` may be a tuple of integers,
-keys, or axes corresponding to each dimension. If the rank `N` is supplied explicitly,
-then it must match the length or number of `args`.
+Construct an uninitialized `N`-dimensional array containing elements of type `T` were
+the size of each dimension is determined by the length of the corresponding collection
+in `keys.
 
 ## Examples
 ```jldoctest
 julia> using AxisIndices
 
-julia> A = AxisIndicesArray{Int,2}(undef, (["a", "b"], [:one, :two]));
-
-julia> parent_type(A)
-Array{Int64,2}
+julia> size(AxisIndicesArray{Int,2}(undef, (["a", "b"], [:one, :two])))
+(2, 2)
 ```
 """
 function AxisIndicesArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{<:AbstractVector}}, check_length::Bool=true) where {T,N}
@@ -204,6 +209,21 @@ function AxisIndicesArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{<:Abstr
     return AxisIndicesArray(p, axs, axes(p), check_length)
 end
 
+"""
+    AxisIndicesArray{T}(undef, keys::NTuple{N,AbstractVector})
+
+Construct an uninitialized `N`-dimensional array containing elements of type `T` were
+the size of each dimension is determined by the length of the corresponding collection
+in `keys.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> size(AxisIndicesArray{Int}(undef, (["a", "b"], [:one, :two])))
+(2, 2)
+```
+"""
 function AxisIndicesArray{T}(init::ArrayInitializer, axs::Tuple, check_length::Bool=true) where {T}
     return AxisIndicesArray{T,length(axs)}(init, axs)
 end

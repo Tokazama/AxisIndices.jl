@@ -65,6 +65,20 @@ end
         @test isa(@inferred(axes(A_static_axes)),
                   Tuple{SimpleAxis{Int64,OneToSRange{Int64,2}},SimpleAxis{Int64,OneToSRange{Int64,2}}})
     end
+
+    @testset "AxisIndicesArray(undef, ::Tuple{Keys...})" begin
+        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, 2, 2))) <: Array{Int,2}
+
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, 2, 2))) <: Array{Int,2}
+
+    end
+
 end
 
 #=

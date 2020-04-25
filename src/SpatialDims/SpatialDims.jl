@@ -90,9 +90,8 @@ mark some axes as being non-spatial.
 Return a tuple representing the separation between adjacent pixels along each axis
 of the image. Derived from the step size of each element of `spatial_keys`.
 """
-@inline pixel_spacing(x) = _pixel_spacing(spatial_keys(x))
-@inline function _pixel_spacing(ks::NTuple{N,Any}) where {N}
-    map(ks) do ks_i
+@inline function pixel_spacing(x)
+    map(spatial_keys(x)) do ks_i
         if StaticRanges.has_step(ks_i)
             return step(ks_i)
         else
