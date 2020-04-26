@@ -1,3 +1,4 @@
+
 """
 
     permute_axes(x::AbstractArray, perms::Tuple) = permute_axes(axes(x), p)
@@ -102,11 +103,15 @@ function permute_axes(old_array::AbstractMatrix, new_array::AbstractVector)
 end
 
 function permute_axes(old_array::AbstractArray{T1,N}, new_array::AbstractArray{T2,N}, perms) where {T1,T2,N}
-    ntuple(Val(N)) do i
-        assign_indices(axes(old_array, i), axes(new_array, perms[i]))
-    end
 end
 
+function Base.permutedims(A::AbstractAxisIndices{T,N}, perms) where {T,N}
+    p = permutedims(parent(A), perms)
+    axs = ntuple(Val(N)) do i
+        assign_indices(axes(A, perms[i]), axes(p, i))
+    end
+    return unsafe_reconstruct(A, p, axs)
+end
 
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 
