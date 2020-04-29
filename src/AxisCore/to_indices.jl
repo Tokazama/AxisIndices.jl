@@ -98,3 +98,6 @@ end
 # avoid ambiguities with `to_indices(A, I::Tuple{})
 Base.to_indices(A::AbstractAxisIndices, I::Tuple{}) = ()
 
+# TODO is there any utility in keeping axes at this point?
+Base.LogicalIndex(A::AbstractAxisIndices) = Base.LogicalIndex(parent(A))
+
