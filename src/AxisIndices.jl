@@ -76,16 +76,4 @@ using .Mapped
 include("./Names/Names.jl")
 using .Names
 
-include("./ObservationDims/ObservationDims.jl")
-using .ObservationDims
-
-include("./TimeDims/TimeDims.jl")
-using .TimeDims
-
-include("./ColorDims/ColorDims.jl")
-using .ColorDims
-
-include("./SpatialDims/SpatialDims.jl")
-using .SpatialDims
-
 end

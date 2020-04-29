@@ -105,6 +105,8 @@ include("promotion.jl")
 include("show.jl")
 include("traits.jl")
 
+include("to_axis.jl")
+
 include("promote_axis_collections.jl")
 include("append.jl")
 include("pop.jl")
@@ -127,12 +129,6 @@ include("to_axes.jl")
 include("to_indices.jl")
 include("checkbounds.jl")
 include("getindex.jl")
-
-
-to_axis(axis::AbstractAxis) = axis
-to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
-to_axis(axis::AbstractVector) = Axis(axis)
-to_axis(len::Integer) = SimpleAxis(len)
 
 Base.allunique(a::AbstractAxis) = true
 
