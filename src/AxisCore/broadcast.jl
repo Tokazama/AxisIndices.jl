@@ -125,7 +125,17 @@ function _bcs(shape::Tuple, newshape::Tuple)
     return (_bcs1(first(shape), first(newshape)), _bcs(tail(shape), tail(newshape))...)
 end
 # _bcs1 handles the logic for a single dimension
-_bcs1(a::Integer, b::Integer) = a == 1 ? b : (b == 1 ? a : (a == b ? a : throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $a and $b"))))
+function _bcs1(a::Integer, b::Integer)
+    if a == 1
+        return b
+    elseif b == 1
+        return a
+    elseif a == b
+        return a
+    else
+        throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $a and $b"))
+    end
+end
 function _bcs1(a::Integer, b)
     if a == 1
         return b

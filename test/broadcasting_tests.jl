@@ -25,18 +25,48 @@
     end
 
     @test @inferred(broadcast_axis(SimpleAxis(1:2), SimpleAxis(1:2))) == SimpleAxis(1:2)
+    
     @test @inferred(Base.Broadcast.broadcast_shape((1:10,), (1:10, 1:10), (1:10,))) == (1:10, 1:10)
-    @test Broadcast.combine_axes(CartesianIndices((1,)), CartesianIndices((3, 2, 2)), CartesianIndices((3, 2, 2))) ==
-            @inferred(Broadcast.combine_axes(CartesianAxes((1,)), CartesianIndices((3, 2, 2)), CartesianAxes((3, 2, 2))))
-    @test Broadcast.combine_axes(LinearIndices((1,)), LinearIndices((3, 2, 2)), LinearIndices((3, 2, 2))) ==
-            @inferred(Broadcast.combine_axes(LinearAxes((1,)), CartesianAxes((3, 2, 2)), CartesianAxes((3, 2, 2))))
+    b1 = Broadcast.broadcast_shape(
+        axes(CartesianIndices((1,))),
+        axes(CartesianIndices((3, 2, 2))),
+        axes(CartesianIndices((3, 2, 2)))
+    )
+    b2 = Broadcast.broadcast_shape(
+        axes(CartesianAxes((1,))),
+        axes(CartesianIndices((3, 2, 2))),
+        axes(CartesianAxes((3, 2, 2)))
+    )
+    @test b1 == b2
 
-    cartinds = CartesianIndices((2, 2))
-    cartaxes = CartesianAxes((2:3, 3:4))
-    @test keys.(Broadcast.combine_axes(cartaxes, cartaxes, cartaxes)) == (2:3, 3:4)
-    @test keys.(Broadcast.combine_axes(cartaxes, cartaxes, cartinds)) == (2:3, 3:4)
-    @test keys.(Broadcast.combine_axes(cartaxes, cartinds, cartaxes)) == (2:3, 3:4)
-    @test keys.(Broadcast.combine_axes(cartinds, cartaxes, cartaxes)) == (2:3, 3:4)
+    b1 = Broadcast.broadcast_shape(
+        axes(LinearIndices((1,))),
+        axes(LinearIndices((3, 2, 2))),
+        axes(LinearIndices((3, 2, 2)))
+    )
+    b2 = Broadcast.broadcast_shape(
+        axes(LinearAxes((1,))),
+        axes(LinearIndices((3, 2, 2))),
+        axes(LinearAxes((3, 2, 2)))
+    )
+    @test b1 == b2
+
+    @test_throws DimensionMismatch Broadcast.broadcast_shape(axes(LinearAxes((3, 2, 2))), axes(LinearAxes((3, 2, 5))))
+
+
+    @testset "combine_axes" begin
+        @test Broadcast.combine_axes(CartesianIndices((1,)), CartesianIndices((3, 2, 2)), CartesianIndices((3, 2, 2))) ==
+                @inferred(Broadcast.combine_axes(CartesianAxes((1,)), CartesianIndices((3, 2, 2)), CartesianAxes((3, 2, 2))))
+        @test Broadcast.combine_axes(LinearIndices((1,)), LinearIndices((3, 2, 2)), LinearIndices((3, 2, 2))) ==
+                @inferred(Broadcast.combine_axes(LinearAxes((1,)), CartesianAxes((3, 2, 2)), CartesianAxes((3, 2, 2))))
+
+        cartinds = CartesianIndices((2, 2))
+        cartaxes = CartesianAxes((2:3, 3:4))
+        @test keys.(Broadcast.combine_axes(cartaxes, cartaxes, cartaxes)) == (2:3, 3:4)
+        @test keys.(Broadcast.combine_axes(cartaxes, cartaxes, cartinds)) == (2:3, 3:4)
+        @test keys.(Broadcast.combine_axes(cartaxes, cartinds, cartaxes)) == (2:3, 3:4)
+        @test keys.(Broadcast.combine_axes(cartinds, cartaxes, cartaxes)) == (2:3, 3:4)
+    end
 end
 
 @testset "Broadcasting" begin
@@ -114,4 +144,7 @@ end
         @test keys.(axes(s .+ v .+ m)) == (2:4, 3:5) == keys.(axes(m .+ s .+ v))
     end
 end
+
+
+
 
