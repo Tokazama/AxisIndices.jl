@@ -183,8 +183,8 @@ function AxisIndicesArray{T}(x::AbstractArray, axs::Tuple, check_length::Bool=tr
     return AxisIndicesArray{T,ndims(x)}(x, axs, check_length)
 end
 
-function AxisIndicesArray{T}(init::ArrayInitializer, axs::Tuple, check_length::Bool=true) where {T}
-    return AxisIndicesArray{T,length(axs)}(init, axs, check_length)
+function AxisIndicesArray{T}(init::ArrayInitializer, axs::Tuple) where {T}
+    return AxisIndicesArray{T,length(axs)}(init, axs)
 end
 
 function AxisIndicesArray{T}(x::AbstractArray, axs::Vararg) where {T}
@@ -221,54 +221,51 @@ julia> size(AxisIndicesArray{Int,2}(undef, (["a", "b"], [:one, :two])))
 (2, 2)
 
 """
-function AxisIndicesArray{T,N}(x::AbstractArray{T,N}, axis_keys::Tuple{Vararg{Any,N2}}, check_length::Bool=true) where {T,N,N2}
-    if N === 1
-        axs = (to_axis(axis_keys[1], is_dynamic(x) ? as_dynamic(axes(x, 1)) : axes(x, 1)),)
-    else
-        axs = ntuple(Val(N)) do i
-            if i > N2
-                to_axis(getfield(axis_keys, i))
-            else
-                to_axis(getfield(axis_keys, i), axes(x, i))
-            end
-        end
-    end
-    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
-end
-
 function AxisIndicesArray{T,N}(x::AbstractArray{T2,N}, axis_keys::Tuple, check_length::Bool=true) where {T,T2,N}
-    return AxisIndicesArray{T,N}(T.(x), axis_keys, check_length)
-end
-
-_length(x::Integer) = x
-_length(x) = length(x)
-function AxisIndicesArray{T,N}(init::ArrayInitializer, axis_keys::Tuple, check_length::Bool=false) where {T,N}
-    return AxisIndicesArray{T,N}(
-        Array{T,N}(init, map(_length, axis_keys)),
-        axis_keys,
-        check_length
-    )
+    return AxisIndicesArray{T,N}(map(T, x), axis_keys, check_length)
 end
 
 function AxisIndicesArray{T,N}(init::ArrayInitializer, args...) where {T,N}
-    return AxisIndicesArray{T,N}(init::ArrayInitializer, args)
+    return AxisIndicesArray{T,N}(init, args)
 end
 
 function AxisIndicesArray{T,N}(x::AbstractArray, args...) where {T,N}
     return AxisIndicesArray{T,N}(x, args)
 end
 
-function AxisIndicesArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{<:AbstractVector}}, check_length::Bool=true) where {T,N}
-    # computes the overall staticness of all axes combined
-    S = StaticRanges._combine(typeof(axs))
-    if is_static(S)
-        # TODO
-        p = MArray{Tuple{map(length, axs)...},T,N}()
-    elseif is_fixed(S)
-        p = Array{T,N}(init, map(length, axs))
-    else  # is_dynamic(S)  TODO currently no way to make truly dynamic multidim array
-        p = Array{T,N}(init, map(length, axs))
-    end
-    return AxisIndicesArray(p, axs, axes(p), check_length)
+function AxisIndicesArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{Any,N}}) where {T,N}
+    return AxisIndicesArray{T,N}(init_array(StaticRanges._combine(typeof(axs)), T, init, axs), axs, false)
+end
+
+function AxisIndicesArray{T,N}(
+    x::AbstractArray{T,N},
+    axs::Tuple,
+    check_length::Bool=true
+) where {T,N}
+
+    axs = _to_axes(Staticness(x), axs, axes(x), check_length)
+    return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
+end
+
+###
+### init_array
+###
+
+_length(x::Integer) = x
+_length(x) = length(x)
+
+function init_array(::Static, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
+    return MArray{Tuple{map(_length, sz)...},T,N}(undef)
+end
+
+function init_array(::Fixed, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
+    return Array{T,N}(undef, map(_length, sz))
+end
+
+# TODO
+# Currently, the only dynamic array we support is Vector, eventually it would be
+# nice if we could support >1 dimensions being dynamic
+function init_array(::Dynamic, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
+    return Array{T,N}(undef, map(_length, sz))
 end
 

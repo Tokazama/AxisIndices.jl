@@ -81,4 +81,7 @@ using .Mapped
 include("./Names/Names.jl")
 using .Names
 
+include("./ObservationDims.jl")
+using .Names
+
 end
