@@ -8,11 +8,11 @@ function Base.show(io::IO, a::AbstractAxis)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", a::AbstractSimpleAxis)
-    print(io, "$(typeof(a).name)($(values(a)))")
+    print(io, "$(typeof(a).name)($(keys(a)))")
 end
 
 function Base.show(io::IO, a::AbstractSimpleAxis)
-    print(io, "$(typeof(a).name)($(values(a)))")
+    print(io, "$(typeof(a).name)($(keys(a)))")
 end
 
 # This is different than how most of Julia does a summary, but it also makes errors
