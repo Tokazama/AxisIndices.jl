@@ -154,9 +154,7 @@ end
 
 
 function AxisIndicesArray(x::Vector{T}, axs::AbstractAxes{1}, check_length::Bool=true) where {T}
-    if check_length
-        check_axis_length(first(axs), axes(x, 1))
-    end
+    check_length && check_axis_length(first(axs), axes(x, 1))
     return AxisIndicesArray{T,1,Vector{T},typeof(axs)}(x, axs)
 end
 
@@ -197,7 +195,6 @@ function AxisIndicesArray{T}(init::ArrayInitializer, axs::Vararg) where {T}
     return AxisIndicesArray{T,length(axs)}(init, axs)
 end
 
-
 ## AxisIndicesArray{T,N}
 
 # TODO fix/clean up these docs
@@ -224,8 +221,18 @@ julia> size(AxisIndicesArray{Int,2}(undef, (["a", "b"], [:one, :two])))
 (2, 2)
 
 """
-function AxisIndicesArray{T,N}(x::AbstractArray{T,N}, axis_keys::Tuple, check_length::Bool=true) where {T,N}
-    axs = similar_axes((), axis_keys, axes(x), check_length)
+function AxisIndicesArray{T,N}(x::AbstractArray{T,N}, axis_keys::Tuple{Vararg{Any,N2}}, check_length::Bool=true) where {T,N,N2}
+    if N === 1
+        axs = (to_axis(axis_keys[1], is_dynamic(x) ? as_dynamic(axes(x, 1)) : axes(x, 1)),)
+    else
+        axs = ntuple(Val(N)) do i
+            if i > N2
+                to_axis(getfield(axis_keys, i))
+            else
+                to_axis(getfield(axis_keys, i), axes(x, i))
+            end
+        end
+    end
     return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 
