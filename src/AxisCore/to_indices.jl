@@ -27,6 +27,10 @@ end
     return to_indices(A, axs, (first(args).indices..., tail(args)...))
 end
 
+@inline function Base.to_indices(A::AbstractAxisIndices{T,N}, axs::Tuple{}, args::Tuple{CartesianIndex,Vararg{Any,M}}) where {T,N,M}
+    return to_indices(A, axs, (first(args).I..., tail(args)...))
+end
+
 @propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{CartesianIndices{0},Vararg{Any}})
     Base.@_inline_meta
     return (first(args), to_indices(A, axs, tail(args))...)
@@ -92,7 +96,7 @@ end
 )
 
     Base.@_inline_meta
-    to_indices(A, axes(A), args)
+    return to_indices(A, axes(A), args)
 end
 
 # avoid ambiguities with `to_indices(A, I::Tuple{})
