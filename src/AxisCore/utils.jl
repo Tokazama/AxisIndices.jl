@@ -1,7 +1,7 @@
 
 function check_axis_length(ks, vs)
     if length(ks) != length(vs)
-        error("keys and indices must have same length, got length(keys) = $(length(ks)) and length(indices) = $(length(vs)).")
+        throw(DimensionMismatch("keys and indices must have same length, got length(keys) = $(length(ks)) and length(indices) = $(length(vs))."))
     end
     return nothing
 end

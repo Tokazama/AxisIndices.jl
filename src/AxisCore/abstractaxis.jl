@@ -407,7 +407,7 @@ julia> similar(Axis(1.0:10.0, 1:10), [:one, :two], UInt(1):UInt(2))
 Axis([:one, :two] => 0x0000000000000001:0x0000000000000002)
 
 julia> similar(Axis(1.0:10.0, 1:10), [:one, :two], UInt(1):UInt(3))
-ERROR: keys and indices must have same length, got length(keys) = 2 and length(indices) = 3.
+ERROR: DimensionMismatch("keys and indices must have same length, got length(keys) = 2 and length(indices) = 3.")
 [...]
 ```
 """
