@@ -1,6 +1,11 @@
 
 module AxisIndices
 
+@doc let path = joinpath(dirname(@__DIR__), "README.md")
+    include_dependency(path)
+    replace(read(path, String), r"^```julia"m => "```jldoctest README")
+end AxisIndices
+
 using StaticRanges
 using Statistics
 using Dates
