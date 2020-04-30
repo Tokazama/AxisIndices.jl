@@ -51,44 +51,32 @@ _get_first_axis_indices(args::Tuple{}) = nothing
 # We need to implement copy because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
 function Broadcast.copy(bc::Broadcasted{AxisIndicesArrayStyle{S}}) where S
-    return _similar_type(get_first_axis_indices(bc),
-                         Broadcast.copy(unwrap_broadcasted(bc)),
-                         Broadcast.combine_axes(bc.args...))
+    return unsafe_reconstruct(
+        get_first_axis_indices(bc),
+        Broadcast.copy(unwrap_broadcasted(bc)),
+        Broadcast.combine_axes(bc.args...)
+    )
 end
 
 function Base.copyto!(dest::AbstractArray, bc::Broadcasted{AxisIndicesArrayStyle{S}}) where S
     inner_bc = unwrap_broadcasted(bc)
     copyto!(dest, inner_bc)
-    _similar_type(get_first_axis_indices(bc), dest)
+    A = get_first_axis_indices(bc)
+    return unsafe_reconstruct(A, dest, axes(A))
 end
 
-# catch cases where get_first_axis_indices couldn't find a AbstractAxisIndices
-function _similar_type(A::AbstractAxisIndices, p, axs=axes(A))
-    return unsafe_reconstruct(A, p, axs)
-end
-_similar_type(::Nothing, p, axs=nothing) = AxisIndicesArray(p)
-
-function _maybe_similar_axis_type(x::AbstractAxis, vs::AbstractUnitRange)
-    ks = keys(x)
-    return similar_type(x, typeof(ks), typeof(vs))(ks, vs)
-end
-
-function _maybe_similar_axis_type(x::AbstractSimpleAxis, vs::AbstractUnitRange)
-    return similar_type(x, typeof(vs))(vs)
-end
-
-_maybe_similar_axis_type(x::AbstractAxis, vs) = vs
-_maybe_similar_axis_type(x::AbstractSimpleAxis, vs) = vs
+_broadcast(axis, inds) = inds
+_broadcast(axis, inds::AbstractUnitRange{<:Integer}) = assign_indices(axis, inds)
 
 for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:+, typeof(+), Real),
                      (:*, typeof(*), Real))
     @eval begin
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            return _maybe_similar_axis_type(r, (broadcast($f, x, values(r))))
+            return _broadcast(r, (broadcast($f, x, values(r))))
         end
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            return _maybe_similar_axis_type(r, broadcast($f, values(r), x))
+            return _broadcast(r, broadcast($f, values(r), x))
         end
     end
 end
@@ -124,30 +112,6 @@ _bcs(shape::Tuple, ::Tuple{}) = (shape[1], _bcs(tail(shape), ())...)
 function _bcs(shape::Tuple, newshape::Tuple)
     return (_bcs1(first(shape), first(newshape)), _bcs(tail(shape), tail(newshape))...)
 end
-# _bcs1 handles the logic for a single dimension
-function _bcs1(a::Integer, b::Integer)
-    if a == 1
-        return b
-    elseif b == 1
-        return a
-    elseif a == b
-        return a
-    else
-        throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $a and $b"))
-    end
-end
-function _bcs1(a::Integer, b)
-    if a == 1
-        return b
-    else
-        if first(b) == 1 && last(b) == a
-            return b
-        else
-            throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $a and $(length(b))"))
-        end
-    end
-end
-_bcs1(a, b::Integer) = _bcs1(b, a)
 
 function _bcs1(a, b)
     if _bcsm(a, b)
@@ -163,6 +127,4 @@ end
 
 # _bcsm tests whether the second index is consistent with the first
 _bcsm(a, b) = length(a) == length(b) || length(b) == 1
-_bcsm(a, b::Number) = b == 1
-_bcsm(a::Number, b::Number) = a == b || b == 1
 

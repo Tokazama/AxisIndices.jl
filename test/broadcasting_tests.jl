@@ -101,6 +101,9 @@ end
     @test @inferred(broadcasted(bstyle, *, x, 2)) ==
           @inferred(broadcasted(bstyle, *, y, 2)) ==
           broadcasted(bstyle, *, z, 2)
+
+    @test broadcasted(bstyle, -, x, 1//2) == 1//2:19//2
+    @test broadcasted(bstyle, -, y, 1//2) == 1//2:19//2
 end
 
 @testset "Binary broadcasting operations (.+)" begin
