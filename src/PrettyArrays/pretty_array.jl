@@ -92,16 +92,20 @@ function pretty_array(
     kwargs...
 )
 
-    if backend === :text
-        return pretty_array_text(io, A, axs[1]; kwargs...)
-    #=
-    elseif backend === :html
-        return pretty_array_html(io, A, axs[1]; kwargs...)
-    elseif backed === :latex
-        return pretty_array_latex(io, A, axs[1]; kwargs...)
+    if isempty(A)
+        return nothing
     else
-        error("unsupported backend specified")
-    =#
+        if backend === :text
+            return pretty_array_text(io, A, axs[1]; kwargs...)
+        #=
+        elseif backend === :html
+            return pretty_array_html(io, A, axs[1]; kwargs...)
+        elseif backed === :latex
+            return pretty_array_latex(io, A, axs[1]; kwargs...)
+        else
+            error("unsupported backend specified")
+        =#
+        end
     end
 end
 
@@ -113,16 +117,20 @@ function pretty_array(
     backend::Symbol=:text;
     kwargs...
 )
-    if backend === :text
-        return pretty_array_text(io, A, axs[1], axs[2]; kwargs...)
-    #=
-    elseif backend === :html
-        return pretty_array_html(io, A, axs[1], axs[2]; kwargs...)
-    elseif backed === :latex
-        return pretty_array_latex(io, A, axs[1], axs[2]; kwargs...)
+    if isempty(A)
+        return nothing
     else
-        error("unsupported backend specified")
-    =#
+        if backend === :text
+            return pretty_array_text(io, A, axs[1], axs[2]; kwargs...)
+        #=
+        elseif backend === :html
+            return pretty_array_html(io, A, axs[1], axs[2]; kwargs...)
+        elseif backed === :latex
+            return pretty_array_latex(io, A, axs[1], axs[2]; kwargs...)
+        else
+            error("unsupported backend specified")
+        =#
+        end
     end
 end
 
@@ -134,7 +142,11 @@ function pretty_array(
     backend::Symbol=:text;
     kwargs...
 ) where {T}
-    return print(io, A[1])
+    if isempty(A)
+        return nothing
+    else
+        return print(io, A[1])
+    end
 end
 
 function pretty_array(
