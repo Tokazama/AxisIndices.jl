@@ -14,7 +14,7 @@ using StaticRanges: can_set_first, can_set_last, can_set_length, same_type,
     resize_last!, shrink_last!
 
 using StaticRanges: Static, Fixed, Dynamic, Staticness
-
+using StaticArrays
 using AxisIndices.PrettyArrays
 
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
