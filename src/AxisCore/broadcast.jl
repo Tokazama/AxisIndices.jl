@@ -58,12 +58,14 @@ function Broadcast.copy(bc::Broadcasted{AxisIndicesArrayStyle{S}}) where S
     )
 end
 
+#= TODO do we need this
 function Base.copyto!(dest::AbstractArray, bc::Broadcasted{AxisIndicesArrayStyle{S}}) where S
     inner_bc = unwrap_broadcasted(bc)
     copyto!(dest, inner_bc)
     A = get_first_axis_indices(bc)
     return unsafe_reconstruct(A, dest, axes(A))
 end
+=#
 
 _broadcast(axis, inds) = inds
 _broadcast(axis, inds::AbstractUnitRange{<:Integer}) = assign_indices(axis, inds)
@@ -127,4 +129,26 @@ end
 
 # _bcsm tests whether the second index is consistent with the first
 _bcsm(a, b) = length(a) == length(b) || length(b) == 1
+
+function Base.copyto!(dest::AbstractAxisIndices, ds::Integer, src::AbstractAxisIndices, ss::Integer, n::Integer)
+    copyto!(parent(dest), to_index(eachindex(dest), ds), src, to_index(eachindex(src), ss), n)
+end
+function Base.copyto!(dest::AbstractArray, ds::Integer, src::AbstractAxisIndices, ss::Integer, n::Integer)
+    copyto!(dest, ds, parent(src), to_index(eachindex(src), ss), n)
+end
+function Base.copyto!(dest::AbstractAxisIndices, ds::Integer, src::AbstractArray, ss::Integer, n::Integer)
+    copyto!(parent(dest), to_index(eachindex(dest), ds), src, ss, n)
+end
+
+function Base.copyto!(dest::AbstractAxisIndices, dstart::Integer, src::AbstractArray)
+    copyto!(parent(dest), to_index(eachindex(dest), dstart), src)
+end
+
+function Base.copyto!(dest::AbstractAxisIndices, dstart::Integer, src::AbstractAxisIndices)
+    copyto!(parent(dest), to_index(eachindex(dest), dstart), parent(src))
+end
+
+function Base.copyto!(dest::AbstractArray, dstart::Integer, src::AbstractAxisIndices)
+    copyto!(dest, dstart, parent(src))
+end
 

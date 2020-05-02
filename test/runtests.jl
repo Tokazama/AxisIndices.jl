@@ -75,6 +75,7 @@ include("linear_algebra.jl")
 include("mapped_arrays.jl")
 include("nameddims_tests.jl")
 include("traits_tests.jl")
+include("copyto_tests.jl")
 
 @testset "pretty_array" begin
     A = AxisIndicesArray(Array{Int,0}(undef, ()))
