@@ -13,6 +13,8 @@ using StaticRanges: can_set_first, can_set_last, can_set_length, same_type,
     checkindexlo, checkindexhi, OneToUnion, grow_first!, grow_last!, resize_last,
     resize_last!, shrink_last!
 
+using StaticRanges: Static, Fixed, Dynamic, Staticness
+using StaticArrays
 using AxisIndices.PrettyArrays
 
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
@@ -105,6 +107,8 @@ include("promotion.jl")
 include("show.jl")
 include("traits.jl")
 
+include("to_axis.jl")
+
 include("promote_axis_collections.jl")
 include("append.jl")
 include("pop.jl")
@@ -127,12 +131,6 @@ include("to_axes.jl")
 include("to_indices.jl")
 include("checkbounds.jl")
 include("getindex.jl")
-
-
-to_axis(axis::AbstractAxis) = axis
-to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
-to_axis(axis::AbstractVector) = Axis(axis)
-to_axis(len::Integer) = SimpleAxis(len)
 
 Base.allunique(a::AbstractAxis) = true
 

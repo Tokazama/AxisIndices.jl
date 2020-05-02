@@ -1,6 +1,11 @@
 
 module AxisIndices
 
+@doc let path = joinpath(dirname(@__DIR__), "README.md")
+    include_dependency(path)
+    replace(read(path, String), r"^```julia"m => "```jldoctest README")
+end AxisIndices
+
 using StaticRanges
 using Statistics
 using Dates
@@ -76,16 +81,7 @@ using .Mapped
 include("./Names/Names.jl")
 using .Names
 
-include("./ObservationDims/ObservationDims.jl")
-using .ObservationDims
-
-include("./TimeDims/TimeDims.jl")
-using .TimeDims
-
-include("./ColorDims/ColorDims.jl")
-using .ColorDims
-
-include("./SpatialDims/SpatialDims.jl")
-using .SpatialDims
+include("./ObservationDims.jl")
+using .Names
 
 end

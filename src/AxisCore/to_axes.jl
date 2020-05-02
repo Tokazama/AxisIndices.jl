@@ -62,3 +62,4 @@ function to_axes(::Tuple{A,Vararg{Any}}, ::Tuple{Any,Vararg{Any}}, ::Tuple, ::Tu
 end
 
 to_axes(::Tuple{}, ::Tuple, ::Tuple, ::Tuple{}) = ()
+

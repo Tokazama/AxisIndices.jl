@@ -9,21 +9,3 @@ These are considered experimental because the are either undergoing rapid change
 ```@autodocs
 Modules = [AxisIndices.ObservationDims]
 ```
-
-## TimeDims
-
-```@autodocs
-Modules = [AxisIndices.TimeDims]
-```
-
-## ColorDims
-
-```@autodocs
-Modules = [AxisIndices.ColorDims]
-```
-
-## SpatialDims
-
-```@autodocs
-Modules = [AxisIndices.SpatialDims]
-```

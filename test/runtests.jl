@@ -75,12 +75,25 @@ include("linear_algebra.jl")
 include("mapped_arrays.jl")
 include("nameddims_tests.jl")
 include("traits_tests.jl")
+include("copyto_tests.jl")
 
 @testset "pretty_array" begin
     A = AxisIndicesArray(Array{Int,0}(undef, ()))
     @test pretty_array(String, A) == repr(A[1])
 end
 
+@testset "ObservationDims" begin
+    using AxisIndices.ObservationDims
+    nia = NIArray(reshape(1:6, 2, 3), x = 2:3, observations = 3:5)
+    @test has_obsdim(nia)
+    @test !has_obsdim(parent(nia))
+    @test @inferred(obs_keys(nia)) == 3:5
+    @test @inferred(nobs(nia)) == 3
+    @test @inferred(obs_indices(nia)) == 1:3
+    @test @inferred(obsdim(nia)) == 2
+    @test @inferred(select_obsdim(nia, 2)) == selectdim(parent(parent(nia)), 2, 2)
+    @test @inferred(obs_axis_type(nia)) <: Integer
+end
 
 #= TODO this needs to be formally tested
 io = IOBuffer()
@@ -88,11 +101,6 @@ pretty_array(io, AxisIndicesArray(reshape(1:33, (1, 11, 3))))
 str = String(take!(io))
 @test str == "[dim1, dim2, dim3[1]] =\n          1       2       3       4       5       6       7       8       9       10       11  \n  1   1.000   2.000   3.000   4.000   5.000   6.000   7.000   8.000   9.000   10.000   11.000  \n\n\n[dim1, dim2, dim3[2]] =\n           1        2        3        4        5        6        7        8        9       10       11  \n  1   12.000   13.000   14.000   15.000   16.000   17.000   18.000   19.000   20.000   21.000   22.000  \n\n\n[dim1, dim2, dim3[3]] =\n           1        2        3        4        5        6        7        8        9       10       11  \n  1   23.000   24.000   25.000   26.000   27.000   28.000   29.000   30.000   31.000   32.000   33.000  \n"
 =#
-
-include("observation_tests.jl")
-include("time_tests.jl")
-include("color_tests.jl")
-include("spatial_tests.jl")
 
 # this avoids errors due to differences in how Symbols are printing between versions of Julia
 if !(VERSION < v"1.4")

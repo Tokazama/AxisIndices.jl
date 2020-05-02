@@ -95,7 +95,6 @@ function broadcast_axis(::CombineSimpleAxis, x::X, y::Y) where {X,Y}
     return similar_type(promote_rule(X, Y), typeof(vs))(vs)
 end
 
-
 #= TODO delete this garbage
 """
     broadcast_axes

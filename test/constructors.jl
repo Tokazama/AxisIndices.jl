@@ -70,6 +70,23 @@ end
         A = AxisIndicesArray(Array{Int,0}(undef, ()))
     end
 
+    @testset "AxisIndicesArray{T,N}(::AbstractArray...)" begin
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), 2, 2))) <: Array{Int,2}
+
+    end
+
+    # FIXME
+    @testset "AxisIndicesArray{T}(::AbstractArray...)" begin
+        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), 2, 2))) <: Array{Int,2}
+
+    end
+
     @testset "AxisIndicesArray(undef, ::Tuple{Keys...})" begin
         @test parent_type(@inferred(AxisIndicesArray{Int}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
         @test parent_type(@inferred(AxisIndicesArray{Int}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
