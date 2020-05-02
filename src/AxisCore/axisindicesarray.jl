@@ -269,3 +269,5 @@ function init_array(::Dynamic, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,A
     return Array{T,N}(undef, map(_length, sz))
 end
 
+Base.dataids(A::AxisIndicesArray) = Base.dataids(parent(A))
+
