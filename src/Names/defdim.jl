@@ -75,7 +75,7 @@ macro defdim(name, condition)
     name_selectdim_doc = """
         $name_selectdim(x, i)
 
-    Return `x` view of all the data of `x` where the index for the $name dimension equals `i`.
+    Return a view of all the data of `x` where the index for the $name dimension equals `i`.
     """
 
     err_msg = "Method $(Symbol(condition)) is not true for any dimensions of "
