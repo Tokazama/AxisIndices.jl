@@ -77,3 +77,6 @@ end
         end
     end
 end
+
+naxes(A, v::Val{N}) where {N} = ntuple(i -> axes(A, i), v)
+

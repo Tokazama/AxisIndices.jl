@@ -131,6 +131,7 @@ include("to_axes.jl")
 include("to_indices.jl")
 include("checkbounds.jl")
 include("getindex.jl")
+include("reshape.jl")
 
 Base.allunique(a::AbstractAxis) = true
 
