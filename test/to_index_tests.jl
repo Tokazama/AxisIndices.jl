@@ -48,6 +48,14 @@ end
     @test @inferred(is_index(IndexElement))
     @test @inferred(is_index(SliceCollection))
 
+    @test @inferred(AxisIndicesStyle(typeof(Indices(1)))) == IndexElement()
+    @test @inferred(AxisIndicesStyle(typeof(Indices(==(1))))) == IndexEquals()
+    @test @inferred(AxisIndicesStyle(typeof(Indices(>(1))))) == IndicesFix2()
+
+    @test @inferred(AxisIndicesStyle(typeof(Keys(1)))) == KeyElement()
+    @test @inferred(AxisIndicesStyle(typeof(Keys(1)))) == KeyElement()
+    @test @inferred(AxisIndicesStyle(typeof(Keys([1,2])))) == KeysCollection()
+
     @test @inferred(is_key(:a))
     @test @inferred(is_key(Symbol))
 end

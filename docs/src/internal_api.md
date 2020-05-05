@@ -41,4 +41,6 @@ AxisIndices.is_key
 AxisIndices.to_index
 AxisIndices.to_keys
 AxisIndices.get_factorization
+AxisIndices.is_simple_axis
+
 ```

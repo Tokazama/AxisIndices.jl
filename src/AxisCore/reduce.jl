@@ -1,3 +1,4 @@
+
 """
     reduce_axis(axis[, new_indics]) -> AbstractAxis
 

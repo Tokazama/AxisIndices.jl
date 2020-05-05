@@ -34,7 +34,7 @@ function LinearAlgebra.svd(A::AbstractAxisIndices, args...; kwargs...)
     return AxisIndicesSVD(svd(parent(A), args...; kwargs...), A)
 end
 
-function LinearAlgebra.svd!(A::AxisIndicesArray, args...; kwargs...)
+function LinearAlgebra.svd!(A::AbstractAxisIndices, args...; kwargs...)
     return AxisIndicesSVD(svd!(parent(A), args...; kwargs...), A)
 end
 

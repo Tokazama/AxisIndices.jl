@@ -147,7 +147,3 @@ However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
 
-## Resizing Axes
-
-These methods help with operations that need to resize axes, either dynamically or by creating a new instance of an axis. In addition to helping with operations related to array resizing, these may be useful for managing the axis of a vector throughout a `push!`, `pushfirst!`, `pop`, and `popfirst!` operation.
-

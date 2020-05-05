@@ -32,10 +32,10 @@ julia> keys.(axes(F.L * F.U))
 ```
 """ lu
 
-function LinearAlgebra.lu!(a::AxisIndicesArray, args...; kwargs...)
-    inner_lu = lu!(parent(a), args...; kwargs...)
+function LinearAlgebra.lu!(A::AbstractAxisIndices, args...; kwargs...)
+    inner_lu = lu!(parent(A), args...; kwargs...)
     return LU(
-        AxisIndicesArray(getfield(inner_lu, :factors), axes(a)),
+        unsafe_reconstruct(A, getfield(inner_lu, :factors), axes(A)),
         getfield(inner_lu, :ipiv),
         getfield(inner_lu, :info)
        )

@@ -6,6 +6,7 @@ rot180
 rotr90
 rotl90
 deleteat!
+reshape
 svd
 qr
 lu

@@ -67,5 +67,5 @@ Therefore, new subtypes of `AxisIndicesStyle` must define a `to_index` and `to_k
 
 
 [^1]: There's absolutely no functionality provided from `Base.to_index` that isn't already available with `AxisIndices.to_index`. Providing a seperate implementation is meant to avoid causing any unecessary ambiguities in this or any other packages that may be simultaneously loaded.
-[^2]: Why do we need the `index` produced in the previous `to_index` method to reconstruct keys? Technically we don't, but it allows use to avoid looking up indices a second time and ensuring they are inbounds.
+[^2]: Why do we need the `index` produced in the previous `to_index` method to reconstruct keys? Technically we don't, but it avoids looking up indices a second time and ensuring they are inbounds.
 [^3]: It is at this point that `unsafe_reconstruct` is called. This is only important to know if you want to create a new axis type that has keys that require some unique procedure to reconstruct.
