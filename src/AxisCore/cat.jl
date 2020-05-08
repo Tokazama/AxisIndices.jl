@@ -133,3 +133,4 @@ end
 vcat_axes(x::AbstractArray, y::AbstractArray) = cat_axes(x, y, 1)
 
 hcat_axes(x::AbstractArray, y::AbstractArray) = cat_axes(hcat(x), hcat(y), 2)
+

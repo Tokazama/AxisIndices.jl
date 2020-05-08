@@ -46,6 +46,21 @@ keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
 
 Base.valtype(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = V
 
+
+"""
+    rowaxis(x) -> axis
+
+Returns the axis corresponding to the first dimension of `x`.
+"""
+rowaxis(x) = axes(x, 1)
+
+"""
+    colaxis(x) -> axis
+
+Returns the axis corresponding to the second dimension of `x`.
+"""
+colaxis(x) = axes(x, 2)
+
 """
     values_type(x)
 

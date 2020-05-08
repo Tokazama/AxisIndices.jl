@@ -64,6 +64,8 @@ export
     CartesianAxes,
     LinearAxes,
     to_axes,
+    rowaxis,
+    colaxis,
     # Traits
     AxisIndicesStyle,
     KeyElement,
@@ -95,7 +97,6 @@ export
     is_key,
     to_index,
     to_keys
-
 
 include("abstractaxis.jl")
 include("utils.jl")
