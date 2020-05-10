@@ -43,23 +43,75 @@ keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
 keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
 
-
 Base.valtype(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = V
-
 
 """
     rowaxis(x) -> axis
 
 Returns the axis corresponding to the first dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> rowaxis(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+Axis(["a", "b"] => Base.OneTo(2))
+
+```
 """
 rowaxis(x) = axes(x, 1)
+
+"""
+    rowkeys(x) -> axis
+
+Returns the keys corresponding to the first dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> rowkeys(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+2-element Array{String,1}:
+ "a"
+ "b"
+
+```
+"""
+rowkeys(x) = keys(axes(x, 1))
 
 """
     colaxis(x) -> axis
 
 Returns the axis corresponding to the second dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> colaxis(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+Axis([:one, :two] => Base.OneTo(2))
+
+```
 """
 colaxis(x) = axes(x, 2)
+
+"""
+    colkeys(x) -> axis
+
+Returns the keys corresponding to the second dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> colkeys(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+2-element Array{Symbol,1}:
+ :one
+ :two
+
+```
+"""
+colkeys(x) = keys(axes(x, 2))
 
 """
     values_type(x)
@@ -505,4 +557,3 @@ true_axes(x::Vector) = (OneToMRange(length(x)),)
 true_axes(x) = axes(x)
 true_axes(x::Vector, i) = (OneToMRange(length(x)),)
 true_axes(x, i) = axes(x, i)
-

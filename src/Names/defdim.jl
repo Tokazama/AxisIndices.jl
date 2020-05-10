@@ -78,6 +78,14 @@ macro defdim(name, condition)
     Return a view of all the data of `x` where the index for the $name dimension equals `i`.
     """
 
+    each_name = Symbol(:each_, name)
+    each_name_doc = """
+        $each_name(x)
+
+    Create a generator that iterates over the $name dimensions `A`, returning views that select
+    all the data from the other dimensions in `A`.
+    """
+
     err_msg = "Method $(Symbol(condition)) is not true for any dimensions of "
 
     esc(quote
@@ -99,25 +107,28 @@ macro defdim(name, condition)
         end
 
         @doc $nname_doc
-        $nname(x) = Base.size(x, $name_dim(x))
+        @inline $nname(x) = Base.size(x, $name_dim(x))
 
         @doc $has_name_dim_doc
-        $has_name_dim(x) = !($dim_noerror_name(dimnames(x)) === 0)
+        @inline $has_name_dim(x) = !($dim_noerror_name(dimnames(x)) === 0)
 
         @doc $name_axis_doc
-        $name_axis(x) = axes(x, $name_dim(x))
+        @inline $name_axis(x) = axes(x, $name_dim(x))
 
         @doc $name_keys_doc
-        $name_keys(x) = keys($name_axis(x))
+        @inline $name_keys(x) = keys($name_axis(x))
 
         @doc $name_indices_doc
-        $name_indices(x) = values($name_axis(x))
+        @inline $name_indices(x) = values($name_axis(x))
 
         @doc $name_type_doc
-        $name_type(x) = keytype($name_axis(x))
+        @inline $name_type(x) = keytype($name_axis(x))
 
         @doc $name_selectdim_doc
-        $name_selectdim(x, i) = selectdim(x, $name_dim(x), i)
+        @inline $name_selectdim(x, i) = selectdim(x, $name_dim(x), i)
+
+        @doc $each_name_doc
+        @inline $each_name(x) = eachslice(x, $name_dim(x))
 
         nothing
     end)

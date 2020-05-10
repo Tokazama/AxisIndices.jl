@@ -65,7 +65,9 @@ export
     LinearAxes,
     to_axes,
     rowaxis,
+    rowkeys,
     colaxis,
+    colkeys,
     # Traits
     AxisIndicesStyle,
     KeyElement,

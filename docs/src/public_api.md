@@ -19,5 +19,9 @@ first_key
 last_key
 Indices
 Keys
+rowaxis
+rowkeys
+colaxis
+colkeys
 ```
 
