@@ -5,6 +5,8 @@ using Statistics
 using StaticRanges
 using AxisIndices.AxisCore
 
+using StaticRanges: resize_last
+
 using Base: OneTo
 
 export matmul_axes, get_factorization

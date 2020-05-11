@@ -1,5 +1,3 @@
-using AxisIndices: similar_axes
-
 @testset "Array Interface" begin
     x = AxisIndicesArray([1 2; 3 4])
     @test AxisIndices.parent_type(typeof(x)) == AxisIndices.parent_type(x) == Array{Int,2}

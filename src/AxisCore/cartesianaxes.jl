@@ -25,9 +25,7 @@ function CartesianAxes(ks::Tuple{Vararg{<:Integer,N}}) where {N}
     return CartesianIndices(map(SimpleAxis, ks))
 end
 
-function CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N}
-    return CartesianIndices(AxisCore.similar_axes((), ks, (), false))
-end
+CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = CartesianIndices(similar_axes((), ks, (), false))
 
 CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
 

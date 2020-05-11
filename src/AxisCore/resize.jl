@@ -1,36 +1,5 @@
 # This file is for methods that change the size of axes or arrays
 
-for f in (:grow_last!, :grow_first!, :shrink_last!, :shrink_first!)
-    @eval begin
-        function StaticRanges.$f(axis::AbstractSimpleAxis, n::Integer)
-            StaticRanges.$f(values(axis), n)
-            return axis
-        end
-
-        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
-            StaticRanges.$f(keys(axis), n)
-            StaticRanges.$f(values(axis), n)
-            return axis
-        end
-    end
-end
-
-for f in (:grow_last, :grow_first, :shrink_last, :shrink_first)
-    @eval begin
-        function StaticRanges.$f(axis::AbstractSimpleAxis, n::Integer)
-            return unsafe_reconstruct(axis, StaticRanges.$f(values(axis), n))
-        end
-
-        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
-            return unsafe_reconstruct(
-                axis,
-                StaticRanges.$f(keys(axis), n),
-                StaticRanges.$f(values(axis), n)
-            )
-        end
-    end
-end
-
 """
     deleteat!(a::AbstractAxisIndicesVector, arg)
 

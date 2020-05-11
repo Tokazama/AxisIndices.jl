@@ -25,7 +25,7 @@
     end
 
     @test @inferred(broadcast_axis(SimpleAxis(1:2), SimpleAxis(1:2))) == SimpleAxis(1:2)
-    
+
     @test @inferred(Base.Broadcast.broadcast_shape((1:10,), (1:10, 1:10), (1:10,))) == (1:10, 1:10)
     b1 = Broadcast.broadcast_shape(
         axes(CartesianIndices((1,))),
@@ -60,8 +60,8 @@
         @test Broadcast.combine_axes(LinearIndices((1,)), LinearIndices((3, 2, 2)), LinearIndices((3, 2, 2))) ==
                 @inferred(Broadcast.combine_axes(LinearAxes((1,)), CartesianAxes((3, 2, 2)), CartesianAxes((3, 2, 2))))
 
-        cartinds = CartesianIndices((2, 2))
-        cartaxes = CartesianAxes((2:3, 3:4))
+        cartinds = CartesianIndices((2, 2));
+        cartaxes = CartesianAxes((2:3, 3:4));
         @test keys.(Broadcast.combine_axes(cartaxes, cartaxes, cartaxes)) == (2:3, 3:4)
         @test keys.(Broadcast.combine_axes(cartaxes, cartaxes, cartinds)) == (2:3, 3:4)
         @test keys.(Broadcast.combine_axes(cartaxes, cartinds, cartaxes)) == (2:3, 3:4)
@@ -147,7 +147,4 @@ end
         @test keys.(axes(s .+ v .+ m)) == (2:4, 3:5) == keys.(axes(m .+ s .+ v))
     end
 end
-
-
-
 

@@ -57,7 +57,7 @@ true
 """
 Base.rotr90(x::AbstractAxisIndices) = unsafe_rotr90(x, rotr90(parent(x)))
 function unsafe_rotr90(x::AbstractAxisIndices, p::AbstractArray)
-    unsafe_reconstruct(
+    return unsafe_reconstruct(
         x,
         p,
         (assign_indices(axes(x, 2), axes(p, 1)),

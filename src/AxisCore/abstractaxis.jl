@@ -541,19 +541,58 @@ end
 
 const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 
-#= assign_indices(axis, indices)
-
-Reconstructs `axis` but with `indices` replacing the indices/values
-Useful for reconstructing an AbstractAxisIndices when the parent array may change
-types after udergoing some algorithm.
-=#
-assign_indices(axs::AbstractSimpleAxis, inds) = similar(axs, inds)
-function assign_indices(axs::AbstractAxis, inds)
-    return similar(axs, StaticRanges.shrink_last(keys(axs), length(axs) - length(inds)), inds)
-end
-
 # Vectors should have a mutable axis
 true_axes(x::Vector) = (OneToMRange(length(x)),)
 true_axes(x) = axes(x)
 true_axes(x::Vector, i) = (OneToMRange(length(x)),)
 true_axes(x, i) = axes(x, i)
+
+# :resize_first!, :resize_last! don't need to define these ones b/c non mutating ones are only
+# defined to avoid ambiguities with methods that pass AbstractUnitRange{<:Integer} instead of Integer
+for f in (:grow_last!, :grow_first!, :shrink_last!, :shrink_first!)
+    @eval begin
+        function StaticRanges.$f(axis::AbstractSimpleAxis, n::Integer)
+            StaticRanges.$f(values(axis), n)
+            return axis
+        end
+
+        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
+            StaticRanges.$f(keys(axis), n)
+            StaticRanges.$f(values(axis), n)
+            return axis
+        end
+    end
+end
+
+for f in (:grow_last, :grow_first, :shrink_last, :shrink_first, :resize_first, :resize_last)
+    @eval begin
+        function StaticRanges.$f(axis::AbstractSimpleAxis, n::Integer)
+            return unsafe_reconstruct(axis, StaticRanges.$f(values(axis), n))
+        end
+
+        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
+            return unsafe_reconstruct(
+                axis,
+                StaticRanges.$f(keys(axis), n),
+                StaticRanges.$f(values(axis), n)
+            )
+        end
+
+        function StaticRanges.$f(axis::AbstractSimpleAxis, n::AbstractUnitRange{<:Integer})
+            return unsafe_reconstruct(axis, n)
+        end
+
+        function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
+            return unsafe_reconstruct(axis, StaticRanges.$f(keys(axis), length(n)), n)
+        end
+    end
+end
+
+#= assign_indices(axis, indices)
+
+Reconstructs `axis` but with `indices` replacing the indices/values.
+There shouldn't be any change in size of the indices.
+=#
+assign_indices(axs::AbstractSimpleAxis, inds) = similar(axs, inds)
+assign_indices(axis::AbstractAxis, inds) = unsafe_reconstruct(axis, keys(axis), inds)
+

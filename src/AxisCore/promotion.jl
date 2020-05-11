@@ -69,3 +69,4 @@ function StaticRanges.same_type(::Type{X}, ::Type{Y}) where {X<:AbstractAxis,Y<:
 end
 
 Base.UnitRange(a::AbstractAxis) = UnitRange(values(a))
+

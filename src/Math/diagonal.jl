@@ -21,6 +21,6 @@ julia> axes_keys(diag(A, 1; dim=Val(2)))
 """
 function LinearAlgebra.diag(M::AbstractAxisIndices{T,2}, k::Integer=0; dim::Val{D}=Val(1)) where {T,D}
     p = diag(parent(M), k)
-    return unsafe_reconstruct(M, p, (assign_indices(axes(M, D), axes(p, 1)),))
+    return unsafe_reconstruct(M, p, (resize_last(axes(M, D), axes(p, 1)),))
 end
 

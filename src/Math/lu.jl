@@ -63,4 +63,3 @@ function get_factorization(F::LU, A::AbstractArray, d::Symbol)
         return inner
     end
 end
-

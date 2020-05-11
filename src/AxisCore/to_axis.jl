@@ -1,14 +1,34 @@
 
+# 1 arg
 to_axis(axis::AbstractAxis) = axis
+to_axis(ks::AbstractVector) = Axis(ks)
+to_axis(axis::StaticRanges.OneToUnion{<:Integer}) = SimpleAxis(axis)
+#to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
+to_axis(len::Integer) = SimpleAxis(len)
 
-function to_axis(axis::AbstractAxis, inds::AbstractUnitRange{<:Integer})
-    return assign_indices(axis, inds)
+# 2 arg
+to_axis(::Nothing, ks::AbstractUnitRange{<:Integer}) = SimpleAxis(ks)
+
+# 3 arg
+to_axis(axis::AbstractAxis,       ks,               vs::AbstractUnitRange, check_length::Bool=true) = similar(axis, ks, vs, check_length)
+to_axis(axis::AbstractSimpleAxis, ks,               vs::AbstractUnitRange, check_length::Bool=true) = _to_axis(axis, ks, vs, check_length)
+to_axis(axis::AbstractAxis,       ks::Nothing,      vs::AbstractUnitRange, check_length::Bool=true) = resize_last(axis, vs)
+to_axis(axis::AbstractSimpleAxis, ks::Nothing,      vs::AbstractUnitRange, check_length::Bool=true) = resize_last(axis, vs)
+to_axis(axis::AbstractAxis,       ks::AbstractAxis, vs::AbstractUnitRange, check_length::Bool=true) = similar(axis, keys(ks), vs, check_length)
+
+# Do an additional pass to ensure that the user really wants to abandon the old_axis type,
+# b/c we can't have keys diffent from indices with an AbstractSimpleAxis
+function _to_axis(axis::AbstractSimpleAxis, ks::OneToUnion, vs::OneToUnion, check_length::Bool)
+    check_length && check_axis_length(ks, vs)
+    return unsafe_reconstruct(axis, ks)
+end
+#...but we can only do that in a type stable way with OneTo
+function _to_axis(axis::AbstractSimpleAxis, ks, vs, check_length::Bool)
+    return Axis(ks, vs, check_length)
 end
 
-to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
-to_axis(ks::AbstractVector) = Axis(ks)
 to_axis(ks::AbstractVector, vs::AbstractUnitRange{<:Integer}) = Axis(ks, vs)
-to_axis(len::Integer) = SimpleAxis(len)
+
 
 to_axis(::StaticRanges.Static, ks, vs) = to_axis(as_static(ks), as_static(vs))
 to_axis(::StaticRanges.Fixed, ks, vs) = to_axis(as_fixed(ks), as_fixed(vs))

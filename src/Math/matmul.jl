@@ -71,4 +71,3 @@ end
 function Base.:*(a::AbstractAxisIndices{T,2,<:CoVector}, b::AbstractAxisIndices{S,1}) where {T,S}
     return *(parent(a), parent(b))
 end
-

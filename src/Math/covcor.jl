@@ -3,17 +3,17 @@ function covcor_axes(old_axes::NTuple{2,Any}, new_indices::NTuple{2,Any}, dim::I
     if dim === 1
         return (
             assign_indices(last(old_axes), first(new_indices)),
-            assign_indices(last(old_axes), last(new_indices))
+            StaticRanges.resize_last(last(old_axes), last(new_indices))
         )
     elseif dim === 2
         return (
-            assign_indices(first(old_axes), first(new_indices)),
+            StaticRanges.resize_last(first(old_axes), first(new_indices)),
             assign_indices(first(old_axes), last(new_indices))
         )
     else
         return (
-            assign_indices(first(old_axes), first(new_indices)),
-            assign_indices(last(old_axes), last(new_indices))
+            StaticRanges.resize_last(first(old_axes), first(new_indices)),
+            StaticRanges.resize_last(last(old_axes), last(new_indices))
         )
     end
 end

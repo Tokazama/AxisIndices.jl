@@ -99,7 +99,7 @@ function AxisIndicesArray(
 
     axs = ntuple(Val(N)) do i
         if i > N2
-            to_axis(getfield(axis_values, i))
+            to_axis(nothing, getfield(axis_values, i))
         else
             to_axis(getfield(axis_keys, i), getfield(axis_values, i))
         end
