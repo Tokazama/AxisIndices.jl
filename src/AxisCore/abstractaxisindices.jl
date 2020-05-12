@@ -175,24 +175,38 @@ that they intended to fully replace the corresponding axis with the new type
 # similar_axes iterates over old axes and new indices with provided keys to try
 # to reach an agreement
 function similar_axes(axs::Tuple, ks::Tuple, new_indices::Tuple, check_length::Bool=true)
-    return (to_axis(first(axs), first(ks), first(new_indices), check_length),
-            similar_axes(tail(axs), tail(ks), tail(new_indices), check_length)...)
+    return (
+        to_axis(first(axs), first(ks), first(new_indices), check_length),
+        similar_axes(tail(axs), tail(ks), tail(new_indices), check_length)...
+    )
 end
 
 function similar_axes(axs::Tuple, ::Tuple{}, new_indices::Tuple, check_length::Bool=true)
-    return (to_axis(first(axs), first(new_indices)), similar_axes(tail(axs), (), tail(new_indices), check_length)...)
+    return (
+        to_axis(first(axs), nothing, first(new_indices)),
+        similar_axes(tail(axs), (), tail(new_indices), check_length)...
+    )
 end
 
 function similar_axes(::Tuple{}, ks::Tuple, new_indices::Tuple, check_length::Bool=true)
-    return (to_axis(first(ks), first(new_indices)), similar_axes((), tail(ks), tail(new_indices), check_length)...)
+    return (
+        to_axis(first(ks), first(new_indices)),
+        similar_axes((), tail(ks), tail(new_indices), check_length)...
+    )
 end
 
 function similar_axes(::Tuple{}, ::Tuple{}, new_indices::Tuple, check_length::Bool=true)
-    return (to_axis(nothing, first(new_indices)), similar_axes((), (), tail(new_indices), check_length)...)
+    return (
+        to_axis(nothing, first(new_indices)),
+        similar_axes((), (), tail(new_indices), check_length)...
+    )
 end
 
 function similar_axes(::Tuple{}, ks::Tuple, new_indices::Tuple{}, check_length::Bool=true)
-    return (to_axis(first(ks)), similar_axes((), tail(ks), (), check_length)...)
+    return (
+        to_axis(first(ks)),
+        similar_axes((), tail(ks), (), check_length)...
+    )
 end
 
 similar_axes(::Tuple{}, ::Tuple{}, ::Tuple{}, check_length::Bool) = ()
