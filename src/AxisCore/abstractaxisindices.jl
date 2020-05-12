@@ -57,7 +57,7 @@ julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
 2:3
 ```
 """
-axes_keys(x, i) = axes_keys(x)[i]
+axes_keys(x, i) = axes_keys(x)[i]  # FIXME this needs to be changed to support named dimensions
 
 """
     keys_type(x, i)
@@ -174,29 +174,25 @@ that they intended to fully replace the corresponding axis with the new type
 =#
 # similar_axes iterates over old axes and new indices with provided keys to try
 # to reach an agreement
-function similar_axes(old_axes::Tuple, new_keys::Tuple, new_indices::Tuple, check_length::Bool=true)
-    return (to_axis(first(old_axes), first(new_keys), first(new_indices), check_length),
-            similar_axes(tail(old_axes), tail(new_keys), tail(new_indices), check_length)...)
+function similar_axes(axs::Tuple, ks::Tuple, new_indices::Tuple, check_length::Bool=true)
+    return (to_axis(first(axs), first(ks), first(new_indices), check_length),
+            similar_axes(tail(axs), tail(ks), tail(new_indices), check_length)...)
 end
 
-function similar_axes(old_axes::Tuple, new_keys::Tuple{}, new_indices::Tuple, check_length::Bool=true)
-    return (resize_last(first(old_axes), first(new_indices)),
-            similar_axes(tail(old_axes), (), tail(new_indices), check_length)...)
+function similar_axes(axs::Tuple, ::Tuple{}, new_indices::Tuple, check_length::Bool=true)
+    return (to_axis(first(axs), first(new_indices)), similar_axes(tail(axs), (), tail(new_indices), check_length)...)
 end
 
-function similar_axes(old_axes::Tuple{}, new_keys::Tuple, new_indices::Tuple, check_length::Bool=true)
-    return (to_axis(first(new_keys), first(new_indices)),
-            similar_axes((), tail(new_keys), tail(new_indices), check_length)...)
+function similar_axes(::Tuple{}, ks::Tuple, new_indices::Tuple, check_length::Bool=true)
+    return (to_axis(first(ks), first(new_indices)), similar_axes((), tail(ks), tail(new_indices), check_length)...)
 end
 
-function similar_axes(old_axes::Tuple{}, new_keys::Tuple{}, new_indices::Tuple, check_length::Bool=true)
+function similar_axes(::Tuple{}, ::Tuple{}, new_indices::Tuple, check_length::Bool=true)
     return (to_axis(nothing, first(new_indices)), similar_axes((), (), tail(new_indices), check_length)...)
 end
 
-function similar_axes(old_axes::Tuple{}, new_keys::Tuple, new_indices::Tuple{}, check_length::Bool=true)
-    return (to_axis(first(new_keys)),
-            #similar_axis(nothing, first(new_keys), nothing, check_length),
-            similar_axes((), tail(new_keys), (), check_length)...)
+function similar_axes(::Tuple{}, ks::Tuple, new_indices::Tuple{}, check_length::Bool=true)
+    return (to_axis(first(ks)), similar_axes((), tail(ks), (), check_length)...)
 end
 
 similar_axes(::Tuple{}, ::Tuple{}, ::Tuple{}, check_length::Bool) = ()
@@ -205,29 +201,19 @@ similar_axes(::Tuple, ::Tuple{}, ::Tuple{}, check_length::Bool) = ()
 ###
 ### similar
 ###
-function Base.similar(a::AbstractAxisIndices, dims::Tuple{Vararg{Int}})
-    p = similar(parent(a), dims)
-    return unsafe_reconstruct(a, p, similar_axes(axes(a), (), axes(p)))
+function Base.similar(A::AbstractAxisIndices, dims::Tuple{Vararg{Int}})
+    p = similar(parent(A), dims)
+    return unsafe_reconstruct(A, p, similar_axes(axes(A), (), axes(p)))
 end
 
-function Base.similar(
-    a::AbstractAxisIndices{T},
-    new_keys::Tuple{Vararg{<:AbstractVector,N}}
-) where {T,N}
-
-    p = similar(parent(a), T, map(length, new_keys))
-    axs = similar_axes(axes(a), new_keys, axes(p))
-    return unsafe_reconstruct(a, p, axs)
+function Base.similar(A::AbstractAxisIndices{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
+    p = similar(parent(A), T, map(length, ks))
+    return unsafe_reconstruct(A, p, similar_axes(axes(A), ks, axes(p)))
 end
 
-function Base.similar(
-    a::AbstractAxisIndices,
-    ::Type{T},
-    new_keys::Tuple{Vararg{<:AbstractVector,N}}
-) where {T,N}
-
-    p = similar(parent(a), T, map(length, new_keys))
-    return unsafe_reconstruct(a, p, similar_axes(axes(a), new_keys, axes(p)))
+function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
+    p = similar(parent(A), T, map(length, ks))
+    return unsafe_reconstruct(A, p, similar_axes(axes(A), ks, axes(p)))
 end
 
 # Necessary to avoid ambiguities with OffsetArrays
@@ -236,29 +222,24 @@ function Base.similar(a::AbstractAxisIndices, ::Type{T}, dims::Tuple{Vararg{Int}
     return unsafe_reconstruct(a, p, similar_axes(axes(a), (), axes(p)))
 end
 
-function Base.similar(a::AbstractAxisIndices, ::Type{T}) where {T}
-    p = similar(parent(a), T)
-    return unsafe_reconstruct(a, p, similar_axes(axes(a), (), axes(p)))
-end
-
-function Base.similar(
-    a::AbstractAxisIndices,
-    ::Type{T},
-    new_keys::Tuple{Union{Base.IdentityUnitRange, OneTo, UnitRange},Vararg{Union{Base.IdentityUnitRange, OneTo, UnitRange},N}}
-) where {T, N}
-
-    p = similar(parent(a), T, map(length, new_keys))
-    return unsafe_reconstruct(a, p, similar_axes(axes(a), new_keys, axes(p)))
+function Base.similar(A::AbstractAxisIndices, ::Type{T}) where {T}
+    p = similar(parent(A), T)
+    return unsafe_reconstruct(A, p, similar_axes(axes(A), (), axes(p)))
 end
 
 function Base.similar(
     A::AbstractAxisIndices,
     ::Type{T},
-    new_keys::Tuple{OneTo,Vararg{OneTo,N}}
+    ks::Tuple{Union{Base.IdentityUnitRange, OneTo, UnitRange},Vararg{Union{Base.IdentityUnitRange, OneTo, UnitRange},N}}
 ) where {T, N}
 
-    p = similar(parent(A), T, map(length, new_keys))
-    return unsafe_reconstruct(A, p, similar_axes(axes(A), new_keys, axes(p)))
+    p = similar(parent(A), T, map(length, ks))
+    return unsafe_reconstruct(A, p, similar_axes(axes(A), ks, axes(p)))
+end
+
+function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{OneTo,Vararg{OneTo,N}}) where {T, N}
+    p = similar(parent(A), T, map(length, ks))
+    return unsafe_reconstruct(A, p, similar_axes(axes(A), ks, axes(p)))
 end
 
 Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))

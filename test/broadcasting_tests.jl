@@ -1,4 +1,15 @@
 
+@testset "BroadcastStyle" begin
+    A = typeof(AxisIndicesArray(ones(2,2)))
+    B = typeof(ones(2,2))
+    @test Base.BroadcastStyle(A) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
+    SA = Base.BroadcastStyle(A)
+    SB = Base.BroadcastStyle(B)
+    @test Base.BroadcastStyle(SA, SA) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
+    @test Base.BroadcastStyle(SA, SB) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
+    @test Base.BroadcastStyle(SB, SA) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
+end
+
 @testset "combine" begin
     @testset "broadcast_axis" begin
         @test @inferred(broadcast_axis(Axis(1:2), Axis(1:2)))       isa Axis{Int64,Int64,UnitRange{Int64},Base.OneTo{Int64}}
