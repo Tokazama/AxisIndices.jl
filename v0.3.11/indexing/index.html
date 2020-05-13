@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Indexing Tutorial · AxisIndices.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AxisIndices.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../quick_start/">Quick Start</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../axis/">The Axis</a></li><li><a class="tocitem" href="../internals_of_indexing/">Internals of Indexing</a></li><li><a class="tocitem" href="../pretty_printing/">Pretty Printing</a></li><li><a class="tocitem" href="../compatibility/">Compatibility</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>Indexing Tutorial</a><ul class="internal"><li><a class="tocitem" href="#Indexing-an-Axis-1"><span>Indexing an Axis</span></a></li><li><a class="tocitem" href="#Keys-and-Indices-1"><span><code>Keys</code> and <code>Indices</code></span></a></li><li><a class="tocitem" href="#Approximate-Indexing-1"><span>Approximate Indexing</span></a></li><li><a class="tocitem" href="#Indexing-an-Array-1"><span>Indexing an Array</span></a></li></ul></li><li><a class="tocitem" href="../coeftable/">CoefTable</a></li><li><a class="tocitem" href="../time/">TimeAxis Guide</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../public_api/">Public API</a></li><li><a class="tocitem" href="../standard_library_api/">Standard Library API</a></li><li><a class="tocitem" href="../internal_api/">Internal API</a></li><li><a class="tocitem" href="../experimental/">Experimental API</a></li></ul></li><li><a class="tocitem" href="../comparison/">Comparison to Other Packages</a></li><li><a class="tocitem" href="../acknowledgments/">Acknowledgments</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Indexing Tutorial</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Indexing Tutorial</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Tokazma/AxisIndices.jl/blob/master/docs/src/indexing.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Indexing-Tutorial-1"><a class="docs-heading-anchor" href="#Indexing-Tutorial-1">Indexing Tutorial</a><a class="docs-heading-anchor-permalink" href="#Indexing-Tutorial-1" title="Permalink"></a></h1><h2 id="Indexing-an-Axis-1"><a class="docs-heading-anchor" href="#Indexing-an-Axis-1">Indexing an Axis</a><a class="docs-heading-anchor-permalink" href="#Indexing-an-Axis-1" title="Permalink"></a></h2><p>Setup for running axis examples.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, Unitful, IntervalSets
+
+julia&gt; using Unitful: s
+
+julia&gt; time1 = Axis((1.5:.5:10)s)
+Axis((1.5:0.5:10.0) s =&gt; Base.OneTo(18))
+
+julia&gt; time2 = Axis((1.5:.5:10)s, 2:19)
+Axis((1.5:0.5:10.0) s =&gt; 2:19)</code></pre><h3 id="Indexing-With-Integers-1"><a class="docs-heading-anchor" href="#Indexing-With-Integers-1">Indexing With Integers</a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Integers-1" title="Permalink"></a></h3><p>Integers will map directly to the indices of an axis.</p><pre><code class="language-julia-repl">julia&gt; time1[1]
+1
+
+julia&gt; time1[2]
+2
+
+julia&gt; time2[2]
+2
+
+julia&gt; time2[1]
+ERROR: BoundsError: attempt to access 18-element Axis((1.5:0.5:10.0) s =&gt; 2:19) at index [1]
+[...]</code></pre><p>Notice that <code>time2[1]</code> throws an error. This is because the indices of the <code>time2</code> axis don&#39;t contain a 1 and begins at 2. This allows an axis to map to any single dimensional memory mapping, even if it doesn&#39;t start at 1.</p><p>Indexing an axis with a collection of integers works similarly to indexing any other <code>AbstractUnitRange</code>. That is, using other subtypes of <code>AbstractUnitRange</code> preserves the structure...</p><pre><code class="language-julia-repl">julia&gt; time1[1:2]
+Axis((1.5:0.5:2.0) s =&gt; 1:2)
+
+julia&gt; time2[2:3]
+Axis((1.5:0.5:2.0) s =&gt; 2:3)</code></pre><p>However, we can&#39;t ensure that the resulting range will have a step of one in other cases so only the indices are returned.</p><pre><code class="language-julia-repl">julia&gt; time1[1:2:4]
+1:2:3
+
+julia&gt; time1[[1, 2, 3]]
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+
+julia&gt; time1[firstindex(time1):end]
+Axis((1.5:0.5:10.0) s =&gt; 1:18)
+</code></pre><h3 id="Indexing-With-Keys-1"><a class="docs-heading-anchor" href="#Indexing-With-Keys-1">Indexing With Keys</a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Keys-1" title="Permalink"></a></h3><pre><code class="language-julia-repl">julia&gt; time1[1.5s]
+1
+
+julia&gt; time2[1.5s]
+2</code></pre><pre><code class="language-julia-repl">julia&gt; time1[1.5s..3s]
+Axis((1.5:0.5:3.0) s =&gt; 1:4)
+
+julia&gt; time1[3s..4.5s]
+Axis((3.0:0.5:4.5) s =&gt; 4:7)</code></pre><h2 id="Keys-and-Indices-1"><a class="docs-heading-anchor" href="#Keys-and-Indices-1"><code>Keys</code> and <code>Indices</code></a><a class="docs-heading-anchor-permalink" href="#Keys-and-Indices-1" title="Permalink"></a></h2><p>If our keys are integers and we want to ensure that we always refer keys we can use <code>Keys</code></p><pre><code class="language-julia-repl">julia&gt; Axis((2:11), 1:10)[Keys(&lt;(5))]
+Axis(2:4 =&gt; 1:3)
+
+julia&gt; Axis((2:11), 1:10)[Indices(&lt;(5))]
+Axis(2:5 =&gt; 1:4)
+
+julia&gt; Axis((2:11), 1:10)[Keys(3)]
+2
+
+julia&gt; Axis((2:11), 1:10)[Indices(3)]
+3
+</code></pre><h2 id="Approximate-Indexing-1"><a class="docs-heading-anchor" href="#Approximate-Indexing-1">Approximate Indexing</a><a class="docs-heading-anchor-permalink" href="#Approximate-Indexing-1" title="Permalink"></a></h2><pre><code class="language-julia-repl">julia&gt; axis = Axis([pi + 0, pi + 1]);
+
+julia&gt; axis[3.141592653589793]
+1
+
+julia&gt; axis[3.14159265358979]
+ERROR: BoundsError: attempt to access 2-element Axis([3.141592653589793, 4.141592653589793] =&gt; OneToMRange(2)) at index [3.14159265358979]
+[...]
+
+julia&gt; axis[isapprox(3.14159265358979)]
+1
+
+julia&gt; axis[isapprox(3.14, atol=1e-2)]
+1</code></pre><h3 id="Indexing-With-Functions-1"><a class="docs-heading-anchor" href="#Indexing-With-Functions-1">Indexing With Functions</a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Functions-1" title="Permalink"></a></h3><p>Operators that typically return <code>true</code> or <code>false</code> can often </p><pre><code class="language-julia-repl">julia&gt; time1[&lt;(3.0s)]
+Axis((1.5:0.5:2.5) s =&gt; 1:3)
+
+julia&gt; time1[&gt;(3.0s)]
+Axis((3.5:0.5:10.0) s =&gt; 5:18)
+
+julia&gt; time1[==(6.0s)]
+10
+
+julia&gt; time1[!=(6.0s)] == vcat(1:9, 11:18)
+true</code></pre><p>These operators can also be combined to get more specific regions of an axis.</p><pre><code class="language-julia-repl">julia&gt; time1[and(&gt;(2.5s), &lt;(10.0s))]
+Axis((3.0:0.5:9.5) s =&gt; 4:17)
+
+julia&gt; time1[&gt;(2.5s) ⩓ &lt;(10.0s)]  # equivalent to `and` you can use \And&lt;TAB&gt;
+Axis((3.0:0.5:9.5) s =&gt; 4:17)
+
+julia&gt; time1[or(&lt;(2.5s),  &gt;(9.0s))] == vcat(1:2, 17:18)
+true
+
+julia&gt; time1[&lt;(2.5s) ⩔ &gt;(9.0s)] == vcat(1:2, 17:18) # equivalent to `or` you can use \Or&lt;TAB&gt;
+true
+</code></pre><h2 id="Indexing-an-Array-1"><a class="docs-heading-anchor" href="#Indexing-an-Array-1">Indexing an Array</a><a class="docs-heading-anchor-permalink" href="#Indexing-an-Array-1" title="Permalink"></a></h2><p>Setup for running array examples.</p><pre><code class="language-julia-repl">julia&gt; A = AxisIndicesArray(reshape(1:9, 3,3),
+               ((.1:.1:.3)s,        # first dimension has keys (0.1:0.1:0.3) s
+                 [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]));         # second dimension has keys [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]</code></pre><h3 id="Indexing-With-Integers-2"><a class="docs-heading-anchor" href="#Indexing-With-Integers-2">Indexing With Integers</a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Integers-2" title="Permalink"></a></h3><pre><code class="language-julia-repl">julia&gt; A[1,1]
+1
+
+julia&gt; A[1]
+1</code></pre><pre><code class="language-julia-repl">julia&gt; A[1,:]
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - Axis([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] =&gt; OneToMRange(3))
+
+  a   1
+  b   4
+  c   7
+
+
+julia&gt; A[1:2,1:2]
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis((0.1:0.1:0.2) s =&gt; Base.OneTo(2))
+ • dim_2 - Axis([&quot;a&quot;, &quot;b&quot;] =&gt; OneToMRange(2))
+          a   b
+  0.1 s   1   4
+  0.2 s   2   5
+
+
+julia&gt; A[1:3]
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+</code></pre><h3 id="Indexing-With-Keys-2"><a class="docs-heading-anchor" href="#Indexing-With-Keys-2">Indexing With Keys</a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Keys-2" title="Permalink"></a></h3><pre><code class="language-julia-repl">julia&gt; A[.1s, &quot;a&quot;]
+1
+
+julia&gt; A[0.1s..0.3s, [&quot;a&quot;, &quot;b&quot;]]
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis((0.1:0.1:0.3) s =&gt; Base.OneTo(3))
+ • dim_2 - Axis([&quot;a&quot;, &quot;b&quot;] =&gt; OneToMRange(2))
+          a   b
+  0.1 s   1   4
+  0.2 s   2   5
+  0.3 s   3   6
+
+</code></pre><h3 id="Indexing-With-Functions-2"><a class="docs-heading-anchor" href="#Indexing-With-Functions-2">Indexing With Functions</a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Functions-2" title="Permalink"></a></h3><pre><code class="language-julia-repl">julia&gt; A[!=(.2s), in([&quot;a&quot;, &quot;c&quot;])]
+AxisIndicesArray{Int64,2,Array{Int64,2}...}
+ • dim_1 - Axis(Unitful.Quantity{Float64,𝐓,Unitful.FreeUnits{(s,),𝐓,nothing}}[0.1 s, 0.3 s] =&gt; Base.OneTo(2))
+ • dim_2 - Axis([&quot;a&quot;, &quot;c&quot;] =&gt; OneToMRange(2))
+          a   c
+  0.1 s   1   7
+  0.3 s   3   9
+
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../compatibility/">« Compatibility</a><a class="docs-footer-nextpage" href="../coeftable/">CoefTable »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 13 May 2020 21:22">Wednesday 13 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

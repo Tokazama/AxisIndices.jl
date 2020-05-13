@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Standard Library API · AxisIndices.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AxisIndices.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../quick_start/">Quick Start</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../axis/">The Axis</a></li><li><a class="tocitem" href="../internals_of_indexing/">Internals of Indexing</a></li><li><a class="tocitem" href="../pretty_printing/">Pretty Printing</a></li><li><a class="tocitem" href="../compatibility/">Compatibility</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../indexing/">Indexing Tutorial</a></li><li><a class="tocitem" href="../coeftable/">CoefTable</a></li><li><a class="tocitem" href="../time/">TimeAxis Guide</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../public_api/">Public API</a></li><li class="is-active"><a class="tocitem" href>Standard Library API</a></li><li><a class="tocitem" href="../internal_api/">Internal API</a></li><li><a class="tocitem" href="../experimental/">Experimental API</a></li></ul></li><li><a class="tocitem" href="../comparison/">Comparison to Other Packages</a></li><li><a class="tocitem" href="../acknowledgments/">Acknowledgments</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Reference</a></li><li class="is-active"><a href>Standard Library API</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Standard Library API</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Tokazma/AxisIndices.jl/blob/master/docs/src/standard_library_api.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Standard-Library-API-1"><a class="docs-heading-anchor" href="#Standard-Library-API-1">Standard Library API</a><a class="docs-heading-anchor-permalink" href="#Standard-Library-API-1" title="Permalink"></a></h1><article class="docstring"><header><a class="docstring-binding" id="Base.similar" href="#Base.similar"><code>Base.similar</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">similar(axis::AbstractAxis, new_keys::AbstractVector) -&gt; AbstractAxis</code></pre><p>Create a new instance of an axis of the same type as <code>axis</code> but with the keys <code>new_keys</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; similar(Axis(1.0:10.0, 1:10), [:one, :two])
+Axis([:one, :two] =&gt; 1:2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/abstractaxis.jl#LL397-L409">source</a></section><section><div><pre><code class="language-none">similar(axis::AbstractAxis, new_keys::AbstractVector, new_indices::AbstractUnitRange{Integer} [, check_length::Bool=true] ) -&gt; AbstractAxis</code></pre><p>Create a new instance of an axis of the same type as <code>axis</code> but with the keys <code>new_keys</code> and indices <code>new_indices</code>. If <code>check_length</code> is <code>true</code> then the lengths of <code>new_keys</code> and <code>new_indices</code> are checked to ensure they have the same length before construction.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; similar(Axis(1.0:10.0, 1:10), [:one, :two], UInt(1):UInt(2))
+Axis([:one, :two] =&gt; 0x0000000000000001:0x0000000000000002)
+
+julia&gt; similar(Axis(1.0:10.0, 1:10), [:one, :two], UInt(1):UInt(3))
+ERROR: DimensionMismatch(&quot;keys and indices must have same length, got length(keys) = 2 and length(indices) = 3.&quot;)
+[...]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/abstractaxis.jl#LL462-L480">source</a></section><section><div><pre><code class="language-none">similar(axis::AbstractSimpleAxis, new_indices::AbstractUnitRange{Integer}) -&gt; AbstractSimpleAxis</code></pre><p>Create a new instance of an axis of the same type as <code>axis</code> but with the keys <code>new_keys</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; similar(SimpleAxis(1:10), 1:3)
+SimpleAxis(1:3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/abstractaxis.jl#LL515-L527">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.rot180" href="#Base.rot180"><code>Base.rot180</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">rot180(A::AbstractAxisIndices)</code></pre><p>Rotate <code>A</code> 180 degrees, along with its axes keys.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; a = AxisIndicesArray([1 2; 3 4], [&quot;a&quot;, &quot;b&quot;], [&quot;one&quot;, &quot;two&quot;]);
+
+julia&gt; b = rot180(a);
+
+julia&gt; axes_keys(b)
+([&quot;b&quot;, &quot;a&quot;], [&quot;two&quot;, &quot;one&quot;])
+
+julia&gt; c = rotr90(rotr90(a));
+
+julia&gt; axes_keys(c)
+([&quot;b&quot;, &quot;a&quot;], [&quot;two&quot;, &quot;one&quot;])
+
+julia&gt; a[&quot;a&quot;, &quot;one&quot;] == b[&quot;a&quot;, &quot;one&quot;] == c[&quot;a&quot;, &quot;one&quot;]
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/rotations.jl#LL2-L26">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.rotr90" href="#Base.rotr90"><code>Base.rotr90</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">rotr90(A::AbstractAxisIndices)</code></pre><p>Rotate <code>A</code> right 90 degrees, along with its axes keys.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; a = AxisIndicesArray([1 2; 3 4], [&quot;a&quot;, &quot;b&quot;], [&quot;one&quot;, &quot;two&quot;]);
+
+julia&gt; b = rotr90(a);
+
+julia&gt; axes_keys(b)
+([&quot;one&quot;, &quot;two&quot;], [&quot;b&quot;, &quot;a&quot;])
+
+julia&gt; a[&quot;a&quot;, &quot;one&quot;] == b[&quot;one&quot;, &quot;a&quot;]
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/rotations.jl#LL38-L57">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.rotl90" href="#Base.rotl90"><code>Base.rotl90</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">rotl90(A::AbstractAxisIndices)</code></pre><p>Rotate <code>A</code> left 90 degrees, along with its axes keys.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; a = AxisIndicesArray([1 2; 3 4], [&quot;a&quot;, &quot;b&quot;], [&quot;one&quot;, &quot;two&quot;]);
+
+julia&gt; b = rotl90(a);
+
+julia&gt; axes_keys(b)
+([&quot;two&quot;, &quot;one&quot;], [&quot;a&quot;, &quot;b&quot;])
+
+julia&gt; a[&quot;a&quot;, &quot;one&quot;] == b[&quot;one&quot;, &quot;a&quot;]
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/rotations.jl#LL68-L88">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.deleteat!" href="#Base.deleteat!"><code>Base.deleteat!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">deleteat!(a::AbstractAxisIndicesVector, arg)</code></pre><p>Remove the items corresponding to <code>A[arg]</code>, and return the modified <code>a</code>. Subsequent items are shifted to fill the resulting gap. If the axis of <code>a</code> is an <code>AbstractSimpleAxis</code> then it is shortened to match the length of <code>a</code>. If the </p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; x = AxisIndicesArray([1, 2, 3, 4]);
+
+julia&gt; axes_keys(deleteat!(x, 3))
+(OneToMRange(3),)
+
+julia&gt; x = AxisIndicesArray([1, 2, 3, 4], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;]);
+
+julia&gt; axes_keys(deleteat!(x, &quot;c&quot;))
+([&quot;a&quot;, &quot;b&quot;, &quot;d&quot;],)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/resize.jl#LL3-L25">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.reshape" href="#Base.reshape"><code>Base.reshape</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">reshape(A::AbstractAxisIndices, shape)</code></pre><p>Reshape the array and axes of <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; A = reshape(AxisIndicesArray(Vector(1:8), [:a, :b, :c, :d, :e, :f, :g, :h]), 4, 2);
+
+julia&gt; axes(A)
+(Axis([:a, :b, :c, :d] =&gt; Base.OneTo(4)), SimpleAxis(Base.OneTo(2)))
+
+julia&gt; axes(reshape(A, 2, :))
+(Axis([:a, :b] =&gt; Base.OneTo(2)), SimpleAxis(Base.OneTo(4)))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/AxisCore/reshape.jl#LL1-L18">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.svd" href="#LinearAlgebra.svd"><code>LinearAlgebra.svd</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">svd(F::AbstractAxisArray, args...; kwargs...)</code></pre><p>Compute the singular value decomposition (SVD) of an <code>AbstractAxisIndices</code> <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, LinearAlgebra
+
+julia&gt; m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 =&gt; Base.OneTo(2)), Axis(3:4 =&gt; Base.OneTo(2))));
+
+julia&gt; F = svd(m);
+
+julia&gt; axes(F.U)
+(Axis(2:3 =&gt; Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+
+julia&gt; axes(F.V)
+(Axis(3:4 =&gt; Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+
+julia&gt; axes(F.Vt)
+(SimpleAxis(Base.OneTo(2)), Axis(3:4 =&gt; Base.OneTo(2)))
+
+julia&gt; axes(F.U * Diagonal(F.S) * F.Vt)
+(Axis(2:3 =&gt; Base.OneTo(2)), Axis(3:4 =&gt; Base.OneTo(2)))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/svd.jl#LL7-L32">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.qr" href="#LinearAlgebra.qr"><code>LinearAlgebra.qr</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">qr(F::AbstractAxisArray, args...; kwargs...)</code></pre><p>Compute the QR factorization of an <code>AbstractAxisIndices</code> <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, LinearAlgebra
+
+julia&gt; m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 =&gt; Base.OneTo(2)), Axis(3:4 =&gt; Base.OneTo(2))));
+
+julia&gt; F = qr(m, Val(true));
+
+julia&gt; keys.(axes(F.Q))
+(2:3, Base.OneTo(2))
+
+julia&gt; keys.(axes(F.R))
+(Base.OneTo(2), 3:4)
+
+julia&gt; keys.(axes(F.Q * F.R))
+(2:3, 3:4)
+
+julia&gt; keys.(axes(F.p))
+(2:3,)
+
+julia&gt; keys.(axes(F.P))
+(2:3, 2:3)
+
+julia&gt; keys.(axes(F.P * AxisIndicesArray([1.0 2; 3 4], (2:3, 3:4))))
+(2:3, 3:4)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/qr.jl#LL6-L38">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.lu" href="#LinearAlgebra.lu"><code>LinearAlgebra.lu</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">lu(A::AbstractAxisArray, args...; kwargs...)</code></pre><p>Compute the LU factorization of an <code>AbstractAxisIndices</code> <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, LinearAlgebra
+
+julia&gt; m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 =&gt; Base.OneTo(2)), Axis(3:4 =&gt; Base.OneTo(2))));
+
+julia&gt; F = lu(m);
+
+julia&gt; keys.(axes(F.L))
+(2:3, Base.OneTo(2))
+
+julia&gt; keys.(axes(F.U))
+(Base.OneTo(2), 3:4)
+
+julia&gt; keys.(axes(F.p))
+(2:3,)
+
+julia&gt; keys.(axes(F.P))
+(2:3, 2:3)
+
+julia&gt; keys.(axes(F.P * m))
+(2:3, 3:4)
+
+julia&gt; keys.(axes(F.L * F.U))
+(2:3, 3:4)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/lu.jl#LL2-L33">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.lq" href="#LinearAlgebra.lq"><code>LinearAlgebra.lq</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">lq(A::AbstractAxisArray, args...; kwargs...)</code></pre><p>Compute the LQ factorization of an <code>AbstractAxisIndices</code> <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, LinearAlgebra
+
+julia&gt; m = AxisIndicesArray([1.0 2; 3 4], (Axis(2:3 =&gt; Base.OneTo(2)), Axis(3:4 =&gt; Base.OneTo(2))));
+
+julia&gt; F = lq(m);
+
+julia&gt; keys.(axes(F.L))
+(2:3, Base.OneTo(2))
+
+julia&gt; keys.(axes(F.Q))
+(Base.OneTo(2), 3:4)
+
+julia&gt; keys.(axes(F.L * F.Q))
+(2:3, 3:4)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/lq.jl#LL2-L24">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.inv" href="#Base.inv"><code>Base.inv</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">inv(M::AbstractAxisIndicesMatrix)</code></pre><p>Computes the inverse of an <code>AbstractAxisIndicesMatrix</code></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, LinearAlgebra
+
+julia&gt; M = AxisIndicesArray([2 5; 1 3], [&quot;a&quot;, &quot;b&quot;], [:one, :two]);
+
+julia&gt; axes_keys(inv(M))
+([:one, :two], [&quot;a&quot;, &quot;b&quot;])
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/inv.jl#LL2-L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Statistics.cov" href="#Statistics.cov"><code>Statistics.cov</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">cov(x::AbstractAxisIndicesMatrix; dims=1, kwargs...)</code></pre><p>Performs <code>cov</code> on the parent matrix of <code>x</code> and reconstructs a similar type with the appropriate axes.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, Statistics
+
+julia&gt; A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], [:one, :two, :three]);
+
+julia&gt; axes_keys(cov(A, dims = 2))
+([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])
+
+julia&gt; axes_keys(cov(A, dims = 1))
+([:one, :two, :three], [:one, :two, :three])
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/covcor.jl#LL44-L63">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Statistics.cor" href="#Statistics.cor"><code>Statistics.cor</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">cor(x::AbstractAxisIndicesMatrix; dims=1, kwargs...)</code></pre><p>Performs <code>cor</code> on the parent matrix of <code>x</code> and reconstructs a similar type with the appropriate axes.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, Statistics
+
+julia&gt; A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], [:one, :two, :three]);
+
+julia&gt; axes_keys(cor(A, dims = 2))
+([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;])
+
+julia&gt; axes_keys(cor(A, dims = 1))
+([:one, :two, :three], [:one, :two, :three])
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/covcor.jl#LL44-L63">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.diag" href="#LinearAlgebra.diag"><code>LinearAlgebra.diag</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">diag(M::AbstractAxisIndicesMatrix, k::Integer=0; dim::Val=Val(1))</code></pre><p>The <code>k</code>th diagonal of an <code>AbstractAxisIndicesMatrix</code>, <code>M</code>. The keyword argument <code>dim</code> specifies which which dimension&#39;s axis to preserve, with the default being the first dimension. This can be change by specifying <code>dim=Val(2)</code> instead.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, LinearAlgebra
+
+julia&gt; A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], [:one, :two, :three]);
+
+julia&gt; axes_keys(diag(A))
+([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;],)
+
+julia&gt; axes_keys(diag(A, 1; dim=Val(2)))
+([:one, :two],)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/bc0622f2b0191a09c60c2dbf3ca8f249e8fe3cc4/src/Math/diagonal.jl#LL2-L21">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../public_api/">« Public API</a><a class="docs-footer-nextpage" href="../internal_api/">Internal API »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 13 May 2020 21:22">Wednesday 13 May 2020</span>. Using Julia version 1.4.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
