@@ -7,7 +7,9 @@ to_axis(axis::StaticRanges.OneToUnion{<:Integer}) = SimpleAxis(axis)
 to_axis(len::Integer) = SimpleAxis(len)
 
 # 2 arg
-to_axis(::Nothing, ks::AbstractUnitRange{<:Integer}) = SimpleAxis(ks)
+to_axis(ks::Nothing,        vs::AbstractUnitRange{<:Integer}) = SimpleAxis(vs)
+to_axis(ks::AbstractVector, vs::AbstractUnitRange{<:Integer}) = Axis(ks, vs)
+to_axis(ks::AbstractAxis,   vs::AbstractUnitRange{<:Integer}) = resize_last(ks, vs)
 
 # 3 arg
 to_axis(axis::AbstractAxis,       ks,               vs::AbstractUnitRange, check_length::Bool=true) = similar(axis, ks, vs, check_length)
@@ -27,7 +29,6 @@ function _to_axis(axis::AbstractSimpleAxis, ks, vs, check_length::Bool)
     return Axis(ks, vs, check_length)
 end
 
-to_axis(ks::AbstractVector, vs::AbstractUnitRange{<:Integer}) = Axis(ks, vs)
 
 
 to_axis(::StaticRanges.Static, ks, vs) = to_axis(as_static(ks), as_static(vs))
