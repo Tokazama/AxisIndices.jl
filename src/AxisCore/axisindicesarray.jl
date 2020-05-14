@@ -243,7 +243,7 @@ function AxisIndicesArray{T,N}(
     check_length::Bool=true
 ) where {T,N}
 
-    axs = _to_axes(Staticness(x), axs, axes(x), check_length)
+    axs = to_axes((), axs, axes(x), check_length, Staticness(x))
     return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 

@@ -2,31 +2,40 @@
 @inline function to_axes(
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{T, Vararg{Any}},
-    inds::Tuple,
-    new_indices::Tuple{Vararg{Any}}
-) where {A,T}
+    interim_indices::Tuple,
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(I),
+) where {A,T,I}
 
     S = AxisIndicesStyle(A, T)
     if is_element(S)
         return to_axes(
             maybetail(old_axes),
             maybetail(args),
-            maybetail(inds),
+            maybetail(interim_indices),
             new_indices,
+            check_length,
+            staticness
         )
     else
-        return (if is_simple_axis(A)
-                    similar(first(old_axes), first(new_indices))
-                else
-                    axis = first(old_axes)
-                    similar(axis, to_keys(S, axis, first(args), first(inds)), first(new_indices), false)
-                end,
-                to_axes(
-                    maybetail(old_axes),
-                    maybetail(args),
-                    maybetail(inds),
-                    maybetail(new_indices)
-                )...
+        return (
+            to_axis(
+                first(old_axes),
+                (first(args),
+                 first(interim_indices)),
+                 first(new_indices),
+                 check_length,
+                 staticness
+            ),
+            to_axes(
+                maybetail(old_axes),
+                maybetail(args),
+                maybetail(interim_indices),
+                maybetail(new_indices),
+                check_length,
+                staticness
+            )...
         )
     end
 end
@@ -34,32 +43,133 @@ end
 @inline function to_axes(
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{CartesianIndex{N},Vararg{Any}},
-    inds::Tuple,
-    new_axes::Tuple{Vararg{Any}},
-) where {A,N}
+    interim_indices::Tuple,
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(I)
+) where {A,N,I}
 
     _, old_axes2 = Base.IteratorsMD.split(old_axes, Val(N))
-    _, inds2 = Base.IteratorsMD.split(inds, Val(N))
-    return to_axes(old_axes2, tail(args), inds2, new_axes)
+    _, interim_indices2 = Base.IteratorsMD.split(interim_indices, Val(N))
+    return to_axes(old_axes2, tail(args), interim_indices2, new_indices, check_length, staticness)
 end
 
 @inline function to_axes(
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{CartesianIndices, Vararg{Any}},
-    inds::Tuple,
-    new_axes::Tuple{Vararg{Any}}
-) where {A}
+    interim_indices::Tuple,
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(I)
+) where {A,I}
 
-    return to_axes(old_axes, tail(args), tail(inds), new_axes)
+    return to_axes(old_axes, tail(args), tail(interim_indices), new_indices, check_length, staticness)
 end
 
-function to_axes(::Tuple{A,Vararg{Any}}, ::Tuple{CartesianIndex{N},Vararg{Any}}, ::Tuple, ::Tuple{}) where {A,N}
+function to_axes(
+    ::Tuple{A,Vararg{Any}},
+    ::Tuple{CartesianIndex{N},Vararg{Any}},
+    ::Tuple,
+    ::Tuple{},
+    check_length::Bool=false,
+    staticness=StaticRanges.Fixed(),
+) where {A,N}
+
     return ()
 end
 
-function to_axes(::Tuple{A,Vararg{Any}}, ::Tuple{Any,Vararg{Any}}, ::Tuple, ::Tuple{}) where {A}
+function to_axes(
+    ::Tuple,
+    ::Tuple{Any,Vararg{Any}},
+    ::Tuple,
+    ::Tuple{},
+    check_length::Bool=false,
+    staticness=StaticRanges.Fixed()
+)
+
     return ()
 end
 
-to_axes(::Tuple{}, ::Tuple, ::Tuple, ::Tuple{}) = ()
+function to_axes(
+    ::Tuple,
+    ::Tuple,
+    ::Tuple,
+    ::Tuple{},
+    check_length::Bool=false,
+    staticness=StaticRanges.Fixed()
+)
+    return ()
+end
+
+@inline function to_axes(
+    old_axes::Tuple,
+    new_keys::Tuple,
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(I)
+) where {I}
+    return (
+        to_axis(first(old_axes), first(new_keys), first(new_indices), check_length, staticness),
+        to_axes(tail(old_axes), tail(new_keys), tail(new_indices), check_length, staticness)...
+    )
+end
+
+@inline function to_axes(
+    old_axes::Tuple,
+    ::Tuple{},
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(I)
+) where {I}
+
+    return (
+        to_axis(first(old_axes), nothing, first(new_indices), check_length, staticness),
+        to_axes(tail(old_axes), (), tail(new_indices), check_length, staticness)...
+    )
+end
+
+@inline function to_axes(
+    ::Tuple{},
+    new_keys::Tuple,
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(I)
+) where {I}
+
+    return (
+        to_axis(first(new_keys), first(new_indices), check_length, staticness),
+        to_axes((), tail(new_keys), tail(new_indices), check_length, staticness)...
+    )
+end
+
+@inline function to_axes(
+    ::Tuple{},
+    ::Tuple{},
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(I)
+) where {I}
+
+    return (
+        to_axis(nothing, first(new_indices), check_length, staticness),
+        to_axes((), (), tail(new_indices), check_length, staticness)...
+    )
+end
+
+@inline function to_axes(
+    ::Tuple{},
+    ks::Tuple{I,Vararg{Any}},
+    new_indices::Tuple{},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(I)
+) where {I}
+
+    return (
+        to_axis(first(ks), check_length, staticness),
+        to_axes((), tail(ks), (), check_length, staticness)...
+    )
+end
+
+to_axes(::Tuple{}, ::Tuple{}, ::Tuple{}, check_length::Bool=true, staticness=StaticRanges.Fixed()) = ()
+to_axes(::Tuple, ::Tuple{}, ::Tuple{}, check_length::Bool=true, staticness=StaticRanges.Fixed()) = ()
 

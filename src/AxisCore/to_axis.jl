@@ -1,43 +1,122 @@
 
+as_staticness(::StaticRanges.Static, x) = as_static(x)
+as_staticness(::StaticRanges.Fixed, x) = as_fixed(x)
+as_staticness(::StaticRanges.Dynamic, x) = as_dynamic(x)
+
 # 1 arg
 to_axis(axis::AbstractAxis) = axis
-to_axis(ks::AbstractVector) = Axis(ks)
-to_axis(axis::StaticRanges.OneToUnion{<:Integer}) = SimpleAxis(axis)
+function to_axis(
+    ks::AbstractVector,
+    check_length::Bool=true,
+    staticness=Staticness(ks)
+)
+
+    return Axis(as_staticness(staticness, ks))
+end
+function to_axis(
+    vs::StaticRanges.OneToUnion{<:Integer},
+    check_length::Bool=true,
+    staticness=Staticness(vs)
+)
+    return SimpleAxis(as_staticness(staticness, vs))
+end
 #to_axis(axis::AbstractUnitRange{<:Integer}) = SimpleAxis(axis)
 to_axis(len::Integer) = SimpleAxis(len)
 
 # 2 arg
-to_axis(ks::Nothing,        vs::AbstractUnitRange{<:Integer}) = SimpleAxis(vs)
-to_axis(ks::AbstractVector, vs::AbstractUnitRange{<:Integer}) = Axis(ks, vs)
-to_axis(ks::AbstractAxis,   vs::AbstractUnitRange{<:Integer}) = resize_last(ks, vs)
+function to_axis(
+    ks::Nothing,
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=Staticness(vs)
+)
+
+    return SimpleAxis(as_staticness(staticness, vs))
+end
+function to_axis(
+    ks::AbstractVector,
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=Staticness(vs)
+)
+    return Axis(as_staticness(staticness, ks), as_staticness(staticness, vs), check_length)
+end
+
+function to_axis(
+    ks::AbstractAxis,
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=Staticness(vs)
+)
+    return resize_last(ks, as_staticness(staticness, vs))
+end
 
 # 3 arg
-to_axis(axis::AbstractAxis,       ks,               vs::AbstractUnitRange, check_length::Bool=true) = similar(axis, ks, vs, check_length)
-to_axis(axis::AbstractSimpleAxis, ks,               vs::AbstractUnitRange, check_length::Bool=true) = _to_axis(axis, ks, vs, check_length)
-to_axis(axis::AbstractAxis,       ks::Nothing,      vs::AbstractUnitRange, check_length::Bool=true) = resize_last(axis, vs)
-to_axis(axis::AbstractSimpleAxis, ks::Nothing,      vs::AbstractUnitRange, check_length::Bool=true) = resize_last(axis, vs)
-to_axis(axis::AbstractAxis,       ks::AbstractAxis, vs::AbstractUnitRange, check_length::Bool=true) = similar(axis, keys(ks), vs, check_length)
+@inline function to_axis(
+    axis::AbstractAxis,
+    ks::AbstractVector,
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(vs)
+)
+
+    if is_simple_axis(axis)
+        if (ks isa OneToUnion) && (vs isa OneToUnion)
+            check_length && check_axis_length(ks, vs)
+            return unsafe_reconstruct(axis, as_staticness(staticness, vs))
+        else
+            return Axis(as_staticness(staticness, ks), as_staticness(staticness, vs), check_length)
+        end
+    else
+        return similar(axis, as_staticness(staticness, ks), as_staticness(staticness, vs), check_length)
+    end
+end
+
+function to_axis(
+    axis::AbstractAxis,
+    ::Nothing,
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(vs)
+)
+
+    return resize_last(axis, vs)
+end
+
+function to_axis(
+    axis::AbstractAxis,
+    ks::AbstractAxis,
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=StaticRanges.Staticness(vs)
+)
+
+    return to_axis(axis, keys(ks), vs, check_length, staticness)
+end
+
+@inline function to_axis(
+    axis::AbstractAxis,
+    (arg, ind),
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(vs)
+)
+
+    if is_simple_axis(axis)
+        return to_axis(axis, nothing, vs, check_length, staticness)
+    else
+        return to_axis(axis, to_keys(axis, arg, ind), vs, check_length, staticness)
+    end
+end
 
 # Do an additional pass to ensure that the user really wants to abandon the old_axis type,
 # b/c we can't have keys diffent from indices with an AbstractSimpleAxis
-function _to_axis(axis::AbstractSimpleAxis, ks::OneToUnion, vs::OneToUnion, check_length::Bool)
+function _to_axis(axis::AbstractAxis, ks::OneToUnion, vs::OneToUnion, check_length::Bool)
     check_length && check_axis_length(ks, vs)
     return unsafe_reconstruct(axis, ks)
 end
 #...but we can only do that in a type stable way with OneTo
-function _to_axis(axis::AbstractSimpleAxis, ks, vs, check_length::Bool)
-    return Axis(ks, vs, check_length)
-end
-
-
-
-to_axis(::StaticRanges.Static, ks, vs) = to_axis(as_static(ks), as_static(vs))
-to_axis(::StaticRanges.Fixed, ks, vs) = to_axis(as_fixed(ks), as_fixed(vs))
-to_axis(::StaticRanges.Dynamic, ks, vs) = to_axis(as_dynamic(ks), as_dynamic(vs))
-
-to_axis(::StaticRanges.Static, vs) = to_axis(as_static(vs))
-to_axis(::StaticRanges.Fixed, vs) = to_axis(as_fixed(vs))
-to_axis(::StaticRanges.Dynamic, vs) = to_axis(as_dynamic(vs))
+_to_axis(axis::AbstractAxis, ks, vs, check_length::Bool) = Axis(ks, vs, check_length)
 
 @inline _to_axes(S::Staticness, ks::Tuple{<:AbstractVector,Vararg{Any}}, vs::Tuple, check_length::Bool) =
     (to_axis(S, first(ks), first(vs)), _to_axes(S, maybetail(ks), maybetail(vs), check_length)...)
@@ -46,4 +125,5 @@ to_axis(::StaticRanges.Dynamic, vs) = to_axis(as_dynamic(vs))
 @inline _to_axes(S::Staticness, ks::Tuple{}, vs::Tuple, check_length::Bool) =
     (to_axis(S, first(vs)), _to_axes(S, (), maybetail(vs), check_length)...)
 _to_axes(S::Staticness, ks::Tuple{}, vs::Tuple{}, check_length::Bool) = ()
+
 
