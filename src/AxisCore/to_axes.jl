@@ -22,8 +22,7 @@
         return (
             to_axis(
                 first(old_axes),
-                (first(args),
-                 first(interim_indices)),
+                (first(args), first(interim_indices)),
                  first(new_indices),
                  check_length,
                  staticness

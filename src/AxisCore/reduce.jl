@@ -56,6 +56,17 @@ function Base.mapreduce(f1, f2, a::AbstractAxisIndices; dims=:, kwargs...)
     return reconstruct_reduction(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
 end
 
+function Base.extrema(A::AbstractAxisIndices; dims=:, kwargs...)
+    return reconstruct_reduction(A, Base.extrema(parent(A); dims=dims, kwargs...), dims)
+end
+
+if VERSION > v"1.2"
+    function Base.hase_fast_linear_indexing(x::AbstractAxisIndices)
+        return Base.hase_fast_linear_indexing(parent(x))
+    end
+end
+
+#= TODO test on multiple versions that this passes to `mapreducedim`
 for f in (:sum, :prod, :maximum, :minimum, :extrema)
     @eval begin
         function Base.$f(A::AbstractAxisIndices; dims=:, kwargs...)
@@ -64,3 +75,4 @@ for f in (:sum, :prod, :maximum, :minimum, :extrema)
     end
 end
 
+=#
