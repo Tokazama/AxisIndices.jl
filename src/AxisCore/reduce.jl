@@ -61,8 +61,8 @@ function Base.extrema(A::AbstractAxisIndices; dims=:, kwargs...)
 end
 
 if VERSION > v"1.2"
-    function Base.hase_fast_linear_indexing(x::AbstractAxisIndices)
-        return Base.hase_fast_linear_indexing(parent(x))
+    function Base.has_fast_linear_indexing(x::AbstractAxisIndices)
+        return Base.has_fast_linear_indexing(parent(x))
     end
 end
 
