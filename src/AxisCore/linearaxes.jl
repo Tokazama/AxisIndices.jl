@@ -21,13 +21,7 @@ julia> lininds[2, 2]
 """
 const LinearAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = LinearIndices{N,R}
 
-function LinearAxes(ks::Tuple{Vararg{<:Integer,N}}) where {N}
-    return LinearIndices(map(SimpleAxis, ks))
-end
-
-LinearAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = LinearIndices(to_axes((), ks, (), false))
-
-LinearAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = LinearIndices(ks)
+LinearAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = LinearIndices(map(to_axis, ks))
 
 Base.axes(A::LinearAxes) = getfield(A, :indices)
 

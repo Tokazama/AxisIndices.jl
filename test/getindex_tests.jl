@@ -39,6 +39,6 @@
         # ensure it doesn't mess up vector indexing
         @test @inferred(v[1:3]) isa AxisIndicesArray
         # ensure it drops axes and shape just as it does with an Array
-        @test @inferred(m[1:3]) isa typeof(parent(m)[1:3])
+        @test @inferred(m[1:3]) isa AbstractVector
     end
 end

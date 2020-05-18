@@ -25,7 +25,9 @@ function CartesianAxes(ks::Tuple{Vararg{<:Integer,N}}) where {N}
     return CartesianIndices(map(SimpleAxis, ks))
 end
 
-CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = CartesianIndices(to_axes((), ks, (), false))
+function CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N}
+    return CartesianIndices(ntuple(i -> to_axis(getfield(ks, i), false), Val(N)))
+end
 
 CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
 

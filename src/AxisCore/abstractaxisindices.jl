@@ -164,34 +164,31 @@ function unsafe_reconstruct(A::AbstractAxisIndices, p::AbstractArray, axs::Tuple
     return similar_type(A, typeof(p), typeof(axs))(p, axs)
 end
 
-
 ###
 ### similar
 ###
-function Base.similar(A::AbstractAxisIndices, dims::Tuple{Vararg{Int}})
-    p = similar(parent(A), dims)
-    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p)))
+@inline function Base.similar(A::AbstractAxisIndices{T}, dims::NTuple{N,Int}) where {T,N}
+    return similar(A, T, dims)
 end
 
-function Base.similar(A::AbstractAxisIndices{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
-    p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+@inline function Base.similar(A::AbstractAxisIndices{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
+    return similar(A, T, ks)
 end
 
-function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
+@inline function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 # Necessary to avoid ambiguities with OffsetArrays
-function Base.similar(a::AbstractAxisIndices, ::Type{T}, dims::Tuple{Vararg{Int}}) where {T}
-    p = similar(parent(a), T, dims)
-    return unsafe_reconstruct(a, p, to_axes(axes(a), (), axes(p)))
+@inline function Base.similar(A::AbstractAxisIndices, ::Type{T}, dims::NTuple{N,Int}) where {T,N}
+    p = similar(parent(A), T, dims)
+    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p)))
 end
 
 function Base.similar(A::AbstractAxisIndices, ::Type{T}) where {T}
     p = similar(parent(A), T)
-    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p)))
+    return unsafe_reconstruct(A, p, map(assign_indices, axes(A), axes(p)))
 end
 
 function Base.similar(
@@ -201,18 +198,18 @@ function Base.similar(
 ) where {T, N}
 
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{OneTo,Vararg{OneTo,N}}) where {T, N}
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 function Base.similar(::Type{T}, ks::AbstractAxes{N}) where {T<:AbstractArray, N}
     p = similar(T, map(length, ks))
-    axs = to_axes(ks, ks, axes(p))
-    return AxisIndicesArray{eltype(p),N,typeof(p),typeof(axs)}(p, axs)
+    axs = to_axes((), ks, axes(p), false)
+    return AxisIndicesArray{eltype(T),N,typeof(p),typeof(axs)}(p, axs)
 end
 
 

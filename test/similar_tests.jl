@@ -24,3 +24,10 @@ end
     @test eltype(@inferred(similar(x, Int, (2:3,)))) <: Int
     @test @inferred(axes_keys(similar(x, (["x", "y"],)))[1]) == ["x", "y"]
 end
+
+@testset "similar by axes" begin
+    x = AxisIndicesArray([1,2,3])
+    z = [i for i in x]
+    @test axes(x) == axes(z)
+end
+

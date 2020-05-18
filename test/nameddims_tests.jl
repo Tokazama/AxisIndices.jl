@@ -1,5 +1,5 @@
 @testset "NamedDims" begin
-    A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
+    A = NIArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5);
     @test @inferred(StaticRanges.axes_type(typeof(A))) <: typeof(axes(A))
     @test @inferred(StaticRanges.parent_type(typeof(A))) <: typeof(parent(A))
     @test @inferred(A[1,1,1]) == @inferred(A["a", "one", ==(2)]) == 1

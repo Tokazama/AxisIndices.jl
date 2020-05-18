@@ -308,49 +308,6 @@ julia> AxisIndices.step_key([1])  # LinearIndices are treate like unit ranges
 _step_keys(ks) = step(ks)
 _step_keys(ks::LinearIndices) = 1
 
-###
-### staticness
-###
-function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:AbstractUnitRange}
-    return true
-end
-
-function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:OneToUnion}
-    return false
-end
-
-for f in (:is_static, :is_fixed, :is_dynamic)
-    @eval begin
-        function StaticRanges.$f(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs}
-            return StaticRanges.$f(Vs) & StaticRanges.$f(Ks)
-        end
-    end
-end
-
-for f in (:as_static, :as_fixed, :as_dynamic)
-    @eval begin
-        function StaticRanges.$f(x::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
-            return unsafe_reconstruct(x, StaticRanges.$f(keys(x)), StaticRanges.$f(values(x)))
-        end
-    end
-end
-
-for f in (:is_static, :is_fixed, :is_dynamic)
-    @eval begin
-        function StaticRanges.$f(::Type{<:AbstractSimpleAxis{V,Vs}}) where {V,Vs}
-            return StaticRanges.$f(Vs)
-        end
-    end
-end
-
-for f in (:as_static, :as_fixed, :as_dynamic)
-    @eval begin
-        function StaticRanges.$f(x::AbstractSimpleAxis{V,Vs}) where {V,Vs}
-            return unsafe_reconstruct(x, StaticRanges.$f(values(x)))
-        end
-    end
-end
-
 StaticRanges.Size(::Type{T}) where {T<:AbstractAxis} = StaticRanges.Size(values_type(T))
 
 Base.size(a::AbstractAxis) = (length(a),)

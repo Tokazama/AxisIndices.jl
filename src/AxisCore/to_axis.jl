@@ -94,9 +94,11 @@ function to_axis(
     return to_axis(axis, keys(ks), vs, check_length, staticness)
 end
 
+#=
 @inline function to_axis(
     axis::AbstractAxis,
-    (arg, ind),
+    arg,
+    ind,
     vs::AbstractUnitRange{<:Integer},
     check_length::Bool=false,
     staticness=StaticRanges.Staticness(vs)
@@ -108,7 +110,9 @@ end
         return to_axis(axis, to_keys(axis, arg, ind), vs, check_length, staticness)
     end
 end
+=#
 
+#=
 # Do an additional pass to ensure that the user really wants to abandon the old_axis type,
 # b/c we can't have keys diffent from indices with an AbstractSimpleAxis
 function _to_axis(axis::AbstractAxis, ks::OneToUnion, vs::OneToUnion, check_length::Bool)
@@ -119,11 +123,13 @@ end
 _to_axis(axis::AbstractAxis, ks, vs, check_length::Bool) = Axis(ks, vs, check_length)
 
 @inline _to_axes(S::Staticness, ks::Tuple{<:AbstractVector,Vararg{Any}}, vs::Tuple, check_length::Bool) =
-    (to_axis(S, first(ks), first(vs)), _to_axes(S, maybetail(ks), maybetail(vs), check_length)...)
+    (to_axis(S, first(ks), first(vs)), _to_axes(S, maybe_tail(ks), maybe_tail(vs), check_length)...)
 @inline _to_axes(S::Staticness, ks::Tuple{<:Integer,Vararg{Any}}, vs::Tuple, check_length::Bool) =
-    (to_axis(S, first(vs)), _to_axes(S, maybetail(ks), maybetail(vs), check_length)...)
+    (to_axis(S, first(vs)), _to_axes(S, maybe_tail(ks), maybe_tail(vs), check_length)...)
 @inline _to_axes(S::Staticness, ks::Tuple{}, vs::Tuple, check_length::Bool) =
-    (to_axis(S, first(vs)), _to_axes(S, (), maybetail(vs), check_length)...)
+    (to_axis(S, first(vs)), _to_axes(S, (), maybe_tail(vs), check_length)...)
 _to_axes(S::Staticness, ks::Tuple{}, vs::Tuple{}, check_length::Bool) = ()
 
+
+=#
 

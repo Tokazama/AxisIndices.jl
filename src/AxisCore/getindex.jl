@@ -65,23 +65,9 @@ for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:un
             return @inbounds(Base.$f(parent(A), inds...))
         end
 
-        function $unsafe_f(
-            A::AbstractArray{T,N},
-            args::Tuple,
-            inds::Tuple{Vararg{Any,M}},
-        ) where {T,N,M}
-
-            return @inbounds(Base.$f(parent(A), inds...))
-        end
-
-        @propagate_inbounds function $unsafe_f(
-            A::AbstractArray{T,N},
-            args::Tuple,
-            inds::Tuple{Vararg{Any,N}},
-        ) where {T,N}
-
+        @propagate_inbounds function $unsafe_f(A, args::Tuple, inds::Tuple)
             p = Base.$f(parent(A), inds...)
-            return unsafe_reconstruct(A, p, to_axes(axes(A), args, inds, axes(p)))
+            return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p)))
         end
 
         @propagate_inbounds function Base.$f(A::AbstractAxisIndices, args...)
