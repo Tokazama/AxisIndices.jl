@@ -209,5 +209,10 @@ function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{OneTo,Vararg{
     return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
 end
 
-Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))
+function Base.similar(::Type{T}, ks::AbstractAxes{N}) where {T<:AbstractArray, N}
+    p = similar(T, map(length, ks))
+    axs = to_axes(ks, ks, axes(p))
+    return AxisIndicesArray{eltype(p),N,typeof(p),typeof(axs)}(p, axs)
+end
+
 
