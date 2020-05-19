@@ -57,7 +57,7 @@ end
     ks::AbstractVector,
     vs::AbstractUnitRange{<:Integer},
     check_length::Bool=true,
-    staticness=StaticRanges.Staticness(vs)
+    staticness=Staticness(vs)
 )
 
     if is_simple_axis(axis)
@@ -77,7 +77,7 @@ function to_axis(
     ::Nothing,
     vs::AbstractUnitRange{<:Integer},
     check_length::Bool=true,
-    staticness=StaticRanges.Staticness(vs)
+    staticness=Staticness(vs)
 )
 
     return resize_last(axis, vs)
@@ -88,7 +88,7 @@ function to_axis(
     ks::AbstractAxis,
     vs::AbstractUnitRange{<:Integer},
     check_length::Bool=true,
-    staticness=StaticRanges.Staticness(vs)
+    staticness=Staticness(vs)
 )
 
     return to_axis(axis, keys(ks), vs, check_length, staticness)

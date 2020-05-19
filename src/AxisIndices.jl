@@ -88,4 +88,10 @@ using .Names
 include("./ObservationDims.jl")
 using .Names
 
+include("./StructAxes/StructAxes.jl")
+using .StructAxes
+
+include("./AxisTables/AxisTables.jl")
+using .AxisTables
+
 end

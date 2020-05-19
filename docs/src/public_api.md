@@ -9,7 +9,7 @@ Axis
 SimpleAxis
 CartesianAxes
 LinearAxes
-NamedIndicesArray
+NamedAxesArray
 NIArray
 indices
 axes_keys
