@@ -6,8 +6,10 @@ using LinearAlgebra
 using StaticRanges
 using Documenter
 using Dates
+using Tables
 using AxisIndices
 using AxisIndices.AxisCore
+using AxisIndices.AxisTables
 using AxisIndices.Names
 using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
@@ -98,6 +100,8 @@ end
     @test @inferred(select_obsdim(nia, 2)) == selectdim(parent(parent(nia)), 2, 2)
     @test @inferred(obs_axis_type(nia)) <: Integer
 end
+
+include("table_tests.jl")
 
 #= TODO this needs to be formally tested
 io = IOBuffer()
