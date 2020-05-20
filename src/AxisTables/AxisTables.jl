@@ -16,7 +16,7 @@ using TableTraitsUtils
 
 using Base: @propagate_inbounds
 
-export AxisTable
+export AxisTable, AxisRow
 
 abstract type AbstractAxisTable end
 
