@@ -1,18 +1,22 @@
 
 offsets(A) = map(offset, axes(A))
 
+compute_offset(parent_inds::AbstractUnitRange, offset::AbstractUnitRange) = first(offset) - first(parent_inds)
+compute_offset(parent_inds::AbstractUnitRange, offset::Integer) = 1 - first(parent_inds)
+
 """
     OffsetArray
+
+An array whose axes are all `OffsetAxis`
 """
 const OffsetArray{T,N,P,A<:Tuple{Vararg{<:OffsetAxis}}} = AxisIndicesArray{T,N,P,A}
 
 """
     OffsetVector
-"""
-const OffsetVector{T,P<:AbstractVector{T},Ax1} = OffsetArray{T,1,P,Tuple{Ax1}}
 
-compute_offset(parent_inds::AbstractUnitRange, offset::AbstractUnitRange) = first(offset) - first(parent_inds)
-compute_offset(parent_inds::AbstractUnitRange, offset::Integer) = 1 - first(parent_inds)
+A vector whose axis is `OffsetAxis`
+"""
+const OffsetVector{T,P<:AbstractVector{T},Ax1<:OffsetAxis} = OffsetArray{T,1,P,Tuple{Ax1}}
 
 OffsetArray(A::AbstractArray{T,N}, inds::Vararg) where {T,N} = OffsetArray(A, inds)
 
@@ -45,5 +49,4 @@ end
 function OffsetArray{T,N}(A::AbstractAxisIndices, inds::Tuple) where {T,N}
     return AxisIndicesArray{T,N}(parent(A), to_offset_axes(A, inds))
 end
-
 

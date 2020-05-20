@@ -29,9 +29,9 @@ export
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
-    SimpleAxis,
     Indices,
     Keys,
+    SimpleAxis,
     # methods
     axes_keys,
     first_key,
@@ -104,6 +104,7 @@ include("abstractaxis.jl")
 include("utils.jl")
 include("axis.jl")
 include("simpleaxis.jl")
+
 include("abstractaxisindices.jl")
 include("axisindicesarray.jl")
 include("promotion.jl")
@@ -129,6 +130,7 @@ include("resize.jl")
 
 include("linearaxes.jl")
 include("cartesianaxes.jl")
+
 include("to_axes.jl")
 include("to_indices.jl")
 include("checkbounds.jl")

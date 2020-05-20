@@ -146,10 +146,12 @@ function StaticRanges.similar_type(
     ::Type{A},
     ks_type::Type=keys_type(A),
     vs_type::Type=values_type(A)
-   ) where {A<:Axis}
+) where {A<:Axis}
+
     return Axis{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
 end
 
 function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
     return similar_type(a, Ks, Vs)(ks, vs, false, false)
 end
+

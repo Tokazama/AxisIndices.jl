@@ -1,15 +1,15 @@
 
 struct CenteredAxis{V,Vs} <: AbstractOffsetAxis{V,Vs}
-    offset::V
     values::Vs
 
     function CenteredAxis{V,Vs}(index::Vs) where {V<:Integer,Vs<:AbstractUnitRange{V}}
-        return new{V,Vs}(-div((length(index) + 1), 2) - (first(index) - 1), index)
+        return new{V,Vs}(index)
     end
 end
 
 Base.values(axis::CenteredAxis) = getfield(axis, :values)
-offset(axis::CenteredAxis) = getfield(axis, :offset)
+
+offset(axis::CenteredAxis) = -div(length(axis) + 1, 2) - (first(getfield(axis, :values)) - 1)
 
 function CenteredAxis{V,Vs}(index) where {V<:Integer,Vs<:AbstractUnitRange{V}}
     return CenteredAxis{V,Vs}(Vs(index))

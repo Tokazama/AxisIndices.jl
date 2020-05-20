@@ -1,19 +1,21 @@
 
 using Test
 using Statistics
+using DelimitedFiles
 using LinearAlgebra
 using StaticRanges
 using Documenter
 using Dates
 using AxisIndices
 using AxisIndices.AxisCore
+using AxisIndices.OffsetAxes
 using AxisIndices.Names
 using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
-using OffsetArrays
+#using OffsetArrays
 
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
@@ -63,7 +65,6 @@ include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")
-include("offset_array_tests.jl")
 
 include("drop_tests.jl")
 
@@ -78,6 +79,8 @@ include("nameddims_tests.jl")
 include("traits_tests.jl")
 include("copyto_tests.jl")
 include("reshape_tests.jl")
+
+include("offset_tests.jl")
 
 @testset "pretty_array" begin
     A = AxisIndicesArray(Array{Int,0}(undef, ()))
@@ -103,6 +106,8 @@ pretty_array(io, AxisIndicesArray(reshape(1:33, (1, 11, 3))))
 str = String(take!(io))
 @test str == "[dim1, dim2, dim3[1]] =\n          1       2       3       4       5       6       7       8       9       10       11  \n  1   1.000   2.000   3.000   4.000   5.000   6.000   7.000   8.000   9.000   10.000   11.000  \n\n\n[dim1, dim2, dim3[2]] =\n           1        2        3        4        5        6        7        8        9       10       11  \n  1   12.000   13.000   14.000   15.000   16.000   17.000   18.000   19.000   20.000   21.000   22.000  \n\n\n[dim1, dim2, dim3[3]] =\n           1        2        3        4        5        6        7        8        9       10       11  \n  1   23.000   24.000   25.000   26.000   27.000   28.000   29.000   30.000   31.000   32.000   33.000  \n"
 =#
+
+#include("offset_array_tests.jl")
 
 # this avoids errors due to differences in how Symbols are printing between versions of Julia
 if !(VERSION < v"1.4")

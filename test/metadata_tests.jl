@@ -12,6 +12,10 @@ const AxisMArray
 const AxisDArray
 
 
+using FileIO
 
+x = load("/Users/zchristensen//Desktop/tabular/baseline.csv");
 
+using AxisIndices.AxisTables
 
+AxisTable(x);

@@ -86,11 +86,11 @@ end
 # Base.convert(::Type{OffsetAxis{V,Vs}}, r::AbstractUnitRange) where {V<:Integer,Vs<:AbstractUnitRange{V}} =
 #     OffsetAxis{V,Vs}(convert(Vs, r), 0)
 
-function AxisIndices.unsafe_reconstruct(axis::OffsetAxis, vs::Vs) where {Ks,Vs}
+function AxisCore.unsafe_reconstruct(axis::OffsetAxis, vs::Vs) where {Ks,Vs}
     return similar_type(axis, Vs)(offset(axis), vs)
 end
 
-function AxisIndices.assign_indices(axis::OffsetAxis, inds)
+function assign_indices(axis::OffsetAxis, inds)
     return OffsetAxis(offset(axis), inds)
 end
 

@@ -76,6 +76,9 @@ using .PrettyArrays
 include("./AxisCore/AxisCore.jl")
 using .AxisCore
 
+include("./OffsetAxes/OffsetAxes.jl")
+using .OffsetAxes
+
 include("./Math/Math.jl")
 using .Math
 
