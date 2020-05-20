@@ -93,6 +93,7 @@ export
     KeysFix2,
     IndicesFix2,
     SliceCollection,
+    OffsetStyle,
     CombineStyle,
     CombineAxis,
     CombineSimpleAxis,
