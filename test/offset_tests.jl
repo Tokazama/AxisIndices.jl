@@ -6,6 +6,12 @@
 #    @test S[0] == 3
 #    @test axes(S) == (0:0,)
 
+
+@testset "offset" begin
+    @test @inferred(offset(OneTo(10))) == 0
+    @test @inferred(offset(2:3)) == -1
+end
+
 @testset "OffsetAxis" begin
     function same_value(r1, r2)
         length(r1) == length(r2) || return false
@@ -229,6 +235,8 @@ end
     @test_throws BoundsError S[CartesianIndex(1,1),0]
     @test_throws BoundsError S[CartesianIndex(1,1),2]
     @test eachindex(A) == 1:4
+    #@test eachindex(axes(A, 1)) == 1:4
+    #@test collect(axes(A, 1)) == 1:4
     @test eachindex(S) == CartesianIndices(OffsetAxis.((0:1,3:4)))
 end
 
@@ -377,10 +385,10 @@ end
 @testset "rot/reverse" begin
     A = OffsetArray(rand(4,4), (-3,5))
 
-    @test rotl90(A) == OffsetArray(rotl90(parent(A)), reverse(map(OffsetAxes.offset, axes(A))))
+    @test rotl90(A) == OffsetArray(rotl90(parent(A)), reverse(map(offset, axes(A))))
     @test rotr90(A) == OffsetArray(rotr90(parent(A)), (axes(A, 2).offset, axes(A, 1).offset))
-    @test reverse(A, dims = 1) == OffsetArray(reverse(parent(A), dims = 1), map(OffsetAxes.offset, axes(A)))
-    @test reverse(A, dims = 2) == OffsetArray(reverse(parent(A), dims = 2), map(OffsetAxes.offset, axes(A)))
+    @test reverse(A, dims = 1) == OffsetArray(reverse(parent(A), dims = 1), map(offset, axes(A)))
+    @test reverse(A, dims = 2) == OffsetArray(reverse(parent(A), dims = 2), map(offset, axes(A)))
 end
 
 @testset "no nesting" begin

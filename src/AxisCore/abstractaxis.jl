@@ -552,4 +552,3 @@ There shouldn't be any change in size of the indices.
 =#
 assign_indices(axs::AbstractSimpleAxis, inds) = similar(axs, inds)
 assign_indices(axis::AbstractAxis, inds) = unsafe_reconstruct(axis, keys(axis), inds)
-

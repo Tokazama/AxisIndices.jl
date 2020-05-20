@@ -28,7 +28,15 @@ export
     AxisIndicesArray,
     AbstractAxis,
     AbstractSimpleAxis,
+    AbstractOffsetAxis,
+    CenteredArray,
+    CenteredAxis,
+    CenteredVector,
+    OffsetArray,
+    OffsetAxis,
+    OffsetVector,
     Axis,
+    IdentityUnitRange,
     Indices,
     Keys,
     SimpleAxis,
@@ -97,16 +105,31 @@ export
     is_index,
     is_collection,
     is_key,
+    offset,
     to_index,
     to_keys
+
+@static if !isdefined(Base, :IdentityUnitRange)
+    const IdentityUnitRange = Base.Slice
+else
+    using Base: IdentityUnitRange
+end
 
 include("abstractaxis.jl")
 include("utils.jl")
 include("axis.jl")
 include("simpleaxis.jl")
 
+include("abstractoffsetaxis.jl")
+include("offsetaxis.jl")
+include("centeredaxis.jl")
+include("identityaxis.jl")
+
 include("abstractaxisindices.jl")
 include("axisindicesarray.jl")
+include("offsetarray.jl")
+include("centeredarray.jl")
+
 include("promotion.jl")
 include("show.jl")
 include("traits.jl")

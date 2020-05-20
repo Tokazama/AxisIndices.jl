@@ -396,6 +396,27 @@ AxisIndicesStyle(::Type{<:Base.Slice}) = SliceCollection()
 
 to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 
+"""
+    OffsetStyle{S}
+
+A subtype of `AxisIndicesStyle` indicating that the axis is a subtype `AbstractOffsetAxis`.
+"""
+struct OffsetStyle{S} <: AxisIndicesStyle end
+
+OffsetStyle(S::AxisIndicesStyle) = OffsetStyle{S}()
+OffsetStyle(S::IndicesCollection) =  OffsetStyle{KeysCollection()}()
+OffsetStyle(S::IndexElement) = OffsetStyle{KeyElement()}()
+
+function AxisIndicesStyle(::Type{<:AbstractOffsetAxis}, ::Type{T}) where {T}
+    return OffsetStyle(AxisIndicesStyle(T))
+end
+
+is_element(::Type{OffsetStyle{T}}) where {T} = is_element(T)
+
+to_index(::OffsetStyle{S}, axis, arg) where {S} = to_index(S, axis, arg)
+
+to_keys(::OffsetStyle{S}, axis, arg, index) where {S} = to_keys(S, axis, arg, index)
+
 # we throw `axis` in there in case someone want's to change the default
 @inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)
 AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)

@@ -8,7 +8,6 @@ using Documenter
 using Dates
 using AxisIndices
 using AxisIndices.AxisCore
-using AxisIndices.OffsetAxes
 using AxisIndices.Names
 using AxisIndices.Mapped
 using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays

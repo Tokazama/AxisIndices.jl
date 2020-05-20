@@ -35,7 +35,7 @@ function OffsetAxis{V}(ks::AbstractUnitRange, vs::AbstractUnitRange) where {V}
     return OffsetAxis{V}(ks, convert(AbstractUnitRange{V}, vs))
 end
 function OffsetAxis{V,Vs}(ks::AbstractUnitRange, vs::AbstractUnitRange) where {V<:Integer,Vs<:AbstractUnitRange{V}}
-    AxisIndices.AxisCore.check_axis_length(ks, vs)
+    check_axis_length(ks, vs)
     return OffsetAxis{V,Vs}(compute_offset(vs, ks), vs)
 end
 
