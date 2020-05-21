@@ -6,9 +6,12 @@ using OffsetArrays: IdOffsetRange, IdentityUnitRange, no_offset_view
 @testset "Offset Axes" begin
     oneto = Base.OneTo(2)
     a = Axis(oneto)
-    b = Axis(oneto, IdOffsetRange(oneto, 1))
-    c = Axis(IdOffsetRange(oneto, 1), IdOffsetRange(oneto, 1))
-    d = Axis(IdOffsetRange(oneto, 2), IdOffsetRange(oneto, 1))
+    b = OffsetAxis(1, oneto)
+    #b = Axis(oneto, IdOffsetRange(oneto, 1))
+    c = Axis(OffsetAxis(1, oneto), OffsetAxis(1, oneto))
+    #c = Axis(IdOffsetRange(oneto, 1), IdOffsetRange(oneto, 1))
+    d = Axis(OffsetAxis(2, oneto), OffsetAxis(1, oneto))
+    #d = Axis(IdOffsetRange(oneto, 2), IdOffsetRange(oneto, 1))
     e = SimpleAxis(values(b))
     f = SimpleAxis(2:3)
 
@@ -16,9 +19,9 @@ using OffsetArrays: IdOffsetRange, IdentityUnitRange, no_offset_view
     @test_throws BoundsError b[1]
 
     # `keys(v) == OneTo(10)` so `firstindex(keys(v)) == 1` but `firstindex(values(v)) == 2`
-    @test b[isequal(1)] == 2
+    @test b[2] == 2
     # `keys(v) == IdOffsetRange(oneto, 1)` so `firstindex(keys(v)) == 2` and `firstindex(values(v)) == 2`
-    @test c[isequal(2)] == 2
+    @test c[2] == 2
     # `keys(v) == IdOffsetRange(oneto, 2)` so `firstindex(keys(v)) == 3` and `firstindex(values(v)) == 2`
     @test d[isequal(3)] == 2
     @test e[isequal(2)] == 2
@@ -33,45 +36,6 @@ using OffsetArrays: IdOffsetRange, IdentityUnitRange, no_offset_view
     @test b["a"] == 2
     @test b[["a", "b"]] == [2, 3]
 
-    @testset "values -> keys" begin
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
-        @test @inferred(AxisIndices.v2k(Axis(IdOffsetRange(1:10, 2), IdOffsetRange(1:10, 1)), 2)) == 3
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
-        @test @inferred(AxisIndices.v2k(Axis(IdOffsetRange(1:10, 2), 1:10), 1)) == 3
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
-        @test @inferred(AxisIndices.v2k(Axis(1:10, IdOffsetRange(1:10, 1)), 2)) == 1
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
-        @test @inferred(AxisIndices.v2k(Axis(1:10, 1:10), 1)) == 1
-
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
-        @test @inferred(AxisIndices.v2k(Axis(IdOffsetRange(1:10, 2), IdOffsetRange(1:10, 1)), 2:3)) == 3:4
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
-        @test @inferred(AxisIndices.v2k(Axis(IdOffsetRange(1:10, 2), 1:10), 1:2)) == 3:4
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
-        @test @inferred(AxisIndices.v2k(Axis(1:10, IdOffsetRange(1:10, 1)), 2:3)) == 1:2
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
-        @test @inferred(AxisIndices.v2k(Axis(1:10, 1:10), 1:2)) == 1:2
-    end
-
-    @testset "keys -> values" begin
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
-        @test @inferred(AxisIndices.k2v(Axis(IdOffsetRange(1:10, 2), IdOffsetRange(1:10, 1)), 3)) == 2
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
-        @test @inferred(AxisIndices.k2v(Axis(IdOffsetRange(1:10, 2), 1:10), 3)) == 1
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
-        @test @inferred(AxisIndices.k2v(Axis(1:10, IdOffsetRange(1:10, 1)), 1)) == 2
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
-        @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1)) == 1
-
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
-        @test @inferred(AxisIndices.k2v(Axis(IdOffsetRange(1:10, 2), IdOffsetRange(1:10, 1)), 3:4)) == 2:3
-        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
-        @test @inferred(AxisIndices.k2v(Axis(IdOffsetRange(1:10, 2), 1:10), 3:4)) == 1:2
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
-        @test @inferred(AxisIndices.k2v(Axis(1:10, IdOffsetRange(1:10, 1)), 1:2)) == 2:3
-        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
-        @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1:2)) == 1:2
-    end
 end
 
 #= TODO

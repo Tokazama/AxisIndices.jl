@@ -81,4 +81,26 @@ end
 
 @inline Base.unsafe_indices(axis::AbstractOffsetAxis) = (axis,)
 
+for f in (:find_lasteq,
+          :find_lastgt,
+          :find_lastgteq,
+          :find_lastlt,
+          :find_lastlteq,
+          :find_firsteq,
+          :find_firstgt,
+          :find_firstgteq,
+          :find_firstlt,
+          :find_firstlteq)
+    @eval begin
+        function StaticRanges.$f(x, r::AbstractOffsetAxis)
+            f = offset(r)
+            idx = $f(x - f, values(r))
+            if idx isa Nothing
+                return idx
+            else
+                return idx + f
+            end
+        end
+    end
+end
 

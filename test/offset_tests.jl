@@ -80,6 +80,46 @@ end
     @test_broken try oftype(ro, 3:4); false catch err true end
 
     # @test_throws ArgumentError oftype(ro, 3:4)
+    #
+    @testset "values -> keys" begin
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
+        @test @inferred(AxisIndices.v2k(Axis(OffsetAxis(2, 1:10), OffsetAxis(1, 1:10)), 2)) == 3
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
+        @test @inferred(AxisIndices.v2k(Axis(OffsetAxis(2, 1:10), 1:10), 1)) == 3
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
+        @test @inferred(AxisIndices.v2k(Axis(1:10, OffsetAxis(1, 1:10)), 2)) == 1
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
+        @test @inferred(AxisIndices.v2k(Axis(1:10, 1:10), 1)) == 1
+
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
+        @test @inferred(AxisIndices.v2k(Axis(OffsetAxis(2, 1:10), OffsetAxis(1, 1:10)), 2:3)) == 3:4
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
+        @test @inferred(AxisIndices.v2k(Axis(OffsetAxis(2, 1:10), 1:10), 1:2)) == 3:4
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
+        @test @inferred(AxisIndices.v2k(Axis(1:10, OffsetAxis(1, 1:10)), 2:3)) == 1:2
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
+        @test @inferred(AxisIndices.v2k(Axis(1:10, 1:10), 1:2)) == 1:2
+    end
+
+    @testset "keys -> values" begin
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
+        @test @inferred(AxisIndices.k2v(Axis(OffsetAxis(2, 1:10), OffsetAxis(1, 1:10)), 3)) == 2
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
+        @test @inferred(AxisIndices.k2v(Axis(OffsetAxis(2, 1:10), 1:10), 3)) == 1
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
+        @test @inferred(AxisIndices.k2v(Axis(1:10, OffsetAxis(1, 1:10)), 1)) == 2
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
+        @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1)) == 1
+
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 2
+        @test @inferred(AxisIndices.k2v(Axis(OffsetAxis(2, 1:10), OffsetAxis(1, 1:10)), 3:4)) == 2:3
+        # firstindex(keys(axis)) == 3, firstindex(axis) == 1
+        @test @inferred(AxisIndices.k2v(Axis(OffsetAxis(2, 1:10), 1:10), 3:4)) == 1:2
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 2
+        @test @inferred(AxisIndices.k2v(Axis(1:10, OffsetAxis(1, 1:10)), 1:2)) == 2:3
+        # firstindex(keys(axis)) == 1, firstindex(axis) == 1
+        @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1:2)) == 1:2
+    end
 end
 
 @testset "Single-entry arrays in dims 0:5" begin

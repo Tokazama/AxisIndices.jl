@@ -158,6 +158,7 @@ julia> indices(CartesianIndex(1,1))
 indices(x::AbstractAxis) = values(x)
 indices(x::CartesianIndex) = getfield(x, :I)
 
+###
 ### first
 ###
 Base.first(a::AbstractAxis) = first(values(a))
@@ -552,3 +553,142 @@ There shouldn't be any change in size of the indices.
 =#
 assign_indices(axs::AbstractSimpleAxis, inds) = similar(axs, inds)
 assign_indices(axis::AbstractAxis, inds) = unsafe_reconstruct(axis, keys(axis), inds)
+
+"""
+    axes_keys(x) -> Tuple
+
+Returns the keys corresponding to all axes of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+(2:3, 3:4)
+
+julia> axes_keys(Axis(1:2))
+(1:2,)
+```
+"""
+axes_keys(x) = map(keys, axes(x))
+axes_keys(x::AbstractAxis) = (keys(x),)
+
+"""
+    axes_keys(x, i)
+
+Returns the axis keys corresponding of ith dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+2:3
+```
+"""
+axes_keys(x, i) = axes_keys(x)[i]  # FIXME this needs to be changed to support named dimensions
+
+"""
+    keys_type(x, i)
+
+Retrieves axis keys of the ith dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> keys_type(AxisIndicesArray([1], ["a"]), 1)
+Array{String,1}
+```
+"""
+keys_type(::T, i) where {T} = keys_type(T, i)
+keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
+
+"""
+    values_type(x, i)
+
+Retrieves axis values of the ith dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> values_type([1], 1)
+Base.OneTo{Int64}
+
+julia> values_type(typeof([1]), 1)
+Base.OneTo{Int64}
+```
+"""
+values_type(::T, i) where {T} = values_type(T, i)
+values_type(::Type{T}, i) where {T} = values_type(axes_type(T, i))
+
+"""
+    indices(x, i)
+
+Returns the indices corresponding to the `i` axis
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+Base.OneTo(2)
+```
+"""
+indices(x, i) = values(axes(x, i))
+
+"""
+    indices(x) -> Tuple
+
+Returns the indices corresponding to all axes of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+(Base.OneTo(2), Base.OneTo(2))
+
+julia> indices(Axis(["a"], 1:1))
+1:1
+
+julia> indices(CartesianIndex(1,1))
+(1, 1)
+
+```
+"""
+indices(x) = map(values, axes(x))
+
+Base.allunique(a::AbstractAxis) = true
+
+Base.in(x::Integer, a::AbstractAxis) = in(x, values(a))
+
+Base.collect(a::AbstractAxis) = collect(values(a))
+
+Base.eachindex(a::AbstractAxis) = values(a)
+
+function reverse_keys(old_axis::AbstractAxis, new_index::AbstractUnitRange)
+    return similar(old_axis, reverse(keys(old_axis)), new_index, false)
+end
+
+function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
+    return Axis(reverse(keys(old_axis)), new_index, false)
+end
+
+#Base.axes(a::AbstractAxis) = values(a)
+
+# This is required for performing `similar` on arrays
+Base.to_shape(r::AbstractAxis) = length(r)
+
+# for when we want the same underlying memory layout but reversed keys
+# TODO should this be a formal abstract type?
+const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
+
+
+# TODO this should all be derived from the values of the axis
+# Base.stride(x::AbstractAxisIndices) = axes_to_stride(axes(x))
+#axes_to_stride()
+
+Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
+

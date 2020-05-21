@@ -144,7 +144,7 @@ AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
 end
 
 function to_keys(::IndexElement, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
+@inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
 """
