@@ -10,5 +10,8 @@
           @inferred(parent(A)[1:2, 1:2, 1:2]) ==
           @inferred(parent(A)[["a", "b"], 1:2, 1:2, 1])
     @test @inferred(A[1:10]) == 1:10
+
+    @test keys(@inferred(AxisIndices.named_axes(A))) == (:x,:y,:z)
+    @test keys(@inferred(AxisIndices.named_axes(parent(A)))) == (:dim_1, :dim_2, :dim_3)
 end
 
