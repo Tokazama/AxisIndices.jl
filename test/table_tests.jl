@@ -18,10 +18,23 @@
     @test Tables.columnnames(x) == [:a, :b]
     # now let's iterate our MatrixTable to get our first MatrixRow
     @test @inferred(Tables.schema(x)) isa Tables.Schema{(:a,:b),Tuple{Array{Int,1},Array{Int,1}}}
+    @test @inferred(propertynames(x)) == [:a, :b]
 
     r = AxisRow(1, x)
     @test Tables.columnnames(r) == [:a, :b]
+    @test @inferred(propertynames(r)) == [:a, :b]
+
+    @testset "AxisIndices interface" begin
+        @test @inferred(colaxis(x)) isa StructAxis
+
+        @test @inferred(rowaxis(x)) isa SimpleAxis
+        @test @inferred(rowtype(x)) <: SimpleAxis
+        @test @inferred(colaxis(x)) isa StructAxis
+
+        @test @inferred(colaxis(r)) isa StructAxis
+    end
 end
+
 
 #= TODO work out AxisTable implementation
 matrow = first(x)

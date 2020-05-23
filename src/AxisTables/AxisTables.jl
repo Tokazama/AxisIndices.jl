@@ -192,7 +192,8 @@ row_index(x::AxisRow) = getfield(x, :row_index)
 
 AxisIndices.AxisCore.colaxis(x::AxisRow) = colaxis(parent(x))
 
-AxisIndices.AxisCore.rowaxis(x::AxisRow) = rowaxis(parent(x))
+# TODO should AxisRow return a rowaxis
+#AxisIndices.AxisCore.rowaxis(x::AxisRow) = rowaxis(parent(x))
 
 @propagate_inbounds function Base.getindex(x::AxisRow, col)
     i = to_index(colaxis(x), col)
