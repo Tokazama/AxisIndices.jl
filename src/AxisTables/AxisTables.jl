@@ -17,13 +17,17 @@ using Base: @propagate_inbounds
 
 export AxisTable, AxisRow
 
-abstract type AbstractAxisTable{T} end
+"""
+    AbstractAxisTable
+
+Supertype for which tables that utilize an `AbstractAxis` interface for tabular data.
+"""
+abstract type AbstractAxisTable{T,RA} end
 
 ###
 ### Array Interface
 ###
-Base.eltype(::A) where {A<:AbstractAxisTable} = eltyep(A)
-Base.eltype(::Type{A}) where {A<:AbstractAxisTable} = AxisRow{A}
+@inline Base.eltype(::T) where {T<:AbstractAxisTable} =  AxisRow{T}
 
 Base.axes(x::AbstractAxisTable) = (rowaxis(x), colaxis(x))
 
@@ -92,6 +96,8 @@ end
 
 Base.length(x::AbstractAxisTable) = length(rowaxis(x))
 
+AxisIndices.AxisCore.rowtype(::Type{<:AbstractAxisTable{T,RA}}) where {T,RA} = RA
+AxisIndices.AxisCore.coltype(::Type{<:AbstractAxisTable{T}}) where {T} = rowtype(T)
 AxisIndices.AxisCore.colaxis(x::AbstractAxisTable) = axes(parent(x), 1)
 
 ###
@@ -105,23 +111,29 @@ Tables.columnnames(x::AbstractAxisTable) = Vector(colkeys(x))
 Tables.istable(::Type{<:AbstractAxisTable}) = true
 
 Tables.columns(x::AbstractAxisTable) = x
+
+Tables.schema(x::AbstractAxisTable) = Tables.schema(typeof(x))
+Tables.schema(::Type{T}) where {T<:AbstractAxisTable} = Tables.schema(coltype(T))
+@generated Tables.schema(::Type{<:StructAxis{T}}) where {T} = Tables.Schema{Tuple(fieldnames(T)),Tuple{fieldtypes(T)...}}()
+
 """
     AxisTable
+
+Stores a vector of columns that may be acccessed via the Tables.jl interface.
 """
-struct AxisTable{T<:AbstractVector,V<:AbstractVector{T},RA<:AbstractAxis,CA} <: AbstractAxisTable{T}
-    parent::AxisIndicesArray{T,1,V,Tuple{CA}}
+struct AxisTable{P<:AxisIndicesArray{<:Any,1},RA} <: AbstractAxisTable{P,RA}
+    parent::P
     rowaxis::RA
 
-    function AxisTable{T,V,RA,CA}(x::AxisIndicesArray{T,1,V,Tuple{CA}}, raxis::RA) where {T,V,RA<:AbstractAxis,CA}
+    function AxisTable{P,RA}(x::P, raxis::RA) where {P<:AxisIndicesArray{<:Any,1},RA<:AbstractAxis}
         if length(x) > 1
             nr = length(raxis)
             for x_i in x
                 nr == length(x_i) || error("All columns must be the same length.")
             end
         end
-        return new{T,V,RA,CA}(x, raxis)
+        return new{P,RA}(x, raxis)
     end
-
 end
 
 Base.getproperty(x::AxisTable, i) = getindex(x, :, i)
@@ -136,8 +148,8 @@ Base.parent(x::AxisTable) = getfield(x, :parent)
 
 AxisIndices.AxisCore.rowaxis(x::AxisTable) = getfield(x, :rowaxis)
 
-function AxisTable(x::AxisIndicesArray{T,1,V,Tuple{CA}}, raxis::RA) where {T,V,RA<:AbstractAxis,CA}
-    return AxisTable{T,V,RA,CA}(x, raxis)
+function AxisTable(x::T, raxis::RA) where {T<:AxisIndicesArray{<:Any,1},RA<:AbstractAxis}
+    return AxisTable{T,RA}(x, raxis)
 end
 
 function AxisTable(x::AxisIndicesArray{<:AbstractVector,1})
@@ -162,18 +174,17 @@ end
 
 AxisTable(table) = AxisTable(TableTraitsUtils.create_columns_from_iterabletable(table)...)
 
-# FIXME
-Tables.schema(x::AxisTable{T}) where {T} = Tables.Schema(colkeys(x), fill(T, size(x, 2)))
+Tables.materializer(x::AxisTable) = AxisTable
 
 """
     AxisRow
-"""
-struct AxisRow{T,P<:AbstractAxisTable{T}} <: AbstractAxisTable{T}
-    row_index::Int
-    parent::P
-end
 
-Base.eltype(::Type{<:AxisRow{T}}) where {T} = T
+A view of one row of an `AbstractAxisTable`.
+"""
+struct AxisRow{P,RA,T<:AbstractAxisTable{P,RA}} <: AbstractAxisTable{P,RA}
+    row_index::Int
+    parent::T
+end
 
 Base.parent(x::AxisRow) = getfield(x, :parent)
 
@@ -207,9 +218,6 @@ Base.propertynames(x::AxisRow) = colkeys(x)
 Tables.rowaccess(::Type{<:AbstractAxisTable}) = true
 
 Tables.rows(x::AbstractAxisTable) = x
-
-Tables.materializer(x::AxisTable) = AxisTable
-
 
 Base.show(io::IO, ::MIME"text/plain", x::AxisTable) = pretty_table(io, x)
 Base.show(io::IO, ::MIME"text/plain", x::AxisRow) = pretty_table(io, x)

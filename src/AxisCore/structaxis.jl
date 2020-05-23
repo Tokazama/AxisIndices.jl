@@ -34,6 +34,8 @@ end
 
 Base.values(axis::StructAxis) = getfield(axis, :values)
 
+axis_eltype(::StructAxis{T}, i) where {T} = fieldtype(T, i)
+
 function StaticRanges.similar_type(
     ::Type{StructAxis{T,L,V,Vs}},
     new_type::Type=T,
@@ -45,22 +47,10 @@ end
 
 # `ks` should always be a `<:AbstractVector{Symbol}`
 @inline function unsafe_reconstruct(axis::StructAxis, ks, vs)
-    return StructAxis{NamedTuple{Tuple(ks),to_types(axis, ks)}}(vs)
+    return StructAxis{NamedTuple{Tuple(ks),axis_eltypes(axis, ks)}}(vs)
 end
 
 assign_indices(axis::StructAxis{T}, inds) where {T} = StructAxis{T}(inds)
-
-# FIXME inferribility is going to be a problem here
-#=
-    to_types(axis::StructAxis, vs::AbstractVector{Symbol})
-
-Returns `Tuple{...}` where each type corresponds to a field specified by `vs` of
-the structure that `axis` uses as keys.
-=#
-@inline function to_types(::StructAxis{T}, vs::AbstractVector{Symbol}) where {T}
-    return Tuple{map(i -> fieldtype(T, i), vs)...}
-end
-to_types(::StructAxis{T}, v::Symbol) where {T} = fieldtype(T, v)
 
 @inline function structdim(A)
     d = _structdim(axes_type(A))
@@ -70,6 +60,8 @@ to_types(::StructAxis{T}, v::Symbol) where {T} = fieldtype(T, v)
         return d
     end
 end
+
+
 Base.@pure function _structdim(::Type{T}) where {T<:Tuple}
     for i in OneTo(length(T.parameters))
         T.parameters[i] <: StructAxis && return i
@@ -132,4 +124,5 @@ end
     inds_after = ntuple(d->(:), ndims(A)-dim)
     return mappedarray((args...) ->T(args) , (view(A, inds_before..., i, inds_after...) for i in values(axis))...)
 end
+
 

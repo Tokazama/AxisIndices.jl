@@ -18,6 +18,7 @@ using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
+    AxisCore,
     AbstractAxisIndices,
     AxisIndicesArray,
     AbstractAxis,
@@ -58,10 +59,12 @@ export
     keys_type,
     first_key,
     last_key,
-    colaxis,
-    colkeys,
     rowaxis,
     rowkeys,
+    rowtype,
+    colaxis,
+    colkeys,
+    coltype,
     structview,
     and,
     ⩓,

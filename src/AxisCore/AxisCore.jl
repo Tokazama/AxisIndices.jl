@@ -34,6 +34,8 @@ export
     StructAxis,
     # methods
     axes_keys,
+    axis_eltype,
+    axis_eltypes,
     first_key,
     step_key,
     last_key,
@@ -66,8 +68,10 @@ export
     to_axes,
     rowaxis,
     rowkeys,
+    rowtype,
     colaxis,
     colkeys,
+    coltype,
     # Traits
     AxisIndicesStyle,
     KeyElement,

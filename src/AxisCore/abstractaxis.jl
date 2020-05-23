@@ -80,6 +80,22 @@ julia> rowkeys(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
 rowkeys(x) = keys(axes(x, 1))
 
 """
+    rowtype(x)
+
+Returns the type of the axis corresponding to the first dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> rowtype(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
+```
+"""
+rowtype(::T) where {T} = rowtype(T)
+rowtype(::Type{T}) where {T} = axes_type(T, 1)
+
+"""
     colaxis(x) -> axis
 
 Returns the axis corresponding to the second dimension of `x`.
@@ -94,6 +110,22 @@ Axis([:one, :two] => Base.OneTo(2))
 ```
 """
 colaxis(x) = axes(x, 2)
+
+"""
+    coltype(x)
+
+Returns the type of the axis corresponding to the second dimension of `x`.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> coltype(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
+```
+"""
+coltype(::T) where {T} = coltype(T)
+coltype(::Type{T}) where {T} = axes_type(T, 2)
 
 """
     colkeys(x) -> axis
@@ -157,6 +189,19 @@ julia> indices(CartesianIndex(1,1))
 """
 indices(x::AbstractAxis) = values(x)
 indices(x::CartesianIndex) = getfield(x, :I)
+
+# FIXME this explanation is confusing.
+"""
+    axis_eltype(x)
+
+Returns the type corresponds to the type of the ith element returned when slicing
+along that dimension.
+"""
+axis_eltype(axis, i) = Any
+
+# TODO document
+axis_eltypes(axis) = Tuple{[axis_eltype(axis, i) for i in axis]...}
+@inline axis_eltypes(axis, vs::AbstractVector) = Tuple{map(i -> axis_eltype(axis, i), vs)...}
 
 ###
 ### first

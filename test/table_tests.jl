@@ -17,6 +17,10 @@
     @test Tables.getcolumn(x, :a) == [1,2]
     @test Tables.columnnames(x) == [:a, :b]
     # now let's iterate our MatrixTable to get our first MatrixRow
+    @test @inferred(Tables.schema(x)) isa Tables.Schema{(:a,:b),Tuple{Array{Int,1},Array{Int,1}}}
+
+    r = AxisRow(1, x)
+    @test Tables.columnnames(r) == [:a, :b]
 end
 
 #= TODO work out AxisTable implementation
