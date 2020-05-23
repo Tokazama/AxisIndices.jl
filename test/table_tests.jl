@@ -33,6 +33,20 @@ matrow = first(x)
 @testset "indexing" begin
     t = AxisTable(A = 1:2:1000, B = repeat(1:10, inner=50), c = 1:500);
     t2 = t[1:2, 1:2];
+    @test axes(t, 1) isa SimpleAxis
+    @test axes(t, 2) isa StructAxis
+    @test axes(t, 3) isa SimpleAxis
+    @test axes(t) isa Tuple{<:SimpleAxis,<:StructAxis}
+    @test ndims(t) == 2
+    @test size(t) == (500, 3)
+    @test size(t, 1) == 500
+    @test size(t, 2) == 3
+    @test size(t, 3) == 1
+    @test t[1,1] == 1
+    @test t[:, :A] == t.A
+    @test t[1,2] == 1
+    t[1,2] = 2
+    @test t[1,2] == 2
 end
 
 

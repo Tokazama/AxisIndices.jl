@@ -72,6 +72,10 @@ end
     return AxisTable([@inbounds(getindex(unsafe_getindex(data, (arg2,), (i,)), i1)) for i in i2], caxis[i2])
 end
 
+function Base.setindex!(x::AbstractAxisTable, vals, arg1, arg2)
+    setindex!(getindex(parent(x), to_index(colaxis(x), arg2)), vals, to_index(rowaxis(x), arg1))
+end
+
 @inline function Base.iterate(x::AbstractAxisTable, st=1)
     if st > length(x)
         return nothing
@@ -161,7 +165,8 @@ Tables.getcolumn(x::AbstractAxisTable, nm::Symbol) = getindex(x, :, nm)
 Tables.getcolumn(x::AbstractAxisTable, i::Int) = getindex(x, :, i)
 Tables.getcolumn(x::AbstractAxisTable, i) = getindex(x, :, i)
 
-Tables.columnnames(x::AbstractAxisTable) = colkeys(x)
+# FIXME as soon as PrettyTables.jl updates get rid of Vector
+Tables.columnnames(x::AbstractAxisTable) = Vector(colkeys(x))
 
 Base.eltype(x::A) where {A<:AbstractAxisTable} = AxisRow{A}
 
