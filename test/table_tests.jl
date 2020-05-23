@@ -47,6 +47,14 @@ matrow = first(x)
     @test t[1,2] == 1
     t[1,2] = 2
     @test t[1,2] == 2
+
+    r = t[2,:]
+    @test r isa AxisRow
+    @test r.A == 3
+    @test r[1] == 3
+    @test r.B == 1
+    r.B = 2
+    @test r[:B] == 2
 end
 
 
