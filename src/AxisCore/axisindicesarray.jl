@@ -239,9 +239,9 @@ end
 
 function AxisIndicesArray{T,N}(
     x::AbstractArray{T,N},
-    axs::Tuple,
+    axs::Tuple{Vararg{Any,N2}},
     check_length::Bool=true
-) where {T,N}
+) where {T,N,N2}
 
     axs = to_axes((), axs, axes(x), check_length, Staticness(x))
     return AxisIndicesArray{T,N,typeof(x),typeof(axs)}(x, axs)

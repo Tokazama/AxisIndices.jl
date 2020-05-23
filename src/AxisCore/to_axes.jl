@@ -1,104 +1,117 @@
 
+
+# N-Dimension -> M-Dimension
+function to_axes(
+    A::AbstractArray{T,N},
+    args::NTuple{M,Any},
+    interim_indices::Tuple,
+    new_indices::Tuple,
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(I),
+) where {T,N,M}
+    return _to_axes(axes(A), args, interim_indices, new_indices, check_length, staticness)
+end
+
+# 1-Dimension -> 1-Dimension
+function to_axes(
+    A::AbstractArray{T,1},
+    args::NTuple{1,Any},
+    interim_indices::Tuple,
+    new_indices::Tuple,
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(I),
+) where {T}
+    return _to_axes(axes(A), args, interim_indices, new_indices, check_length, staticness)
+end
+
+# N-dimensions -> 1-dimension
 @inline function to_axes(
+    A::AbstractArray{T,N},
+    args::NTuple{1,Any},
+    interim_indices::Tuple,
+    new_indices::Tuple,
+    check_length::Bool=false,
+    staticness=StaticRanges.Staticness(I),
+) where {T,N}
+    axis = axes(A, 1)
+    index = first(new_indices)
+    if is_simple_axis(axis)
+        return (assign_indices(axis, index),)
+    else
+        return (to_axis(axis, resize_last(keys(axis), length(index)), index, false, staticness),)
+    end
+end
+
+
+@inline function _to_axes(
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{T, Vararg{Any}},
     interim_indices::Tuple,
     new_indices::Tuple{I,Vararg{Any}},
-    check_length::Bool=false,
-    staticness=StaticRanges.Staticness(I),
+    check_length::Bool,
+    staticness,
 ) where {A,T,I}
 
     S = AxisIndicesStyle(A, T)
     if is_element(S)
-        return to_axes(
-            maybetail(old_axes),
-            maybetail(args),
-            maybetail(interim_indices),
+        return _to_axes(
+            maybe_tail(old_axes),
+            maybe_tail(args),
+            maybe_tail(interim_indices),
             new_indices,
             check_length,
             staticness
         )
     else
-        return (
-            to_axis(
-                first(old_axes),
-                (first(args), first(interim_indices)),
-                 first(new_indices),
-                 check_length,
-                 staticness
-            ),
-            to_axes(
-                maybetail(old_axes),
-                maybetail(args),
-                maybetail(interim_indices),
-                maybetail(new_indices),
+        axis = first(old_axes)
+        index = first(new_indices)
+        if is_simple_axis(axis)
+            new_axis = to_axis(axis, nothing, index, check_length, staticness)
+        else
+            new_axis = to_axis(axis, to_keys(axis, first(args), first(interim_indices)), index, check_length, staticness)
+        end
+        return (new_axis,
+            _to_axes(
+                maybe_tail(old_axes),
+                maybe_tail(args),
+                maybe_tail(interim_indices),
+                maybe_tail(new_indices),
                 check_length,
                 staticness
-            )...
+            )...,
         )
     end
 end
 
-@inline function to_axes(
+@inline function _to_axes(
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{CartesianIndex{N},Vararg{Any}},
     interim_indices::Tuple,
     new_indices::Tuple{I,Vararg{Any}},
-    check_length::Bool=false,
-    staticness=StaticRanges.Staticness(I)
+    check_length::Bool,
+    staticness
 ) where {A,N,I}
 
     _, old_axes2 = Base.IteratorsMD.split(old_axes, Val(N))
     _, interim_indices2 = Base.IteratorsMD.split(interim_indices, Val(N))
-    return to_axes(old_axes2, tail(args), interim_indices2, new_indices, check_length, staticness)
+    return _to_axes(old_axes2, tail(args), interim_indices2, new_indices, check_length, staticness)
 end
 
-@inline function to_axes(
+@inline function _to_axes(
     old_axes::Tuple{A,Vararg{Any}},
     args::Tuple{CartesianIndices, Vararg{Any}},
     interim_indices::Tuple,
     new_indices::Tuple{I,Vararg{Any}},
-    check_length::Bool=false,
-    staticness=StaticRanges.Staticness(I)
+    check_length::Bool,
+    staticness
 ) where {A,I}
 
-    return to_axes(old_axes, tail(args), tail(interim_indices), new_indices, check_length, staticness)
+    return _to_axes(old_axes, tail(args), tail(interim_indices), new_indices, check_length, staticness)
 end
 
-function to_axes(
-    ::Tuple{A,Vararg{Any}},
-    ::Tuple{CartesianIndex{N},Vararg{Any}},
-    ::Tuple,
-    ::Tuple{},
-    check_length::Bool=false,
-    staticness=StaticRanges.Fixed(),
-) where {A,N}
-
-    return ()
-end
-
-function to_axes(
-    ::Tuple,
-    ::Tuple{Any,Vararg{Any}},
-    ::Tuple,
-    ::Tuple{},
-    check_length::Bool=false,
-    staticness=StaticRanges.Fixed()
-)
-
-    return ()
-end
-
-function to_axes(
-    ::Tuple,
-    ::Tuple,
-    ::Tuple,
-    ::Tuple{},
-    check_length::Bool=false,
-    staticness=StaticRanges.Fixed()
-)
-    return ()
-end
+_to_axes(::Tuple, ::Tuple{CartesianIndex{N},Vararg{Any}}, ::Tuple, ::Tuple{}, ::Bool, ::Any) where {N} = ()
+_to_axes(::Tuple, ::Tuple{Any,Vararg{Any}},               ::Tuple, ::Tuple{}, ::Bool, ::Any) = ()
+_to_axes(::Tuple, ::Tuple,                                ::Tuple, ::Tuple{}, ::Bool, ::Any) = ()
 
 @inline function to_axes(
     old_axes::Tuple,

@@ -8,7 +8,7 @@ using AxisIndices.AxisCore
 using Base: @propagate_inbounds
 
 export
-    NamedIndicesArray,
+    NamedAxesArray,
     NIArray,
     dim,
     dimnames,

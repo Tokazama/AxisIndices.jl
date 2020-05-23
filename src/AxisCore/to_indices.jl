@@ -1,12 +1,12 @@
 
 @propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{Any, Vararg{Any}})
     Base.@_inline_meta
-    return (to_index(first(axs), first(args)), to_indices(A, maybetail(axs), tail(args))...)
+    return (to_index(first(axs), first(args)), to_indices(A, maybe_tail(axs), tail(args))...)
 end
 
 @propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{Colon, Vararg{Any}})
     Base.@_inline_meta
-    return (values(first(axs)), to_indices(A, maybetail(axs), tail(args))...)
+    return (values(first(axs)), to_indices(A, maybe_tail(axs), tail(args))...)
 end
 
 @propagate_inbounds function Base.to_indices(A, axs::Tuple{AbstractAxis, Vararg{Any}}, args::Tuple{AbstractArray{CartesianIndex{N}},Vararg{Any}}) where N

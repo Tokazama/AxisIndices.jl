@@ -28,6 +28,7 @@ end
     @test @inferred(AxisIndicesStyle(Colon)) isa SliceCollection
     @test @inferred(AxisIndicesStyle(Base.Slice)) isa SliceCollection
 
+    @test @inferred(is_element(1))
     @test @inferred(is_element(KeyElement))
     @test @inferred(is_element(BoolElement))
     @test @inferred(is_element(IndexElement))
@@ -36,6 +37,8 @@ end
     @test @inferred(is_element(IndexEquals))
     @test @inferred(!is_element(Vector{Int}))
     @test @inferred(!is_element(KeysCollection))
+    @test @inferred(is_element(KeyedStyle{KeyEquals()}))
+    @test @inferred(!is_element(KeyedStyle{KeysCollection()}))
 
     @test @inferred(is_collection([1]))
     @test @inferred(is_collection(KeysCollection))
@@ -100,6 +103,7 @@ end
         @test @inferred(to_index(x, "b")) == 2
         @test_throws BoundsError to_index(x, "c")
         @test @inferred(to_keys(x, "b", 2)) == "b"
+        @test @inferred(to_keys(KeyElement(), x, "b", 2)) == "b"
     end
 
     @testset "IndexElement" begin
@@ -113,6 +117,7 @@ end
     @testset "KeysCollection" begin
         @test @inferred(to_index(x, ["a", "b"])) == [1, 2]
         @test_throws BoundsError to_index(x, ["a", "b", "c"])
+        @test @inferred(to_keys(x, ["a", "b"], [1, 2])) == ["a", "b"]
     end
 
     @testset "KeysIn" begin
@@ -146,6 +151,15 @@ end
     @testset "BoolElement" begin
         @test @inferred(to_index(x, true)) == 1
         @test_throws BoundsError to_index(x, false)
+    end
+
+    @testset "SliceCollection" begin
+        @test @inferred(to_index(x, :)) == Base.Slice(values(x))
+    end
+
+    @testset "KeyedStyle" begin
+        @test @inferred(KeyedStyle(KeyElement())) isa KeyedStyle{KeyElement()}
+        @test @inferred(KeyedStyle(IndicesCollection())) isa KeyedStyle{KeysCollection()}
     end
 end
 

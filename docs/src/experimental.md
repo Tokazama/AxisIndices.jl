@@ -9,3 +9,12 @@ These are considered experimental because the are either undergoing rapid change
 ```@autodocs
 Modules = [AxisIndices.ObservationDims]
 ```
+
+
+## Named Dimension Methods
+
+```@docs
+AxisIndices.@defdim
+```
+
+

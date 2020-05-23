@@ -18,11 +18,14 @@ using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
+    AxisCore,
     AbstractAxisIndices,
     AxisIndicesArray,
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
+    AxisRow,
+    AxisTable,
     SimpleAxis,
     CartesianAxes,
     LinearAxes,
@@ -31,6 +34,7 @@ export
     NIArray,
     Indices,
     Keys,
+    StructAxis,
     # Reexport types
     LinMRange,
     LinSRange,
@@ -55,10 +59,13 @@ export
     keys_type,
     first_key,
     last_key,
-    colaxis,
-    colkeys,
     rowaxis,
     rowkeys,
+    rowtype,
+    colaxis,
+    colkeys,
+    coltype,
+    structview,
     and,
     ⩓,
     or,
@@ -87,5 +94,8 @@ using .Names
 
 include("./ObservationDims.jl")
 using .Names
+
+include("./AxisTables/AxisTables.jl")
+using .AxisTables
 
 end

@@ -8,9 +8,12 @@ end
 
 maybe_first(x::Tuple{}) = ()
 maybe_first(x::Tuple) = first(x)
+#maybe_first(x::Tuple{<:Tuple,<:Tuple}) = (first(first(x)), first(last(x)))
 
-maybetail(::Tuple{}) = ()
-maybetail(t::Tuple) = tail(t)
+maybe_tail(::Tuple{}) = ()
+maybe_tail(x::Tuple) = tail(x)
+#maybe_tail(x::Tuple{<:Tuple,<:Tuple}) = (tail(first(x)), tail(last(x)))
+
 # handle offsets
 @inline function k2v(axis::A, index::AbstractVector) where {A<:AbstractAxis}
     if StaticRanges.has_offset_axes(A)

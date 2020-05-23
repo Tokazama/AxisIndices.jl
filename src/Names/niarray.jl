@@ -10,22 +10,20 @@ function named_axes(a::AbstractArray{T,N}) where {T,N}
     return NamedTuple{default_names(Val(N))}(axes(a))
 end
 
-@generated function default_names(::Val{N}) where {N}
-    :($(ntuple(i -> Symbol(:dim_, i), N)))
-end
+@generated default_names(::Val{N}) where {N} = :($(ntuple(i -> Symbol(:dim_, i), N)))
 
 """
-    NamedIndicesArray
+    NamedAxesArray
 
 Type alias for `NamedDimsArray` whose parent array is a subtype of `AxisIndicesArray`.
 """
-const NamedIndicesArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisIndicesArray{T,N,P,AI}}
+const NamedAxesArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisIndicesArray{T,N,P,AI}}
 
 """
-    NIArray((parent::AbstractArray; kwargs...) = NIArray(parent, kwargs)
-    NIArray((parent::AbstractArray, axes::NamedTuple{L,AbstractAxes}))
+    NIArray(parent::AbstractArray; kwargs...) = NIArray(parent, kwargs)
+    NIArray(parent::AbstractArray, axes::NamedTuple{L,AbstractAxes})
 
-An abbreviated alias and constructor for [`NamedIndicesArray`](@ref). If key word
+An abbreviated alias and constructor for [`NamedAxesArray`](@ref). If key word
 arguments are provided then each key word becomes the name of a dimension and its
 assigned value is sent to the corresponding axis when constructing the underlying
 `AxisIndicesArray`.
@@ -85,7 +83,7 @@ NamedDimsArray{Int64,1,Array{Int64,1}...}
 
 ```
 """
-const NIArray{L,T,N,P,AI} = NamedIndicesArray{L,T,N,P,AI}
+const NIArray{L,T,N,P,AI} = NamedAxesArray{L,T,N,P,AI}
 
 NIArray(x::AbstractArray; kwargs...) = NIArray(x, kwargs.data)
 function NIArray(x::AbstractArray, axs::NamedTuple{L}) where {L}

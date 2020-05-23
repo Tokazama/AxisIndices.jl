@@ -1,7 +1,54 @@
+#= TODO get rid of or develop these further
+
+    name_format = Symbol(name, :_format)
+    name_format_doc = """
+        $name_format(x, default)
+
+    Returns the appropriate `DataFormat` for $name.
+    """
+
+    to_name_format = Symbol(:to_, name, :_format)
+    to_name_format_doc = """
+        $to_name_format(dst, src [, default=getdim_error])
+
+    Returns $name data from `src` in a format that is compatible with `dst`.
+    `default` refers to a default dimension if data from `dst` or `src` requires
+    data in an array format but doesn't specify dimension that corresponds to $name.
+    """
+
+=#
 
 # I have to abuse @pure here to get type inference to propagate to the axes methods
 # So `condition` also has to be pure, which shouldn't be hard because it should basically
 # just be comparing symbols
+"""
+    @defdim name condition
+
+Produces a series of methods for conveniently manipulating dimensions with
+specific names. `condition` is a method that returns `true` or `false` when
+given a name of a  dimension. For example, the following would produce methods
+for manipulating and accessing dimensions with the name `:time`.
+
+```julia
+julia> is_time(x::Symbol) = x === :time
+
+julia> @defdim time is_time
+
+```
+
+`name` is used to complete the following method names
+
+* `name_dim(x)`: returns the dimension number of dimension
+* `nname(x)`: returns the number of elements stored along the dimension
+* `has_name_dim(x)`: returns `true` or `false`, indicating if the dimension is present
+* `name_axis(x)`: returns the axis corresponding to the dimension.
+* `name_indices(x)`: returns the indices corresponding to the dimension.
+* `name_keys(x)`: returns the keys corresponding to the dimension
+* `name_axis_type(x)`: returns the type of the axis corresponding to the dimension
+* `select_name_dim(x, i)`: equivalent to `selectdim(x, name_dim(x), i)`
+* `each_name(x)`: equivalent to `eachslice(x, name_dim(x))`
+
+"""
 macro defdim(name, condition)
 
     dim_noerror_name = Symbol(:dim_noerror_, name)
@@ -53,22 +100,6 @@ macro defdim(name, condition)
         $name_type(x)
 
     Returns the key type corresponding to the $name axis.
-    """
-
-    name_format = Symbol(name, :_format)
-    name_format_doc = """
-        $name_format(x, default)
-
-    Returns the appropriate `DataFormat` for $name.
-    """
-
-    to_name_format = Symbol(:to_, name, :_format)
-    to_name_format_doc = """
-        $to_name_format(dst, src [, default=getdim_error])
-
-    Returns $name data from `src` in a format that is compatible with `dst`.
-    `default` refers to a default dimension if data from `dst` or `src` requires
-    data in an array format but doesn't specify dimension that corresponds to $name.
     """
 
     name_selectdim = Symbol(:select_, name, :dim)

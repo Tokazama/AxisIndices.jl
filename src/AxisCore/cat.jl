@@ -68,16 +68,6 @@ for (tf, T, sf, S) in ((parent, :AbstractAxisIndicesVecOrMat, parent, :AbstractA
     end
 
     @eval function Base.cat(A::$T, B::$S, Cs::AbstractVecOrMat...; dims)
-        #=
-        N = ndims(A)
-        axs = ntuple(N) do i
-            if i in dims
-                cat_axis(axes(A, i), axes(B, i))
-            else
-                broadcast_axis(axes(A, i), axes(B, i))
-            end
-        end
-        =#
         p = cat($tf(A), $sf(B); dims=dims)
         return cat(AxisIndicesArray(p, cat_axes(A, B, p, dims)), Cs..., dims=dims)
     end

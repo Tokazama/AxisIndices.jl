@@ -1,10 +1,9 @@
-
 module AxisCore
 
 using ChainedFixes
 using IntervalSets
 using LinearAlgebra
-
+using MappedArrays
 using LazyArrays
 using LazyArrays: Vcat
 
@@ -29,11 +28,14 @@ export
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
-    SimpleAxis,
     Indices,
     Keys,
+    SimpleAxis,
+    StructAxis,
     # methods
     axes_keys,
+    axis_eltype,
+    axis_eltypes,
     first_key,
     step_key,
     last_key,
@@ -66,8 +68,10 @@ export
     to_axes,
     rowaxis,
     rowkeys,
+    rowtype,
     colaxis,
     colkeys,
+    coltype,
     # Traits
     AxisIndicesStyle,
     KeyElement,
@@ -85,6 +89,7 @@ export
     KeysFix2,
     IndicesFix2,
     SliceCollection,
+    KeyedStyle,
     CombineStyle,
     CombineAxis,
     CombineSimpleAxis,
@@ -97,15 +102,26 @@ export
     is_index,
     is_collection,
     is_key,
+    structdim,
+    structview,
     to_index,
     to_keys
+
+@static if !isdefined(Base, :IdentityUnitRange)
+    const IdentityUnitRange = Base.Slice
+else
+    using Base: IdentityUnitRange
+end
 
 include("abstractaxis.jl")
 include("utils.jl")
 include("axis.jl")
 include("simpleaxis.jl")
+include("structaxis.jl")
+
 include("abstractaxisindices.jl")
 include("axisindicesarray.jl")
+
 include("promotion.jl")
 include("show.jl")
 include("traits.jl")
@@ -129,75 +145,12 @@ include("resize.jl")
 
 include("linearaxes.jl")
 include("cartesianaxes.jl")
+
 include("to_axes.jl")
 include("to_indices.jl")
 include("checkbounds.jl")
 include("getindex.jl")
 include("reshape.jl")
-
-Base.allunique(a::AbstractAxis) = true
-
-Base.in(x::Integer, a::AbstractAxis) = in(x, values(a))
-
-Base.collect(a::AbstractAxis) = collect(values(a))
-
-Base.eachindex(a::AbstractAxis) = values(a)
-
-function reverse_keys(old_axis::AbstractAxis, new_index::AbstractUnitRange)
-    return similar(old_axis, reverse(keys(old_axis)), new_index, false)
-end
-
-function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
-    return Axis(reverse(keys(old_axis)), new_index, false)
-end
-
-#Base.axes(a::AbstractAxis) = values(a)
-
-# This is required for performing `similar` on arrays
-Base.to_shape(r::AbstractAxis) = length(r)
-
-###
-### static traits
-###
-# for when we want the same underlying memory layout but reversed keys
-
-# TODO should this be a formal abstract type?
-const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
-
-
-# TODO this should all be derived from the values of the axis
-# Base.stride(x::AbstractAxisIndices) = axes_to_stride(axes(x))
-#axes_to_stride()
-
-# FIXME
-# When I use Val(N) on the tuple the it spits out many lines of extra code.
-# But without it it loses inferrence
-function Base.reinterpret(::Type{Tnew}, A::AbstractAxisIndices{Told,N}) where {Tnew,Told,N}
-    p = reinterpret(Tnew, parent(A))
-    axs = ntuple(N) do i
-        resize_last(axes(A, i), size(p, i))
-    end
-    return unsafe_reconstruct(A, p, axs)
-end
-
-function Base.reverse(x::AbstractAxisIndices{T,1}) where {T}
-    p = reverse(parent(x))
-    return unsafe_reconstruct(x, p, (reverse_keys(axes(x, 1), axes(p, 1)),))
-end
-
-function Base.reverse(x::AbstractAxisIndices{T,N}; dims::Integer) where {T,N}
-    p = reverse(parent(x), dims=dims)
-    axs = ntuple(Val(N)) do i
-        if i in dims
-            reverse_keys(axes(x, i), axes(p, i))
-        else
-            assign_indices(axes(x, i), axes(p, i))
-        end
-    end
-    return unsafe_reconstruct(x, p, axs)
-end
-
-Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
 end
 

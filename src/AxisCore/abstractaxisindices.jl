@@ -25,112 +25,6 @@ Base.IndexStyle(::Type{<:AbstractAxisIndices{T,N,A,AI}}) where {T,N,A,AI} = Inde
 
 Base.parentindices(x::AbstractAxisIndices) = axes(parent(x))
 
-"""
-    axes_keys(x::AbstractArray)
-
-Returns the keys corresponding to all axes of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(2:3, 3:4)
-
-julia> axes_keys(Axis(1:2))
-(1:2,)
-```
-"""
-axes_keys(x) = map(keys, axes(x))
-axes_keys(x::AbstractAxis) = (keys(x),)
-
-"""
-    axes_keys(x, i)
-
-Returns the axis keys corresponding of ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
-2:3
-```
-"""
-axes_keys(x, i) = axes_keys(x)[i]  # FIXME this needs to be changed to support named dimensions
-
-"""
-    keys_type(x, i)
-
-Retrieves axis keys of the ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> keys_type(AxisIndicesArray([1], ["a"]), 1)
-Array{String,1}
-```
-"""
-keys_type(::T, i) where {T} = keys_type(T, i)
-keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
-
-"""
-    values_type(x, i)
-
-Retrieves axis values of the ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> values_type([1], 1)
-Base.OneTo{Int64}
-
-julia> values_type(typeof([1]), 1)
-Base.OneTo{Int64}
-```
-"""
-values_type(::T, i) where {T} = values_type(T, i)
-values_type(::Type{T}, i) where {T} = values_type(axes_type(T, i))
-
-"""
-    indices(x, i)
-
-Returns the indices corresponding to the `i` axis
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
-Base.OneTo(2)
-```
-"""
-indices(x, i) = values(axes(x, i))
-
-"""
-    indices(x)
-
-Returns the indices corresponding to all axes of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
-(Base.OneTo(2), Base.OneTo(2))
-
-julia> indices(Axis(["a"], 1:1))
-1:1
-
-julia> indices(CartesianIndex(1,1))
-(1, 1)
-
-```
-"""
-indices(x) = map(values, axes(x))
-
 Base.length(x::AbstractAxisIndices) = prod(size(x))
 
 Base.size(x::AbstractAxisIndices) = map(length, axes(x))
@@ -164,34 +58,31 @@ function unsafe_reconstruct(A::AbstractAxisIndices, p::AbstractArray, axs::Tuple
     return similar_type(A, typeof(p), typeof(axs))(p, axs)
 end
 
-
 ###
 ### similar
 ###
-function Base.similar(A::AbstractAxisIndices, dims::Tuple{Vararg{Int}})
-    p = similar(parent(A), dims)
-    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p)))
+@inline function Base.similar(A::AbstractAxisIndices{T}, dims::NTuple{N,Int}) where {T,N}
+    return similar(A, T, dims)
 end
 
-function Base.similar(A::AbstractAxisIndices{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
-    p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+@inline function Base.similar(A::AbstractAxisIndices{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
+    return similar(A, T, ks)
 end
 
-function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
+@inline function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 # Necessary to avoid ambiguities with OffsetArrays
-function Base.similar(a::AbstractAxisIndices, ::Type{T}, dims::Tuple{Vararg{Int}}) where {T}
-    p = similar(parent(a), T, dims)
-    return unsafe_reconstruct(a, p, to_axes(axes(a), (), axes(p)))
+@inline function Base.similar(A::AbstractAxisIndices, ::Type{T}, dims::NTuple{N,Int}) where {T,N}
+    p = similar(parent(A), T, dims)
+    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p)))
 end
 
 function Base.similar(A::AbstractAxisIndices, ::Type{T}) where {T}
     p = similar(parent(A), T)
-    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p)))
+    return unsafe_reconstruct(A, p, map(assign_indices, axes(A), axes(p)))
 end
 
 function Base.similar(
@@ -201,13 +92,44 @@ function Base.similar(
 ) where {T, N}
 
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 function Base.similar(A::AbstractAxisIndices, ::Type{T}, ks::Tuple{OneTo,Vararg{OneTo,N}}) where {T, N}
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
-Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))
+function Base.similar(::Type{T}, ks::AbstractAxes{N}) where {T<:AbstractArray, N}
+    p = similar(T, map(length, ks))
+    axs = to_axes((), ks, axes(p), false)
+    return AxisIndicesArray{eltype(T),N,typeof(p),typeof(axs)}(p, axs)
+end
 
+# FIXME
+# When I use Val(N) on the tuple the it spits out many lines of extra code.
+# But without it it loses inferrence
+function Base.reinterpret(::Type{Tnew}, A::AbstractAxisIndices{Told,N}) where {Tnew,Told,N}
+    p = reinterpret(Tnew, parent(A))
+    axs = ntuple(N) do i
+        resize_last(axes(A, i), size(p, i))
+    end
+    return unsafe_reconstruct(A, p, axs)
+end
+
+function Base.reverse(x::AbstractAxisIndices{T,1}) where {T}
+    p = reverse(parent(x))
+    return unsafe_reconstruct(x, p, (reverse_keys(axes(x, 1), axes(p, 1)),))
+end
+
+function Base.reverse(x::AbstractAxisIndices{T,N}; dims::Integer) where {T,N}
+    p = reverse(parent(x), dims=dims)
+    axs = ntuple(Val(N)) do i
+        if i in dims
+            reverse_keys(axes(x, i), axes(p, i))
+        else
+            assign_indices(axes(x, i), axes(p, i))
+        end
+    end
+    return unsafe_reconstruct(x, p, axs)
+end

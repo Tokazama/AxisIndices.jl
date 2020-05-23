@@ -189,10 +189,12 @@ AxisIndicesArray{Int64,2,Array{Int64,2}...}
 
 
 julia> A[1:3]
-3-element Array{Int64,1}:
- 1
- 2
- 3
+AxisIndicesArray{Int64,1,Array{Int64,1}...}
+ • dim_1 - Axis((0.1:0.1:0.3) s => Base.OneTo(3))
+
+  0.1 s   1
+  0.2 s   2
+  0.3 s   3
 
 ```
 

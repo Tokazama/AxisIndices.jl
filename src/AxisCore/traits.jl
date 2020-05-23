@@ -144,7 +144,7 @@ AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
 end
 
 function to_keys(::IndexElement, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
+@inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
 """
@@ -396,6 +396,27 @@ AxisIndicesStyle(::Type{<:Base.Slice}) = SliceCollection()
 
 to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 
+"""
+    KeyedStyle{S}
+
+A subtype of `AxisIndicesStyle` indicating that the axis is a always defaults to key based indexing.
+"""
+struct KeyedStyle{S} <: AxisIndicesStyle end
+
+KeyedStyle(S::AxisIndicesStyle) = KeyedStyle{S}()
+KeyedStyle(S::IndicesCollection) =  KeyedStyle{KeysCollection()}()
+KeyedStyle(S::IndexElement) = KeyedStyle{KeyElement()}()
+
+#function AxisIndicesStyle(::Type{<:AbstractOffsetAxis}, ::Type{T}) where {T}
+#    return KeyedStyle(AxisIndicesStyle(T))
+#end
+
+is_element(::Type{KeyedStyle{T}}) where {T} = is_element(T)
+
+to_index(::KeyedStyle{S}, axis, arg) where {S} = to_index(S, axis, arg)
+
+to_keys(::KeyedStyle{S}, axis, arg, index) where {S} = to_keys(S, axis, arg, index)
+
 # we throw `axis` in there in case someone want's to change the default
 @inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)
 AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)
@@ -479,4 +500,52 @@ If `true` then `x` is an axis type where `keys(x) === values(x)`
 is_simple_axis(::T) where {T} = is_simple_axis(T)
 is_simple_axis(::Type{T}) where {T} = false
 is_simple_axis(::Type{T}) where {T<:AbstractSimpleAxis} = true
+
+###
+### offset axes
+###
+function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:AbstractUnitRange}
+    return true
+end
+
+function StaticRanges.has_offset_axes(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs<:OneToUnion}
+    return false
+end
+
+Base.has_offset_axes(A::AbstractAxisIndices) = Base.has_offset_axes(parent(A))
+
+# StaticRanges.has_offset_axes is taken care of by any array type that defines `axes_type`
+
+# Staticness
+for f in (:is_static, :is_fixed, :is_dynamic)
+    @eval begin
+        function StaticRanges.$f(::Type{<:AbstractSimpleAxis{V,Vs}}) where {V,Vs}
+            return StaticRanges.$f(Vs)
+        end
+    end
+end
+
+for f in (:as_static, :as_fixed, :as_dynamic)
+    @eval begin
+        function StaticRanges.$f(x::AbstractSimpleAxis{V,Vs}) where {V,Vs}
+            return unsafe_reconstruct(x, StaticRanges.$f(values(x)))
+        end
+    end
+end
+
+for f in (:is_static, :is_fixed, :is_dynamic)
+    @eval begin
+        function StaticRanges.$f(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs}
+            return StaticRanges.$f(Vs) & StaticRanges.$f(Ks)
+        end
+    end
+end
+
+for f in (:as_static, :as_fixed, :as_dynamic)
+    @eval begin
+        function StaticRanges.$f(x::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs}
+            return unsafe_reconstruct(x, StaticRanges.$f(keys(x)), StaticRanges.$f(values(x)))
+        end
+    end
+end
 

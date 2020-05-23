@@ -105,13 +105,13 @@ function _axis(ks, vs, check_unique, check_length)
     return Axis{eltype(ks),eltype(vs),typeof(ks),typeof(vs)}(ks, vs, check_unique, check_length)
 end
 
-function Axis(ks, check_unique::Bool=true, check_length::Bool=false)
+function Axis(ks, check_unique::Bool=true)
     if is_static(ks)
-        return Axis(ks, OneToSRange(length(ks)))
+        return Axis(ks, OneToSRange(length(ks)), check_unique, false)
     elseif is_fixed(ks)
-        return Axis(ks, OneTo(length(ks)))
+        return Axis(ks, OneTo(length(ks)), check_unique, false)
     else  # is_dynamic
-        return Axis(ks, OneToMRange(length(ks)))
+        return Axis(ks, OneToMRange(length(ks)), check_unique, false)
     end
 end
 
@@ -146,10 +146,12 @@ function StaticRanges.similar_type(
     ::Type{A},
     ks_type::Type=keys_type(A),
     vs_type::Type=values_type(A)
-   ) where {A<:Axis}
+) where {A<:Axis}
+
     return Axis{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
 end
 
 function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
     return similar_type(a, Ks, Vs)(ks, vs, false, false)
 end
+

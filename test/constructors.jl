@@ -101,6 +101,21 @@ end
 
 end
 
+
+@testset "column methods" begin
+    A = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two])
+    @test @inferred(colaxis(A)) isa Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
+    @test @inferred(colkeys(A)) == [:one, :two]
+    @test @inferred(coltype(A)) <: Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
+end
+
+@testset "row methods" begin
+    A = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two])
+    @test @inferred(rowaxis(A)) isa Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
+    @test @inferred(rowkeys(A)) == ["a", "b"]
+    @test @inferred(rowtype(A)) <: Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
+end
+
 #=
 @testset "to_axis-dynamic" begin
     @test isa(@inferred(to_axis(["a", "b"], as_dynamic(axes(A_, 1)))),
