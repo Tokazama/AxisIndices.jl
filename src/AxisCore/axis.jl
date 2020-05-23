@@ -105,13 +105,13 @@ function _axis(ks, vs, check_unique, check_length)
     return Axis{eltype(ks),eltype(vs),typeof(ks),typeof(vs)}(ks, vs, check_unique, check_length)
 end
 
-function Axis(ks, check_unique::Bool=true, check_length::Bool=false)
+function Axis(ks, check_unique::Bool=true)
     if is_static(ks)
-        return Axis(ks, OneToSRange(length(ks)))
+        return Axis(ks, OneToSRange(length(ks)), check_unique, false)
     elseif is_fixed(ks)
-        return Axis(ks, OneTo(length(ks)))
+        return Axis(ks, OneTo(length(ks)), check_unique, false)
     else  # is_dynamic
-        return Axis(ks, OneToMRange(length(ks)))
+        return Axis(ks, OneToMRange(length(ks)), check_unique, false)
     end
 end
 

@@ -23,6 +23,8 @@ export
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
+    AxisRow,
+    AxisTable,
     SimpleAxis,
     CartesianAxes,
     LinearAxes,
@@ -31,6 +33,7 @@ export
     NIArray,
     Indices,
     Keys,
+    StructAxis,
     # Reexport types
     LinMRange,
     LinSRange,
@@ -59,6 +62,7 @@ export
     colkeys,
     rowaxis,
     rowkeys,
+    structview,
     and,
     ⩓,
     or,
@@ -87,9 +91,6 @@ using .Names
 
 include("./ObservationDims.jl")
 using .Names
-
-include("./StructAxes/StructAxes.jl")
-using .StructAxes
 
 include("./AxisTables/AxisTables.jl")
 using .AxisTables

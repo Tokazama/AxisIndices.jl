@@ -65,6 +65,19 @@ function pretty_array_text(
     )
 end
 
+# this is necessary because otherwise pretty_table treats data as a matrix where
+# each element is a field of the tuple element
+
+function pretty_array_text(
+    io,
+    data::AbstractVector{T},
+    row=axes(data, 1);
+    kwargs...
+) where {T<:NamedTuple}
+
+    return pretty_array_text(io, reshape(data, :, 1), row, Base.OneTo(1); kwargs...)
+end
+
 function pretty_array_text(
     io,
     data::AbstractVector,

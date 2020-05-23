@@ -3,7 +3,7 @@ module AxisCore
 using ChainedFixes
 using IntervalSets
 using LinearAlgebra
-
+using MappedArrays
 using LazyArrays
 using LazyArrays: Vcat
 
@@ -27,18 +27,11 @@ export
     AxisIndicesArray,
     AbstractAxis,
     AbstractSimpleAxis,
-    AbstractOffsetAxis,
-    CenteredArray,
-    CenteredAxis,
-    CenteredVector,
-    OffsetArray,
-    OffsetAxis,
-    OffsetVector,
     Axis,
-    IdentityUnitRange,
     Indices,
     Keys,
     SimpleAxis,
+    StructAxis,
     # methods
     axes_keys,
     first_key,
@@ -92,7 +85,7 @@ export
     KeysFix2,
     IndicesFix2,
     SliceCollection,
-    OffsetStyle,
+    KeyedStyle,
     CombineStyle,
     CombineAxis,
     CombineSimpleAxis,
@@ -105,7 +98,8 @@ export
     is_index,
     is_collection,
     is_key,
-    offset,
+    structdim,
+    structview,
     to_index,
     to_keys
 
@@ -119,16 +113,10 @@ include("abstractaxis.jl")
 include("utils.jl")
 include("axis.jl")
 include("simpleaxis.jl")
-
-include("abstractoffsetaxis.jl")
-include("offsetaxis.jl")
-include("centeredaxis.jl")
-include("identityaxis.jl")
+include("structaxis.jl")
 
 include("abstractaxisindices.jl")
 include("axisindicesarray.jl")
-include("offsetarray.jl")
-include("centeredarray.jl")
 
 include("promotion.jl")
 include("show.jl")

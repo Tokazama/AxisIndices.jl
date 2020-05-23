@@ -397,25 +397,25 @@ AxisIndicesStyle(::Type{<:Base.Slice}) = SliceCollection()
 to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 
 """
-    OffsetStyle{S}
+    KeyedStyle{S}
 
-A subtype of `AxisIndicesStyle` indicating that the axis is a subtype `AbstractOffsetAxis`.
+A subtype of `AxisIndicesStyle` indicating that the axis is a always defaults to key based indexing.
 """
-struct OffsetStyle{S} <: AxisIndicesStyle end
+struct KeyedStyle{S} <: AxisIndicesStyle end
 
-OffsetStyle(S::AxisIndicesStyle) = OffsetStyle{S}()
-OffsetStyle(S::IndicesCollection) =  OffsetStyle{KeysCollection()}()
-OffsetStyle(S::IndexElement) = OffsetStyle{KeyElement()}()
+KeyedStyle(S::AxisIndicesStyle) = KeyedStyle{S}()
+KeyedStyle(S::IndicesCollection) =  KeyedStyle{KeysCollection()}()
+KeyedStyle(S::IndexElement) = KeyedStyle{KeyElement()}()
 
-function AxisIndicesStyle(::Type{<:AbstractOffsetAxis}, ::Type{T}) where {T}
-    return OffsetStyle(AxisIndicesStyle(T))
-end
+#function AxisIndicesStyle(::Type{<:AbstractOffsetAxis}, ::Type{T}) where {T}
+#    return KeyedStyle(AxisIndicesStyle(T))
+#end
 
-is_element(::Type{OffsetStyle{T}}) where {T} = is_element(T)
+is_element(::Type{KeyedStyle{T}}) where {T} = is_element(T)
 
-to_index(::OffsetStyle{S}, axis, arg) where {S} = to_index(S, axis, arg)
+to_index(::KeyedStyle{S}, axis, arg) where {S} = to_index(S, axis, arg)
 
-to_keys(::OffsetStyle{S}, axis, arg, index) where {S} = to_keys(S, axis, arg, index)
+to_keys(::KeyedStyle{S}, axis, arg, index) where {S} = to_keys(S, axis, arg, index)
 
 # we throw `axis` in there in case someone want's to change the default
 @inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)

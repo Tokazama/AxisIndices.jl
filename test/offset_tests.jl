@@ -7,12 +7,15 @@
 #    @test axes(S) == (0:0,)
 
 
-@testset "offset" begin
+#=@testset "offset" begin
     @test @inferred(offset(OneTo(10))) == 0
     @test @inferred(offset(2:3)) == -1
-end
+end=#
 
 @testset "OffsetAxis" begin
+    ro = OffsetAxis(1:3)
+    rs = OffsetAxis(1:3, 3:5)
+
     function same_value(r1, r2)
         length(r1) == length(r2) || return false
         for (v1, v2) in zip(r1, r2)
@@ -52,13 +55,13 @@ end
     @test same_value(r2, 1:3)
     check_indexed_by(r2, 1:3)
     # check the example in the comments
-    r = OffsetAxis{Int,UnitRange{Int}}(3:4)
+    r = OffsetAxis{Int}(3:4)
     @test same_value(r, 3:4)
     check_indexed_by(r, 1:2)
-    r = OffsetAxis{Int,Base.OneTo{Int}}(3:4)
+    r = OffsetAxis{Int}(3:4)
     @test same_value(r, 3:4)
     check_indexed_by(r, 3:4)
-    r = OffsetAxis{Int,Base.OneTo{Int}}(-2, 3:4)
+    r = OffsetAxis{Int}(-2, 3:4)
     @test same_value(r, 1:2)
     check_indexed_by(r, 1:2)
 
@@ -120,6 +123,10 @@ end
         # firstindex(keys(axis)) == 1, firstindex(axis) == 1
         @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1:2)) == 1:2
     end
+end
+
+@testset "CenteredAxis" begin
+    CenteredAxis()
 end
 
 @testset "Single-entry arrays in dims 0:5" begin

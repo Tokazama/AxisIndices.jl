@@ -81,7 +81,7 @@ include("traits_tests.jl")
 include("copyto_tests.jl")
 include("reshape_tests.jl")
 
-include("offset_tests.jl")
+#include("offset_tests.jl")
 
 @testset "pretty_array" begin
     A = AxisIndicesArray(Array{Int,0}(undef, ()))
@@ -101,6 +101,7 @@ end
     @test @inferred(obs_axis_type(nia)) <: Integer
 end
 
+include("structaxis_tests.jl")
 include("table_tests.jl")
 
 #= TODO this needs to be formally tested

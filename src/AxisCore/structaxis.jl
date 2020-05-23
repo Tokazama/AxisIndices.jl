@@ -1,17 +1,5 @@
-module StructAxes
-
-using NamedDims
-using AxisIndices
-using AxisIndices.AxisCore
-using MappedArrays
-using StaticArrays
-using StaticRanges
-using Base: OneTo, @propagate_inbounds
-
-export StructAxis, structview, structdim
 
 # TODO figure out how to place type inference of each field into indexing
-
 @generated _fieldcount(::Type{T}) where {T} = fieldcount(T)
 
 """
@@ -24,11 +12,13 @@ struct StructAxis{T,L,V,Vs} <: AbstractAxis{Symbol,V,SVector{L,Symbol},Vs}
 
     function StructAxis{T,L,V,Vs}(inds::Vs) where {T,L,V,Vs}
         # FIXME should unwrap_unionall be performed earlier?
-        return new{Base.unwrap_unionall(T),L,V,Vs}(inds)
+        return new{T,L,V,Vs}(inds)
     end
 end
 
 StructAxis{T}() where {T} = StructAxis{T,_fieldcount(T)}()
+
+StructAxis{T}(vs::AbstractUnitRange) where {T} = StructAxis{T,_fieldcount(T)}(vs)
 
 @inline StructAxis{T,L}() where {T,L} = StructAxis{T,L}(OneToSRange{Int,L}())
 
@@ -44,7 +34,7 @@ end
 
 Base.values(axis::StructAxis) = getfield(axis, :values)
 
-function AxisIndices.similar_type(
+function StaticRanges.similar_type(
     ::Type{StructAxis{T,L,V,Vs}},
     new_type::Type=T,
     new_vals::Type=OneToSRange{Int,nfields(T)}
@@ -53,10 +43,24 @@ function AxisIndices.similar_type(
     return StructAxis{T,nfields(T),eltype(new_vals),new_vals}
 end
 
-# TODO what should happen with annotations here?
-function AxisIndices.unsafe_reconstruct(axis::StructAxis, ks, vs)
-    return similar_type(axis)(vs)
+# `ks` should always be a `<:AbstractVector{Symbol}`
+@inline function unsafe_reconstruct(axis::StructAxis, ks, vs)
+    return StructAxis{NamedTuple{Tuple(ks),to_types(axis, ks)}}(vs)
 end
+
+assign_indices(axis::StructAxis{T}, inds) where {T} = StructAxis{T}(inds)
+
+# FIXME inferribility is going to be a problem here
+#=
+    to_types(axis::StructAxis, vs::AbstractVector{Symbol})
+
+Returns `Tuple{...}` where each type corresponds to a field specified by `vs` of
+the structure that `axis` uses as keys.
+=#
+@inline function to_types(::StructAxis{T}, vs::AbstractVector{Symbol}) where {T}
+    return Tuple{map(i -> fieldtype(T, i), vs)...}
+end
+to_types(::StructAxis{T}, v::Symbol) where {T} = fieldtype(T, v)
 
 @inline function structdim(A)
     d = _structdim(axes_type(A))
@@ -96,37 +100,25 @@ axis_index_eltype(::Type{<:AbstractAxis}, i::Integer) = Any
     }
 end
 
-#=
+function to_axis(
+    ks::StructAxis{T},
+    vs::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=Staticness(vs)
+) where {T}
 
-function restruct(::Type{T}, inds)
-    return NamedTuple{((fieldname(T, i) for i in inds)...,),
-                      Tuple{(fieldname(T, i) for i in inds)...,}}
+    check_length && check_axis_length(ks, vs)
+    return StructAxis{T}(vs)
 end
 
+# TODO This documentation is confusing...but I'm tired right now.
+"""
+    structview(A)
 
-AxisIndices.to_keys(axis::StructAxis, )
-
-
-
-Base.@pure _fieldnames(::Type{T}) where {T} = 
-
-
-function _fieldnames(::Type{T}) where {T}
-    ntuple(Val(nfields(T))) do i
-        fieldname(T, i)
-    end
-end
-
-
-Base.@pure function _eltypes(::Type{NT}) where {NT <: NamedTuple{names, T}} where {names, T <: NTuple{N, AbstractVector{S} where S}} where {N}
-    return Tuple{Any[ _eltype(fieldtype(NT, i)) for i = 1:fieldcount(NT) ]...}
-end
-
-
-=#
-
-# TODO Document
-
+Creates a `MappedArray` using the `StructAxis` of `A` to identify the dimension
+that needs to be collapsed into a series of `SubArray`s as views that composed
+the `MappedArray`
+"""
 @inline structview(A) = _structview(A, structdim(A))
 @inline _structview(A, dim) = _structview(A, dim, axes(A, dim))
 @inline function _structview(A, dim, axis::StructAxis{T}) where {T}
@@ -135,4 +127,9 @@ end
     return mappedarray(T, (view(A, inds_before..., i, inds_after...) for i in values(axis))...)
 end
 
+@inline function _structview(A, dim, axis::StructAxis{T}) where {T<:NamedTuple}
+    inds_before = ntuple(d->(:), dim-1)
+    inds_after = ntuple(d->(:), ndims(A)-dim)
+    return mappedarray((args...) ->T(args) , (view(A, inds_before..., i, inds_after...) for i in values(axis))...)
 end
+

@@ -48,6 +48,7 @@ function to_axis(
     check_length::Bool=true,
     staticness=Staticness(vs)
 )
+
     return resize_last(ks, as_staticness(staticness, vs))
 end
 

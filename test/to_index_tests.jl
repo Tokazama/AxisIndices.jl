@@ -37,8 +37,8 @@ end
     @test @inferred(is_element(IndexEquals))
     @test @inferred(!is_element(Vector{Int}))
     @test @inferred(!is_element(KeysCollection))
-    @test @inferred(is_element(OffsetStyle{KeyEquals()}))
-    @test @inferred(!is_element(OffsetStyle{KeysCollection()}))
+    @test @inferred(is_element(KeyedStyle{KeyEquals()}))
+    @test @inferred(!is_element(KeyedStyle{KeysCollection()}))
 
     @test @inferred(is_collection([1]))
     @test @inferred(is_collection(KeysCollection))
@@ -157,9 +157,9 @@ end
         @test @inferred(to_index(x, :)) == Base.Slice(values(x))
     end
 
-    @testset "OffsetStyle" begin
-        @test @inferred(OffsetStyle(KeyElement())) isa OffsetStyle{KeyElement()}
-        @test @inferred(OffsetStyle(IndicesCollection())) isa OffsetStyle{KeysCollection()}
+    @testset "KeyedStyle" begin
+        @test @inferred(KeyedStyle(KeyElement())) isa KeyedStyle{KeyElement()}
+        @test @inferred(KeyedStyle(IndicesCollection())) isa KeyedStyle{KeysCollection()}
     end
 end
 

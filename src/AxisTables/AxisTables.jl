@@ -5,7 +5,6 @@ module AxisTables
 
 using AxisIndices
 using AxisIndices.AxisCore
-using AxisIndices.StructAxes
 using StaticArrays
 using AxisIndices.AxisCore: is_element, unsafe_getindex
 using PrettyTables
@@ -70,7 +69,7 @@ end
 end
 
 @inline function _unsafe_getindex(data, raxis, caxis, arg1, arg2, i1::AbstractVector, i2::AbstractVector)
-    return AxisTable([@inbounds(getindex(unsafe_getindex(data, (arg2,), (i,)), i1)) for i in i2])
+    return AxisTable([@inbounds(getindex(unsafe_getindex(data, (arg2,), (i,)), i1)) for i in i2], caxis[i2])
 end
 
 @inline function Base.iterate(x::AbstractAxisTable, st=1)
@@ -205,15 +204,6 @@ Tables.getcolumn(x::AxisRow, i) = getindex(x, i)
 Tables.columnnames(x::AxisRow) = Tables.columnames(parent(x))
 
 Tables.materializer(x::AxisTable) = AxisTable
-
-#=
-x = AxisIndicesArray([1,2,3])
-
-=#
-
-###
-###
-###
 
 Base.show(io::IO, ::MIME"text/plain", x::AxisTable) = pretty_table(io, x)
 

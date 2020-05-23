@@ -1,22 +1,25 @@
 @testset "AxisTables" begin
 #
 
-x = AxisTable(a = [1, 2], b = [3, 4]);
-# test that the MatrixTable `istable`
-@test Tables.istable(typeof(x))
-# test that it defines row access
-@test Tables.rowaccess(typeof(x))
-@test Tables.rows(x) == x
-# test that it defines column access
-@test Tables.columnaccess(typeof(x))
-@test Tables.columns(x) == x
-# test that we can access the first "column" of our matrix table by column name
-@test x.a == [1, 2]
-# test our `Tables.AbstractColumns` interface methods
-@test Tables.getcolumn(x, :a) == [1,2]
-@test Tables.getcolumn(x, 1) == [1,2]
-@test Tables.columnnames(x) == [:a, :b]
-# now let's iterate our MatrixTable to get our first MatrixRow
+@testset "Tables Interface" begin
+    x = AxisTable(a = [1, 2], b = [3, 4]);
+    # test that the MatrixTable `istable`
+    @test Tables.istable(typeof(x))
+    # test that it defines row access
+    @test Tables.rowaccess(typeof(x))
+    @test Tables.rows(x) == x
+    # test that it defines column access
+    @test Tables.columnaccess(typeof(x))
+    @test Tables.columns(x) == x
+    # test that we can access the first "column" of our matrix table by column name
+    @test x.a == [1, 2]
+    # test our `Tables.AbstractColumns` interface methods
+    @test Tables.getcolumn(x, :a) == [1,2]
+    @test Tables.getcolumn(x, 1) == [1,2]
+    @test Tables.columnnames(x) == [:a, :b]
+    # now let's iterate our MatrixTable to get our first MatrixRow
+end
+
 #= TODO work out AxisTable implementation
 matrow = first(x)
 @test eltype(mattbl) == typeof(matrow)
@@ -26,6 +29,11 @@ matrow = first(x)
 @test Tables.getcolumn(matrow, 1) == 1
 @test propertynames(mattbl) == propertynames(matrow) == [:Column1, :Column2, :Column3]
 =#
+
+@testset "indexing" begin
+    t = AxisTable(A = 1:2:1000, B = repeat(1:10, inner=50), c = 1:500);
+    t2 = t[1:2, 1:2];
+end
 
 
 end
