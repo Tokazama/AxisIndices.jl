@@ -15,7 +15,6 @@
     @test x.a == [1, 2]
     # test our `Tables.AbstractColumns` interface methods
     @test Tables.getcolumn(x, :a) == [1,2]
-    @test Tables.getcolumn(x, 1) == [1,2]
     @test Tables.columnnames(x) == [:a, :b]
     # now let's iterate our MatrixTable to get our first MatrixRow
 end
@@ -38,6 +37,9 @@ matrow = first(x)
     @test axes(t, 3) isa SimpleAxis
     @test axes(t) isa Tuple{<:SimpleAxis,<:StructAxis}
     @test ndims(t) == 2
+    @test ndims(typeof(t)) == 2
+    # FIXME
+    @test length(t) == 500
     @test size(t) == (500, 3)
     @test size(t, 1) == 500
     @test size(t, 2) == 3
@@ -47,6 +49,7 @@ matrow = first(x)
     @test t[1,2] == 1
     t[1,2] = 2
     @test t[1,2] == 2
+    @test getproperty(t, 1) == 1:2:999
 
     r = t[2,:]
     @test r isa AxisRow
@@ -55,6 +58,7 @@ matrow = first(x)
     @test r.B == 1
     r.B = 2
     @test r[:B] == 2
+    @test getproperty(r, 2) == 2
 end
 
 

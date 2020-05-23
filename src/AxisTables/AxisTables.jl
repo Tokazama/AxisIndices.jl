@@ -19,7 +19,6 @@ export AxisTable, AxisRow
 
 abstract type AbstractAxisTable{T} end
 
-
 ###
 ### Array Interface
 ###
@@ -106,13 +105,6 @@ Tables.columnnames(x::AbstractAxisTable) = Vector(colkeys(x))
 Tables.istable(::Type{<:AbstractAxisTable}) = true
 
 Tables.columns(x::AbstractAxisTable) = x
-# required Tables.AbstractColumns object methods
-Tables.getcolumn(x::AbstractAxisTable, ::Type, col::Int, nm::Symbol) = getindex(x, :, col)
-Tables.getcolumn(x::AbstractAxisTable, nm::Symbol) = getindex(x, :, nm)
-Tables.getcolumn(x::AbstractAxisTable, i::Int) = getindex(x, :, i)
-Tables.getcolumn(x::AbstractAxisTable, i) = getindex(x, :, i)
-
-
 """
     AxisTable
 """
@@ -209,11 +201,6 @@ Base.setproperty!(x::AxisRow, i::Symbol, val) = setindex!(x, val, i)
 
 Base.propertynames(x::AxisRow) = colkeys(x)
 
-Tables.getcolumn(x::AxisRow, ::Type, col::Int, nm::Symbol) = getindex(x, col)
-Tables.getcolumn(x::AxisRow, i::Integer) = getindex(x, i)
-Tables.getcolumn(x::AxisRow, i::Symbol) = getindex(x, i)
-Tables.getcolumn(x::AxisRow, i) = getindex(x, i)
-
 ###
 ### Row Interface
 ###
@@ -226,11 +213,6 @@ Tables.materializer(x::AxisTable) = AxisTable
 
 Base.show(io::IO, ::MIME"text/plain", x::AxisTable) = pretty_table(io, x)
 Base.show(io::IO, ::MIME"text/plain", x::AxisRow) = pretty_table(io, x)
-
-#=function Base.show(io::IO, ::MIME"text/plain", x::AxisRow)
-    pretty_table(io, getfield(x, :parent)getfield(x, :row_index)])
-end
-=#
 
 end
 
