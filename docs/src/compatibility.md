@@ -16,7 +16,3 @@ In other words, the current version can only support multi-mapping multiple `Abs
 Indexing via named dimensions is supported via the [NamedDims.jl](https://github.com/invenia/NamedDims.jl) package.
 [`NIArray`](@ref) assists in constructing arrays that have both named dimensions and a subtype of `AbstractAxis` along each axis.
 
-## OffsetArrays
-
-Many of the tests used for `OffsetArrays` package have been incorporated into the tests of `AxisIndices` to ensure compatibility.
-

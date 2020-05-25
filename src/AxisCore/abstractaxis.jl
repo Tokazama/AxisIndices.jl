@@ -324,6 +324,8 @@ function StaticRanges.set_length(x::AbstractSimpleAxis{V,Vs}, len) where {V,Vs}
     return unsafe_reconstruct(x, StaticRanges.set_length(values(x), len))
 end
 
+StaticRanges.Length(::Type{<:AbstractAxis{K,Ks,V,Vs}}) where {K,Ks,V,Vs} = Length(Vs)
+
 ###
 ### step
 ###

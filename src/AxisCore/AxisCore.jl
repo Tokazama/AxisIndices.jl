@@ -12,7 +12,7 @@ using StaticRanges: can_set_first, can_set_last, can_set_length, same_type,
     checkindexlo, checkindexhi, OneToUnion, grow_first!, grow_last!, resize_last,
     resize_last!, shrink_last!
 
-using StaticRanges: Static, Fixed, Dynamic, Staticness
+using StaticRanges: Static, Fixed, Dynamic, Staticness, Length
 using StaticArrays
 using AxisIndices.PrettyArrays
 

@@ -403,13 +403,10 @@ A subtype of `AxisIndicesStyle` indicating that the axis is a always defaults to
 """
 struct KeyedStyle{S} <: AxisIndicesStyle end
 
+KeyedStyle(x) = KeyedStyle(AxisIndicesStyle(x))
 KeyedStyle(S::AxisIndicesStyle) = KeyedStyle{S}()
 KeyedStyle(S::IndicesCollection) =  KeyedStyle{KeysCollection()}()
 KeyedStyle(S::IndexElement) = KeyedStyle{KeyElement()}()
-
-#function AxisIndicesStyle(::Type{<:AbstractOffsetAxis}, ::Type{T}) where {T}
-#    return KeyedStyle(AxisIndicesStyle(T))
-#end
 
 is_element(::Type{KeyedStyle{T}}) where {T} = is_element(T)
 
