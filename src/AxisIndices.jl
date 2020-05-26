@@ -18,7 +18,6 @@ using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
-    AxisCore,
     AbstractAxisIndices,
     AxisIndicesArray,
     AbstractAxis,
@@ -29,9 +28,7 @@ export
     SimpleAxis,
     CartesianAxes,
     LinearAxes,
-    NamedIndicesArray,
-    NamedDimsArray,
-    NIArray,
+    NamedAxisArray,
     Indices,
     Keys,
     StructAxis,
@@ -55,7 +52,7 @@ export
     parent_type,
     srange,
     mrange,
-    values_type,
+    indices_type,
     keys_type,
     first_key,
     last_key,
@@ -75,27 +72,26 @@ export
     axes_keys,
     pretty_array,
     # traits,
-    is_simple_axis
+    is_indices_axis
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays
 
-include("./AxisCore/AxisCore.jl")
-using .AxisCore
+include("./Interface/Interface.jl")
+using .Interface
+using .Interface: to_index, to_keys
 
-include("./Math/Math.jl")
-using .Math
+include("./Axes/Axes.jl")
+using .Axes
+using .Axes: permute_axes
 
-include("./Mapped/Mapped.jl")
-using .Mapped
-
-include("./Names/Names.jl")
-using .Names
+include("./Arrays/Arrays.jl")
+using .Arrays
 
 include("./ObservationDims.jl")
-using .Names
+using .ObservationDims
 
-include("./AxisTables/AxisTables.jl")
-using .AxisTables
+include("./Tabular/Tabular.jl")
+using .Tabular
 
 end

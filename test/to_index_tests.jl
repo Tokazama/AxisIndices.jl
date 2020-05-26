@@ -1,5 +1,6 @@
 # TODO IndicesFix2 tests
 
+#=
 @testset "traits" begin
     @testset "CombineStyle" begin
         for (x,y,z) in ((Axis{Int,Int,UnitRange{Int},UnitRange{Int}},Axis{Int,Int,UnitRange{Int},UnitRange{Int}},CombineAxis),
@@ -14,6 +15,7 @@
         end
     end
 end
+=#
 
 @testset "AxisIndicesStyles" begin
     @test @inferred(AxisIndicesStyle(String)) isa KeyElement

@@ -8,11 +8,16 @@ using Documenter
 using Dates
 using Tables
 using AxisIndices
-using AxisIndices.AxisCore
-using AxisIndices.AxisTables
-using AxisIndices.Names
-using AxisIndices.Mapped
-using AxisIndices: mappedarray, of_eltype, matmul_axes # from MappedArrays
+using AxisIndices.Interface
+using AxisIndices.Interface: to_index, to_keys
+using MappedArrays
+
+using AxisIndices.Axes
+using AxisIndices.Axes: cat_axis, hcat_axes, vcat_axes
+
+using AxisIndices.Arrays
+using AxisIndices.Tabular
+using AxisIndices: matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
@@ -34,7 +39,7 @@ Base.values(a::Axis2) = getfield(a, :values)
 function StaticRanges.similar_type(
     ::Type{A},
     ks_type::Type=keys_type(A),
-    vs_type::Type=values_type(A)
+    vs_type::Type=indices_type(A)
 ) where {A<:Axis2}
     return Axis2{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
 end
@@ -61,7 +66,6 @@ include("promotion_tests.jl")
 include("similar_tests.jl")
 include("resize_tests.jl")
 
-include("reduce_tests.jl")
 include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
@@ -90,7 +94,7 @@ end
 
 @testset "ObservationDims" begin
     using AxisIndices.ObservationDims
-    nia = NIArray(reshape(1:6, 2, 3), x = 2:3, observations = 3:5)
+    nia = NamedAxisArray(reshape(1:6, 2, 3), x = 2:3, observations = 3:5)
     @test has_obsdim(nia)
     @test !has_obsdim(parent(nia))
     @test @inferred(obs_keys(nia)) == 3:5

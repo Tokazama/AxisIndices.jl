@@ -1,7 +1,7 @@
 name = "AxisIndices"
 uuid = "f52c9ee2-1b1c-4fd8-8546-6350938c7f11"
 authors = ["Tokazama <zchristensen7@gmail.com>"]
-version = "0.3.12"
+version = "0.4.0"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
@@ -38,6 +38,7 @@ Tables = "1"
 
 [extras]
 IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
+MappedArrays = "dbb5928d-eab1-5f90-85c2-b9b0edb7c900"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"

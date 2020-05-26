@@ -9,8 +9,7 @@ Axis
 SimpleAxis
 CartesianAxes
 LinearAxes
-NamedAxesArray
-NIArray
+NamedAxisArray
 indices
 axes_keys
 pretty_array

@@ -1,0 +1,130 @@
+
+"""
+    matmul_axes(a, b) -> Tuple
+
+Returns the appropriate axes for the return of `a * b` where `a` and `b` are a
+vector or matrix.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> axs2, axs1 = (Axis(1:2), Axis(1:4)), (Axis(1:6),);
+
+julia> AxisIndices.matmul_axes(axs2, axs2)
+(Axis(1:2 => Base.OneTo(2)), Axis(1:4 => Base.OneTo(4)))
+
+julia> AxisIndices.matmul_axes(axs1, axs2)
+(Axis(1:6 => Base.OneTo(6)), Axis(1:4 => Base.OneTo(4)))
+
+julia> AxisIndices.matmul_axes(axs2, axs1)
+(Axis(1:2 => Base.OneTo(2)),)
+
+julia> AxisIndices.matmul_axes(axs1, axs1)
+()
+
+julia> AxisIndices.matmul_axes(rand(2, 4), rand(4, 2))
+(SimpleAxis(Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+
+julia> AxisIndices.matmul_axes(CartesianAxes((2,4)), CartesianAxes((4, 2))) == AxisIndices.matmul_axes(rand(2, 4), rand(4, 2))
+true
+```
+"""
+matmul_axes(a::AbstractArray,  b::AbstractArray ) = matmul_axes(axes(a), axes(b))
+matmul_axes(a::Tuple{Any},     b::Tuple{Any,Any}) = (to_axis(first(a)), to_axis(last(b)))
+matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any,Any}) = (to_axis(first(a)), to_axis(last(b)))
+matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any}    ) = (to_axis(first(a)),)
+matmul_axes(a::Tuple{Any},     b::Tuple{Any}    ) = ()
+
+for (N1,N2) in ((2,2), (1,2), (2,1))
+    @eval begin
+        function Base.:*(a::AbstractAxisIndices{T1,$N1}, b::AbstractAxisIndices{T2,$N2}) where {T1,T2}
+            return _matmul(a, promote_type(T1, T2), *(parent(a), parent(b)), matmul_axes(a, b))
+        end
+        function Base.:*(a::AbstractArray{T1,$N1}, b::AbstractAxisIndices{T2,$N2}) where {T1,T2}
+            return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
+        end
+        function Base.:*(a::AbstractAxisIndices{T1,$N1}, b::AbstractArray{T2,$N2}) where {T1,T2}
+            return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
+        end
+    end
+end
+
+function Base.:*(a::Diagonal{T1}, b::AbstractAxisIndices{T2,2}) where {T1,T2}
+    return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
+end
+function Base.:*(a::AbstractAxisIndices{T1,2}, b::Diagonal{T2}) where {T1,T2}
+    return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
+end
+
+_matmul(A, ::Type{T}, a::T, axs) where {T} = a
+_matmul(A, ::Type{T}, a::AbstractArray{T}, axs) where {T} = unsafe_reconstruct(A, a, axs)
+
+# Using `CovVector` results in Method ambiguities; have to define more specific methods.
+for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
+    @eval function Base.:*(a::$A, b::AbstractAxisIndices{T,1,<:AbstractVector{T}}) where {T}
+        return *(a, parent(b))
+    end
+end
+
+# vector^T * vector
+function Base.:*(a::AbstractAxisIndices{T,2,<:CoVector}, b::AbstractAxisIndices{S,1}) where {T,S}
+    return *(parent(a), parent(b))
+end
+
+function covcor_axes(old_axes::NTuple{2,Any}, new_indices::NTuple{2,Any}, dim::Int)
+    if dim === 1
+        return (
+            assign_indices(last(old_axes), first(new_indices)),
+            StaticRanges.resize_last(last(old_axes), last(new_indices))
+        )
+    elseif dim === 2
+        return (
+            StaticRanges.resize_last(first(old_axes), first(new_indices)),
+            assign_indices(first(old_axes), last(new_indices))
+        )
+    else
+        return (
+            StaticRanges.resize_last(first(old_axes), first(new_indices)),
+            StaticRanges.resize_last(last(old_axes), last(new_indices))
+        )
+    end
+end
+
+for fun in (:cor, :cov)
+
+    fun_doc = """
+        $fun(x::AbstractAxisIndicesMatrix; dims=1, kwargs...)
+
+    Performs `$fun` on the parent matrix of `x` and reconstructs a similar type
+    with the appropriate axes.
+
+    ## Examples
+    ```jldoctest
+    julia> using AxisIndices, Statistics
+
+    julia> A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
+
+    julia> axes_keys($fun(A, dims = 2))
+    (["a", "b", "c"], ["a", "b", "c"])
+
+    julia> axes_keys($fun(A, dims = 1))
+    ([:one, :two, :three], [:one, :two, :three])
+
+    ```
+    """
+    @eval begin
+        @doc $fun_doc
+        function Statistics.$fun(x::AbstractAxisIndices{T,2}; dims=1, kwargs...) where {T}
+            p = Statistics.$fun(parent(x); dims=dims, kwargs...)
+            return unsafe_reconstruct(x, p, covcor_axes(axes(x), axes(p), dims))
+        end
+    end
+end
+
+# TODO get rid of indicesarray_result
+for f in (:mean, :std, :var, :median)
+    @eval function Statistics.$f(a::AbstractAxisIndices; dims=:, kwargs...)
+        return reconstruct_reduction(a, Statistics.$f(parent(a); dims=dims, kwargs...), dims)
+    end
+end

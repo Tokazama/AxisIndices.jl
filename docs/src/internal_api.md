@@ -3,7 +3,7 @@
 ```@docs
 AxisIndices.unsafe_reconstruct
 AxisIndices.step_key
-AxisIndices.values_type
+AxisIndices.indices_type
 AxisIndices.permute_axes
 AxisIndices.append_axis!
 AxisIndices.broadcast_axis
@@ -12,11 +12,6 @@ AxisIndices.drop_axes
 AxisIndices.cat_axis
 AxisIndices.cat_axes
 AxisIndices.get_formatters
-AxisIndices.CombineStyle
-AxisIndices.CombineAxis
-AxisIndices.CombineSimpleAxis
-AxisIndices.CombineResize
-AxisIndices.CombineStack
 
 AxisIndices.AxisIndicesStyle
 AxisIndices.KeyElement
@@ -41,6 +36,6 @@ AxisIndices.is_key
 AxisIndices.to_index
 AxisIndices.to_keys
 AxisIndices.get_factorization
-AxisIndices.is_simple_axis
+AxisIndices.is_indices_axis
 
 ```
