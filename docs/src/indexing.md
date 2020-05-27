@@ -172,7 +172,7 @@ julia> A[1]
 ```jldoctest indexing_examples
 julia> A[1,:]
 AxisArray{Int64,1,Array{Int64,1}...}
- • dim_1 - Axis(["a", "b", "c"] => OneToMRange(3))
+ • dim_1 - ["a", "b", "c"]
 
   a   1
   b   4
@@ -181,8 +181,8 @@ AxisArray{Int64,1,Array{Int64,1}...}
 
 julia> A[1:2,1:2]
 AxisArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis((0.1:0.1:0.2) s => Base.OneTo(2))
- • dim_2 - Axis(["a", "b"] => Base.OneTo(2))
+ • dim_1 - 0.1 s:0.1 s:0.2 s
+ • dim_2 - ["a", "b"]
           a   b
   0.1 s   1   4
   0.2 s   2   5
@@ -190,7 +190,7 @@ AxisArray{Int64,2,Array{Int64,2}...}
 
 julia> A[1:3]
 AxisArray{Int64,1,Array{Int64,1}...}
- • dim_1 - Axis(StepMRangeLen(0.1 s:0.1 s:0.3 s) => OneToMRange(3))
+ • dim_1 - 0.1 s:0.1 s:0.3 s
 
   0.1 s   1
   0.2 s   2
@@ -206,8 +206,8 @@ julia> A[.1s, "a"]
 
 julia> A[0.1s..0.3s, ["a", "b"]]
 AxisArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis((0.1:0.1:0.3) s => Base.OneTo(3))
- • dim_2 - Axis(["a", "b"] => Base.OneTo(2))
+ • dim_1 - 0.1 s:0.1 s:0.3 s
+ • dim_2 - ["a", "b"]
           a   b
   0.1 s   1   4
   0.2 s   2   5
@@ -221,8 +221,8 @@ AxisArray{Int64,2,Array{Int64,2}...}
 ```jldoctest indexing_examples
 julia> A[!=(.2s), in(["a", "c"])]
 AxisArray{Int64,2,Array{Int64,2}...}
- • dim_1 - Axis(Unitful.Quantity{Float64,𝐓,Unitful.FreeUnits{(s,),𝐓,nothing}}[0.1 s, 0.3 s] => Base.OneTo(2))
- • dim_2 - Axis(["a", "c"] => Base.OneTo(2))
+ • dim_1 - Unitful.Quantity{Float64,𝐓,Unitful.FreeUnits{(s,),𝐓,nothing}}[0.1 s, 0.3 s]
+ • dim_2 - ["a", "c"]
           a   c
   0.1 s   1   7
   0.3 s   3   9

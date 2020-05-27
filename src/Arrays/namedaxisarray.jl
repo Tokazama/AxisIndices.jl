@@ -24,9 +24,9 @@ julia> using AxisIndices
 
 julia> A = NamedAxisArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
 NamedDimsArray{Int64,3,Base.ReshapedArray{Int64,3,UnitRange{Int64},Tuple{}}...}
- • x - Axis(["a", "b"] => Base.OneTo(2))
- • y - Axis(["one", "two", "three"] => Base.OneTo(3))
- • z - Axis(2:5 => Base.OneTo(4))
+ • x - ["a", "b"]
+ • y - ["one", "two", "three"]
+ • z - 2:5
 [x, y, z[2]] =
       one   two   three
   a     1     3       5
@@ -55,8 +55,8 @@ julia> axes_keys(A)
 
 julia> B = A["a", :, :]
 NamedDimsArray{Int64,2,Array{Int64,2}...}
- • y - Axis(["one", "two", "three"] => Base.OneTo(3))
- • z - Axis(2:5 => Base.OneTo(4))
+ • y - ["one", "two", "three"]
+ • z - 2:5
           2    3    4    5
     one   1    7   13   19
     two   3    9   15   21
@@ -64,7 +64,7 @@ NamedDimsArray{Int64,2,Array{Int64,2}...}
 
 julia> C = B["one",:]
 NamedDimsArray{Int64,1,Array{Int64,1}...}
- • z - Axis(2:5 Axis(UnitMRange(2:5) => OneToMRange(4))
+ • z - 2:5
 
   2    1
   3    7

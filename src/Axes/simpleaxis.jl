@@ -31,8 +31,12 @@ julia> x[>(2)]
 SimpleAxis(3:10)
 
 julia> x[1]
-ERROR: BoundsError: attempt to access 9-element SimpleAxis(2:10)) at index [1]
-[...]
+ERROR: BoundsError: attempt to access 9-element SimpleAxis(2:10 => 2:10) at index [1]
+Stacktrace:
+ [1] to_index at /Users/zchristensen/projects/AxisIndices.jl/src/Interface/styles.jl:141 [inlined]
+ [2] to_index at /Users/zchristensen/projects/AxisIndices.jl/src/Interface/styles.jl:94 [inlined]
+ [3] getindex(::SimpleAxis{Int64,UnitRange{Int64}}, ::Int64) at /Users/zchristensen/projects/AxisIndices.jl/src/Axes/indexing.jl:120
+ [4] top-level scope at /Users/zchristensen/projects/AxisIndices.jl/test/runtests.jl:121
 ```
 """
 struct SimpleAxis{V,Vs<:AbstractUnitRange{V}} <: AbstractSimpleAxis{V,Vs}

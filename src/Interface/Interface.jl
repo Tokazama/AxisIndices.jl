@@ -55,6 +55,7 @@ export
     rowtype,
     select_axes,
     step_key,
+    unsafe_reconstruct,
     # NamedDims API
     dim,
     dimnames

@@ -106,7 +106,7 @@ julia> x = AxisArray(collect(1:2:20), t);
 
 julia> x[:time_1]
 AxisArray{Int64,1,Array{Int64,1}...}
- • dim_1 - TimeAxis(1 Axis(StepMRange(1 second:1 second:3 seconds seconds) => Base.OneTo(3))
+ • dim_1 - 1 second:1 second:3 seconds
 
    1 second   1
   2 seconds   3

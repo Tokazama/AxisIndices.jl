@@ -48,8 +48,8 @@ julia> using AxisIndices
 
 julia> AxisArray(ones(2,2), (SimpleAxis(2), SimpleAxis(2)))
 AxisArray{Float64,2,Array{Float64,2}...}
- • dim_1 - SimpleAxis(Base.OneTo(2))
- • dim_2 - SimpleAxis(Base.OneTo(2))
+ • dim_1 - 1:2
+ • dim_2 - 1:2
         1     2
   1   1.0   1.0
   2   1.0   1.0
@@ -84,8 +84,8 @@ julia> using AxisIndices
 
 julia> AxisArray(ones(2,2), (["a", "b"], ["one", "two"]))
 AxisArray{Float64,2,Array{Float64,2}...}
- • dim_1 - Axis(["a", "b"] => Base.OneTo(2))
- • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
+ • dim_1 - ["a", "b"]
+ • dim_2 - ["one", "two"]
       one   two
   a   1.0   1.0
   b   1.0   1.0

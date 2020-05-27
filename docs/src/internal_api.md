@@ -1,16 +1,16 @@
 # Internal API
 
 ```@docs
-AxisIndices.unsafe_reconstruct
+AxisIndices.Interface.unsafe_reconstruct
 AxisIndices.step_key
 AxisIndices.indices_type
 AxisIndices.permute_axes
-AxisIndices.append_axis!
-AxisIndices.broadcast_axis
+AxisIndices.Axes.append_axis!
+AxisIndices.Axes.broadcast_axis
 AxisIndices.matmul_axes
 AxisIndices.drop_axes
-AxisIndices.cat_axis
-AxisIndices.cat_axes
+AxisIndices.Axes.cat_axis
+AxisIndices.Axes.cat_axes
 AxisIndices.get_formatters
 
 AxisIndices.AxisIndicesStyle
