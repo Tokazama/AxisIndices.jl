@@ -46,7 +46,7 @@ Returns the axis corresponding to the first dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> rowaxis(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+julia> rowaxis(AxisArray(ones(2,2), ["a", "b"], [:one, :two]))
 Axis(["a", "b"] => Base.OneTo(2))
 
 ```
@@ -62,7 +62,7 @@ Returns the keys corresponding to the first dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> rowkeys(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+julia> rowkeys(AxisArray(ones(2,2), ["a", "b"], [:one, :two]))
 2-element Array{String,1}:
  "a"
  "b"
@@ -80,7 +80,7 @@ Returns the type of the axis corresponding to the first dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> rowtype(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+julia> rowtype(AxisArray(ones(2,2), ["a", "b"], [:one, :two]))
 Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
 ```
 """
@@ -96,7 +96,7 @@ Returns the axis corresponding to the second dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> colaxis(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+julia> colaxis(AxisArray(ones(2,2), ["a", "b"], [:one, :two]))
 Axis([:one, :two] => Base.OneTo(2))
 
 ```
@@ -112,7 +112,7 @@ Returns the type of the axis corresponding to the second dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> coltype(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+julia> coltype(AxisArray(ones(2,2), ["a", "b"], [:one, :two]))
 Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
 ```
 """
@@ -128,7 +128,7 @@ Returns the keys corresponding to the second dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> colkeys(AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]))
+julia> colkeys(AxisArray(ones(2,2), ["a", "b"], [:one, :two]))
 2-element Array{Symbol,1}:
  :one
  :two
@@ -226,7 +226,7 @@ Returns the keys corresponding to all axes of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+julia> axes_keys(AxisArray(ones(2,2), (2:3, 3:4)))
 (2:3, 3:4)
 
 julia> axes_keys(Axis(1:2))
@@ -245,7 +245,7 @@ Returns the axis keys corresponding of ith dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> axes_keys(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+julia> axes_keys(AxisArray(ones(2,2), (2:3, 3:4)), 1)
 2:3
 ```
 """
@@ -260,7 +260,7 @@ Retrieves axis keys of the ith dimension of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> keys_type(AxisIndicesArray([1], ["a"]), 1)
+julia> keys_type(AxisArray([1], ["a"]), 1)
 Array{String,1}
 ```
 """
@@ -337,7 +337,7 @@ Returns the indices corresponding to the `i` axis
 ```jldoctest
 julia> using AxisIndices
 
-julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)), 1)
+julia> indices(AxisArray(ones(2,2), (2:3, 3:4)), 1)
 Base.OneTo(2)
 ```
 """
@@ -352,7 +352,7 @@ Returns the indices corresponding to all axes of `x`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> indices(AxisIndicesArray(ones(2,2), (2:3, 3:4)))
+julia> indices(AxisArray(ones(2,2), (2:3, 3:4)))
 (Base.OneTo(2), Base.OneTo(2))
 
 julia> indices(Axis(["a"], 1:1))
@@ -456,4 +456,27 @@ end
 select_axes(x::AbstractArray, d::Tuple) = select_axes(x, dims(dimnames(x), d))
 select_axes(x::AbstractArray, d::Tuple{Vararg{Int}}) = map(i -> axes(x, i), d)
 select_axes(x::Tuple, d::Tuple) = map(i -> getfield(x, i), d)
+
+#=
+    print_axis_compactly(io, axis)
+
+Determines how `axis` is printed when above a printed array
+=#
+print_axis_compactly(io, x) = print(io, x)
+print_axis_compactly(io, x::AbstractUnitRange) = print(io, "$(first(x)):$(last(x))")
+function print_axis_compactly(io, x::AbstractRange)
+    print(io, "$(first(x)):$(step(x)):$(last(x))")
+end
+
+function print_axis(io, axis)
+    if haskey(io, :compact)
+        print_axis_compactly(io, keys(axis))
+    else
+        if is_indices_axis(axis)
+            print(io, "$(typeof(axis).name)($(keys(axis)))")
+        else
+            print(io, "$(typeof(axis).name)($(keys(axis)) => $(indices(axis)))")
+        end
+    end
+end
 

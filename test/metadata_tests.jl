@@ -3,7 +3,7 @@ using MetadataArrays
 using AxisIndices
 
 x = reshape(1:8, 2, 4)
-y = AxisIndicesArray(x)
+y = AxisArray(x)
 z = MetadataArray(y)
 
 

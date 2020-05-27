@@ -23,7 +23,7 @@ end
 =#
 
 @testset "hcat" begin
-    a = AxisIndicesArray([1; 2; 3; 4; 5], (["a", "b", "c", "d", "e"],));
+    a = AxisArray([1; 2; 3; 4; 5], (["a", "b", "c", "d", "e"],));
     b = [6 7; 8 9; 10 11; 12 13; 14 15];
     #@test keys.(@inferred(hcat_axes(a, b))) == (["a", "b", "c", "d", "e"], OneToMRange(3))
 
@@ -36,7 +36,7 @@ end
 end
 
 @testset "vcat" begin
-    a = AxisIndicesArray([1 2 3 4 5], (1:1, ["a", "b", "c", "d", "e"],));
+    a = AxisArray([1 2 3 4 5], (1:1, ["a", "b", "c", "d", "e"],));
     b = [6 7 8 9 10; 11 12 13 14 15];
 
     @test axes_keys(vcat(a, b)) == axes_keys(vcat(b, a))
@@ -45,7 +45,7 @@ end
 end
 
 @testset "cat" begin
-    a = AxisIndicesArray(reshape(1:12, (3, 4)), (["a", "b", "c"], 2:5))
+    a = AxisArray(reshape(1:12, (3, 4)), (["a", "b", "c"], 2:5))
     b = parent(a)
     @test axes_keys(cat(a, a, dims=3)) == (["a", "b", "c"], 2:5, Base.OneTo(2))
     @test axes_keys(cat(b, a, dims=3)) == (["a", "b", "c"], 2:5, Base.OneTo(2))

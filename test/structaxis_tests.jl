@@ -8,7 +8,7 @@
 
     axis = StructAxis{NamedTuple{(:a,:b, :c),Tuple{Int,Int,Int}}}()
 
-    x = AxisIndicesArray(reshape(1:4, 2, 2), StructAxis{Rational}());
+    x = AxisArray(reshape(1:4, 2, 2), StructAxis{Rational}());
     x2 = structview(x);
     @test x2[1] isa Rational
 

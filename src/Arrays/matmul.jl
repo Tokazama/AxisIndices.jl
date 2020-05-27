@@ -38,22 +38,22 @@ matmul_axes(a::Tuple{Any},     b::Tuple{Any}    ) = ()
 
 for (N1,N2) in ((2,2), (1,2), (2,1))
     @eval begin
-        function Base.:*(a::AbstractAxisIndices{T1,$N1}, b::AbstractAxisIndices{T2,$N2}) where {T1,T2}
+        function Base.:*(a::AbstractAxisArray{T1,$N1}, b::AbstractAxisArray{T2,$N2}) where {T1,T2}
             return _matmul(a, promote_type(T1, T2), *(parent(a), parent(b)), matmul_axes(a, b))
         end
-        function Base.:*(a::AbstractArray{T1,$N1}, b::AbstractAxisIndices{T2,$N2}) where {T1,T2}
+        function Base.:*(a::AbstractArray{T1,$N1}, b::AbstractAxisArray{T2,$N2}) where {T1,T2}
             return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
         end
-        function Base.:*(a::AbstractAxisIndices{T1,$N1}, b::AbstractArray{T2,$N2}) where {T1,T2}
+        function Base.:*(a::AbstractAxisArray{T1,$N1}, b::AbstractArray{T2,$N2}) where {T1,T2}
             return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
         end
     end
 end
 
-function Base.:*(a::Diagonal{T1}, b::AbstractAxisIndices{T2,2}) where {T1,T2}
+function Base.:*(a::Diagonal{T1}, b::AbstractAxisArray{T2,2}) where {T1,T2}
     return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
 end
-function Base.:*(a::AbstractAxisIndices{T1,2}, b::Diagonal{T2}) where {T1,T2}
+function Base.:*(a::AbstractAxisArray{T1,2}, b::Diagonal{T2}) where {T1,T2}
     return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
 end
 
@@ -62,13 +62,13 @@ _matmul(A, ::Type{T}, a::AbstractArray{T}, axs) where {T} = unsafe_reconstruct(A
 
 # Using `CovVector` results in Method ambiguities; have to define more specific methods.
 for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
-    @eval function Base.:*(a::$A, b::AbstractAxisIndices{T,1,<:AbstractVector{T}}) where {T}
+    @eval function Base.:*(a::$A, b::AbstractAxisArray{T,1,<:AbstractVector{T}}) where {T}
         return *(a, parent(b))
     end
 end
 
 # vector^T * vector
-function Base.:*(a::AbstractAxisIndices{T,2,<:CoVector}, b::AbstractAxisIndices{S,1}) where {T,S}
+function Base.:*(a::AbstractAxisArray{T,2,<:CoVector}, b::AbstractAxisArray{S,1}) where {T,S}
     return *(parent(a), parent(b))
 end
 
@@ -94,7 +94,7 @@ end
 for fun in (:cor, :cov)
 
     fun_doc = """
-        $fun(x::AbstractAxisIndicesMatrix; dims=1, kwargs...)
+        $fun(x::AbstractAxisArrayMatrix; dims=1, kwargs...)
 
     Performs `$fun` on the parent matrix of `x` and reconstructs a similar type
     with the appropriate axes.
@@ -103,7 +103,7 @@ for fun in (:cor, :cov)
     ```jldoctest
     julia> using AxisIndices, Statistics
 
-    julia> A = AxisIndicesArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
+    julia> A = AxisArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
 
     julia> axes_keys($fun(A, dims = 2))
     (["a", "b", "c"], ["a", "b", "c"])
@@ -115,7 +115,7 @@ for fun in (:cor, :cov)
     """
     @eval begin
         @doc $fun_doc
-        function Statistics.$fun(x::AbstractAxisIndices{T,2}; dims=1, kwargs...) where {T}
+        function Statistics.$fun(x::AbstractAxisArray{T,2}; dims=1, kwargs...) where {T}
             p = Statistics.$fun(parent(x); dims=dims, kwargs...)
             return unsafe_reconstruct(x, p, covcor_axes(axes(x), axes(p), dims))
         end
@@ -124,7 +124,7 @@ end
 
 # TODO get rid of indicesarray_result
 for f in (:mean, :std, :var, :median)
-    @eval function Statistics.$f(a::AbstractAxisIndices; dims=:, kwargs...)
+    @eval function Statistics.$f(a::AbstractAxisArray; dims=:, kwargs...)
         return reconstruct_reduction(a, Statistics.$f(parent(a); dims=dims, kwargs...), dims)
     end
 end

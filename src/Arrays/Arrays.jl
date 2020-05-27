@@ -3,7 +3,10 @@ module Arrays
 using NamedDims
 using LinearAlgebra
 using Statistics
+
+using ArrayInterface
 using MappedArrays
+using MetadataArrays
 using StaticArrays
 using StaticRanges
 using StaticRanges: can_set_length
@@ -24,19 +27,30 @@ using AxisIndices.PrettyArrays
 using Base: @propagate_inbounds, OneTo, tail
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 
-export AbstractAxisIndices, AxisIndicesArray, NamedAxisArray
+export
+    AbstractAxisArray,
+    AbstractAxisMatrix,
+    AbstractAxisVecOrMat,
+    AbstractAxisVector,
+    AxisArray,
+    AxisVector,
+    MetaAxisArray,
+    NamedAxisArray
 
 export matmul_axes, get_factorization
 
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 
-include("abstractaxisindices.jl")
-include("axisindicesarray.jl")
+include("abstractaxisarray.jl")
+include("axisarray.jl")
+include("metaaxisarray.jl")
 include("broadcast.jl")
 include("permutedims.jl")
 include("map.jl")
 include("matmul.jl")
 include("factorizations.jl")
 include("namedaxisarray.jl")
+include("vectors.jl")
+include("matrix.jl")
 
 end

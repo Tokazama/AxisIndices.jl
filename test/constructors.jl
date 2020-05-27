@@ -48,17 +48,17 @@ end
 
     A_static = SMatrix{2,2}(A_fixed)
 
-    @testset "AxisIndicesArray(::AbstractArray)" begin
-        A_fixed_axes = @inferred(AxisIndicesArray(A_fixed));
-        A_static_axes = @inferred(AxisIndicesArray(A_static));
+    @testset "AxisArray(::AbstractArray)" begin
+        A_fixed_axes = @inferred(AxisArray(A_fixed));
+        A_static_axes = @inferred(AxisArray(A_static));
 
         @test @inferred(axes(A_fixed_axes)) isa Tuple{SimpleAxis{Int64,OneTo{Int64}},SimpleAxis{Int64,OneTo{Int64}}}
         @test @inferred(axes(A_static_axes)) isa Tuple{SimpleAxis{Int64,UnitSRange{Int64,1,2}},SimpleAxis{Int64,UnitSRange{Int64,1,2}}}
     end
 
-    @testset "AxisIndicesArray(::AbstractArray, ::Tuple{Keys...})" begin
-        A_fixed_axes = @inferred(AxisIndicesArray(A_fixed, (["a", "b"], [:one, :two])))
-        A_static_axes = @inferred(AxisIndicesArray(A_static))
+    @testset "AxisArray(::AbstractArray, ::Tuple{Keys...})" begin
+        A_fixed_axes = @inferred(AxisArray(A_fixed, (["a", "b"], [:one, :two])))
+        A_static_axes = @inferred(AxisArray(A_static))
 
         @test isa(@inferred(axes(A_fixed_axes)),
                   Tuple{SimpleAxis{Int64,OneToMRange{Int64}},SimpleAxis{Int64,OneToMRange{Int64}}})
@@ -66,51 +66,51 @@ end
                   Tuple{SimpleAxis{Int64,OneToSRange{Int64,2}},SimpleAxis{Int64,OneToSRange{Int64,2}}})
     end
 
-    @testset "AxisIndicesArray(::Array{T,0})" begin
-        A = AxisIndicesArray(Array{Int,0}(undef, ()))
+    @testset "AxisArray(::Array{T,0})" begin
+        A = AxisArray(Array{Int,0}(undef, ()))
     end
 
-    @testset "AxisIndicesArray{T,N}(::AbstractArray...)" begin
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), (["a", "b"], [:one, :two])))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), ["a", "b"], [:one, :two]))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), (2, 2)))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(ones(2,2), 2, 2))) <: Array{Int,2}
+    @testset "AxisArray{T,N}(::AbstractArray...)" begin
+        @test parent_type(@inferred(AxisArray{Int,2}(ones(2,2), (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(ones(2,2), ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(ones(2,2), (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(ones(2,2), 2, 2))) <: Array{Int,2}
 
     end
 
     # FIXME
-    @testset "AxisIndicesArray{T}(::AbstractArray...)" begin
-        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), (["a", "b"], [:one, :two])))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), ["a", "b"], [:one, :two]))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), (2, 2)))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int}(ones(2,2), 2, 2))) <: Array{Int,2}
+    @testset "AxisArray{T}(::AbstractArray...)" begin
+        @test parent_type(@inferred(AxisArray{Int}(ones(2,2), (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int}(ones(2,2), ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int}(ones(2,2), (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int}(ones(2,2), 2, 2))) <: Array{Int,2}
 
     end
 
-    @testset "AxisIndicesArray(undef, ::Tuple{Keys...})" begin
-        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, (2, 2)))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int}(undef, 2, 2))) <: Array{Int,2}
+    @testset "AxisArray(undef, ::Tuple{Keys...})" begin
+        @test parent_type(@inferred(AxisArray{Int}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int}(undef, (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int}(undef, 2, 2))) <: Array{Int,2}
 
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, (2, 2)))) <: Array{Int,2}
-        @test parent_type(@inferred(AxisIndicesArray{Int,2}(undef, 2, 2))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(undef, (["a", "b"], [:one, :two])))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(undef, ["a", "b"], [:one, :two]))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(undef, (2, 2)))) <: Array{Int,2}
+        @test parent_type(@inferred(AxisArray{Int,2}(undef, 2, 2))) <: Array{Int,2}
     end
 
 end
 
 
 @testset "column methods" begin
-    A = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two])
+    A = AxisArray(ones(2,2), ["a", "b"], [:one, :two])
     @test @inferred(colaxis(A)) isa Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
     @test @inferred(colkeys(A)) == [:one, :two]
     @test @inferred(coltype(A)) <: Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
 end
 
 @testset "row methods" begin
-    A = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two])
+    A = AxisArray(ones(2,2), ["a", "b"], [:one, :two])
     @test @inferred(rowaxis(A)) isa Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
     @test @inferred(rowkeys(A)) == ["a", "b"]
     @test @inferred(rowtype(A)) <: Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}

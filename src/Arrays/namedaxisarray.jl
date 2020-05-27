@@ -6,17 +6,17 @@ end
 StaticRanges.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 
 
-const NamedAxisArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisIndicesArray{T,N,P,AI}}
+const NamedAxisArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisArray{T,N,P,AI}}
 
 """
     NamedAxisArray(parent::AbstractArray; kwargs...) = NamedAxisArray(parent, kwargs)
     NamedAxisArray(parent::AbstractArray, axes::NamedTuple{L,AbstractAxes})
 
-Type alias for `NamedDimsArray` whose parent array is a subtype of `AxisIndicesArray`.
+Type alias for `NamedDimsArray` whose parent array is a subtype of `AxisArray`.
 An abbreviated alias and constructor for [`NamedAxisArray`](@ref). If key word
 arguments are provided then each key word becomes the name of a dimension and its
 assigned value is sent to the corresponding axis when constructing the underlying
-`AxisIndicesArray`.
+`AxisArray`.
 
 ## Examples
 ```jldoctest
@@ -77,7 +77,7 @@ const NamedAxisArray{L,T,N,P,AI} = NamedAxisArray{L,T,N,P,AI}
 
 NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, kwargs.data)
 function NamedAxisArray(x::AbstractArray, axs::NamedTuple{L}) where {L}
-    return NamedDimsArray{L}(AxisIndicesArray(x, values(axs)))
+    return NamedDimsArray{L}(AxisArray(x, values(axs)))
 end
 
 #=

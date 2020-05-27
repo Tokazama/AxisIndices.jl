@@ -125,11 +125,11 @@ Tables.schema(::Type{T}) where {T<:AbstractAxisTable} = Tables.schema(coltype(T)
 
 Stores a vector of columns that may be acccessed via the Tables.jl interface.
 """
-struct AxisTable{P<:AxisIndicesArray{<:Any,1},RA} <: AbstractAxisTable{P,RA}
+struct AxisTable{P<:AxisArray{<:Any,1},RA} <: AbstractAxisTable{P,RA}
     parent::P
     rowaxis::RA
 
-    function AxisTable{P,RA}(x::P, raxis::RA) where {P<:AxisIndicesArray{<:Any,1},RA<:AbstractAxis}
+    function AxisTable{P,RA}(x::P, raxis::RA) where {P<:AxisArray{<:Any,1},RA<:AbstractAxis}
         if length(x) > 1
             nr = length(raxis)
             for x_i in x
@@ -152,24 +152,24 @@ Base.parent(x::AxisTable) = getfield(x, :parent)
 
 Interface.rowaxis(x::AxisTable) = getfield(x, :rowaxis)
 
-function AxisTable(x::T, raxis::RA) where {T<:AxisIndicesArray{<:Any,1},RA<:AbstractAxis}
+function AxisTable(x::T, raxis::RA) where {T<:AxisArray{<:Any,1},RA<:AbstractAxis}
     return AxisTable{T,RA}(x, raxis)
 end
 
-function AxisTable(x::AxisIndicesArray{<:AbstractVector,1})
+function AxisTable(x::AxisArray{<:AbstractVector,1})
     return AxisTable(x, to_axis(axes(first(x), 1)))
 end
 
 AxisTable(; kwargs...) = AxisTable(values(kwargs))
 
 function AxisTable(x::AbstractVector{<:AbstractVector}, ks::AbstractVector)
-    return AxisTable(AxisIndicesArray(x, ks))
+    return AxisTable(AxisArray(x, ks))
 end
 
 function AxisTable(data::NamedTuple)
     axs = (StructAxis{typeof(data)}(),)
     p = SVector(values(data))
-    return AxisTable(AxisIndicesArray{eltype(p),1,typeof(p),typeof(axs)}(p, axs))
+    return AxisTable(AxisArray{eltype(p),1,typeof(p),typeof(axs)}(p, axs))
 end
 
 function AxisTable(data::AbstractDict{K,<:AbstractVector}) where {K}

@@ -1,6 +1,6 @@
 @testset "Base" begin
     m = [10 20; 31 40]
-    am = AxisIndicesArray(m, (2:3, 3:4))
+    am = AxisArray(m, (2:3, 3:4))
 
     @testset "$f" for f in (sum, prod, maximum, minimum, extrema)
         @test f(am) == f(m)
@@ -14,17 +14,17 @@
 
         @test axes_keys(f(am; dims=1)) == (2:3, 3:4) 
 
-        @test f([1, 4, 3]) == f(AxisIndicesArray([1, 4, 3]))
+        @test f([1, 4, 3]) == f(AxisArray([1, 4, 3]))
     end
 
     #= TODO
     @testset "sort!" begin
         a = [1 9; 7 3]
-        am = AxisIndicesArray(a, (2:3, 3:4))
+        am = AxisArray(a, (2:3, 3:4))
 
         # Vector case
         veca = [1, 9, 7, 3]
-        sort!(AxisIndicesArray(veca, :vec); order=Base.Reverse)
+        sort!(AxisArray(veca, :vec); order=Base.Reverse)
         @test issorted(veca; order=Base.Reverse)
 
         # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
@@ -41,7 +41,7 @@
 
     @testset "$f!" for (f,f!) in zip((sum, prod, maximum, minimum), (sum!, prod!, maximum!, minimum!))
         a = [10 20; 31 40]
-        am = AxisIndicesArray(a, (2:3, 3:4)) # size (2,2)
+        am = AxisArray(a, (2:3, 3:4)) # size (2,2)
 
         a1 = sum(am, dims=1)           # size (1,2)
         a2 = sum(am, dims=2)           # size (2,1)
@@ -53,9 +53,9 @@
             @test axes_keys(f!(a2, am)) == (2:3, 3:3) == axes_keys(f!(a2, a))
         end
         @testset "ndims==1 too" begin
-            x = AxisIndicesArray([3, 4], (2:3,))
-            y = AxisIndicesArray([5, 6], (3:4,))
-            v = AxisIndicesArray([7, 8])
+            x = AxisArray([3, 4], (2:3,))
+            y = AxisArray([5, 6], (3:4,))
+            v = AxisArray([7, 8])
 
             @test f!(parent(x), am) == f!([0,0], a) == dropdims(f(a, dims=2), dims=2)
             @test f!(v, am) == f!(x, a)
@@ -69,7 +69,7 @@
         if VERSION > v"1.1-"
             slices = [[111 121; 211 221], [112 122; 212 222]]
             cat_slices = cat(slices...; dims=3)
-            a = AxisIndicesArray(cat_slices, (2:3, 3:4, 4:5))
+            a = AxisArray(cat_slices, (2:3, 3:4, 4:5))
 
             @test sum(eachslice(a; dims=3)) ==
                   sum(eachslice(cat_slices; dims=3)) ==
@@ -87,7 +87,7 @@
 
     @testset "mapslices" begin
         m = [10 20; 31 40]
-        am = AxisIndicesArray(m, (2:3, 3:4))
+        am = AxisArray(m, (2:3, 3:4))
 
         @test mapslices(join, am; dims=1) ==
               mapslices(join, m; dims=1) ==
@@ -106,7 +106,7 @@
 
     @testset "mapreduce" begin
         m = [10 20; 31 40]
-        maxes = AxisIndicesArray(m, (2:3, 3:4))
+        maxes = AxisArray(m, (2:3, 3:4))
 
         @test mapreduce(isodd, |, maxes) == true == mapreduce(isodd, |, m)
         @test mapreduce(isodd, |, maxes; dims=1) == [true false]
@@ -116,7 +116,7 @@
 
     @testset "zero" begin
         m = [10 20; 31 40]
-        maxes = AxisIndicesArray(m, (2:3, 3:4))
+        maxes = AxisArray(m, (2:3, 3:4))
 
         @test zero(maxes) == [0 0; 0 0] == zero(m)
         @test axes_keys(zero(maxes)) == (2:3, 3:4)
@@ -124,7 +124,7 @@
 
     @testset "count" begin
         m = [true false; true true]
-        maxes = AxisIndicesArray(m, (2:3, 3:4))
+        maxes = AxisArray(m, (2:3, 3:4))
 
         @test count(maxes) == count(m) == 3
         @test_throws Exception count(a; dims=1)
@@ -132,7 +132,7 @@
 
     # TODO test warnings for immutable axes
     @testset "push!, pop!, etc" begin
-        v = AxisIndicesArray([10, 20, 30], (Axis(UnitMRange(2, 4),UnitMRange(1, 3)),))
+        v = AxisArray([10, 20, 30], (Axis(UnitMRange(2, 4),UnitMRange(1, 3)),))
 
         @test length(push!(v, 40)) == 4
         @test axes_keys(pushfirst!(v, 0)) == (1:5,)
@@ -144,9 +144,9 @@
     end
 
     @testset "append!, empty!" begin
-        v = AxisIndicesArray([10, 20, 30], (UnitMRange(2, 4),))
-        v45 = AxisIndicesArray([40, 50], (UnitMRange(3, 4),))
-        v0 = AxisIndicesArray([0, 0], (UnitMRange(4, 5),))
+        v = AxisArray([10, 20, 30], (UnitMRange(2, 4),))
+        v45 = AxisArray([40, 50], (UnitMRange(3, 4),))
+        v0 = AxisArray([0, 0], (UnitMRange(4, 5),))
 
         @test length(append!(v, v45)) == 5
         v = append!(v, [60,70])
@@ -160,7 +160,7 @@
     end
 
     @testset "map, map!" begin
-        maxes = AxisIndicesArray([11 12; 21 22], (2:3, 3:4))
+        maxes = AxisArray([11 12; 21 22], (2:3, 3:4))
 
         @test keys.(axes(map(+, maxes, maxes, maxes))) == (2:3, 3:4)
         @test keys.(axes(map(+, maxes, parent(maxes), maxes))) == (2:3, 3:4)
@@ -175,7 +175,7 @@
 
         #= TODO is this something we actually want?
         # map! may return a different wrapper of the same data, like sum!
-        semi = AxisIndicesArray(rand(2,2), (:x, :_))
+        semi = AxisArray(rand(2,2), (:x, :_))
         @test dimnames(map!(sqrt, rand(2,2), maxes)) == (:x, :y)
         @test dimnames(map!(sqrt, semi, maxes)) == (:x, :y)
         =#
@@ -187,8 +187,8 @@
 
     #= TODO
     @testset "filter" begin
-        nda = AxisIndicesArray([11 12; 21 22], (:x, :y))
-        ndv = AxisIndicesArray(1:7, (:z,))
+        nda = AxisArray([11 12; 21 22], (:x, :y))
+        ndv = AxisArray(1:7, (:z,))
 
         @test dimnames(filter(isodd, ndv)) == (:z,)
         @test dimnames(filter(isodd, nda)) == (:_,)
@@ -197,8 +197,8 @@
 
     #= TODO
     @testset "collect(generator)" begin
-        nda = AxisIndicesArray([11 12; 21 22], (:x, :y))
-        ndv = AxisIndicesArray([10, 20, 30], (:z,))
+        nda = AxisArray([11 12; 21 22], (:x, :y))
+        ndv = AxisArray([10, 20, 30], (:z,))
 
         @test dimnames([sqrt(x) for x in nda]) == (:x, :y)
 
@@ -225,11 +225,11 @@
 
     #= TODO
     @testset "equality" begin
-        nda = AxisIndicesArray([10 20; 30 40], (:x, :y))
-        nda2 = AxisIndicesArray([10 20; 30 40], (:x, :_))
-        nda3 = AxisIndicesArray([10 20; 30 40], (:x, :z))
-        nda4 = AxisIndicesArray([11 22; 33 44], (:x, :y))
-        ndv = AxisIndicesArray([10, 20, 30], (:x,))
+        nda = AxisArray([10 20; 30 40], (:x, :y))
+        nda2 = AxisArray([10 20; 30 40], (:x, :_))
+        nda3 = AxisArray([10 20; 30 40], (:x, :z))
+        nda4 = AxisArray([11 22; 33 44], (:x, :y))
+        ndv = AxisArray([10, 20, 30], (:x,))
 
         @testset "$eq" for eq in (Base.:(==), isequal, isapprox)
             @test eq(nda, nda)
@@ -247,7 +247,7 @@ end  # Base
 
 @testset "Statistics" begin
     m = [10 20; 30 40]
-    maxes = AxisIndicesArray(m, (2:3, 3:4))
+    maxes = AxisArray(m, (2:3, 3:4))
     @testset "$f" for f in (mean, std, var, median)
         @test f(maxes) == f(m)
         @test f(maxes; dims=1) == f(m; dims=1)

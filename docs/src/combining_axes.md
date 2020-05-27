@@ -33,9 +33,9 @@ julia> using AxisIndices
 
 julia> a = ones(3);
 
-julia> b = AxisIndicesArray(a, 2:4);
+julia> b = AxisArray(a, 2:4);
 
-julia> c = AxisIndicesArray(a, ["1", "2", "3"]);
+julia> c = AxisArray(a, ["1", "2", "3"]);
 ```
 
 We assume the lack of a formal axis defined in `a` indicates that it's keys are unimportant.
@@ -69,7 +69,7 @@ It may not be appropriate to define a promotion rule between something like `Int
 In this instance we clearly want to apply some sort of label along an axis and that label may or may not be intended to parse as an `Int`, so we always default to broadcasting the key type that is not a subtype of `Real`.
 
 ```jldoctest broadcast_examples
-julia> d = AxisIndicesArray(a, [:a, :b, :c]);
+julia> d = AxisArray(a, [:a, :b, :c]);
 
 julia> axes_keys(a .+ d, 1) == [:a, :b, :c]
 true

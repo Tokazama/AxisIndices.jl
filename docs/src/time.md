@@ -102,10 +102,10 @@ true
 
 This can naturally turn any array that is an `AbstractAxisIndices` subtype into a collection of time series data.
 ```jldoctest time_axis_example
-julia> x = AxisIndicesArray(collect(1:2:20), t);
+julia> x = AxisArray(collect(1:2:20), t);
 
 julia> x[:time_1]
-AxisIndicesArray{Int64,1,Array{Int64,1}...}
+AxisArray{Int64,1,Array{Int64,1}...}
  • dim_1 - TimeAxis(1 Axis(StepMRange(1 second:1 second:3 seconds seconds) => Base.OneTo(3))
 
    1 second   1

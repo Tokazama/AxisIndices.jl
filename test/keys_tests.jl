@@ -8,8 +8,8 @@
 
     @testset "reverse" begin
         x = [1, 2, 3]
-        y = AxisIndicesArray(x)
-        z = AxisIndicesArray(x, Axis([:one, :two, :three]))
+        y = AxisArray(x)
+        z = AxisArray(x, Axis([:one, :two, :three]))
 
         revx = reverse(x)
         revy = @inferred(reverse(y))
@@ -26,7 +26,7 @@
 
         @testset "reverse arrays" begin
             b = [1 2; 3 4]
-            x = AxisIndicesArray(b, [:one, :two], ["a", "b"])
+            x = AxisArray(b, [:one, :two], ["a", "b"])
 
             xrev1 = reverse(x, dims=1)
             xrev2 = reverse(x, dims=2)

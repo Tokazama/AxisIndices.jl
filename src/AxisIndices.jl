@@ -18,8 +18,8 @@ using Base.Cartesian
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
-    AbstractAxisIndices,
-    AxisIndicesArray,
+    AbstractAxisArray,
+    AxisArray,
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,

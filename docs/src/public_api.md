@@ -2,7 +2,7 @@
 
 ```@docs
 AbstractAxisIndices
-AxisIndicesArray
+AxisArray
 AbstractAxis
 AbstractSimpleAxis
 Axis

@@ -191,7 +191,6 @@ function Base.getindex(A::CartesianAxes, inds...)
     return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
 end
 
-
 """
     LinearAxes
 

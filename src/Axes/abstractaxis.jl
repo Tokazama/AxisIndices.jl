@@ -388,30 +388,17 @@ const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 
 Base.pairs(a::AbstractAxis) = Base.Iterators.Pairs(a, keys(a))
 
-function Base.show(io::IO, ::MIME"text/plain", a::AbstractAxis)
-    print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
+function Interface.print_axis_compactly(io, axis::AbstractAxis)
+    return Interface.print_axis_compactly(io, keys(axis))
 end
 
-function Base.show(io::IO, a::AbstractAxis)
-    print(io, "$(typeof(a).name)($(keys(a)) => $(values(a)))")
-end
-
-function Base.show(io::IO, ::MIME"text/plain", a::AbstractSimpleAxis)
-    print(io, "$(typeof(a).name)($(keys(a)))")
-end
-
-function Base.show(io::IO, a::AbstractSimpleAxis)
-    print(io, "$(typeof(a).name)($(keys(a)))")
-end
+Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = Interface.print_axis(io, axis)
+Base.show(io::IO, axis::AbstractAxis) = Interface.print_axis(io, axis)
 
 # This is different than how most of Julia does a summary, but it also makes errors
 # infinitely easier to read when wrapping things at multiple levels or using Unitful keys
 function Base.summary(io::IO, a::AbstractAxis)
     return print(io, "$(length(a))-element $(typeof(a).name)($(keys(a)) => $(values(a)))")
-end
-
-function Base.summary(io::IO, a::AbstractSimpleAxis)
-    return print(io, "$(length(a))-element $(typeof(a).name)($(values(a))))")
 end
 
 #=

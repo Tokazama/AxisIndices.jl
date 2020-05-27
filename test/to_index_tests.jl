@@ -166,8 +166,8 @@ end
 end
 
 @testset "to_indices" begin
-    A = AxisIndicesArray(ones(2,2),  (Axis(1:2), Axis(1.0:2.0)));
-    V = AxisIndicesArray(ones(2), ["a", "b"]);
+    A = AxisArray(ones(2,2),  (Axis(1:2), Axis(1.0:2.0)));
+    V = AxisArray(ones(2), ["a", "b"]);
 
     @testset "linear indexing" begin
         @test @inferred(to_indices(A, (1,))) == (1,)

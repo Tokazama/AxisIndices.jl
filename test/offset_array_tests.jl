@@ -46,7 +46,7 @@ end
                   fill!(OffsetArray{Float64}(undef, ntuple(x->x:x, n)...), 1),
                   fill!(OffsetArray{Float64,n}(undef, ntuple(x->x:x, n)), 1),
                   fill!(OffsetArray{Float64,n}(undef, ntuple(x->x:x, n)...), 1))
-            @test length(LinearIndices(AxisIndicesArray(z))) == 1
+            @test length(LinearIndices(AxisArray(z))) == 1
             @test axes(z) == ntuple(x->x:x, n)
             @test z[1] == 1
         end
@@ -61,16 +61,16 @@ end
 
 @testset "Offset range construction" begin
     r = -2:5
-    y = AxisIndicesArray(OffsetArray(r, r))
+    y = AxisArray(OffsetArray(r, r))
     @test axes(y) == (r,)
-    y = AxisIndicesArray(OffsetArray(r, (r,)))
+    y = AxisArray(OffsetArray(r, (r,)))
     @test axes(y) == (r,)
 end
 
 @testset "Traits" begin
     A0 = [1 3; 2 4]
-    A = AxisIndicesArray(OffsetArray(A0, (-1,2)))                   # IndexLinear
-    S = AxisIndicesArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)))   # IndexCartesian
+    A = AxisArray(OffsetArray(A0, (-1,2)))                   # IndexLinear
+    S = AxisArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)))   # IndexCartesian
     @test axes(A) == axes(S) == (0:1, 3:4)
     @test size(A) == size(A0)
     @test size(A, 1) == size(A0, 1)
@@ -80,8 +80,8 @@ end
 
 @testset "Scalar indexing" begin
     A0 = [1 3; 2 4]
-    A = AxisIndicesArray(OffsetArray(A0, (-1,2)));
-    S = AxisIndicesArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)));
+    A = AxisArray(OffsetArray(A0, (-1,2)));
+    S = AxisArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)));
 
     @test @inferred(A[0,3]) == @inferred(A[0,3,1]) == @inferred(A[1]) == @inferred(S[0,3]) == @inferred(S[0,3,1]) == @inferred(S[1]) == 1
     @test A[1,3] == A[1,3,1] == A[2] == S[1,3] == S[1,3,1] == S[2] == 2
@@ -103,7 +103,7 @@ end
     @inbounds Ac[0,3,1] = 12
     @test Ac[0,3] == 12
 
-    y = AxisIndicesArray(OffsetArray{Float64}(undef, -1:1, -7:7, -128:512, -5:5, -1:1, -3:3, -2:2, -1:1))
+    y = AxisArray(OffsetArray{Float64}(undef, -1:1, -7:7, -128:512, -5:5, -1:1, -3:3, -2:2, -1:1))
     y[-1,-7,-128,-5,-1,-3,-2,-1] = 14
     y[-1,-7,-128,-5,-1,-3,-2,-1] += 5
     @test y[-1,-7,-128,-5,-1,-3,-2,-1] == 19
@@ -111,8 +111,8 @@ end
 
 @testset "CartesianAxisCore" begin
     A0 = [1 3; 2 4]
-    A = AxisIndicesArray(OffsetArray(A0, (-1,2)));
-    S = AxisIndicesArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)));
+    A = AxisArray(OffsetArray(A0, (-1,2)));
+    S = AxisArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)));
 
     @test A[CartesianIndex((0,3))] == S[CartesianIndex((0,3))] == 1
     @test A[CartesianIndex((0,3)),1] == S[CartesianIndex((0,3)),1] == 1
@@ -133,8 +133,8 @@ end
     A_1 = OffsetArray(A0, (-1,2))
     S_1 = OffsetArray(view(A0, 1:2, 1:2), (-1,2))
 
-    A = AxisIndicesArray(OffsetArray(A0, (-1,2)))
-    S = AxisIndicesArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)))
+    A = AxisArray(OffsetArray(A0, (-1,2)))
+    S = AxisArray(OffsetArray(view(A0, 1:2, 1:2), (-1,2)))
 
     s = S[:, 3]
     s == S_1[:,3]
@@ -156,29 +156,29 @@ end
 
 #= TODO
 @testset "Vector indexing with offset ranges" begin
-    r = AxisIndicesArray(OffsetArray(8:10, -1:1))
+    r = AxisArray(OffsetArray(8:10, -1:1))
     r1 = r[0:1]
     @test r1 == 9:10
-    r1 = (8:10)[AxisIndicesArray(OffsetArray(1:2, -5:-4))]
+    r1 = (8:10)[AxisArray(OffsetArray(1:2, -5:-4))]
     @test axes(r1) == (IdentityUnitRange(-5:-4),)
     @test parent(r1) == 8:9
-    r1 = AxisIndicesArray(OffsetArray(8:10, -1:1))[OffsetArray(0:1, -5:-4)]
+    r1 = AxisArray(OffsetArray(8:10, -1:1))[OffsetArray(0:1, -5:-4)]
     @test axes(r1) == (IdentityUnitRange(-5:-4),)
     @test parent(r1) == 9:10
 end
 
 @testset "view" begin
     A0 = [1 3; 2 4]
-    A = AxisIndicesArray(OffsetArray(A0, (-1,2)))
+    A = AxisArray(OffsetArray(A0, (-1,2)))
 
     S = view(A, :, 3)
-    @test S == AxisIndicesArray(OffsetArray([1,2], (A.offsets[1],)))
+    @test S == AxisArray(OffsetArray([1,2], (A.offsets[1],)))
     @test S[0] == 1
     @test S[1] == 2
     @test_throws BoundsError S[2]
     @test axes(S) == (IdentityUnitRange(0:1),)
     S = view(A, 0, :)
-    @test S == AxisIndicesArray(OffsetArray([1,3], (A.offsets[2],)))
+    @test S == AxisArray(OffsetArray([1,3], (A.offsets[2],)))
     @test S[3] == 1
     @test S[4] == 3
     @test_throws BoundsError S[1]
@@ -237,10 +237,10 @@ end
 
 @testset "similar" begin
     A0 = [1 3; 2 4]
-    A = AxisIndicesArray(OffsetArray(A0, (-1, 2)))
+    A = AxisArray(OffsetArray(A0, (-1, 2)))
 
     B = similar(A, Float32)
-    @test isa(B, AxisIndicesArray(OffsetArray{Float32,2}))
+    @test isa(B, AxisArray(OffsetArray{Float32,2}))
     @test axes(B) == axes(A)
     B = similar(A, (3,4))
     @test isa(B, Array{Int,2})
@@ -318,7 +318,7 @@ end
 end
 
 @testset "copyto!" begin
-    a = AxisIndicesArray(OffsetArray{Int}(undef, (-3:-1,)))
+    a = AxisArray(OffsetArray{Int}(undef, (-3:-1,)))
     fill!(a, -1)
     copyto!(a, (1,2))   # non-array iterables
     @test a[-3] == 1
@@ -343,7 +343,7 @@ end
     @test a[-1] == 2
 
     b = 1:2    # copy between AbstractArrays
-    bo = AxisIndicesArray(OffsetArray(1:2, (-3,)))
+    bo = AxisArray(OffsetArray(1:2, (-3,)))
     if VERSION < v"1.5-"
         @test_throws BoundsError copyto!(a, b)
         fill!(a, -1)
@@ -384,7 +384,7 @@ end
 end
 
 @testset "map" begin
-    am = AxisIndicesArray(OffsetArray{Int}(undef, (1:1, 7:9)))  # for testing linear indexing
+    am = AxisArray(OffsetArray{Int}(undef, (1:1, 7:9)))  # for testing linear indexing
     fill!(am, -1)
     copyto!(am, 1:2)
 
@@ -396,7 +396,7 @@ end
 end
 
 @testset "reductions" begin
-    A = AxisIndicesArray(OffsetArray(rand(4,4), (-3,5)))
+    A = AxisArray(OffsetArray(rand(4,4), (-3,5)))
     @test maximum(A) == maximum(parent(A))
     @test minimum(A) == minimum(parent(A))
     @test extrema(A) == extrema(parent(A))
@@ -551,8 +551,8 @@ end
 @testset "no nesting" begin
     A = randn(2, 3)
     x = A[2, 2]
-    O1 = AxisIndicesArray(OffsetArray(A, -1:0, -1:1))
-    O2 = AxisIndicesArray(OffsetArray(O1, 0:1, 0:2))
+    O1 = AxisArray(OffsetArray(A, -1:0, -1:1))
+    O2 = AxisArray(OffsetArray(O1, 0:1, 0:2))
     @test parent(O1) ≡ parent(O2)
     @test eltype(O1) ≡ eltype(O2)
     O2[1, 1] = x + 1            # just a sanity check
@@ -561,7 +561,7 @@ end
 
 @testset "mutating functions for OffsetVector" begin
     # push!
-    o = AxisIndicesArray(OffsetVector(Int[], -1))
+    o = AxisArray(OffsetVector(Int[], -1))
     @test push!(o) === o
     @test axes(o, 1) == 0:-1
     @test push!(o, 1) === o
@@ -571,11 +571,11 @@ end
     @test axes(o, 1) == 0:2
     @test o[end-1:end] == [2, 3]
     # pop!
-    o = AxisIndicesArray(OffsetVector([1, 2, 3], -1))
+    o = AxisArray(OffsetVector([1, 2, 3], -1))
     @test pop!(o) == 3
     @test axes(o, 1) == 0:1
     # empty!
-    o = AxisIndicesArray(OffsetVector([1, 2, 3], -1))
+    o = AxisArray(OffsetVector([1, 2, 3], -1))
     @test empty!(o) === o
     @test axes(o, 1) == 0:-1
 end
@@ -584,7 +584,7 @@ end
 
 @testset "iteration" begin
     A0 = [1 3; 2 4]
-    A = AxisIndicesArray(OffsetArray(A0, (-1, 2)))
+    A = AxisArray(OffsetArray(A0, (-1, 2)))
 
     let a
         for (a,d) in zip(A, A0)

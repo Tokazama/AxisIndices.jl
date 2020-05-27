@@ -18,11 +18,11 @@ Axes can indicate what kind of array you want (static/fixed size) and/or can map
 ```julia
 julia> using AxisIndices
 
-julia> parent_type(AxisIndicesArray{Int}(undef, OneToSRange(2), OneToSRange(2)))
+julia> parent_type(AxisArray{Int}(undef, OneToSRange(2), OneToSRange(2)))
 StaticArrays.MArray{Tuple{2,2},Int64,2,4}
 
-julia> A = AxisIndicesArray(reshape(1:4, 2, 2), [:a, :b], ["one", "two"])
-AxisIndicesArray{Int64,2,Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}...}
+julia> A = AxisArray(reshape(1:4, 2, 2), [:a, :b], ["one", "two"])
+AxisArray{Int64,2,Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}...}
  • dim_1 - Axis([:a, :b] => Base.OneTo(2))
  • dim_2 - Axis(["one", "two"] => Base.OneTo(2))
       one   two

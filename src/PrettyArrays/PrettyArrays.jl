@@ -21,8 +21,12 @@ function show_array(
     dnames::Tuple=ntuple(i -> Symbol(:dim_, i), N);
     kwargs...
 ) where {T,N}
+
+    axis_io = IOContext(io, :compact => true)
     for i in 1:N
-        println(io, " • $(getfield(dnames, i)) - $(getfield(axs, i))")
+        print(axis_io, " • $(getfield(dnames, i)) - ")
+        print(axis_io, getfield(axs, i))
+        print(axis_io, "\n")
     end
 
     io_has_color = get(io, :color, false)

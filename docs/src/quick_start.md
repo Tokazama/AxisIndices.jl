@@ -4,12 +4,12 @@ Custom indexing only requires specifying a tuple of keys[^1] for the indices of 
 ```jldoctest quick_start_example
 julia> using AxisIndices
 
-julia> A = AxisIndicesArray(reshape(1:9, 3,3),
+julia> A = AxisArray(reshape(1:9, 3,3),
                (2:4,        # first dimension has keys 2:4
                 3.0:5.0));  # second dimension has keys 3.0:5.0
 ```
 
-Most code should work just the same for an `AxisIndicesArray`...
+Most code should work just the same for an `AxisArray`...
 ```jldoctest quick_start_example
 julia> A[1, 1]
 1
@@ -33,7 +33,7 @@ true
 Any value that is not a `CartesianIndex` or subtype of `Real` is considered a dedicated key type.
 In other words, it could never be used for default indexing and will be treated the same as the `==` filtering syntax above.
 ```jldoctest quick_start_example
-julia> AxisIndicesArray([1, 2, 3], (["one", "two", "three"],))["one"]
+julia> AxisArray([1, 2, 3], (["one", "two", "three"],))["one"]
 1
 ```
 
