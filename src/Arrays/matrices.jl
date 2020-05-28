@@ -147,11 +147,28 @@ end
 _matmul(A, ::Type{T}, a::T, axs) where {T} = a
 _matmul(A, ::Type{T}, a::AbstractArray{T}, axs) where {T} = unsafe_reconstruct(A, a, axs)
 
-# Using `CovVector` results in Method ambiguities; have to define more specific methods.
+#= Using `CovVector` results in Method ambiguities; have to define more specific methods.
 for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
     @eval function Base.:*(a::$A, b::AbstractAxisArray{T,1,<:AbstractVector{T}}) where {T}
         return *(a, parent(b))
     end
+end
+=#
+
+function Base.:*(
+    a::Adjoint{T1,<:AbstractVector{T1}},
+    b::AbstractAxisArray{T,1,<:AbstractVector{T}}
+) where {T1<:Number,T}
+
+    return *(a, parent(b))
+end
+
+function Base.:*(
+    a::Transpose{T1,<:AbstractVector{T1}},
+    b::AbstractAxisArray{T,1,<:AbstractVector{T}}
+) where {T1<:Real,T}
+
+    return *(a, parent(b))
 end
 
 # vector^T * vector
