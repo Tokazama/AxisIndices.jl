@@ -144,9 +144,7 @@ function pretty_array_text(
     )
 end
 
-function text_format(row, col::Base.OneTo)
-    TextFormat(borderless, hlines=Symbol[])
-end
+text_format(row, col) = TextFormat(borderless, hlines=Symbol[])
 text_rownum_header_crayon(row) = Crayon(bold = true)
 
 #=

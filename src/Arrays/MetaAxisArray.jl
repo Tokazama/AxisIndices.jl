@@ -24,8 +24,12 @@ An AxisArray with metadata.
 ## Examples
 ```jldoctest
 julia> AxisIndices
+ERROR: UndefVarError: AxisIndices not defined
 
 julia> MetaAxisArray(ones(2, 2))
+ERROR: UndefVarError: MetaAxisArray not defined
+Stacktrace:
+ [1] top-level scope at /Users/zchristensen/projects/AxisIndices.jl/test/runtests.jl:120
 ```
 """
 const MetaAxisArray{T,N,Ax,M,P<:AbstractAxisArray{T,N,Ax}} = MetadataArray{T,N,M,P}

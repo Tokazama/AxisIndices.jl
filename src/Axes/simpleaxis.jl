@@ -36,7 +36,7 @@ Stacktrace:
  [1] to_index at /Users/zchristensen/projects/AxisIndices.jl/src/Interface/styles.jl:141 [inlined]
  [2] to_index at /Users/zchristensen/projects/AxisIndices.jl/src/Interface/styles.jl:94 [inlined]
  [3] getindex(::SimpleAxis{Int64,UnitRange{Int64}}, ::Int64) at /Users/zchristensen/projects/AxisIndices.jl/src/Axes/indexing.jl:120
- [4] top-level scope at /Users/zchristensen/projects/AxisIndices.jl/test/runtests.jl:121
+ [4] top-level scope at /Users/zchristensen/projects/AxisIndices.jl/test/runtests.jl:120
 ```
 """
 struct SimpleAxis{V,Vs<:AbstractUnitRange{V}} <: AbstractSimpleAxis{V,Vs}

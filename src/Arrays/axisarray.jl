@@ -48,6 +48,7 @@ julia> using AxisIndices
 
 julia> AxisArray(ones(2,2), (SimpleAxis(2), SimpleAxis(2)))
 AxisArray{Float64,2,Array{Float64,2}...}
+2×2 Array{Float64,2}
  • dim_1 - 1:2
  • dim_2 - 1:2
         1     2
@@ -84,6 +85,7 @@ julia> using AxisIndices
 
 julia> AxisArray(ones(2,2), (["a", "b"], ["one", "two"]))
 AxisArray{Float64,2,Array{Float64,2}...}
+2×2 Array{Float64,2}
  • dim_1 - ["a", "b"]
  • dim_2 - ["one", "two"]
       one   two
