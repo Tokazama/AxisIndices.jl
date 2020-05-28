@@ -4,8 +4,10 @@
 module Tabular
 
 using StaticArrays
+
+using AxisIndices.Styles
+
 using AxisIndices.Interface
-using AxisIndices.Interface: is_element, to_index
 
 using AxisIndices.Axes
 

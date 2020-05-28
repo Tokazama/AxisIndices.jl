@@ -8,6 +8,7 @@ using Documenter
 using Dates
 using Tables
 using AxisIndices
+using AxisIndices.Styles
 using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes
 using AxisIndices.Interface
 using MappedArrays
@@ -17,7 +18,7 @@ using AxisIndices.Axes
 using AxisIndices.Arrays
 using AxisIndices.Tabular
 using AxisIndices: matmul_axes # from MappedArrays
-using StaticRanges: can_set_first, can_set_last, can_set_length
+using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
 #using OffsetArrays

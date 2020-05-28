@@ -22,9 +22,8 @@ end
 An AxisArray with metadata.
 
 ## Examples
-```jldoctest
-julia> AxisIndices
-ERROR: UndefVarError: AxisIndices not defined
+```julia
+julia> using AxisIndices
 
 julia> MetaAxisArray(ones(2, 2))
 ERROR: UndefVarError: MetaAxisArray not defined
@@ -38,13 +37,13 @@ function MetaAxisArray(A::AbstractArray, axs::Tuple=axes(A); metadata=nothing, k
     return MetadataArray(AxisArray(A, axs), _construct_meta(metadata; kwargs...))
 end
 
-function Base.show(io::IO, x::MetaAxisArray; kwargs...)
-    return show(io, MIME"text/plain"(), x, kwargs...)
+function Base.show(io::IO, A::MetaAxisArray; kwargs...)
+    return show(io, MIME"text/plain"(), A, kwargs...)
 end
 
-function Base.show(io::IO, m::MIME"text/plain", x::MetaAxisArray{T,N}; kwargs...) where {T,N}
-    println(io, "$(typeof(x).name.name){$T,$N,$(parent_type(x))...}")
-    return show_array(io, parent(x), axes(x); kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::MetaAxisArray{T,N}; kwargs...) where {T,N}
+    println(io, "$(typeof(A).name.name){$T,$N,$(parent_type(A))...}")
+    return show_array(io, parent(A), axes(A); kwargs...)
 end
 
 
@@ -93,7 +92,7 @@ function NamedMetaAxisArray(
 end
 
 function NamedMetaAxisArray{L}(
-    x::AbstractArray{T,N},
+    A::AbstractArray{T,N},
     args...;
     metadata=nothing,
     kwargs...
@@ -102,12 +101,12 @@ function NamedMetaAxisArray{L}(
     if metadata isa Nothing
         if isempty(args)
             if isempty(kwargs)
-                return NamedMetaAxisArray{L}(x, metadata)
+                return NamedMetaAxisArray{L}(A, metadata)
             else
-                return NamedMetaAxisArray{L}(x, values(kwargs), metadata)
+                return NamedMetaAxisArray{L}(A, values(kwargs), metadata)
             end
         elseif isempty(kwargs)
-            return NamedMetaAxisArray(x, args, metadata)
+            return NamedMetaAxisArray(A, args, metadata)
         else
             error("Indices can only be specified by keywords or additional arguments after the parent array, not both.")
         end

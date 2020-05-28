@@ -4,7 +4,7 @@
 
 Setup for running axis examples.
 ```jldoctest indexing_examples
-julia> using AxisIndices, Unitful, IntervalSets
+julia> using AxisIndices, Unitful, IntervalSets, ChainedFixes
 
 julia> using Unitful: s
 

@@ -87,65 +87,33 @@ end
 We have to define several index types (AbstractUnitRange, Integer, and i...) in
 order to avoid ambiguities.
 =#
-@propagate_inbounds function Base.getindex(
-    axis::AbstractAxis{K,V,Ks,Vs},
-    arg::AbstractUnitRange{<:Integer}
-) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-
-    index = to_index(axis, arg)
-    return unsafe_reconstruct(axis, to_keys(axis, arg, index), index)
+@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::AbstractUnitRange{<:Integer})
+    inds = to_index(axis, arg)
+    if is_indices_axis(axis)
+        return unsafe_reconstruct(axis, inds)
+    else
+        return unsafe_reconstruct(axis, to_keys(axis, arg, inds), inds)
+    end
 end
 
-@propagate_inbounds function Base.getindex(
-    axis::AbstractSimpleAxis{V,Vs},
-    args::AbstractUnitRange{<:Integer}
-) where {V<:Integer,Vs<:AbstractUnitRange{V}}
+@propagate_inbounds Base.getindex(axis::AbstractAxis, i::Integer) = to_index(axis, i)
 
-    return unsafe_reconstruct(axis, to_index(axis, args))
+@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::StepRange{<:Integer})
+    return to_index(axis, arg)
 end
 
-@propagate_inbounds function Base.getindex(
-    a::AbstractAxis{K,V,Ks,Vs},
-    i::Integer
-) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-
-    return to_index(a, i)
-end
-
-@propagate_inbounds function Base.getindex(
-    a::AbstractSimpleAxis{V,Vs},
-    i::Integer
-
-) where {V<:Integer,Vs<:AbstractUnitRange{V}}
-    return to_index(a, i)
-end
-
-@propagate_inbounds function Base.getindex(
-    a::AbstractAxis{K,V,Ks,Vs},
-    i::StepRange{<:Integer}
-)  where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-
-    return to_index(a, i)
-end
-
-@propagate_inbounds function Base.getindex(
-    axis::AbstractAxis{K,V,Ks,Vs},
-    arg
-) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V}}
-
+@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg)
     return _axis_getindex(axis, arg, to_index(axis, arg))
 end
 
-@inline function _axis_getindex(axis::AbstractAxis, arg, index::AbstractUnitRange)
-    return unsafe_reconstruct(axis, to_keys(axis, arg, index), index)
+@inline function _axis_getindex(axis::AbstractAxis, arg, inds::AbstractUnitRange)
+    if is_indices_axis(axis)
+        return unsafe_reconstruct(axis, inds)
+    else
+        return unsafe_reconstruct(axis, to_keys(axis, arg, inds), inds)
+    end
 end
 _axis_getindex(axis::AbstractAxis, arg, index) = index
-
-@inline function _axis_getindex(axis::AbstractSimpleAxis, arg, index::AbstractUnitRange)
-    return unsafe_reconstruct(axis, index)
-end
-_axis_getindex(axis::AbstractSimpleAxis, arg, index) = index
-
 
 """
     CartesianAxes

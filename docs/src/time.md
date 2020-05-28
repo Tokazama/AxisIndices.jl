@@ -8,7 +8,7 @@ Second, we define a new trait that changes indexing.
 
 This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
 ```jldoctest time_axis_example
-julia> using AxisIndices, Dates, Unitful
+julia> using AxisIndices, Dates, Unitful, ChainedFixes
 
 julia> struct TimeAxis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
            axis::Axis{K,V,Ks,Vs}

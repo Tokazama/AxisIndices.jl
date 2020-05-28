@@ -306,7 +306,7 @@ end
 
 for (tf, T, sf, S) in ((parent, :AbstractAxisVecOrMat, parent, :AbstractAxisVecOrMat),
                        (parent, :AbstractAxisVecOrMat, identity, :AbstractVecOrMat),
-                       (identity, :AbstractVecOrMat, parent,  :AbstractAxisVecOrMat))
+                       (identity, :AbstractVecOrMat, parent, :AbstractAxisVecOrMat))
     @eval function Base.vcat(A::$T, B::$S, Cs::AbstractVecOrMat...)
         p = vcat($tf(A), $sf(B))
         axs = Axes.vcat_axes(A, B, p)

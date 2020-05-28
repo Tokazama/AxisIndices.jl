@@ -31,7 +31,7 @@ Returns the permuted axes of `x` as axes of size 1 × length(x)
 
 ## Examples
 ```jldoctest
-julia> using AxisIndices
+julia> using AxisIndices, StaticRanges
 
 julia> length.(AxisIndices.permute_axes(rand(4))) == (1, 4)
 true

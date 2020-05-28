@@ -121,4 +121,3 @@ function assign_indices(axis, inds)
         return unsafe_reconstruct(axis, keys(axis), inds)
     end
 end
-

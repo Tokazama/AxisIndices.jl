@@ -6,16 +6,10 @@ module AxisIndices
     replace(read(path, String), r"^```julia"m => "```jldoctest README")
 end AxisIndices
 
+using Reexport
 using StaticRanges
-using Statistics
-using Dates
+using ChainedFixes
 using IntervalSets
-using MappedArrays
-using PrettyTables
-using LinearAlgebra
-using Base: @propagate_inbounds, OneTo, tail, front, Fix2
-using Base.Cartesian
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
     AbstractAxisArray,
@@ -50,34 +44,20 @@ export
     dimnames,
     dim,
     # methods
-    parent_type,
     srange,
     mrange,
-    indices_type,
-    keys_type,
-    first_key,
-    last_key,
-    rowaxis,
-    rowkeys,
-    rowtype,
-    colaxis,
-    colkeys,
-    coltype,
     structview,
-    and,
-    ⩓,
-    or,
-    ⩔,
+    and, ⩓, or, ⩔,
     ..,
-    indices,
-    axes_keys,
-    pretty_array,
-    # traits,
-    is_indices_axis
+    pretty_array
 
 include("./Interface/Interface.jl")
-using .Interface
-using .Interface: to_index, to_keys, step_key, append_axis!
+@reexport using .Interface
+using .Interface: step_key, append_axis!
+
+include("./Styles/Styles.jl")
+using .Styles
+using .Styles: to_index, to_keys
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays

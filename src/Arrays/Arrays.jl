@@ -1,3 +1,4 @@
+
 module Arrays
 
 using NamedDims
@@ -12,8 +13,10 @@ using StaticRanges: can_set_length
 using StaticRanges: resize_last, resize_last!, grow_last, grow_last!, grow_first!, shrink_last!, shrink_first!
 using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
 
+using AxisIndices.Styles
+
 using AxisIndices.Interface
-using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, to_index, maybe_tail, naxes, check_axis_length
+using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
 
 
@@ -55,3 +58,4 @@ include("vectors.jl")
 include("matrices.jl")
 
 end
+

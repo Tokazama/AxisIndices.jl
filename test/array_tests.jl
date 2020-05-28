@@ -1,6 +1,6 @@
 @testset "Array Interface" begin
     x = AxisArray([1 2; 3 4]);
-    @test AxisIndices.parent_type(typeof(x)) == AxisIndices.parent_type(x) == Array{Int,2}
+    @test parent_type(typeof(x)) == parent_type(x) == Array{Int,2}
     @test size(x) == (2, 2)
     @test parentindices(x) == parentindices(parent(x))
 
@@ -41,7 +41,7 @@ end
 
 @testset "Interface" begin
     A = typeof(AxisArray(ones(1), SimpleAxis(1)))
-    @test @inferred(AxisIndices.axes_type(A)) <: Tuple{SimpleAxis{Int,Base.OneTo{Int}}}
+    @test @inferred(axes_type(A)) <: Tuple{SimpleAxis{Int,Base.OneTo{Int}}}
     @test @inferred(AxisIndices.keys_type(A)) <: Base.OneTo{Int}
     @test @inferred((A -> AxisIndices.indices_type(A, 1))(A)) <: Base.OneTo{Int}
     @test @inferred((A -> AxisIndices.keys_type(A, 1))(A)) <: Base.OneTo{Int}

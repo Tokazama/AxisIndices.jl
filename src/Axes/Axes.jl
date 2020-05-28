@@ -4,8 +4,10 @@ using MappedArrays
 using StaticArrays
 using StaticRanges
 using AxisIndices.Interface
-using AxisIndices.Interface: to_index, maybe_tail, unsafe_reconstruct, to_keys,
-    check_axis_length, assign_indices
+using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, check_axis_length, assign_indices
+
+using AxisIndices.Styles
+using AxisIndices.Styles: to_index, to_keys
 
 using StaticRanges
 using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
@@ -36,6 +38,7 @@ include("Axis.jl")
 include("SimpleAxis.jl")
 include("StructAxis.jl")
 include("MetaAxis.jl")
+include("CenteredAxis.jl")
 include("promotion.jl")
 include("to_axis.jl")
 include("to_axes.jl")

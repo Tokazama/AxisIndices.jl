@@ -189,9 +189,7 @@ function AxisArray{T}(init::ArrayInitializer, axs::Tuple) where {T}
     return AxisArray{T,length(axs)}(init, axs)
 end
 
-function AxisArray{T}(x::AbstractArray, axs::Vararg) where {T}
-    return AxisArray{T,ndims(x)}(x, axs)
-end
+AxisArray{T}(x::AbstractArray, axs::Vararg) where {T} = AxisArray{T,ndims(x)}(x, axs)
 
 function AxisArray{T}(init::ArrayInitializer, axs::Vararg) where {T}
     return AxisArray{T,length(axs)}(init, axs)

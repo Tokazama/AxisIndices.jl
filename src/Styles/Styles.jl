@@ -1,3 +1,38 @@
+module Styles
+
+using AxisIndices.Interface
+using ChainedFixes
+using IntervalSets
+using StaticRanges
+using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
+
+export
+    Indices,
+    Keys,
+    AxisIndicesStyle,
+    KeyElement,
+    IndexElement,
+    BoolElement,
+    CartesianElement,
+    KeysCollection,
+    IndicesCollection,
+    IntervalCollection,
+    BoolsCollection,
+    KeysIn,
+    IndicesIn,
+    KeyEquals,
+    IndexEquals,
+    KeysFix2,
+    IndicesFix2,
+    SliceCollection,
+    KeyedStyle,
+    # methods
+    is_collection,
+    is_element,
+    is_index,
+    is_key,
+    to_index,
+    to_keys
 
 """
     Indices(arg)
@@ -427,3 +462,71 @@ force_keys(S::AxisIndicesStyle) = S
 force_keys(S::IndicesCollection) = KeysCollection()
 force_keys(S::IndexElement) = KeyElement()
 
+# handle offsets
+@inline function k2v(axis::A, index::AbstractVector) where {A}
+    if StaticRanges.has_offset_axes(A)
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index .+ (first(axis) - firstindex(keys(axis)))
+        else
+            return index .+ (first(axis) - 1)
+        end
+    else
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index .+ (firstindex(keys(axis)) - 1)
+        else
+            return index
+        end
+    end
+end
+
+# move index from key indices space to values indices space
+@inline function k2v(axis::A, index::Integer) where {A}
+    if StaticRanges.has_offset_axes(A)
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index + (first(axis) - firstindex(keys(axis)))
+        else
+            return index + (first(axis) - 1)
+        end
+    else
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index + (firstindex(keys(axis)) - 1)
+        else
+            return index
+        end
+    end
+end
+
+## values -> keys
+@inline function v2k(axis::A, index::AbstractVector) where {A}
+    if StaticRanges.has_offset_axes(A)
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index .+ (firstindex(keys(axis)) - first(axis))
+        else
+            return index .+ (1 - first(axis))
+        end
+    else
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index .+ (1 - firstindex(keys(axis)))
+        else
+            return index
+        end
+    end
+end
+
+@inline function v2k(axis::A, index::Integer) where {A}
+    if StaticRanges.has_offset_axes(A)
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index + (firstindex(keys(axis)) - first(axis))
+        else
+            return index + (1 - first(axis))
+        end
+    else
+        if StaticRanges.has_offset_axes(keys_type(A))
+            return index + (1 - firstindex(keys(axis)))
+        else
+            return index
+        end
+    end
+end
+
+end

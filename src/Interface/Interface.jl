@@ -1,33 +1,11 @@
 module Interface
 
 using NamedDims
-using ChainedFixes
-using IntervalSets
 using StaticRanges
 
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
 
 export
-    # Traits
-    Indices,
-    Keys,
-    AxisIndicesStyle,
-    KeyElement,
-    IndexElement,
-    BoolElement,
-    CartesianElement,
-    KeysCollection,
-    IndicesCollection,
-    IntervalCollection,
-    BoolsCollection,
-    KeysIn,
-    IndicesIn,
-    KeyEquals,
-    IndexEquals,
-    KeysFix2,
-    IndicesFix2,
-    SliceCollection,
-    KeyedStyle,
     @defdim,
     # methods
     axes_keys,
@@ -46,11 +24,7 @@ export
     named_axes,
     indices,
     indices_type,
-    is_collection,
-    is_element,
-    is_index,
     is_indices_axis,
-    is_key,
     keys_type,
     rowaxis,
     rowkeys,
@@ -75,7 +49,6 @@ include("names.jl")
 include("axes.jl")
 include("rows.jl")
 include("cols.jl")
-include("styles.jl")
 include("metadata.jl")
 include("constructors.jl")
 
