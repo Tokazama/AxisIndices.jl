@@ -70,8 +70,11 @@ end
 
 include("utils.jl")
 include("indices.jl")
+include("keys.jl")
 include("names.jl")
 include("axes.jl")
+include("rows.jl")
+include("cols.jl")
 include("styles.jl")
 include("metadata.jl")
 include("constructors.jl")

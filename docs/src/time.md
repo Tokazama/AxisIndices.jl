@@ -105,8 +105,7 @@ This can naturally turn any array that is an `AbstractAxisIndices` subtype into 
 julia> x = AxisArray(collect(1:2:20), t);
 
 julia> x[:time_1]
-AxisArray{Int64,1,Array{Int64,1}...}
-3-element Array{Int64,1}
+3-element AxisArray{Int64,1}
  • dim_1 - 1 second:1 second:3 seconds
 
    1 second   1

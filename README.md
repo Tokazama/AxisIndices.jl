@@ -22,7 +22,7 @@ julia> parent_type(AxisArray{Int}(undef, OneToSRange(2), OneToSRange(2)))
 StaticArrays.MArray{Tuple{2,2},Int64,2,4}
 
 julia> A = AxisArray(reshape(1:4, 2, 2), [:a, :b], ["one", "two"])
-AxisArray{Int64,2,Base.ReshapedArray{Int64,2,UnitRange{Int64},Tuple{}}...}
+2×2 AxisArray{Int64,2}
  • dim_1 - [:a, :b]
  • dim_2 - ["one", "two"]
       one   two

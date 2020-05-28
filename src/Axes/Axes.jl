@@ -8,10 +8,12 @@ using AxisIndices.Interface: to_index, maybe_tail, unsafe_reconstruct, to_keys,
     check_axis_length, assign_indices
 
 using StaticRanges
+using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
 using StaticRanges: checkindexlo, checkindexhi
-using StaticRanges: grow_first!, grow_last!, resize_last, resize_last!, shrink_last!
-using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
+using StaticRanges: grow_first!, grow_last!
+using StaticRanges: resize_last, resize_last!, resize_first, resize_first!
+using StaticRanges: shrink_last!
 
 using Base: @propagate_inbounds, tail, OneTo
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle

@@ -1,4 +1,9 @@
+# TODO MetaAxis documentation
+"""
+    MetaAxis
 
+An axis type that allows storage of arbitraty metadata.
+"""
 struct MetaAxis{K,V,Ks,Vs,P<:AbstractAxis{K,V,Ks,Vs},M} <: AbstractAxis{K,V,Ks,Vs}
     parent::P
     metadata::M
@@ -26,7 +31,11 @@ function MetaAxis(ks::AbstractVector, vs::AbstractUnitRange{<:Integer}=OneTo(len
     return MetaAxis(to_axis(ks, vs), meta)
 end
 
-function Interface.unsafe_reconstruct(a::MetaAxis, ks::Ks, vs::Vs) where {Ks,Vs}
-    return similar_type(a, Ks, Vs)(ks, vs, false, false)
+function Interface.unsafe_reconstruct(axis::MetaAxis, ks, vs)
+    return MetaAxis(Interface.unsafe_reconstruct(parent(axis), ks, vs), metadata(axis))
+end
+
+function Interface.unsafe_reconstruct(axis::MetaAxis, ks)
+    return MetaAxis(Interface.unsafe_reconstruct(parent(axis), ks), metadata(axis))
 end
 

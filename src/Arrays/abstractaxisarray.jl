@@ -114,13 +114,14 @@ function Base.reverse(x::AbstractAxisArray{T,N}; dims::Integer) where {T,N}
 end
 
 
-function Base.show(io::IO, x::AbstractAxisArray; kwargs...)
-    return show(io, MIME"text/plain"(), x, kwargs...)
+function Base.show(io::IO, A::AbstractAxisArray; kwargs...)
+    PrettyArrays.print_array_summary(io, A)
+    return show(io, MIME"text/plain"(), A, kwargs...)
 end
 
-function Base.show(io::IO, m::MIME"text/plain", x::AbstractAxisArray{T,N}; kwargs...) where {T,N}
-    println(io, "$(typeof(x).name.name){$T,$N,$(parent_type(x))...}")
-    return show_array(io, parent(x), axes(x); kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::AbstractAxisArray{T,N}; kwargs...) where {T,N}
+    PrettyArrays.print_array_summary(io, A)
+    return show_array(io, parent(A), axes(A); kwargs...)
 end
 
 Base.has_offset_axes(A::AbstractAxisArray) = Base.has_offset_axes(parent(A))
@@ -132,7 +133,9 @@ end
 ###
 ### Indexing
 ###
-for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:unsafe_dotview, :dotview))
+for (unsafe_f, f) in ((:unsafe_getindex, :getindex),
+                      (:unsafe_view, :view),
+                      (:unsafe_dotview, :dotview))
     @eval begin
         function $unsafe_f(
             A::AbstractArray{T,N},

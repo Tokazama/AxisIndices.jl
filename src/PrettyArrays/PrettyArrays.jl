@@ -52,7 +52,6 @@ function show_array(
     kwargs...
 ) where {T,N}
 
-    print_array_summary(io, A)
     io_compact = IOContext(io, :compact => true)
     print_axes_summary(io_compact, A, axs, dnames)
     print_meta_summary(io_compact, meta)

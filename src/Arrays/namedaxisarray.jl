@@ -23,8 +23,7 @@ assigned value is sent to the corresponding axis when constructing the underlyin
 julia> using AxisIndices
 
 julia> A = NamedAxisArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
-NamedDimsArray{Int64,3,Base.ReshapedArray{Int64,3,UnitRange{Int64},Tuple{}}...}
-2×3×4 ReshapedArray{Int64,3}
+2×3×4 NamedDimsArray{Int64,3}
  • x - ["a", "b"]
  • y - ["one", "two", "three"]
  • z - 2:5
@@ -55,8 +54,7 @@ julia> axes_keys(A)
 (["a", "b"], ["one", "two", "three"], 2:5)
 
 julia> B = A["a", :, :]
-NamedDimsArray{Int64,2,Array{Int64,2}...}
-3×4 Array{Int64,2}
+3×4 NamedDimsArray{Int64,2}
  • y - ["one", "two", "three"]
  • z - 2:5
           2    3    4    5
@@ -65,8 +63,7 @@ NamedDimsArray{Int64,2,Array{Int64,2}...}
   three   5   11   17   23
 
 julia> C = B["one",:]
-NamedDimsArray{Int64,1,Array{Int64,1}...}
-4-element Array{Int64,1}
+4-element NamedDimsArray{Int64,1}
  • z - 2:5
 
   2    1
@@ -121,7 +118,7 @@ end
 
 Base.show(io::IO, x::NamedAxisArray; kwargs...) = show(io, MIME"text/plain"(), x, kwargs...)
 function Base.show(io::IO, m::MIME"text/plain", x::NamedAxisArray{L,T,N}; kwargs...) where {L,T,N}
-    println(io, "$(typeof(x).name.name){$T,$N,$(parent_type(parent(x)))...}")
+    PrettyArrays.print_array_summary(io, x)
     return show_array(io, parent(parent(x)), axes(x), dimnames(x); kwargs...)
 end
 

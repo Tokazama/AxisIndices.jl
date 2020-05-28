@@ -18,7 +18,7 @@ abstract type AbstractSimpleAxis{V,Vs} <: AbstractAxis{V,V,Vs,Vs} end
 
 Base.keytype(::Type{<:AbstractAxis{K}}) where {K} = K
 
-Base.haskey(a::AbstractAxis{K}, key::K) where {K} = key in keys(a)
+Base.haskey(axis::AbstractAxis{K}, key::K) where {K} = key in keys(axis)
 
 Interface.keys_type(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs} = Ks
 
@@ -31,92 +31,83 @@ Interface.is_indices_axis(::Type{<:AbstractAxis}) = false
 ###
 ### first
 ###
-Base.first(a::AbstractAxis) = first(values(a))
-function StaticRanges.can_set_first(::Type{T}) where {T<:AbstractAxis}
-    return StaticRanges.can_set_first(keys_type(T))
-end
-function StaticRanges.set_first!(x::AbstractAxis{K,V}, val::V) where {K,V}
-    StaticRanges.can_set_first(x) || throw(MethodError(set_first!, (x, val)))
-    set_first!(values(x), val)
-    StaticRanges.resize_first!(keys(x), length(values(x)))
-    return x
-end
-function StaticRanges.set_first(x::AbstractAxis{K,V}, val::V) where {K,V}
-    vs = set_first(values(x), val)
-    return unsafe_reconstruct(x, StaticRanges.resize_first(keys(x), length(vs)), vs)
+Base.first(axis::AbstractAxis) = first(values(axis))
+
+StaticRanges.can_set_first(::Type{T}) where {T<:AbstractAxis} = can_set_first(keys_type(T))
+
+function StaticRanges.set_first(axis::AbstractAxis{K,V}, val::V) where {K,V}
+    if is_indices_axis(axis)
+        return unsafe_reconstruct(axis, set_first(indices(axis), val))
+    else
+        vs = set_first(values(axis), val)
+        return unsafe_reconstruct(axis, resize_first(keys(axis), length(vs)), vs)
+    end
 end
 
-function StaticRanges.set_first(x::AbstractSimpleAxis{V}, val::V) where {V}
-    return unsafe_reconstruct(x, set_first(values(x), val))
-end
-function StaticRanges.set_first!(x::AbstractSimpleAxis{V}, val::V) where {V}
-    StaticRanges.can_set_first(x) || throw(MethodError(set_first!, (x, val)))
-    set_first!(values(x), val)
-    return x
+function StaticRanges.set_first!(axis::AbstractAxis{K,V}, val::V) where {K,V}
+    can_set_first(axis) || throw(MethodError(set_first!, (axis, val)))
+    set_first!(indices(axis), val)
+    if !is_indices_axis(axis)
+        resize_first!(keys(axis), length(indices(axis)))
+    end
+    return axis
 end
 
-Base.firstindex(a::AbstractAxis) = first(values(a))
+Base.firstindex(axis::AbstractAxis) = first(indices(axis))
 
 ###
 ### last
 ###
-Base.last(a::AbstractAxis) = last(values(a))
+Base.last(axis::AbstractAxis) = last(indices(axis))
+
 function StaticRanges.can_set_last(::Type{<:AbstractAxis{K,V,Ks,Vs}}) where {K,V,Ks,Vs}
-    return StaticRanges.can_set_last(Ks) & StaticRanges.can_set_last(Vs)
-end
-function StaticRanges.set_last!(x::AbstractAxis{K,V}, val::V) where {K,V}
-    StaticRanges.can_set_last(x) || throw(MethodError(set_last!, (x, val)))
-    set_last!(values(x), val)
-    StaticRanges.resize_last!(keys(x), length(values(x)))
-    return x
-end
-function StaticRanges.set_last(x::AbstractAxis{K,V}, val::V) where {K,V}
-    vs = set_last(values(x), val)
-    return unsafe_reconstruct(x, StaticRanges.resize_last(keys(x), length(vs)), vs)
+    return can_set_last(Ks) & can_set_last(Vs)
 end
 
-function StaticRanges.set_last!(x::AbstractSimpleAxis{V}, val::V) where {V}
-    StaticRanges.can_set_last(x) || throw(MethodError(set_last!, (x, val)))
-    set_last!(values(x), val)
-    return x
+function StaticRanges.set_last!(axis::AbstractAxis{K,V}, val::V) where {K,V}
+    can_set_last(axis) || throw(MethodError(set_last!, (axis, val)))
+    set_last!(indices(axis), val)
+    if is_indices_axis(axis)
+        resize_last!(keys(axis), length(indices(axis)))
+    end
+    return axis
 end
 
-function StaticRanges.set_last(x::AbstractSimpleAxis{K}, val::K) where {K}
-    return unsafe_reconstruct(x, set_last(values(x), val))
+function StaticRanges.set_last(axis::AbstractAxis{K,V}, val::V) where {K,V}
+    if is_indices_axis(axis)
+        return unsafe_reconstruct(axis, set_last(indices(axis), val))
+    else
+        vs = set_last(indices(axis), val)
+        return unsafe_reconstruct(axis, resize_last(keys(axis), length(vs)), vs)
+    end
 end
 
-Base.lastindex(a::AbstractAxis) = last(values(a))
+Base.lastindex(a::AbstractAxis) = last(indices(a))
 
 ###
 ### length
 ###
-Base.length(a::AbstractAxis) = length(values(a))
+Base.length(axis::AbstractAxis) = length(indices(axis))
 
 function StaticRanges.can_set_length(::Type{T}) where {T<:AbstractAxis}
-    return StaticRanges.can_set_length(keys_type(T)) & StaticRanges.can_set_length(indices_type(T))
+    return can_set_length(keys_type(T)) & can_set_length(indices_type(T))
 end
 
-function StaticRanges.set_length!(a::AbstractAxis{K,V,Ks,Vs}, len) where {K,V,Ks,Vs}
-    StaticRanges.can_set_length(a) || error("Cannot use set_length! for instances of typeof $(typeof(a)).")
-    set_length!(keys(a), len)
-    set_length!(values(a), len)
-    return a
-end
-#function StaticRanges.can_set_length(::Type{<:AbstractSimpleAxis{V,Vs}}) where {V,Vs}
-#    return can_set_length(Vs)
-#end
-function StaticRanges.set_length!(a::AbstractSimpleAxis{V,Vs}, len) where {V,Vs}
-    StaticRanges.can_set_length(a) || error("Cannot use set_length! for instances of typeof $(typeof(a)).")
-    StaticRanges.set_length!(values(a), len)
-    return a
+function StaticRanges.set_length!(axis::AbstractAxis{K,V,Ks,Vs}, len) where {K,V,Ks,Vs}
+    can_set_length(axis) || error("Cannot use set_length! for instances of typeof $(typeof(axis)).")
+    set_length!(indices(axis), len)
+    if !is_indices_axis(axis)
+        set_length!(keys(axis), len)
+    end
+    return axis
 end
 
-function StaticRanges.set_length(a::AbstractAxis{K,V,Ks,Vs}, len) where {K,V,Ks,Vs}
-    return unsafe_reconstruct(a, set_length(keys(a), len), set_length(values(a), len))
-end
-
-function StaticRanges.set_length(x::AbstractSimpleAxis{V,Vs}, len) where {V,Vs}
-    return unsafe_reconstruct(x, StaticRanges.set_length(values(x), len))
+function StaticRanges.set_length(axis::AbstractAxis{K,V,Ks,Vs}, len) where {K,V,Ks,Vs}
+    if is_indices_axis(axis)
+        return unsafe_reconstruct(axis, set_length(indices(axis), len))
+    else
+        return unsafe_reconstruct(axis, set_length(keys(axis), len), set_length(indices(axis), len))
+    end
 end
 
 StaticRanges.Length(::Type{<:AbstractAxis{K,Ks,V,Vs}}) where {K,Ks,V,Vs} = Length(Vs)
@@ -124,14 +115,14 @@ StaticRanges.Length(::Type{<:AbstractAxis{K,Ks,V,Vs}}) where {K,Ks,V,Vs} = Lengt
 ###
 ### step
 ###
-Base.step(a::AbstractAxis) = step(values(a))
+Base.step(axis::AbstractAxis) = step(indices(axis))
 
-Base.step_hp(a::AbstractAxis) = Base.step_hp(values(a))
+Base.step_hp(axis::AbstractAxis) = Base.step_hp(indices(axis))
 
 
 StaticRanges.Size(::Type{T}) where {T<:AbstractAxis} = StaticRanges.Size(indices_type(T))
 
-Base.size(a::AbstractAxis) = (length(a),)
+Base.size(axis::AbstractAxis) = (length(axis),)
 
 ###
 ### similar
