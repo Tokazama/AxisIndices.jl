@@ -28,6 +28,7 @@ export
     SimpleAxis,
     CartesianAxes,
     LinearAxes,
+    MetaAxisArray,
     NamedAxisArray,
     Indices,
     Keys,
@@ -74,16 +75,16 @@ export
     # traits,
     is_indices_axis
 
+include("./Interface/Interface.jl")
+using .Interface
+using .Interface: to_index, to_keys, step_key, append_axis!
+
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays
 
-include("./Interface/Interface.jl")
-using .Interface
-using .Interface: to_index, to_keys
-
 include("./Axes/Axes.jl")
 using .Axes
-using .Axes: permute_axes
+using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axis
 
 include("./Arrays/Arrays.jl")
 using .Arrays

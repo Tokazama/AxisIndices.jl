@@ -49,10 +49,10 @@ end
 
 function _bcs1(a, b)
     if _bcsm(a, b)
-        return broadcast_axis(a, b)
+        return combine_axis(a, b)
     else
         if _bcsm(b, a)
-            return broadcast_axis(b, a)
+            return combine_axis(b, a)
         else
             throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $(length(a)) and $(length(b))"))
         end
@@ -128,78 +128,4 @@ julia> AxisIndices.broadcast_axis(1:2, Symbol.(1:2))
 """
 =#
 
-function broadcast_axis(x::AbstractAxis, y::AbstractAxis, inds::AbstractUnitRange{<:Integer})
-    if is_indices_axis(x)
-        if is_indices_axis(y)
-            return unsafe_reconstruct(x, inds)
-        else
-            return unsafe_reconstruct(y, keys(y), inds)
-        end
-    else
-        if is_indices_axis(y)
-            return unsafe_reconstruct(x, keys(x), inds)
-        else
-            return unsafe_reconstruct(y, promote_axis_collections(keys(x), keys(y)), inds)
-        end
-    end
-end
-
-function broadcast_axis(x::AbstractAxis, y::AbstractUnitRange{<:Integer}, inds::AbstractUnitRange{<:Integer})
-    if is_indices_axis(x)
-        return unsafe_reconstruct(x, inds)
-    else
-        return unsafe_reconstruct(x, keys(x), inds)
-    end
-end
-
-function broadcast_axis(x::AbstractUnitRange{<:Integer}, y::AbstractAxis, inds::AbstractUnitRange{<:Integer})
-    if is_indices_axis(y)
-        return unsafe_reconstruct(y, inds)
-    else
-        return unsafe_reconstruct(y, keys(y), inds)
-    end
-end
-
-function broadcast_axis(x::AbstractUnitRange{<:Integer}, y::AbstractUnitRange{<:Integer}, inds::AbstractUnitRange{<:Integer})
-    return inds
-end
-
-function broadcast_axis(x::AbstractAxis, y::AbstractAxis)
-    inds = promote_axis_collections(indices(x), indices(y))
-    if is_indices_axis(x)
-        if is_indices_axis(y)
-            return unsafe_reconstruct(x, inds)
-        else
-            return unsafe_reconstruct(y, keys(y), inds)
-        end
-    else
-        if is_indices_axis(y)
-            return unsafe_reconstruct(x, keys(x), inds)
-        else
-            return unsafe_reconstruct(y, promote_axis_collections(keys(x), keys(y)), inds)
-        end
-    end
-end
-
-function broadcast_axis(x::AbstractAxis, y::AbstractUnitRange{<:Integer})
-    inds = promote_axis_collections(indices(x), indices(y))
-    if is_indices_axis(x)
-        return unsafe_reconstruct(x, inds)
-    else
-        return unsafe_reconstruct(x, keys(x), inds)
-    end
-end
-
-function broadcast_axis(x::AbstractUnitRange{<:Integer}, y::AbstractAxis)
-    inds = promote_axis_collections(indices(x), indices(y))
-    if is_indices_axis(y)
-        return unsafe_reconstruct(y, inds)
-    else
-        return unsafe_reconstruct(y, keys(y), inds)
-    end
-end
-
-function broadcast_axis(x::AbstractUnitRange{<:Integer}, y::AbstractUnitRange{<:Integer})
-    return promote_axis_collections(indices(x), indices(y))
-end
 

@@ -8,12 +8,11 @@ using Documenter
 using Dates
 using Tables
 using AxisIndices
+using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes
 using AxisIndices.Interface
-using AxisIndices.Interface: to_index, to_keys
 using MappedArrays
 
 using AxisIndices.Axes
-using AxisIndices.Axes: cat_axis, hcat_axes, vcat_axes
 
 using AxisIndices.Arrays
 using AxisIndices.Tabular

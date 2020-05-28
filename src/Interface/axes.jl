@@ -1,43 +1,5 @@
 
 """
-    is_indices_axis(x) -> Bool
-
-If `true` then `x` is an axis type where the only field parameterizing the axis
-is a field for the values.
-"""
-is_indices_axis(x) = is_indices_axis(typeof(x))
-is_indices_axis(::Type{T}) where {T<:AbstractUnitRange{<:Integer}} = true
-is_indices_axis(::Type{T}) where {T} = false
-
-"""
-    metadata(x)
-
-Returns metadata for `x`.
-"""
-metadata(x::AbstractUnitRange) = nothing
-
-"""
-    axis_meta(x)
-
-Returns metadata (i.e. not keys or indices) associated with each axis of the array `x`.
-"""
-axis_meta(x::AbstractArray) = map(metadata, axes(x))
-
-"""
-    axis_meta(x, i)
-
-Returns metadata (i.e. not keys or indices) associated with the ith axis of the array `x`.
-"""
-axis_meta(x::AbstractArray, i) = metadata(axes(x, i))
-
-"""
-    axis_meta(x)
-
-Returns metadata associated with the axis `x`.
-"""
-axis_meta(x) = nothing
-
-"""
     rowaxis(x) -> axis
 
 Returns the axis corresponding to the first dimension of `x`.
@@ -191,33 +153,6 @@ _step_keys(ks) = step(ks)
 _step_keys(ks::LinearIndices) = 1
 
 """
-    unsafe_reconstruct(axis, keys, indices)
-
-Reconstructs an `AbstractAxis` of the same type as `axis` but with keys of type `Ks` and values of type `Vs`.
-This method is considered unsafe because it bypasses checks  to ensure that `keys` and `values` have the same length and the all `keys` are unique.
-"""
-function unsafe_reconstruct(axis, ks, vs)
-    if is_indices_axis(axis)
-        return similar_type(axis, typeof(vs))(vs)
-    else
-        return similar_type(axis, typeof(ks), typeof(vs))(ks, vs)
-    end
-end
-
-"""
-    unsafe_reconstruct(axis, indices)
-
-Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of type `Vs`.
-"""
-function unsafe_reconstruct(axis, vs)
-    if is_indices_axis(axis)
-        return similar_type(axis, typeof(vs))(vs)
-    else
-        return unsafe_reconstruct(axis, vs, vs)
-    end
-end
-
-"""
     axes_keys(x) -> Tuple
 
 Returns the keys corresponding to all axes of `x`.
@@ -268,25 +203,6 @@ keys_type(::T, i) where {T} = keys_type(T, i)
 keys_type(::Type{T}, i) where {T} = keys_type(axes_type(T, i))
 
 """
-    indices_type(x, i)
-
-Retrieves axis values of the ith dimension of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> indices_type([1], 1)
-Base.OneTo{Int64}
-
-julia> indices_type(typeof([1]), 1)
-Base.OneTo{Int64}
-```
-"""
-indices_type(::T, i) where {T} = indices_type(T, i)
-indices_type(::Type{T}, i) where {T} = indices_type(axes_type(T, i))
-
-"""
     keys_type(x)
 
 Retrieves the type of the keys of `x`.
@@ -307,89 +223,6 @@ Base.OneTo{Int64}
 """
 keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
-
-"""
-    indices(x::AbstractUnitRange)
-
-Returns the indices `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> indices(Axis(["a"], 1:1))
-1:1
-
-julia> indices(CartesianIndex(1,1))
-(1, 1)
-
-```
-"""
-indices(x::AbstractUnitRange) = values(x)
-indices(x::CartesianIndex) = getfield(x, :I)
-
-"""
-    indices(x, i)
-
-Returns the indices corresponding to the `i` axis
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> indices(AxisArray(ones(2,2), (2:3, 3:4)), 1)
-Base.OneTo(2)
-```
-"""
-indices(x, i) = values(axes(x, i))
-
-"""
-    indices(x) -> Tuple
-
-Returns the indices corresponding to all axes of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> indices(AxisArray(ones(2,2), (2:3, 3:4)))
-(Base.OneTo(2), Base.OneTo(2))
-
-julia> indices(Axis(["a"], 1:1))
-1:1
-
-julia> indices(CartesianIndex(1,1))
-(1, 1)
-
-```
-"""
-indices(x) = map(values, axes(x))
-
-# TODO this should be indices_type
-"""
-    indices_type(x)
-
-Retrieves the type of the values of `x`. This should be functionally equivalent
-to `typeof(values(x))`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia>  indices_type(Axis(1:2))
-Base.OneTo{Int64}
-
-julia> indices_type(typeof(Axis(1:2)))
-Base.OneTo{Int64}
-
-julia> indices_type(typeof(1:2))
-UnitRange{Int64}
-```
-"""
-indices_type(::T) where {T} = indices_type(T)
-# if it's not a subtype of AbstractAxis assume it is the collection of values
-indices_type(::Type{T}) where {T} = T  
-
 
 # FIXME this explanation is confusing.
 """

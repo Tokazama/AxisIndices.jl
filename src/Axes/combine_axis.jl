@@ -1,3 +1,57 @@
+
+# TODO document combine_indices
+"""
+    combine_indices(x, y)
+
+"""
+combine_indices(x, y) = _combine_indices(indices(x), indices(y))
+_combine_indices(x::X, y::Y) where {X,Y} = promote_type(X, Y)(x)
+
+# LinearIndices indicates that keys are not formally defined so the collection
+# that isn't LinearIndices is used. If both are LinearIndices then take the underlying
+# OneTo as the new keys.
+"""
+    combine_keys(x, y)
+"""
+combine_keys(x, y) = _combine_keys(keys(x), keys(y))
+_combine_keys(x, y) = promote_axis_collections(x, y)
+_combine_keys(x,                y::LinearIndices) = x
+_combine_keys(x::LinearIndices, y               ) = y
+_combine_keys(x::LinearIndices, y::LinearIndices) = first(y.indices)
+
+@inline function combine_axis(x::AbstractAxis, y::AbstractAxis, inds=combine_indices(x, y))
+    if is_indices_axis(x)
+        if is_indices_axis(y)
+            return unsafe_reconstruct(x, inds)
+        else
+            return unsafe_reconstruct(y, keys(y), inds)
+        end
+    else
+        if is_indices_axis(y)
+            return unsafe_reconstruct(x, keys(x), inds)
+        else
+            return unsafe_reconstruct(y, combine_keys(x, y), inds)
+        end
+    end
+end
+
+@inline function combine_axis(x, y::AbstractAxis, inds=combine_indices(x, y))
+    if is_indices_axis(y)
+        return unsafe_reconstruct(y, inds)
+    else
+        return unsafe_reconstruct(y, keys(y), inds)
+    end
+end
+
+@inline function combine_axis(x::AbstractAxis, y, inds=combine_indices(x, y))
+    if is_indices_axis(x)
+        return unsafe_reconstruct(x, inds)
+    else
+        return unsafe_reconstruct(x, keys(x), inds)
+    end
+end
+
+
 # TODO I still really don't like this solution but the result seems better than Any
 # alternative I've seen out there
 #=
@@ -50,4 +104,3 @@ function promote_axis_collections(x::X, y::Y) where {X,Y}
         return Z(x)
     end
 end
-

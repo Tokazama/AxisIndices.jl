@@ -42,20 +42,6 @@ function Interface.unsafe_reconstruct(A::AbstractAxisArray{T1,N}, p::AbstractArr
     return unsafe_reconstruct(A, p, map(assign_indices,  axes(A), axes(p)))
 end
 
-"""
-    unsafe_reconstruct(A::AbstractAxisArray, parent, axes)
-
-Reconstructs an `AbstractAxisArray` of the same type as `A` but with the parent
-array `parent` and axes `axes`. This method depends on an underlying call to
-`similar_types`. It is considered unsafe because it bypasses safety checks to
-ensure the keys of each axis are unique and match the length of each dimension of
-`parent`. Therefore, this is not intended for interactive use and should only be
-used when it is clear all arguments are composed correctly.
-"""
-function Interface.unsafe_reconstruct(A::AbstractAxisArray, p::AbstractArray, axs::Tuple)
-    return similar_type(A, typeof(p), typeof(axs))(p, axs)
-end
-
 ###
 ### similar
 ###

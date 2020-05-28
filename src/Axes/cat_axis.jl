@@ -1,5 +1,26 @@
 
-function cat_axis(x::AbstractAxis, y::AbstractAxis, inds::AbstractUnitRange{<:Integer})
+cat_indices(x, y) = set_length(indices(x), length(x) + length(y))
+
+cat_keys(x::AbstractVector, y::AbstractRange) = StaticRanges.grow_last(y, length(x))
+
+cat_keys(x::AbstractRange, y::AbstractVector) = StaticRanges.grow_last(x, length(y))
+
+cat_keys(x::AbstractRange, y::AbstractRange) = StaticRanges.grow_last(x, length(y))
+
+cat_keys(x::AbstractVector, y::AbstractVector) = cat_keys!(promote(x, y)...,)
+
+cat_keys(x::AbstractVector{T}, y::AbstractVector{T}) where {T} = cat_keys!(copy(x), y)
+
+function cat_keys!(x::AbstractVector{T}, y::AbstractVector{T}) where {T}
+    for x_i in x
+        if x_i in y
+            error("Element $x_i appears in both collections in call to cat_axis!(collection1, collection2). All elements must be unique.")
+        end
+    end
+    return vcat(x, y)
+end
+
+function cat_axis(x::AbstractAxis, y::AbstractAxis, inds=cat_indices(x, y))
     if is_indices_axis(x)
         if is_indices_axis(y)
             return unsafe_reconstruct(x, inds)
@@ -10,12 +31,12 @@ function cat_axis(x::AbstractAxis, y::AbstractAxis, inds::AbstractUnitRange{<:In
         if is_indices_axis(y)
             return unsafe_reconstruct(x, set_length(keys(x), length(inds)), inds)
         else
-            return unsafe_reconstruct(y, cat_keys(keys(x), keys(y), inds), inds)
+            return unsafe_reconstruct(y, cat_keys(keys(x), keys(y)), inds)
         end
     end
 end
 
-function cat_axis(x::AbstractUnitRange{<:Integer}, y::AbstractAxis, inds::AbstractUnitRange{<:Integer})
+function cat_axis(x::AbstractUnitRange, y::AbstractAxis, inds=cat_indices(x, y))
     if is_indices_axis(y)
         return unsafe_reconstruct(y, inds)
     else
@@ -23,32 +44,12 @@ function cat_axis(x::AbstractUnitRange{<:Integer}, y::AbstractAxis, inds::Abstra
     end
 end
 
-function cat_axis(x::AbstractAxis, y::AbstractUnitRange{<:Integer}, inds::AbstractUnitRange{<:Integer})
+function cat_axis(x::AbstractAxis, y::AbstractUnitRange, inds=cat_indices(x, y))
     if is_indices_axis(x)
         return unsafe_reconstruct(x, inds)
     else
         return unsafe_reconstruct(x, set_length(keys(x), length(inds)), inds)
     end
-end
-
-# TODO this needs to be more  efficient
-function cat_keys(x::AbstractRange, y::AbstractRange, inds)
-    return StaticRanges.grow_last(first(promote(x, y)), length(y))
-end
-
-cat_keys(x::AbstractVector, y::AbstractRange) = StaticRanges.grow_last(y, length(x))
-
-cat_keys(x::AbstractRange, y::AbstractVector) = StaticRanges.grow_last(x, length(y))
-
-cat_keys(x::AbstractVector, y::AbstractVector) = cat_keys(promote(x, y)...,)
-
-function cat_keys(x::AbstractVector{T}, y::AbstractVector{T}) where {T}
-    for x_i in x
-        if x_i in y
-            error("Element $x_i appears in both collections in call to cat_axis!(collection1, collection2). All elements must be unique.")
-        end
-    end
-    return vcat(x, y)
 end
 
 """
@@ -63,7 +64,7 @@ are derived from from `xy`.
         if i in dims
             cat_axis(axes(x, i), axes(y, i), axes(xy, i))
         else
-            broadcast_axis(axes(x, i), axes(y, i), true_axes(xy, i))
+            combine_axis(axes(x, i), axes(y, i), axes(xy, i))
         end
     end
 end

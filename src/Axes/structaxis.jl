@@ -50,8 +50,6 @@ end
     return StructAxis{NamedTuple{Tuple(ks),axis_eltypes(axis, ks)}}(vs)
 end
 
-assign_indices(axis::StructAxis{T}, inds) where {T} = StructAxis{T}(inds)
-
 @inline function structdim(A)
     d = _structdim(axes_type(A))
     if d === 0

@@ -4,8 +4,8 @@ using MappedArrays
 using StaticArrays
 using StaticRanges
 using AxisIndices.Interface
-using AxisIndices.Interface: to_index, maybe_tail, unsafe_reconstruct, to_keys, check_axis_length
-
+using AxisIndices.Interface: to_index, maybe_tail, unsafe_reconstruct, to_keys,
+    check_axis_length, assign_indices
 
 using StaticRanges
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
@@ -28,19 +28,18 @@ export
     to_axes,
     structview
 
-include("abstractaxis.jl")
+include("AbstractAxis.jl")
 include("mutate.jl")
-include("axis_traits.jl")
-include("axis.jl")
-include("simpleaxis.jl")
-include("structaxis.jl")
-include("metaaxis.jl")
+include("Axis.jl")
+include("SimpleAxis.jl")
+include("StructAxis.jl")
+include("MetaAxis.jl")
 include("promotion.jl")
-include("promote_axis_collections.jl")
 include("to_axis.jl")
 include("to_axes.jl")
 include("indexing.jl")
 include("broadcast.jl")
+include("combine_axis.jl")
 include("cat_axis.jl")
 include("permute_axes.jl")
 

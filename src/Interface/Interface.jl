@@ -39,7 +39,10 @@ export
     drop_axes,
     first_key,
     has_dimnames,
+    has_metadata,
     last_key,
+    metadata,
+    metadata_type,
     named_axes,
     indices,
     indices_type,
@@ -48,7 +51,6 @@ export
     is_index,
     is_indices_axis,
     is_key,
-    is_keys,  # TODO doc is_keys method
     keys_type,
     rowaxis,
     rowkeys,
@@ -67,9 +69,11 @@ else
 end
 
 include("utils.jl")
+include("indices.jl")
 include("names.jl")
 include("axes.jl")
 include("styles.jl")
-include("combine.jl")
+include("metadata.jl")
+include("constructors.jl")
 
 end
