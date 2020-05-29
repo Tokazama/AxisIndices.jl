@@ -158,11 +158,7 @@ julia> similar(Axis(1.0:10.0, 1:10), [:one, :two])
 Axis([:one, :two] => 1:2)
 ```
 """
-function Base.similar(
-    axis::AbstractAxis{K,V,Ks,Vs},
-    new_keys::AbstractVector{T}
-) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
-
+function Base.similar(axis::AbstractAxis, new_keys::AbstractVector)
     if is_static(axis)
         return unsafe_reconstruct(
             axis,
@@ -184,8 +180,9 @@ function Base.similar(
     end
 end
 
+#=
 function Base.similar(
-    axis::AbstractAxis{K,V,Ks,Vs},
+    axis::AbstractAxis,
     new_keys::AbstractUnitRange{T}
 ) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
 
@@ -209,6 +206,7 @@ function Base.similar(
         )
     end
 end
+=#
 
 """
     similar(axis::AbstractAxis, new_keys::AbstractVector, new_indices::AbstractUnitRange{Integer} [, check_length::Bool=true] ) -> AbstractAxis
@@ -230,28 +228,11 @@ ERROR: DimensionMismatch("keys and indices must have same length, got length(key
 ```
 """
 function Base.similar(
-    axis::AbstractAxis{K,V,Ks,Vs},
-    new_keys::AbstractVector{T},
+    axis::AbstractAxis,
+    new_keys::AbstractVector,
     new_indices::AbstractUnitRange{<:Integer},
     check_length::Bool=true
-) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
-
-    check_length && check_axis_length(new_keys, new_indices)
-    if is_static(axis)
-        return unsafe_reconstruct(axis, as_static(new_keys), as_static(new_indices))
-    elseif is_fixed(axis)
-        return unsafe_reconstruct(axis, as_fixed(new_keys), as_fixed(new_indices))
-    else
-        return unsafe_reconstruct(axis, as_dynamic(new_keys), as_dynamic(new_indices))
-    end
-end
-
-function Base.similar(
-    axis::AbstractAxis{K,V,Ks,Vs},
-    new_keys::AbstractUnitRange{T},
-    new_indices::AbstractUnitRange{<:Integer},
-    check_length::Bool=true
-) where {K,V<:Integer,Ks,Vs<:AbstractUnitRange{V},T}
+)
 
     check_length && check_axis_length(new_keys, new_indices)
     if is_static(axis)
@@ -264,7 +245,7 @@ function Base.similar(
 end
 
 """
-    similar(axis::AbstractSimpleAxis, new_indices::AbstractUnitRange{Integer}) -> AbstractSimpleAxis
+    similar(axis::AbstractAxis, new_indices::AbstractUnitRange)
 
 Create a new instance of an axis of the same type as `axis` but with the keys `new_keys`
 
@@ -276,11 +257,7 @@ julia> similar(SimpleAxis(1:10), 1:3)
 SimpleAxis(1:3)
 ```
 """
-function Base.similar(
-    axis::AbstractSimpleAxis{V,Vs},
-    new_keys::AbstractUnitRange{T}
-) where {V<:Integer,Vs<:AbstractUnitRange{V},T}
-
+function Base.similar(axis::AbstractAxis, new_keys::AbstractUnitRange{<:Integer})
     if is_static(axis)
         return unsafe_reconstruct(axis, as_static(new_keys))
     elseif is_fixed(axis)
@@ -302,13 +279,12 @@ true_axes(x, i) = axes(x, i)
 # defined to avoid ambiguities with methods that pass AbstractUnitRange{<:Integer} instead of Integer
 for f in (:grow_last!, :grow_first!, :shrink_last!, :shrink_first!)
     @eval begin
-        function StaticRanges.$f(axis::AbstractSimpleAxis, n::Integer)
-            StaticRanges.$f(values(axis), n)
-            return axis
-        end
-
-        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
-            StaticRanges.$f(keys(axis), n)
+        function StaticRanges.$f(axis::AbstractAxis{K,I,Ks,Inds}, n::Integer) where {K,I,Ks,Inds}
+            if !is_indices_axis(axis)
+                can_set_length(Ks) ||  throw(MethodError($f, (axis, n)))
+                StaticRanges.$f(keys(axis), n)
+            end
+            can_set_length(Inds) ||  throw(MethodError($f, (axis, n)))
             StaticRanges.$f(values(axis), n)
             return axis
         end
@@ -317,24 +293,24 @@ end
 
 for f in (:grow_last, :grow_first, :shrink_last, :shrink_first, :resize_first, :resize_last)
     @eval begin
-        function StaticRanges.$f(axis::AbstractSimpleAxis, n::Integer)
-            return unsafe_reconstruct(axis, StaticRanges.$f(values(axis), n))
-        end
-
         function StaticRanges.$f(axis::AbstractAxis, n::Integer)
-            return unsafe_reconstruct(
-                axis,
-                StaticRanges.$f(keys(axis), n),
-                StaticRanges.$f(values(axis), n)
-            )
-        end
-
-        function StaticRanges.$f(axis::AbstractSimpleAxis, n::AbstractUnitRange{<:Integer})
-            return unsafe_reconstruct(axis, n)
+            if is_indices_axis(axis)
+                return unsafe_reconstruct(axis, StaticRanges.$f(values(axis), n))
+            else
+                return unsafe_reconstruct(
+                    axis,
+                    StaticRanges.$f(keys(axis), n),
+                    StaticRanges.$f(values(axis), n)
+                )
+            end
         end
 
         function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
-            return unsafe_reconstruct(axis, StaticRanges.$f(keys(axis), length(n)), n)
+            if is_indices_axis(axis)
+                return unsafe_reconstruct(axis, n)
+            else
+                return unsafe_reconstruct(axis, StaticRanges.$f(keys(axis), length(n)), n)
+            end
         end
     end
 end
@@ -346,14 +322,6 @@ Base.in(x::Integer, a::AbstractAxis) = in(x, values(a))
 Base.collect(a::AbstractAxis) = collect(values(a))
 
 Base.eachindex(a::AbstractAxis) = values(a)
-
-function reverse_keys(old_axis::AbstractAxis, new_index::AbstractUnitRange)
-    return similar(old_axis, reverse(keys(old_axis)), new_index, false)
-end
-
-function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
-    return Axis(reverse(keys(old_axis)), new_index, false)
-end
 
 #Base.axes(a::AbstractAxis) = values(a)
 
@@ -456,5 +424,14 @@ for f in (:as_static, :as_fixed, :as_dynamic)
             end
         end
     end
+end
+
+# TODO how do I make this generic?
+function reverse_keys(old_axis::AbstractAxis, new_index::AbstractUnitRange)
+    return similar(old_axis, reverse(keys(old_axis)), new_index, false)
+end
+
+function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
+    return Axis(reverse(keys(old_axis)), new_index, false)
 end
 
