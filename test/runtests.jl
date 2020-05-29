@@ -46,7 +46,7 @@ end
 
 @test Base.to_shape(SimpleAxis(1)) == 1
 
-include("to_index_tests.jl")
+include("styles_tests.jl")
 include("to_axis_tests.jl")
 include("getindex_tests.jl")
 include("values_tests.jl")

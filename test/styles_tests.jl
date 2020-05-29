@@ -1,22 +1,5 @@
 # TODO IndicesFix2 tests
 
-#=
-@testset "traits" begin
-    @testset "CombineStyle" begin
-        for (x,y,z) in ((Axis{Int,Int,UnitRange{Int},UnitRange{Int}},Axis{Int,Int,UnitRange{Int},UnitRange{Int}},CombineAxis),
-                        (SimpleAxis{Int,UnitRange{Int}},Axis{Int,Int,UnitRange{Int},UnitRange{Int}},CombineAxis),
-                        (SimpleAxis{Int,UnitRange{Int}},SimpleAxis{Int,UnitRange{Int}},CombineSimpleAxis),
-                        (UnitRange{Int},UnitRange{Int},CombineResize),
-                        (UnitRange{Int},LinearIndices{1},CombineResize),
-                        (Vector{Int},SimpleAxis{Int,UnitRange{Int}},CombineSimpleAxis),
-                        (Vector{Int},Axis{Int,Int,UnitRange{Int},UnitRange{Int}},CombineAxis))
-            @test @inferred(CombineStyle(x, y)) isa z
-            @test @inferred(CombineStyle(y, x)) isa z
-        end
-    end
-end
-=#
-
 @testset "AxisIndicesStyles" begin
     @test @inferred(AxisIndicesStyle(String)) isa KeyElement
     @test @inferred(AxisIndicesStyle(Int)) isa IndexElement

@@ -1,45 +1,72 @@
 
 @testset "Axis Constructors" begin
+
     a1 = Axis(2:3 => 1:2)
-
-    @test UnitRange(a1) == 1:2
-
-    @test @inferred(Axis(a1)) isa typeof(a1)
-
-    @test @inferred(SimpleAxis(Axis(1:2))) isa SimpleAxis
-
-    @test SimpleAxis{Int,UnitRange{Int}}(SimpleAxis(Base.OneTo(10))) isa SimpleAxis{Int,UnitRange{Int}}
-
-    @test StaticRanges.similar_type(SimpleAxis(1:10)) <: SimpleAxis{Int64,UnitRange{Int64}}
-
-    @test @inferred(Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:10)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
-
-    @test @inferred(Axis{Int,Int,UnitRange{Int},UnitMRange{Int}}(1:10)) isa Axis{Int,Int,UnitRange{Int},UnitMRange{Int}}
-
-    @test @inferred(Axis{Int,Int,UnitMRange{Int},UnitRange{Int}}(1:10)) isa Axis{Int,Int,UnitMRange{Int},UnitRange{Int}}
-
-    @test @inferred(Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}(1:10)) isa Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}
-
-    @test @inferred(AxisIndices.to_axis(a1)) == a1
-
-    @test @inferred(Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(1:2)) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
-    @test @inferred(Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(UnitRange(UInt(1), UInt(2)))) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
-
-    @test SimpleAxis{Int,UnitMRange{Int}}(Base.OneTo(10)) isa SimpleAxis{Int,UnitMRange{Int}}
-    @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
-
-    @test Axis{String,Int,Vector{String},Base.OneTo{Int}}(Axis(["a", "b"])) isa Axis{String,Int,Vector{String},Base.OneTo{Int}}
-
     axis = Axis(1:10)
-    @test @inferred(keys(similar(axis, 2:3))) == 2:3
-    @test @inferred(keys(similar(axis, ["a", "b"]))) == ["a", "b"]
-    @test @inferred(similar(SimpleAxis(10), 2:3)) == 2:3
 
-    @test SimpleAxis{Int,UnitRange{Int}}(Base.OneTo(2)) isa SimpleAxis{Int,UnitRange{Int}}
-    @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
-    @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
-    @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
-    @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
+    @testset "Axis" begin
+        @test UnitRange(a1) == 1:2
+
+        @test @inferred(Axis(a1)) isa typeof(a1)
+
+        @test @inferred(Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:10)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
+
+        @test @inferred(Axis{Int,Int,UnitRange{Int},UnitMRange{Int}}(1:10)) isa Axis{Int,Int,UnitRange{Int},UnitMRange{Int}}
+
+        @test @inferred(Axis{Int,Int,UnitMRange{Int},UnitRange{Int}}(1:10)) isa Axis{Int,Int,UnitMRange{Int},UnitRange{Int}}
+
+        @test @inferred(Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}(1:10)) isa Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}
+
+        @test @inferred(AxisIndices.to_axis(a1)) == a1
+
+        @test @inferred(Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(1:2)) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
+        @test @inferred(Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(UnitRange(UInt(1), UInt(2)))) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
+
+        @test Axis{String,Int,Vector{String},Base.OneTo{Int}}(Axis(["a", "b"])) isa Axis{String,Int,Vector{String},Base.OneTo{Int}}
+
+        @test @inferred(keys(similar(axis, 2:3))) == 2:3
+        @test @inferred(keys(similar(axis, ["a", "b"]))) == ["a", "b"]
+
+        @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
+        @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
+        @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
+        @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
+    end
+
+    @testset "SimpleAxis" begin
+        @test @inferred(similar(SimpleAxis(10), 2:3)) == 2:3
+        @test @inferred(SimpleAxis(Axis(1:2))) isa SimpleAxis
+        @test SimpleAxis{Int,UnitRange{Int}}(SimpleAxis(Base.OneTo(10))) isa SimpleAxis{Int,UnitRange{Int}}
+        @test StaticRanges.similar_type(SimpleAxis(1:10)) <: SimpleAxis{Int64,UnitRange{Int64}}
+        @test SimpleAxis{Int,UnitMRange{Int}}(Base.OneTo(10)) isa SimpleAxis{Int,UnitMRange{Int}}
+        @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
+        @test SimpleAxis{Int,UnitRange{Int}}(Base.OneTo(2)) isa SimpleAxis{Int,UnitRange{Int}}
+    end
+
+    @testset "CenteredAxis" begin
+        centered_axis = @inferred(CenteredAxis(1:10))
+        @test @inferred(keys(centered_axis)) == -5:4
+        @test @inferred(indices(centered_axis)) == 1:10
+        centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
+        @test keytype(centered_axis) <: Int32
+        centered_axis = @inferred(CenteredAxis{Int32,Int32}(UnitSRange(1, 10)))
+        @test eltype(centered_axis) <: Int32
+        ca2 = @inferred(centered_axis[-1:1])
+        @test @inferred(keys(ca2)) == -1:1
+        @test @inferred(indices(ca2)) == 5:7
+    end
+
+    @testset "MetaAxis" begin
+        meta_axis = MetaAxis(1:2)
+        @test @inferred(meta_axis[1:2]) isa MetaAxis
+
+        meta_axis = MetaAxis([:a, :b])
+        @test @inferred(meta_axis[1:2]) isa MetaAxis
+
+        meta_axis = MetaAxis([:a, :b], 1:2)
+        @test @inferred(meta_axis[1:2]) isa MetaAxis
+        @test @inferred(meta_axis[:a]) == 1
+    end
 end
 
 

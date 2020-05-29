@@ -269,12 +269,6 @@ end
 
 const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 
-# Vectors should have a mutable axis
-true_axes(x::Vector) = (OneToMRange(length(x)),)
-true_axes(x) = axes(x)
-true_axes(x::Vector, i) = (OneToMRange(length(x)),)
-true_axes(x, i) = axes(x, i)
-
 # :resize_first!, :resize_last! don't need to define these ones b/c non mutating ones are only
 # defined to avoid ambiguities with methods that pass AbstractUnitRange{<:Integer} instead of Integer
 for f in (:grow_last!, :grow_first!, :shrink_last!, :shrink_first!)
