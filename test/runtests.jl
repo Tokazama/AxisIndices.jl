@@ -87,6 +87,8 @@ include("traits_tests.jl")
 include("copyto_tests.jl")
 include("reshape_tests.jl")
 
+include("MetaAxisArray_tests.jl")
+include("NamedMetaAxisArray_tests.jl")
 #include("offset_tests.jl")
 
 @testset "pretty_array" begin

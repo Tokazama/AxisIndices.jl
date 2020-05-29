@@ -5,6 +5,10 @@ end
 
 StaticRanges.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 
+Interface.metadata(A::NamedDimsArray) = metadata(parent(A))
+Interface.metadata_type(::Type{A}) where {A<:NamedDimsArray} = metadata_type(parent_type(A))
+
+
 
 const NamedAxisArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisArray{T,N,P,AI}}
 

@@ -30,7 +30,7 @@ julia> MetaAxisArray(ones(2, 2))
 """
 const MetaAxisArray{T,N,M,P<:AbstractAxisArray{T,N}} = MetadataArray{T,N,M,P}
 
-function MetaAxisArray(A::AxisArray, metadata=nothing, kwargs...)
+function MetaAxisArray(A::AxisArray; metadata=nothing, kwargs...)
     return MetadataArray(A, _construct_meta(metadata; kwargs...))
 end
 
@@ -38,17 +38,30 @@ function MetaAxisArray(A::AbstractArray; metadata=nothing, kwargs...)
     return MetaAxisArray(AxisArray(A); metadata=metadata, kwargs...)
 end
 
+function MetaAxisArray(A::AbstractArray, args::AbstractVector...; metadata=nothing, kwargs...)
+    return MetaAxisArray(AxisArray(A, args); metadata=metadata, kwargs...)
+end
+
 function MetaAxisArray(A::AbstractArray, axs::Tuple; metadata=nothing, kwargs...)
     return MetaAxisArray(AxisArray(A, axs); metadata=metadata, kwargs...)
+end
+
+function MetaAxisArray{T}(init::ArrayInitializer, args::AbstractVector...; metadata=nothing, kwargs...) where {T}
+    return MetaAxisArray(AxisArray{T}(init, args); metadata=metadata, kwargs...)
 end
 
 function MetaAxisArray{T}(init::ArrayInitializer, axs::Tuple; metadata=nothing, kwargs...) where {T}
     return MetaAxisArray(AxisArray{T}(init, axs); metadata=metadata, kwargs...)
 end
 
-function MetaAxisArray{T,N}(init::ArrayInitializer, axs::Tuple; metadata=nothing, kwargs...) where {T,N}
-    return MetaAxisArray(AxisArray{T}(init, axs); metadata=metadata, kwargs...)
+function MetaAxisArray{T,N}(init::ArrayInitializer, args::AbstractVector...; metadata=nothing, kwargs...) where {T,N}
+    return MetaAxisArray(AxisArray{T,N}(init, args); metadata=metadata, kwargs...)
 end
+
+function MetaAxisArray{T,N}(init::ArrayInitializer, axs::Tuple; metadata=nothing, kwargs...) where {T,N}
+    return MetaAxisArray(AxisArray{T,N}(init, axs); metadata=metadata, kwargs...)
+end
+
 
 Base.show(io::IO, A::MetaAxisArray; kwargs...) = show(io, MIME"text/plain"(), A; kwargs...)
 
