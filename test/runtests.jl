@@ -73,6 +73,7 @@ include("math_tests.jl")
 
 include("drop_tests.jl")
 
+include("constructors.jl")
 include("functions_tests.jl")
 include("concatenation_tests.jl")
 include("array_tests.jl")

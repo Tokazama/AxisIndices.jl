@@ -396,15 +396,11 @@ end
 
 # StaticRanges.has_offset_axes is taken care of by any array type that defines `axes_type`
 
-for f in (:is_static, :is_fixed, :is_dynamic)
-    @eval begin
-        function StaticRanges.$f(::Type{A}) where {A<:AbstractAxis}
-            if is_indices_axis(A)
-                return StaticRanges.$f(indices_type(A))
-            else
-                return StaticRanges.$f(indices_type(A)) & StaticRanges.$f(keys_type(A))
-            end
-        end
+function StaticRanges.Staticness(::Type{A}) where {A<:AbstractAxis}
+    if is_indices_axis(A)
+        return StaticRanges.Staticness(indices_type(A))
+    else
+        return StaticRanges._combine(Tuple{indices_type(A),keys_type(A)})
     end
 end
 

@@ -234,7 +234,12 @@ function AxisArray{T,N}(x::AbstractArray, args...) where {T,N}
 end
 
 function AxisArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{Any,N}}) where {T,N}
-    return AxisArray{T,N}(init_array(StaticRanges._combine(typeof(axs)), T, init, axs), axs, false)
+    return AxisArray{T,N}(init, map(to_axis, axs))
+end
+
+function AxisArray{T,N}(init::ArrayInitializer, axs::AbstractAxes{N}) where {T,N}
+    p = init_array(StaticRanges._combine(typeof(axs)), T, init, axs)
+    return AxisArray{T,N,typeof(p),typeof(axs)}(p, axs)
 end
 
 function AxisArray{T,N}(
