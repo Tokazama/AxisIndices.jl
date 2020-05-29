@@ -12,8 +12,6 @@ using ChainedFixes
 using IntervalSets
 
 export
-    AbstractAxisArray,
-    AxisArray,
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
@@ -25,8 +23,6 @@ export
     Keys,
     LinearAxes,
     MetaAxis,
-    MetaAxisArray,
-    NamedAxisArray,
     SimpleAxis,
     StructAxis,
     # Reexport types
@@ -68,8 +64,9 @@ include("./Axes/Axes.jl")
 using .Axes
 using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axis
 
+
 include("./Arrays/Arrays.jl")
-using .Arrays
+@reexport using .Arrays
 
 include("./ObservationDims.jl")
 using .ObservationDims

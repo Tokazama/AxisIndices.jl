@@ -17,12 +17,12 @@ include("text.jl")
 include("pretty_array.jl")
 
 
-function print_array_summary( io::IO, A::AbstractArray{T,N}) where {T,N}
+function print_array_summary(io::IO, A::AbstractArray{T,N}) where {T,N}
     print(io, join(size(A), "×"))
     print(io, " $(typeof(A).name.name){$T,$N}\n")
 end
 
-function print_array_summary( io::IO, A::AbstractVector{T}) where {T}
+function print_array_summary(io::IO, A::AbstractVector{T}) where {T}
     print(io, "$(length(A))-element")
     print(io, " $(typeof(A).name.name){$T,1}\n")
 end

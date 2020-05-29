@@ -1,6 +1,4 @@
 
-const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
-
 """
     AxisArray{T,N,P,AI}
 

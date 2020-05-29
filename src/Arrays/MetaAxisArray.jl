@@ -26,90 +26,39 @@ An AxisArray with metadata.
 julia> using AxisIndices
 
 julia> MetaAxisArray(ones(2, 2))
-ERROR: UndefVarError: MetaAxisArray not defined
-Stacktrace:
- [1] top-level scope at /Users/zchristensen/projects/AxisIndices.jl/test/runtests.jl:120
 ```
 """
-const MetaAxisArray{T,N,Ax,M,P<:AbstractAxisArray{T,N,Ax}} = MetadataArray{T,N,M,P}
+const MetaAxisArray{T,N,M,P<:AbstractAxisArray{T,N}} = MetadataArray{T,N,M,P}
 
-function MetaAxisArray(A::AbstractArray, axs::Tuple=axes(A); metadata=nothing, kwargs...)
-    return MetadataArray(AxisArray(A, axs), _construct_meta(metadata; kwargs...))
+function MetaAxisArray(A::AxisArray, metadata=nothing, kwargs...)
+    return MetadataArray(A, _construct_meta(metadata; kwargs...))
 end
 
-function Base.show(io::IO, A::MetaAxisArray; kwargs...)
-    return show(io, MIME"text/plain"(), A, kwargs...)
+function MetaAxisArray(A::AbstractArray; metadata=nothing, kwargs...)
+    return MetaAxisArray(AxisArray(A); metadata=metadata, kwargs...)
 end
+
+function MetaAxisArray(A::AbstractArray, axs::Tuple; metadata=nothing, kwargs...)
+    return MetaAxisArray(AxisArray(A, axs); metadata=metadata, kwargs...)
+end
+
+function MetaAxisArray{T}(init::ArrayInitializer, axs::Tuple; metadata=nothing, kwargs...) where {T}
+    return MetaAxisArray(AxisArray{T}(init, axs); metadata=metadata, kwargs...)
+end
+
+function MetaAxisArray{T,N}(init::ArrayInitializer, axs::Tuple; metadata=nothing, kwargs...) where {T,N}
+    return MetaAxisArray(AxisArray{T}(init, axs); metadata=metadata, kwargs...)
+end
+
+Base.show(io::IO, A::MetaAxisArray; kwargs...) = show(io, MIME"text/plain"(), A; kwargs...)
 
 function Base.show(io::IO, m::MIME"text/plain", A::MetaAxisArray{T,N}; kwargs...) where {T,N}
-    println(io, "$(typeof(A).name.name){$T,$N,$(parent_type(A))...}")
-    return show_array(io, parent(A), axes(A); kwargs...)
-end
-
-
-
-"""
-    NamedMetaAxisArray
-
-An AxisArray with metadata and named dimensions.
-"""
-const NamedMetaAxisArray{L,T,N,Ax,M,P<:AbstractAxisArray{T,N,Ax}} = NamedDimsArray{L,T,N,MetadataArray{T,N,M,P}}
-
-function NamedMetaAxisArray(A::AbstractArray{T,N}, axs::Tuple, metadata=nothing) where {T,N}
-    return NamedMetaAxisArray{Interface.default_names(Val(N))}(A, axs, metadata)
-end
-
-function NamedMetaAxisArray(A::AbstractArray{T,N}, axs::NamedTuple{L}, metadata=nothing) where {L,T,N}
-    return NamedMetaAxisArray{L}(A, values(axs), metadata)
-end
-
-function NamedMetaAxisArray{L}(A::AbstractArray{T,N}, axs::Tuple; metadata=nothing) where {L,T,N}
-    return NamedDimsArray{L}(MetaAxisArray(A, axs, metadata))
-end
-
-function NamedMetaAxisArray(A::AbstractArray{T,N}; kwargs...) where {T,N}
-    return NamedMetaAxisArray{Interface.default_names(Val(N))}(A, axs, meta)
-end
-
-function NamedMetaAxisArray(
-    x::AbstractArray{T,N},
-    args...;
-    metadata=nothing,
-    kwargs...
-) where {T,N}
-
-    if isempty(args)
-        if isempty(kwargs)
-            return NamedMetaAxisArray(x, metadata)
-        else
-            return NamedMetaAxisArray(x, values(kwargs), metadata)
-        end
-    elseif isempty(kwargs)
-        return NamedMetaAxisArray(x, args, metadata)
+    if N == 1
+        print(io, "$(length(A))-element")
     else
-        error("Indices can only be specified by keywords or additional arguments after the parent array, not both.")
+        print(io, join(size(A), "×"))
     end
-end
-
-function NamedMetaAxisArray{L}(
-    A::AbstractArray{T,N},
-    args...;
-    metadata=nothing,
-    kwargs...
-) where {L,T,N}
-
-    if metadata isa Nothing
-        if isempty(args)
-            if isempty(kwargs)
-                return NamedMetaAxisArray{L}(A, metadata)
-            else
-                return NamedMetaAxisArray{L}(A, values(kwargs), metadata)
-            end
-        elseif isempty(kwargs)
-            return NamedMetaAxisArray(A, args, metadata)
-        else
-            error("Indices can only be specified by keywords or additional arguments after the parent array, not both.")
-        end
-    end
+    print(io, " MetaAxisArray{$T,$N}\n")
+    return show_array(io, parent(parent(A)), axes(A); kwargs...)
 end
 

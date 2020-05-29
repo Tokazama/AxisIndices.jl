@@ -40,9 +40,13 @@ export
     AxisArray,
     AxisVector,
     MetaAxisArray,
-    NamedAxisArray
+    NamedAxisArray,
+    NamedMetaAxisArray
 
+# TODO these shouldn't be exported
 export matmul_axes, get_factorization
+
+const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 
@@ -50,6 +54,7 @@ include("AbstractAxisArray.jl")
 include("AxisArray.jl")
 include("NamedAxisArray.jl")
 include("MetaAxisArray.jl")
+include("NamedMetaAxisArray.jl")
 include("broadcast.jl")
 include("permutedims.jl")
 include("map.jl")
