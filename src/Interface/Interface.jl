@@ -11,6 +11,7 @@ export
     axes_keys,
     axis_eltype,
     axis_eltypes,
+    axis_meta,
     colaxis,
     colkeys,
     coltype,

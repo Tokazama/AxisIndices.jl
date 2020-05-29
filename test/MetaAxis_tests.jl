@@ -15,5 +15,12 @@
     meta_axis2 = MetaAxis(1:2, Dict())
     @test Interface.combine_metadata(meta_axis, meta_axis2) isa Dict
     @test Interface.combine_metadata(meta_axis2, meta_axis) isa Dict
+    @test Interface.combine_metadata(meta_axis2, meta_axis2) isa Dict
     @test Interface.combine_metadata(meta_axis, meta_axis) isa Nothing
+
+    @test metadata(view(meta_axis2, 1:2)) isa Dict
+
+    A = AxisArray(ones(2,2), meta_axis2, 1:2)
+    @test typeof(axis_meta(A)) <: Tuple{<:Dict,Nothing}
+
 end

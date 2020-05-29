@@ -15,8 +15,6 @@ export
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
-    AxisRow,
-    AxisTable,
     CartesianAxes,
     CenteredAxis,
     Indices,
@@ -72,6 +70,6 @@ include("./ObservationDims.jl")
 using .ObservationDims
 
 include("./Tabular/Tabular.jl")
-using .Tabular
+@reexport using .Tabular
 
 end

@@ -12,7 +12,7 @@
 ```julia tables_docs
 julia> using AxisIndices
 
-julia> t = DataFrame(A = 1:4, B = ["M", "F", "F", "M"])
+julia> t = Table(A = 1:4, B = ["M", "F", "F", "M"])
 ```
 
 ### Property Name Assignment

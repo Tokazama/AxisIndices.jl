@@ -9,7 +9,7 @@ makedocs(;
         "Quick Start" => "quick_start.md",
         "Manual" => [
             "The Axis" => "axis.md",
-            "Tabular Interface" => "axistable.md",
+            "Tabular Interface" => "table.md",
             "Internals of Indexing" => "internals_of_indexing.md",
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
