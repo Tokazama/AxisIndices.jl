@@ -54,18 +54,8 @@
         ca2 = @inferred(centered_axis[-1:1])
         @test @inferred(keys(ca2)) == -1:1
         @test @inferred(indices(ca2)) == 5:7
-    end
-
-    @testset "MetaAxis" begin
-        meta_axis = MetaAxis(1:2)
-        @test @inferred(meta_axis[1:2]) isa MetaAxis
-
-        meta_axis = MetaAxis([:a, :b])
-        @test @inferred(meta_axis[1:2]) isa MetaAxis
-
-        meta_axis = MetaAxis([:a, :b], 1:2)
-        @test @inferred(meta_axis[1:2]) isa MetaAxis
-        @test @inferred(meta_axis[:a]) == 1
+        @test !@inferred(has_metadata(centered_axis))
+        @test metadata_type(centered_axis) isa Nothing
     end
 end
 

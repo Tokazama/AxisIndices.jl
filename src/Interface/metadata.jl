@@ -40,6 +40,9 @@ metadata_type(::T) where {T} = metadata_type(T)
 metadata_type(::Type{T}) where {T} = nothing
 
 # TODO document combine_metadata
+function combine_metadata(x::AbstractUnitRange, y::AbstractUnitRange)
+    return combine_metadata(metadata(x), metadata(y))
+end
 combine_metadata(::Nothing, ::Nothing) = nothing
 combine_metadata(::Nothing, y) = y
 combine_metadata(x, ::Nothing) = x
