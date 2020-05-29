@@ -24,14 +24,6 @@ Returns metadata (i.e. not keys or indices) associated with the ith axis of the 
 axis_meta(x::AbstractArray, i) = metadata(axes(x, i))
 
 """
-    axis_meta(x)
-
-Returns metadata associated with the axis `x`.
-"""
-axis_meta(x) = nothing
-
-
-"""
     has_metadata(x) -> Bool
 
 Returns true if `x` contains additional fields besides those for `keys` or `indices`
