@@ -44,39 +44,33 @@ end
 ###
 Base.checkbounds(x::AbstractAxis, i) = checkbounds(Bool, x, i)
 
-@inline Base.checkbounds(::Type{Bool}, a::AbstractAxis, i) = checkindex(Bool, a, i)
-
-@inline function Base.checkbounds(::Type{Bool}, a::AbstractAxis, i::CartesianIndex{1})
-    return checkindex(Bool, a, first(i.I))
+@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg)
+    return checkindex(Bool, axis, arg)
+end
+@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::AbstractVector)
+    return checkindex(Bool, axis, arg)
+end
+@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::CartesianIndex)
+    return checkindex(Bool, axis, arg)
 end
 
-@inline function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::Integer)
-    return StaticRanges.checkindexlo(a, i) & StaticRanges.checkindexhi(a, i)
+for T in (AbstractVector{Bool},
+          AbstractArray,
+          AbstractRange,
+          Base.Slice,
+          AbstractUnitRange,
+          Integer,
+          CartesianIndex{1},
+          Base.LogicalIndex,
+          Any
+         )
+    @eval begin
+        function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::$T)
+            return Styles.check_index(axis, arg)
+        end
+    end
 end
 
-@inline function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::AbstractVector)
-    return StaticRanges.checkindexlo(a, i) & StaticRanges.checkindexhi(a, i)
-end
-
-@inline function Base.checkindex(::Type{Bool}, a::AbstractAxis, i::AbstractUnitRange)
-    return StaticRanges.checkindexlo(a, i) & StaticRanges.checkindexhi(a, i) 
-end
-
-@inline function Base.checkindex(::Type{Bool}, x::AbstractAxis, I::Base.Slice)
-    return checkindex(Bool, values(x), I)
-end
-
-@inline function Base.checkindex(::Type{Bool}, x::AbstractAxis, I::AbstractRange)
-    return checkindex(Bool, values(x), I)
-end
-
-@inline function Base.checkindex(::Type{Bool}, x::AbstractAxis, I::AbstractVector{Bool})
-    return checkindex(Bool, values(x), I)
-end
-
-@inline function Base.checkindex(::Type{Bool}, x::AbstractAxis, I::Base.LogicalIndex)
-    return checkindex(Bool, values(x), I)
-end
 
 ###
 ### getindex

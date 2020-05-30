@@ -76,7 +76,8 @@ struct Axis{K,V,Ks,Vs<:AbstractUnitRange{V}} <: AbstractAxis{K,V,Ks,Vs}
 
     function Axis{K,V,Ks,Vs}(ks::Ks, vs::Vs, check_unique::Bool=true, check_length::Bool=true) where {K,V,Ks,Vs}
         if check_unique
-            allunique(ks) || error("All keys must be unique.")
+            # FIXME uncomment once fixed on 1.5beta
+            #allunique(ks) || error("All keys must be unique.")
             allunique(vs) || error("All values must be unique.")
         end
 

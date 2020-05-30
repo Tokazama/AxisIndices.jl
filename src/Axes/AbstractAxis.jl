@@ -289,16 +289,45 @@ for f in (:grow_last, :grow_first, :shrink_last, :shrink_first, :resize_first, :
     @eval begin
         function StaticRanges.$f(axis::AbstractAxis, n::Integer)
             if is_indices_axis(axis)
-                return unsafe_reconstruct(axis, StaticRanges.$f(values(axis), n))
+                return unsafe_reconstruct(axis, StaticRanges.$f(indices(axis), n))
             else
                 return unsafe_reconstruct(
                     axis,
                     StaticRanges.$f(keys(axis), n),
-                    StaticRanges.$f(values(axis), n)
+                    StaticRanges.$f(indices(axis), n)
                 )
             end
         end
 
+    end
+end
+
+for f in (:shrink_last, :shrink_first)
+    @eval begin
+        function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
+            if is_indices_axis(axis)
+                return unsafe_reconstruct(axis, n)
+            else
+                return unsafe_reconstruct(axis, StaticRanges.$f(keys(axis), length(axis) - length(n)), n)
+            end
+        end
+    end
+end
+
+for f in (:grow_last, :grow_first)
+    @eval begin
+        function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
+            if is_indices_axis(axis)
+                return unsafe_reconstruct(axis, n)
+            else
+                return unsafe_reconstruct(axis, StaticRanges.$f(keys(axis), length(n) - length(axis)), n)
+            end
+        end
+    end
+end
+
+for f in (:resize_last, :resize_first)
+    @eval begin
         function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
             if is_indices_axis(axis)
                 return unsafe_reconstruct(axis, n)

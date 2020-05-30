@@ -138,6 +138,21 @@ end
 end
 
 """
+    check_index
+"""
+@propagate_inbounds function check_index(axis, arg)
+    return check_index(AxisIndicesStyle(axis, arg), axis, arg)
+end
+
+@propagate_inbounds function check_index(axis, arg::Indices)
+    return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+end
+
+@propagate_inbounds function check_index(axis, arg::Keys)
+    return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+end
+
+"""
     KeyElement
 
 A subtype of `AxisIndicesStyle` for mapping an argument that refers to a single
@@ -156,7 +171,10 @@ AxisIndicesStyle(::Type{T}) where {T} = KeyElement()
     end
     return k2v(axis, mapping)
 end
+
 to_keys(::KeyElement, axis, arg, index) = arg
+
+check_index(::KeyElement, axis, arg) = arg in keys(axis)
 
 """
     IndexElement
@@ -172,15 +190,17 @@ is_index(::Type{IndexElement}) = true
 AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
 
 @propagate_inbounds function to_index(::IndexElement, axis, arg)
-    @boundscheck if !checkbounds(Bool, axis, arg)
+    @boundscheck if !in(arg, indices(axis))
         throw(BoundsError(axis, arg))
     end
     return arg
 end
 
 function to_keys(::IndexElement, axis, arg, index)
-@inbounds(getindex(keys(axis), v2k(axis, index)))
+    @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
+
+check_index(::IndexElement, axis, arg) = arg in indices(axis)
 
 """
     BoolElement
@@ -196,9 +216,9 @@ is_index(::Type{BoolElement}) = true
 
 AxisIndicesStyle(::Type{Bool}) = BoolElement()
 
-@propagate_inbounds function to_index(::BoolElement, axis, arg)
-    return getindex(values(axis), arg)
-end
+@propagate_inbounds to_index(::BoolElement, axis, arg) = getindex(values(axis), arg)
+
+check_index(::BoolElement, axis, arg) = checkindex(Bool, indices(axis), arg)
 
 """
     CartesianElement
@@ -220,6 +240,8 @@ AxisIndicesStyle(::Type{CartesianIndex{1}}) = CartesianElement()
     return index
 end
 
+check_index(::CartesianElement, axis, arg) = checkindex(Bool, indices(axis), first(arg.I))
+
 """
     KeysCollection
 
@@ -239,6 +261,8 @@ to_keys(::KeysCollection, axis, arg, index) = arg
     return k2v(axis, mapping)
 end
 
+check_index(::KeysCollection, axis, arg) = length(findin(arg, keys(axis))) == length(arg)
+
 """
     IndicesCollection
 
@@ -254,11 +278,13 @@ end
 
 # if we're referring to an element than we just need to know if it's inbounds
 @propagate_inbounds function to_index(::IndicesCollection, axis, arg)
-    @boundscheck if !checkindex(Bool, axis, arg)
+    @boundscheck if !checkindex(Bool, indices(axis), arg)
         throw(BoundsError(axis, arg))
     end
     return arg
 end
+
+check_index(::IndicesCollection, axis, arg) = checkindex(Bool, indices(axis), arg)
 
 """
     BoolsCollection
@@ -278,6 +304,8 @@ end
     return getindex(values(axis), arg)
 end
 
+check_index(::BoolsCollection, axis, arg) = checkindex(Bool, indices(axis), arg)
+
 """
     IntervalCollection
 
@@ -292,10 +320,9 @@ AxisIndicesStyle(::Type{<:Interval}) = IntervalCollection()
     return @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
 
-function to_index(::IntervalCollection, axis, arg)
-    mapping = findin(arg, keys(axis))
-    return k2v(axis, mapping)
-end
+to_index(::IntervalCollection, axis, arg) = k2v(axis, findin(arg, keys(axis)))
+
+check_index(::IntervalCollection, axis, arg) = true
 
 """
     KeysIn
@@ -317,6 +344,8 @@ to_keys(::KeysIn, axis, arg, index) = arg.x
     return k2v(axis, mapping)
 end
 
+check_index(::KeysIn, axis, arg) = length(findin(arg.x, keys(axis))) == length(arg.x)
+
 """
     IndicesIn
 
@@ -330,12 +359,14 @@ function to_keys(::IndicesIn, axis, arg, index)
 end
 
 @propagate_inbounds function to_index(::IndicesIn, axis, arg)
-    mapping = findin(arg.x, values(axis))
+    mapping = findin(arg.x, indices(axis))
     @boundscheck if length(arg.x) != length(mapping)
         throw(BoundsError(axis, arg))
     end
     return mapping
 end
+
+check_index(::IndicesIn, axis, arg) = length(findin(arg.x, indices(axis))) == length(arg.x)
 
 """
     KeyEquals
@@ -361,6 +392,8 @@ end
 
 to_keys(::KeyEquals, axis, arg, index) = arg.x
 
+check_index(::KeyEquals, axis, arg) = !isa(find_first(arg, keys(axis)), Nothing)
+
 """
     IndexEquals
 
@@ -372,7 +405,7 @@ struct IndexEquals <: AxisIndicesStyle end
 is_element(::Type{IndexEquals}) = true
 
 @propagate_inbounds function to_index(::IndexEquals, axis, arg)
-    @boundscheck if !checkbounds(Bool, values(axis), arg.x)
+    @boundscheck if !checkbounds(Bool, indices(axis), arg.x)
         throw(BoundsError(axis, arg.x))
     end
     return arg.x
@@ -381,6 +414,8 @@ end
 function to_keys(::IndexEquals, axis, arg, index)
     return @inbounds(getindex(keys(axis), v2k(axis, index)))
 end
+
+check_index(::IndexEquals, axis, arg) = checkbounds(Bool, indices(axis), arg.x)
 
 """
     KeysFix2
@@ -400,6 +435,8 @@ end
 
 @inline to_index(::KeysFix2, axis, arg) = k2v(axis, find_all(arg, keys(axis)))
 
+check_index(::KeysFix2, axis, arg) = true
+
 """
     IndicesFix2
 
@@ -413,6 +450,8 @@ struct IndicesFix2 <: AxisIndicesStyle end
 end
 
 @inline to_index(::IndicesFix2, axis, arg) = find_all(arg, values(axis))
+
+check_index(::IndicesFix2, axis, arg) = true
 
 """
     SliceCollection
@@ -431,6 +470,8 @@ AxisIndicesStyle(::Type{<:Base.Slice}) = SliceCollection()
 
 to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
 
+check_index(::SliceCollection, axis, arg) = true
+
 """
     KeyedStyle{S}
 
@@ -446,6 +487,8 @@ is_element(::Type{KeyedStyle{T}}) where {T} = is_element(T)
 to_index(::KeyedStyle{S}, axis, arg) where {S} = to_index(S, axis, arg)
 
 to_keys(::KeyedStyle{S}, axis, arg, index) where {S} = to_keys(S, axis, arg, index)
+
+check_index(::KeyedStyle{S}, axis, arg) where {S} = check_index(S, axis, arg)
 
 # we throw `axis` in there in case someone want's to change the default
 @inline AxisIndicesStyle(::A, ::T) where {A<:AbstractUnitRange, T} = AxisIndicesStyle(A, T)

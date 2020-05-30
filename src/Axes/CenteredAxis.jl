@@ -41,6 +41,7 @@ Interface.is_indices_axis(::Type{<:CenteredAxis}) = true
 
 Base.values(axis::CenteredAxis)= getfield(axis, :indices)
 
+
 ### centered_start
 centered_start(axis::CenteredAxis{K}) where {K} = centered_start(K, indices(axis))
 centered_start(::Type{T}, x::AbstractUnitRange) where {T} = _centered_start_from_len(T, length(x))
@@ -54,7 +55,6 @@ centered_stop(axis::CenteredAxis{K}) where {K} = centered_stop(K, values(axis))
 end
 _centered_stop_from_len_and_start(start::T, len) where {T} = T(start + len - 1)
 
-
 @inline function Base.keys(axis::CenteredAxis{K,I,Ks}) where {K,I,Ks}
     if is_static(Ks)
         return Ks()
@@ -64,8 +64,6 @@ _centered_stop_from_len_and_start(start::T, len) where {T} = T(start + len - 1)
         return Ks(start, _centered_stop_from_len_and_start(start, len))
     end
 end
-
-Base.checkindex(Bool, axis::CenteredAxis, i::Integer) = i in keys(axis)
 
 offset(axis::CenteredAxis) = -div(length(axis) + 1, 2) - (first(getfield(axis, :values)) - 1)
 
@@ -84,14 +82,14 @@ function _centered_axis_similar_type(::Type{Ks}, ::Type{Inds}) where {Ks,Inds}
 end
 
 function _centered_axis_similar_type(::Type{OneToSRange{T,L}}) where {T,L}
-    start = _centered_start_from_len(K, L)
-    return CenteredAxis{T,T,UnitSRange{K,start,_centered_stop_from_len_and_start(start, L)},OneToSRange{T,L}}
+    start = _centered_start_from_len(T, L)
+    return CenteredAxis{T,T,UnitSRange{T,start,_centered_stop_from_len_and_start(start, L)},OneToSRange{T,L}}
 end
 
 function _centered_axis_similar_type(::Type{UnitSRange{T,B,L}}) where {T,B,L}
     len = L - B + 1
-    start = _centered_start_from_len(K, len)
-    return CenteredAxis{T,T,UnitSRange{K,start,_centered_stop_from_len_and_start(start, len)},UnitSRange{T,B,L}}
+    start = _centered_start_from_len(T, len)
+    return CenteredAxis{T,T,UnitSRange{T,start,_centered_stop_from_len_and_start(start, len)},UnitSRange{T,B,L}}
 end
 
 function _centered_axis_similar_type(::Type{Inds}) where {Inds}

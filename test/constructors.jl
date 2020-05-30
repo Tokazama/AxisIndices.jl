@@ -57,6 +57,11 @@
         @test !@inferred(has_metadata(centered_axis))
         @test !@inferred(has_metadata(typeof(centered_axis)))
         @test metadata_type(centered_axis) isa Nothing
+        @test similar_type(centered_axis, OneTo{Int}) <: CenteredAxis{Int64,Int64,UnitRange{Int64},OneTo{Int64}}
+        @test similar_type(centered_axis, OneToSRange{Int,10}) <: CenteredAxis{Int64,Int64,UnitSRange{Int64,-5,4},OneToSRange{Int64,10}}
+        @test similar_type(centered_axis, UnitSRange{Int,1,10}) <: CenteredAxis{Int64,Int64,UnitSRange{Int64,-5,4},UnitSRange{Int64,1,10}}
+        @test similar_type(centered_axis, UnitSRange{Int,1,10}, OneToSRange{Int,10})  <: CenteredAxis{Int64,Int64,UnitSRange{Int64,1,10},OneToSRange{Int64,10}}
+        checkindex(Bool, centered_axis, 0)
     end
 end
 
