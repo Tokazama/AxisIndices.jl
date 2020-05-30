@@ -43,12 +43,10 @@ Base.values(axis::CenteredAxis)= getfield(axis, :indices)
 
 
 ### centered_start
-centered_start(axis::CenteredAxis{K}) where {K} = centered_start(K, indices(axis))
 centered_start(::Type{T}, x::AbstractUnitRange) where {T} = _centered_start_from_len(T, length(x))
 _centered_start_from_len(::Type{T}, len) where {T} = T(-div(len, 2))
 
 ### centered_stop
-centered_stop(axis::CenteredAxis{K}) where {K} = centered_stop(K, values(axis))
 @inline function centered_stop(::Type{T}, x::AbstractUnitRange) where {T}
     len = length(x)
     return _centered_stop_from_len_and_start(_centered_start_from_len(T, len), len)
@@ -64,8 +62,6 @@ _centered_stop_from_len_and_start(start::T, len) where {T} = T(start + len - 1)
         return Ks(start, _centered_stop_from_len_and_start(start, len))
     end
 end
-
-offset(axis::CenteredAxis) = -div(length(axis) + 1, 2) - (first(getfield(axis, :values)) - 1)
 
 function StaticRanges.similar_type(::A, vs_type::Type=indices_type(A)) where {A<:CenteredAxis}
     return similar_type(A, vs_type)

@@ -75,21 +75,6 @@ end
 
 _fieldnames(::StructAxis{T}) where {T} = Tuple(T.name.names)
 
-# get elemen type of `T` at field `i`
-axis_index_eltype(::T) where {T} = axis_index_eltype(T)
-axis_index_eltype(::Type{<:StructAxis{T}}) where {T} = T
-
-axis_index_eltype(::T, i) where {T} = axis_index_eltype(T, i)
-axis_index_eltype(::Type{<:StructAxis{T}}, i::Integer) where {T} = fieldtype(T, i)
-axis_index_eltype(::Type{<:StructAxis{T}}, i::Colon) where {T} = T
-axis_index_eltype(::Type{<:AbstractAxis}, i::Integer) = Any
-@inline function axis_index_eltype(::Type{T}, inds::AbstractVector) where {T}
-    return NamedTuple{
-        ([fieldname(T, i) for i in inds]...),
-        Tuple{[fieldtype(T, i) for i in inds]...}
-    }
-end
-
 function to_axis(
     ks::StructAxis{T},
     vs::AbstractUnitRange{<:Integer},
