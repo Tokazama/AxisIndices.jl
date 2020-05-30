@@ -59,7 +59,6 @@ end
     end
 end
 
-
 Base.@pure function _structdim(::Type{T}) where {T<:Tuple}
     for i in OneTo(length(T.parameters))
         T.parameters[i] <: StructAxis && return i
@@ -67,7 +66,7 @@ Base.@pure function _structdim(::Type{T}) where {T<:Tuple}
     return 0
 end
 
-structaxis(x) = axes(x, structdim(x))
+#structaxis(x) = axes(x, structdim(x))
 
 function to_index_type(axis::StructAxis{T}, arg) where {T}
     return fieldtype(T, to_index(axis, arg))

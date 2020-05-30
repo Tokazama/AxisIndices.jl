@@ -273,13 +273,12 @@ const AbstractAxes{N} = Tuple{Vararg{<:AbstractAxis,N}}
 # defined to avoid ambiguities with methods that pass AbstractUnitRange{<:Integer} instead of Integer
 for f in (:grow_last!, :grow_first!, :shrink_last!, :shrink_first!)
     @eval begin
-        function StaticRanges.$f(axis::AbstractAxis{K,I,Ks,Inds}, n::Integer) where {K,I,Ks,Inds}
+        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
+            can_set_length(axis) ||  throw(MethodError($f, (axis, n)))
             if !is_indices_axis(axis)
-                can_set_length(Ks) ||  throw(MethodError($f, (axis, n)))
                 StaticRanges.$f(keys(axis), n)
             end
-            can_set_length(Inds) ||  throw(MethodError($f, (axis, n)))
-            StaticRanges.$f(values(axis), n)
+            StaticRanges.$f(indices(axis), n)
             return axis
         end
     end

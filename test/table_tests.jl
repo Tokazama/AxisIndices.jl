@@ -16,21 +16,22 @@
     @test Tables.getcolumn(x, :a) == [1,2]
     @test Tables.columnnames(x) == [:a, :b]
     # now let's iterate our MatrixTable to get our first MatrixRow
-    @test @inferred(Tables.schema(x)) isa Tables.Schema{(:a,:b),Tuple{Array{Int,1},Array{Int,1}}}
-    @test @inferred(propertynames(x)) == [:a, :b]
-
     r = TableRow(1, x)
     @test Tables.columnnames(r) == [:a, :b]
     @test @inferred(propertynames(r)) == [:a, :b]
+    @test @inferred(colaxis(r)) isa Axis
 
-    @testset "AxisIndices interface" begin
+    @testset "StructAxis Columns" begin
+        x = Table([[1,2],[3,4]]; colaxis=NamedTuple{(:a, :b),Tuple{Int,Int}})
+        @test @inferred(Tables.schema(x)) isa Tables.Schema{(:a,:b),Tuple{Int,Int}}
+        @test @inferred(propertynames(x)) == [:a, :b]
+
         @test @inferred(colaxis(x)) isa StructAxis
 
         @test @inferred(rowaxis(x)) isa SimpleAxis
         @test @inferred(rowtype(x)) <: SimpleAxis
         @test @inferred(colaxis(x)) isa StructAxis
 
-        @test @inferred(colaxis(r)) isa StructAxis
     end
 end
 
@@ -49,9 +50,9 @@ matrow = first(x)
     t = Table(A = 1:2:1000, B = repeat(1:10, inner=50), c = 1:500);
     t2 = t[1:2, 1:2];
     @test axes(t, 1) isa SimpleAxis
-    @test axes(t, 2) isa StructAxis
+    @test axes(t, 2) isa Axis
     @test axes(t, 3) isa SimpleAxis
-    @test axes(t) isa Tuple{<:SimpleAxis,<:StructAxis}
+    @test axes(t) isa Tuple{<:SimpleAxis,<:Axis}
     @test ndims(t) == 2
     @test ndims(typeof(t)) == 2
     # FIXME
