@@ -82,3 +82,4 @@ end
 
 StaticRanges.Staticness(::Type{<:AbstractTable{P}}) where {P} = StaticRanges.Staticness(P)
 
+

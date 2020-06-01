@@ -42,28 +42,6 @@
         @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
         @test SimpleAxis{Int,UnitRange{Int}}(Base.OneTo(2)) isa SimpleAxis{Int,UnitRange{Int}}
     end
-
-    @testset "CenteredAxis" begin
-        centered_axis = @inferred(CenteredAxis(1:10))
-        @test @inferred(keys(centered_axis)) == -5:4
-        @test @inferred(indices(centered_axis)) == 1:10
-        centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
-        @test keytype(centered_axis) <: Int32
-        centered_axis = @inferred(CenteredAxis{Int32,Int32}(UnitSRange(1, 10)))
-        @test eltype(centered_axis) <: Int32
-        ca2 = @inferred(centered_axis[-1:1])
-        @test @inferred(keys(ca2)) == -1:1
-        @test @inferred(indices(ca2)) == 5:7
-        @test !@inferred(has_metadata(centered_axis))
-        @test !@inferred(has_metadata(typeof(centered_axis)))
-        @test metadata_type(centered_axis) isa Nothing
-
-        @test similar_type(centered_axis, OneTo{Int}) <: CenteredAxis{Int64,Int64,UnitRange{Int64},OneTo{Int64}}
-        @test similar_type(centered_axis, OneToSRange{Int,10}) <: CenteredAxis{Int64,Int64,UnitSRange{Int64,-5,4},OneToSRange{Int64,10}}
-        @test similar_type(centered_axis, UnitSRange{Int,1,10}) <: CenteredAxis{Int64,Int64,UnitSRange{Int64,-5,4},UnitSRange{Int64,1,10}}
-        @test similar_type(centered_axis, UnitSRange{Int,1,10}, OneToSRange{Int,10})  <: CenteredAxis{Int64,Int64,UnitSRange{Int64,1,10},OneToSRange{Int64,10}}
-        @test similar_type(centered_axis, UnitRange{Int}, OneToSRange{Int,10})  <: CenteredAxis{Int64,Int64,UnitRange{Int64},OneToSRange{Int64,10}}
-    end
 end
 
 

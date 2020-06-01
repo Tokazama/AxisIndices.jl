@@ -1,5 +1,4 @@
 
-
 function check_rows_length(x::AbstractVector{<:AbstractVector}, raxis::AbstractAxis)
     nr = length(raxis)
     for x_i in x

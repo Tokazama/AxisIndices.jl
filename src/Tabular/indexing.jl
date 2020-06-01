@@ -1,5 +1,4 @@
 
-
 ###
 ### getindex
 ###
@@ -69,4 +68,3 @@ end
 @propagate_inbounds function Base.setindex!(x::AbstractTable, vals, arg1, arg2)
     set_index!(x, rowaxis(x), colaxis(x), vals, arg1, arg2)
 end
-

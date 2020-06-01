@@ -6,9 +6,6 @@ function check_axis_length(ks, vs)
     return nothing
 end
 
-maybe_first(x::Tuple{}) = ()
-maybe_first(x::Tuple) = first(x)
-
 maybe_tail(::Tuple{}) = ()
 maybe_tail(x::Tuple) = tail(x)
 

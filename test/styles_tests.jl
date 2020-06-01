@@ -249,4 +249,3 @@ end
     @test @inferred(to_indices(A, (CartesianIndices((1,)), 1))) == (Axis(1:1 => 1:1), 1)
     @test @inferred(to_indices(A, (1, 1.0))) == (1,1)
 end
-

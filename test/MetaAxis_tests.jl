@@ -12,6 +12,7 @@
     @test @inferred(has_metadata(typeof(meta_axis)))
     @test @inferred(metadata(meta_axis)) isa Nothing
     @test @inferred(metadata_type(meta_axis)) <: Nothing
+    @test @inferred(metadata_type(typeof(meta_axis))) <: Nothing
     @test !@inferred(is_indices_axis(meta_axis))
     @test !@inferred(is_indices_axis(typeof(meta_axis)))
 

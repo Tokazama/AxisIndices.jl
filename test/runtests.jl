@@ -79,6 +79,8 @@ include("concatenation_tests.jl")
 include("array_tests.jl")
 include("broadcasting_tests.jl")
 include("linear_algebra.jl")
+
+include("CenteredAxis_tests.jl")
 include("MetaAxis_tests.jl")
 
 include("mapped_arrays.jl")
