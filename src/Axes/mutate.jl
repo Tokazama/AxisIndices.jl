@@ -42,7 +42,14 @@ function Base.popfirst!(axis::AbstractAxis)
     return popfirst!(indices(axis))
 end
 
+# TODO check for existing key first
 function push_key!(axis::AbstractAxis, key)
     push!(keys(axis), key)
     grow_last!(indices(axis), 1)
 end
+
+function pushfirst_key!(axis::AbstractAxis, key)
+    pushfirst!(keys(axis), key)
+    grow_first!(indices(axis), 1)
+end
+

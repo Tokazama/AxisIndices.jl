@@ -64,7 +64,9 @@ Tables.columns(x::AbstractTable) = x
 
 Tables.schema(x::AbstractTable) = Tables.schema(typeof(x))
 Tables.schema(::Type{T}) where {T<:AbstractTable} = Tables.schema(coltype(T))
-@generated Tables.schema(::Type{<:StructAxis{T}}) where {T} = Tables.Schema{Tuple(fieldnames(T)),Tuple{fieldtypes(T)...}}()
+@generated function Tables.schema(::Type{<:StructAxis{T}}) where {T}
+    return Tables.Schema{Tuple(fieldnames(T)),Tuple{fieldtypes(T)...}}()
+end
 
 Tables.rowaccess(::Type{<:AbstractTable}) = true
 
@@ -81,5 +83,4 @@ function Base.show(io::IO, ::MIME"text/plain", x::AbstractTable)
 end
 
 StaticRanges.Staticness(::Type{<:AbstractTable{P}}) where {P} = StaticRanges.Staticness(P)
-
 
