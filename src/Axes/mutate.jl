@@ -50,6 +50,6 @@ end
 
 function pushfirst_key!(axis::AbstractAxis, key)
     pushfirst!(keys(axis), key)
-    grow_first!(indices(axis), 1)
+    grow_last!(indices(axis), 1)
 end
 

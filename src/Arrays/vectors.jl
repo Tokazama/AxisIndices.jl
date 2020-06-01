@@ -72,29 +72,29 @@ function Base.resize!(x::AbstractAxisVector, n::Integer)
 end
 
 function Base.push!(A::AbstractAxisVector, item)
-    can_set_last(axes(A, 1)) || throw(MethodError(push!(A, item)))
+    StaticRanges.can_set_last(axes(A, 1)) || throw(MethodError(push!(A, item)))
     push!(parent(A), item)
-    grow_last!(axes(A, 1), length(items))
+    grow_last!(axes(A, 1), 1)
     return A
 end
 
 function Base.push!(A::AbstractAxisVector, item::Pair)
     axis = axes(A, 1)
-    can_set_last(axis) || throw(MethodError(push!(A, item)))
+    StaticRanges.can_set_last(axis) || throw(MethodError(push!(A, item)))
     push!(parent(A), last(item))
     Axes.push_key!(axis, first(item))
     return A
 end
 
-function Base.pushfirst!(A::AbstractAxisVector, items...)
-    grow_first!(axes(A, 1), length(items))
-    pushfirst!(parent(A), items...)
+function Base.pushfirst!(A::AbstractAxisVector, item)
+    grow_first!(axes(A, 1), 1)
+    pushfirst!(parent(A), item)
     return A
 end
 
 function Base.pushfirst!(A::AbstractAxisVector, item::Pair)
     axis = axes(A, 1)
-    can_set_first(axis) || throw(MethodError(pushfirst!(A, item)))
+    StaticRanges.can_set_first(axis) || throw(MethodError(pushfirst!(A, item)))
     pushfirst!(parent(A), last(item))
     Axes.pushfirst_key!(axis, first(item))
     return A

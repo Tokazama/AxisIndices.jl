@@ -67,3 +67,13 @@ end
     @test A_view == Aaxes_view
 end
 
+@testset "push!" begin
+    x = AxisArray([1], [:a])
+    push!(x, :b => 2)
+    @test axes_keys(x, 1) == [:a, :b]
+    @test x == [1, 2]
+    pushfirst!(x, :pre_a => 0)
+    @test axes_keys(x, 1) == [:pre_a, :a, :b]
+    @test x == [0, 1, 2]
+end
+
