@@ -52,13 +52,13 @@ function cat_axis(x::AbstractAxis, y::AbstractUnitRange, inds=cat_indices(x, y))
     end
 end
 
-"""
+#=
     cat_axes(x::AbstractArray, y::AbstractArray, xy::AbstractArray, dims)
 
 Produces the appropriate set of axes where `x` and `y` are the arrays that were
 concatenated over `dims` to produce `xy`. The appropriate indices of each axis
 are derived from from `xy`.
-"""
+=#
 @inline function cat_axes(x::AbstractArray, y::AbstractArray, xy::AbstractArray{T,N}, dims) where {T,N}
     ntuple(Val(N)) do i
         if i in dims

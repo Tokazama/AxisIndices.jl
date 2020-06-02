@@ -1,7 +1,7 @@
 # Public API
 
 ```@docs
-AbstractAxisIndices
+AbstractAxisArray
 AxisArray
 AbstractAxis
 AbstractSimpleAxis

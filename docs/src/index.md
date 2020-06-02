@@ -18,7 +18,6 @@ However, many methods are provided and documented internally so that it's easy f
 * I just want to get something done.
 
 Then start with the [Quick Start](@ref) section.
-A slightly more in depth tutorial is provided with [Indexing Tutorial](@ref).
 
 * I want to make my own axis type.
 

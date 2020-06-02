@@ -1,18 +1,15 @@
 
 # TODO document combine_indices
-"""
+#=
     combine_indices(x, y)
 
-"""
+=#
 combine_indices(x, y) = _combine_indices(indices(x), indices(y))
 _combine_indices(x::X, y::Y) where {X,Y} = promote_type(X, Y)(x)
 
 # LinearIndices indicates that keys are not formally defined so the collection
 # that isn't LinearIndices is used. If both are LinearIndices then take the underlying
 # OneTo as the new keys.
-"""
-    combine_keys(x, y)
-"""
 combine_keys(x, y) = _combine_keys(keys(x), keys(y))
 _combine_keys(x, y) = promote_axis_collections(x, y)
 _combine_keys(x,                y::LinearIndices) = x

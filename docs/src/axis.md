@@ -14,7 +14,11 @@ Given these definitions, the `AbstractAxis` differs from the classic dictionary 
 The two main axis types defined here are `Axis` and `SimpleAxis`.
 The standard syntax for indexing doesn't change at all for these types.
 ```jldoctest intro_axis_examples
-julia> using AxisIndices, Dates, ChainedFixes
+julia> using AxisIndices
+
+julia> using Dates
+
+julia> using ChainedFixes  # provides `and`, `or`, `⩓`, `⩔` methods
 
 julia> sa = SimpleAxis(1:10)
 SimpleAxis(1:10)

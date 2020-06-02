@@ -1,10 +1,6 @@
 # Internal API
 
 ```@docs
-AxisIndices.append_axis!
-AxisIndices.combine_axis
-AxisIndices.cat_axis
-AxisIndices.cat_axes
 AxisIndices.unsafe_reconstruct
 AxisIndices.step_key
 AxisIndices.indices_type

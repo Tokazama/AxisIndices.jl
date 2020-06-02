@@ -137,9 +137,7 @@ end
     return to_index(AxisIndicesStyle(axis, arg), axis, arg.x)
 end
 
-"""
-    check_index
-"""
+# check_index - basically checkindex but passes a style trait argument
 @propagate_inbounds function check_index(axis, arg)
     return check_index(AxisIndicesStyle(axis, arg), axis, arg)
 end

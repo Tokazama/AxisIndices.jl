@@ -217,9 +217,9 @@ function get_factorization(F::Q, A::AbstractArray, d::Symbol) where {Q<:Union{Li
     end
 end
 
-struct AxisIndicesSVD{T,F<:SVD{T},A<:AbstractAxisArray} <: Factorization{T}
+struct AxisSVD{T,F<:SVD{T},A<:AbstractAxisArray} <: Factorization{T}
     factor::F
-    axes_indices::A
+    array::A
 end
 
 """
@@ -246,28 +246,51 @@ julia> axes(F.Vt)
 
 julia> axes(F.U * Diagonal(F.S) * F.Vt)
 (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+
+julia> F
+AxisSVD{Float64}
+U factor:
+2×2 AxisArray{Float64,2}
+ • dim_1 - 2:3
+ • dim_2 - 1:2
+                         1                     2
+  2   -0.40455358483375703   -0.9145142956773042
+  3    -0.9145142956773045    0.4045535848337568
+singular values:
+2-element Array{Float64,1}:
+ 5.464985704219043
+ 0.3659661906262574
+Vt factor:
+2×2 AxisArray{Float64,2}
+ • dim_1 - 1:2
+ • dim_2 - 3:4
+                        3                     4
+  1   -0.5760484367663209   -0.8174155604703631
+  2    0.8174155604703631   -0.5760484367663209
+
 ```
 """
 function LinearAlgebra.svd(A::AbstractAxisArray, args...; kwargs...)
-    return AxisIndicesSVD(svd(parent(A), args...; kwargs...), A)
+    return AxisSVD(svd(parent(A), args...; kwargs...), A)
 end
 
 function LinearAlgebra.svd!(A::AbstractAxisArray, args...; kwargs...)
-    return AxisIndicesSVD(svd!(parent(A), args...; kwargs...), A)
+    return AxisSVD(svd!(parent(A), args...; kwargs...), A)
 end
 
-Base.parent(F::AxisIndicesSVD) = getfield(F, :factor)
+Base.parent(F::AxisSVD) = getfield(F, :factor)
 
-Base.size(F::AxisIndicesSVD) = size(parent(F))
+Base.size(F::AxisSVD) = size(parent(F))
 
-Base.size(F::AxisIndicesSVD, i) = size(parent(F), i)
+Base.size(F::AxisSVD, i) = size(parent(F), i)
 
-function Base.propertynames(F::AxisIndicesSVD, private::Bool=false)
+function Base.propertynames(F::AxisSVD, private::Bool=false)
     return private ? (:V, fieldnames(typeof(parent(F)))...) : (:U, :S, :V, :Vt)
 end
-function Base.show(io::IO, mime::MIME{Symbol("text/plain")}, F::AxisIndicesSVD)
-    summary(io, F)
-    println(io)
+
+Base.show(io::IO, F::AxisSVD) = show(io, MIME"text/plain"(), F)
+function Base.show(io::IO, mime::MIME{Symbol("text/plain")}, F::AxisSVD{T}) where {T}
+    print(io, "AxisSVD{$T}\n")
     println(io, "U factor:")
     show(io, mime, F.U)
     println(io, "\nsingular values:")
@@ -279,14 +302,14 @@ end
 LinearAlgebra.svdvals(A::AbstractAxisArray) = svdvals(parent(A))
 
 # iteration for destructuring into components
-Base.iterate(S::AxisIndicesSVD) = (S.U, Val(:S))
-Base.iterate(S::AxisIndicesSVD, ::Val{:S}) = (S.S, Val(:V))
-Base.iterate(S::AxisIndicesSVD, ::Val{:V}) = (S.V, Val(:done))
-Base.iterate(S::AxisIndicesSVD, ::Val{:done}) = nothing
+Base.iterate(S::AxisSVD) = (S.U, Val(:S))
+Base.iterate(S::AxisSVD, ::Val{:S}) = (S.S, Val(:V))
+Base.iterate(S::AxisSVD, ::Val{:V}) = (S.V, Val(:done))
+Base.iterate(S::AxisSVD, ::Val{:done}) = nothing
 # TODO GeneralizedSVD
 
-@inline function Base.getproperty(F::AxisIndicesSVD, d::Symbol)
-    return get_factorization(parent(F), getfield(F, :axes_indices), d)
+@inline function Base.getproperty(F::AxisSVD, d::Symbol)
+    return get_factorization(parent(F), getfield(F, :array), d)
 end
 
 function get_factorization(F::SVD, A::AbstractArray, d::Symbol)
