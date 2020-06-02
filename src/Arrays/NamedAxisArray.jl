@@ -8,10 +8,6 @@ StaticRanges.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 Interface.metadata(A::NamedDimsArray) = metadata(parent(A))
 Interface.metadata_type(::Type{A}) where {A<:NamedDimsArray} = metadata_type(parent_type(A))
 
-
-
-const NamedAxisArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisArray{T,N,P,AI}}
-
 """
     NamedAxisArray(parent::AbstractArray; kwargs...) = NamedAxisArray(parent, kwargs)
     NamedAxisArray(parent::AbstractArray, axes::NamedTuple{L,AbstractAxes})
@@ -26,8 +22,8 @@ assigned value is sent to the corresponding axis when constructing the underlyin
 ```jldoctest
 julia> using AxisIndices
 
-julia> A = NamedAxisArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5)
-2×3×4 NamedDimsArray{Int64,3}
+julia> A = NamedAxisArray{(:x, :y, :z)}(reshape(1:24, 2, 3, 4), ["a", "b"], ["one", "two", "three"], 2:5)
+2×3×4 NamedAxisArray{Int64,3}
  • x - ["a", "b"]
  • y - ["one", "two", "three"]
  • z - 2:5
@@ -58,7 +54,7 @@ julia> axes_keys(A)
 (["a", "b"], ["one", "two", "three"], 2:5)
 
 julia> B = A["a", :, :]
-3×4 NamedDimsArray{Int64,2}
+3×4 NamedAxisArray{Int64,2}
  • y - ["one", "two", "three"]
  • z - 2:5
           2    3    4    5
@@ -67,7 +63,7 @@ julia> B = A["a", :, :]
   three   5   11   17   23
 
 julia> C = B["one",:]
-4-element NamedDimsArray{Int64,1}
+4-element NamedAxisArray{Int64,1}
  • z - 2:5
 
   2    1
@@ -77,7 +73,7 @@ julia> C = B["one",:]
 
 ```
 """
-const NamedAxisArray{L,T,N,P,AI} = NamedAxisArray{L,T,N,P,AI}
+const NamedAxisArray{L,T,N,P,AI} = NamedDimsArray{L,T,N,AxisArray{T,N,P,AI}}
 
 NamedAxisArray{L}(x::AxisArray) where {L} = NamedDimsArray{L}(x)
 
@@ -93,47 +89,32 @@ function NamedAxisArray(x::AbstractArray, axs::NamedTuple{L}) where {L}
     return NamedAxisArray{L}(x, values(axs))
 end
 
+function NamedAxisArray{L,T,N}(init::ArrayInitializer, axs::Tuple) where {L,T,N}
+    return NamedAxisArray{L}(AxisArray{T,N}(init, axs))
+end
+
+function NamedAxisArray{L,T,N}(init::ArrayInitializer, args::AbstractVector...) where {L,T,N}
+    return NamedAxisArray{L,T,N}(init, args)
+end
+
+function NamedAxisArray{L,T}(init::ArrayInitializer, axs::Tuple) where {L,T}
+    return NamedAxisArray{L}(AxisArray{T}(init, axs))
+end
+
+function NamedAxisArray{L,T}(init::ArrayInitializer, args::AbstractVector...) where {L,T,N}
+    return NamedAxisArray{L,T}(init, args)
+end
+
 NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, kwargs.data)
 
-#=
-for f in (:getindex, :view, :dotview)
-    _f = Symbol(:_, f)
-    @eval begin
-        @propagate_inbounds function Base.$f(a::NamedAxisArray, inds...)
-            return $_f(a, to_indices(parent(a), inds))
-        end
-
-        @propagate_inbounds function Base.$f(a::NamedAxisArray, inds::Vararg{<:Integer})
-            return Base.$f(parent(a), inds...)
-        end
-
-        @propagate_inbounds function Base.$f(a::NamedAxisArray, inds::CartesianIndex)
-            return Base.$f(parent(a), inds)
-        end
-
-        @propagate_inbounds function $_f(a::NamedAxisArray, inds::Tuple{Vararg{<:Integer}})
-            return Base.$f(parent(a), inds...)
-        end
-
-        @propagate_inbounds function $_f(a::NamedAxisArray{T,N}, inds::Tuple{Vararg{<:Any,M}}) where {T,N,M}
-            data = Base.$f(parent(a), inds...)
-            L = NamedDims.remaining_dimnames_from_indexing(dimnames(a), inds)
-            return NamedDims.NamedDimsArray{L}(data)
-        end
+Base.show(io::IO, A::NamedAxisArray; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::NamedAxisArray{L,T,N}; kwargs...) where {L,T,N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
     end
-end
-
-@propagate_inbounds function Base.getindex(A::NamedAxisArray{T,N}, args::Integer...) where {T,N,M}
-    inds = to_indices(A, args)
-    p = AxisIndexing.unsafe_getindex(parent(A), args, inds)
-    L = NamedDims.remaining_dimnames_from_indexing(dimnames(A), inds)
-    return NamedDims.NamedDimsArray{L}(p)
-end
-=#
-
-Base.show(io::IO, x::NamedAxisArray; kwargs...) = show(io, MIME"text/plain"(), x, kwargs...)
-function Base.show(io::IO, m::MIME"text/plain", x::NamedAxisArray{L,T,N}; kwargs...) where {L,T,N}
-    PrettyArrays.print_array_summary(io, x)
-    return show_array(io, x; kwargs...)
+    print(io, " NamedAxisArray{$T,$N}\n")
+    return show_array(io, A; kwargs...)
 end
 

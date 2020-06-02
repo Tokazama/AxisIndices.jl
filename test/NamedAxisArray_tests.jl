@@ -1,3 +1,4 @@
+
 @testset "NamedDims" begin
     A = NamedAxisArray(reshape(1:24, 2, 3, 4), x=["a", "b"], y =["one", "two", "three"], z=2:5);
     @test @inferred(StaticRanges.axes_type(typeof(A))) <: typeof(axes(A))
@@ -13,5 +14,9 @@
 
     @test keys(@inferred(AxisIndices.named_axes(A))) == (:x,:y,:z)
     @test keys(@inferred(AxisIndices.named_axes(parent(A)))) == (:dim_1, :dim_2, :dim_3)
+
+    @test dimnames(@inferred(NamedAxisArray{(:x, :y),Int}(undef, 1:2, 1:2))) == (:x, :y)
+    @test dimnames(@inferred(NamedAxisArray{(:x, :y),Int}(undef, (2,2)))) == (:x, :y)
+    @test dimnames(@inferred(NamedAxisArray{(:x, :y),Int,2}(undef, 1:2, 1:2))) == (:x, :y)
 end
 

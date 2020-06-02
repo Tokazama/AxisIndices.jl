@@ -44,7 +44,7 @@ julia> A_axis
 Names can be attached to each dimension/axis using `NamedAxisArray`.
 ```jldoctest arrays_interface
 julia> A_named_axis = NamedAxisArray{(:xdim, :ydim)}(A_axis)
-2×2 NamedDimsArray{Int64,2}
+2×2 NamedAxisArray{Int64,2}
  • xdim - ["a", "b"]
  • ydim - [:one, :two]
       one   two  
