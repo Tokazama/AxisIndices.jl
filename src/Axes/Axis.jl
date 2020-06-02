@@ -70,57 +70,69 @@ Notice that `==` returns a single value instead of a collection of all elements
 where the key was found to be true. This is because all keys must be unique so
 there can only ever be one element returned.
 """
-struct Axis{K,V,Ks,Vs<:AbstractUnitRange{V}} <: AbstractAxis{K,V,Ks,Vs}
+struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I,Ks,Inds}
     keys::Ks
-    values::Vs
+    indices::Inds
 
-    function Axis{K,V,Ks,Vs}(ks::Ks, vs::Vs, check_unique::Bool=true, check_length::Bool=true) where {K,V,Ks,Vs}
+    function Axis{K,I,Ks,Inds}(
+        ks::Ks,
+        inds::Inds,
+        check_unique::Bool=true,
+        check_length::Bool=true
+    ) where {K,I,Ks<:AbstractVector{K},Inds<:AbstractUnitRange{I}}
         if check_unique
             # FIXME uncomment once fixed on 1.5beta
             #allunique(ks) || error("All keys must be unique.")
-            allunique(vs) || error("All values must be unique.")
+            allunique(inds) || error("All values must be unique.")
         end
 
         if check_length
-            length(ks) == length(vs) || error("Length of keys and values must be equal, got length(keys) = $(length(ks)) and length(values) = $(length(vs)).")
+            length(ks) == length(inds) || error("Length of keys and values must be equal, got length(keys) = $(length(ks)) and length(values) = $(length(inds)).")
         end
-
-        eltype(Ks) <: K || error("keytype of keys and keytype do no match, got $(eltype(Ks)) and $K")
-        eltype(Vs) <: V || error("valtype of values and valtype do no match, got $(eltype(Vs)) and $V")
-        return new{K,V,Ks,Vs}(ks, vs)
+        return new{K,I,Ks,Inds}(ks, inds)
     end
-end
 
-function Axis(ks, vs, check_unique::Bool=true, check_length::Bool=true)
-    if is_static(vs)
-        return _axis(as_static(ks), as_static(vs), check_unique, check_length)
-    elseif is_fixed(vs)
-        return _axis(as_fixed(ks), as_fixed(vs), check_unique, check_length)
-    else  # is_dynamic
-        return _axis(as_dynamic(ks), as_dynamic(vs), check_unique, check_length)
+    Axis{K,I}() where {K,I} = new{K,I,Vector{K},OneToMRange{I}}(Vector{K}(),OneToMRange{I}(0))
+
+    Axis{K}() where {K} = Axis{K,Int}()
+
+    Axis() = Axis{Any}()
+
+    Axis(x::Pair) = Axis(x.first, x.second)
+
+    function Axis{K,I,Ks,Inds}(a::AbstractAxis) where {K,I,Ks,Inds}
+        return Axis{K,I,Ks,Inds}(Ks(keys(a)), Inds(values(a)), false, false)
     end
-    return 
-end
 
-function _axis(ks, vs, check_unique, check_length)
-    return Axis{eltype(ks),eltype(vs),typeof(ks),typeof(vs)}(ks, vs, check_unique, check_length)
-end
-
-function Axis(ks, check_unique::Bool=true)
-    if is_static(ks)
-        return Axis(ks, OneToSRange(length(ks)), check_unique, false)
-    elseif is_fixed(ks)
-        return Axis(ks, OneTo(length(ks)), check_unique, false)
-    else  # is_dynamic
-        return Axis(ks, OneToMRange(length(ks)), check_unique, false)
+    function Axis{K,I,Ks,Inds}(axis::AbstractAxis{K,I,Ks,Inds}) where {K,I,Ks,Inds}
+        return new{K,I,Ks,Inds}(keys(axis), indices(axis))
     end
+
+    Axis(axis::AbstractAxis{K,I,Ks,Inds}) where {K,I,Ks,Inds} = Axis{K,I,Ks,Inds}(axis)
+
+    function Axis(ks, inds, check_unique::Bool=true, check_length::Bool=true)
+        if is_static(inds)
+            new_ks = as_static(ks)
+        elseif is_fixed(inds)
+            new_ks = as_fixed(ks)
+        else  # is_dynamic
+            new_ks = as_dynamic(ks)
+        end
+        return Axis{eltype(new_ks),eltype(inds),typeof(new_ks),typeof(inds)}(ks, inds, check_unique, check_length)
+    end
+
+    function Axis(ks, check_unique::Bool=true)
+        if is_static(ks)
+            return Axis(ks, OneToSRange(length(ks)), check_unique, false)
+        elseif is_fixed(ks)
+            return Axis(ks, OneTo(length(ks)), check_unique, false)
+        else  # is_dynamic
+            return Axis(ks, OneToMRange(length(ks)), check_unique, false)
+        end
+    end
+
 end
 
-Axis(x::Pair) = Axis(x.first, x.second)
-
-Axis(a::AbstractAxis{K,V,Ks,Vs}) where {K,V,Ks,Vs} = Axis{K,V,Ks,Vs}(keys(a), values(a))
-
-Axis{K,V,Ks,Vs}(a::AbstractAxis) where {K,V,Ks,Vs} = Axis{K,V,Ks,Vs}(Ks(keys(a)), Vs(values(a)))
 
 function Axis{K,V,Ks,Vs}(x::AbstractUnitRange{<:Integer}) where {K,V,Ks,Vs}
     if x isa Ks
@@ -141,7 +153,7 @@ end
 # interface
 Base.keys(a::Axis) = getfield(a, :keys)
 
-Base.values(a::Axis) = getfield(a, :values)
+Base.values(a::Axis) = getfield(a, :indices)
 
 function StaticRanges.similar_type(
     ::Type{A},

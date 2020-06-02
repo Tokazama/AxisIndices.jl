@@ -198,7 +198,7 @@ function Base.parent(F::QRPivoted{<:Any, <:AbstractAxisArray})
     return QRPivoted(parent(getfield(F, :factors)), getfield(F, :τ), getfield(F, :jpvt))
 end
 
-@inline function Base.getproperty(F::AIQRUnion, d::Symbol) where {T}
+@inline function Base.getproperty(F::AIQRUnion, d::Symbol)
     return get_factorization(parent(F), getfield(F, :factors), d)
 end
 
@@ -276,7 +276,7 @@ function Base.show(io::IO, mime::MIME{Symbol("text/plain")}, F::AxisIndicesSVD)
     show(io, mime, F.Vt)
 end
 
-LinearAlgebra.svdvals(A::AbstractAxisArray) = sdvals(parent(A))
+LinearAlgebra.svdvals(A::AbstractAxisArray) = svdvals(parent(A))
 
 # iteration for destructuring into components
 Base.iterate(S::AxisIndicesSVD) = (S.U, Val(:S))
@@ -285,7 +285,7 @@ Base.iterate(S::AxisIndicesSVD, ::Val{:V}) = (S.V, Val(:done))
 Base.iterate(S::AxisIndicesSVD, ::Val{:done}) = nothing
 # TODO GeneralizedSVD
 
-@inline function Base.getproperty(F::AxisIndicesSVD, d::Symbol) where {T}
+@inline function Base.getproperty(F::AxisIndicesSVD, d::Symbol)
     return get_factorization(parent(F), getfield(F, :axes_indices), d)
 end
 

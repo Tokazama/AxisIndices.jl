@@ -79,10 +79,21 @@ julia> C = B["one",:]
 """
 const NamedAxisArray{L,T,N,P,AI} = NamedAxisArray{L,T,N,P,AI}
 
-NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, kwargs.data)
-function NamedAxisArray(x::AbstractArray, axs::NamedTuple{L}) where {L}
-    return NamedDimsArray{L}(AxisArray(x, values(axs)))
+NamedAxisArray{L}(x::AxisArray) where {L} = NamedDimsArray{L}(x)
+
+function NamedAxisArray{L}(x::AbstractArray, axs::Tuple) where {L}
+    return NamedAxisArray{L}(AxisArray(x, axs))
 end
+
+function NamedAxisArray{L}(x::AbstractArray, args::AbstractVector...) where {L}
+    return NamedAxisArray{L}(x, args)
+end
+
+function NamedAxisArray(x::AbstractArray, axs::NamedTuple{L}) where {L}
+    return NamedAxisArray{L}(x, values(axs))
+end
+
+NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, kwargs.data)
 
 #=
 for f in (:getindex, :view, :dotview)
@@ -123,6 +134,6 @@ end
 Base.show(io::IO, x::NamedAxisArray; kwargs...) = show(io, MIME"text/plain"(), x, kwargs...)
 function Base.show(io::IO, m::MIME"text/plain", x::NamedAxisArray{L,T,N}; kwargs...) where {L,T,N}
     PrettyArrays.print_array_summary(io, x)
-    return show_array(io, parent(parent(x)), axes(x), dimnames(x); kwargs...)
+    return show_array(io, x; kwargs...)
 end
 

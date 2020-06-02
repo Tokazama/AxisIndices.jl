@@ -45,6 +45,8 @@ struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractSimpleAxis{I,Inds}
     SimpleAxis{I}(inds::AbstractUnitRange) where {I} = SimpleAxis{I}(AbstractUnitRange{I}(inds))
 
     SimpleAxis(inds::AbstractUnitRange{I}) where {I} = SimpleAxis{I}(inds)
+
+    SimpleAxis() = new{Int,OneToMRange{Int}}(OneToMRange(0))
 end
 
 Base.keys(axis::SimpleAxis) = getfield(axis, :values)

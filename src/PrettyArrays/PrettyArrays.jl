@@ -6,6 +6,9 @@ using AxisIndices.Interface
 using PrettyTables
 using Base: tail
 
+import NamedDims: NamedDimsArray
+import MetadataArrays: MetadataArray
+
 export
     pretty_array,
     get_formatters,
@@ -38,32 +41,42 @@ end
 
 print_meta_summary(io::IO, ::Nothing) = nothing
 function print_meta_summary(io::IO, meta)
-    print(io, "metadata: ")
-    print(io, meta)
+    print(io, "metadata: $(summary(meta))")
+    print(io, "\n")
+    print(io, " • $meta")
     print(io, "\n")
 end
 
 function show_array(
     io::IO,
-    A::AbstractArray{T,N},
-    axs::Tuple=axes(A),
-    dnames::Tuple=Interface.default_names(Val(N)),
-    meta=metadata(A);
+    A::AbstractArray{T,N};
+    axes::Tuple=axes(A),
+    dimnames::Tuple=Interface.default_names(Val(N)),
+    metadata=metadata(A),
     kwargs...
 ) where {T,N}
 
     io_compact = IOContext(io, :compact => true)
-    print_axes_summary(io_compact, A, axs, dnames)
-    print_meta_summary(io_compact, meta)
+    print_axes_summary(io_compact, A, axes, dimnames)
+    print_meta_summary(io_compact, metadata)
 
     io_has_color = get(io, :color, false)
     buf_io       = IOBuffer()
     buf          = IOContext(buf_io, :color => io_has_color)
 
-    pretty_array(buf, A, axs, dnames; kwargs...)
+    pretty_array(buf, A, axes, dimnames; kwargs...)
     print(io, chomp(String(take!(buf_io))))
     return nothing
 end
+
+function PrettyArrays.show_array(io::IO, A::NamedDimsArray; kwargs...)
+    return PrettyArrays.show_array(io, parent(A); dimnames=dimnames(A), kwargs...)
+end
+
+function PrettyArrays.show_array(io::IO, A::MetadataArray; kwargs...)
+    return PrettyArrays.show_array(io, parent(A); metadata=metadata(A), kwargs...)
+end
+
 
 end
 

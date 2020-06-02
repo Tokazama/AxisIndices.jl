@@ -12,7 +12,7 @@ end
 _construct_meta(meta::Nothing; kwargs...) = _construct_meta(Dict{Symbol,Any}(); kwargs...)
 
 function _construct_meta(meta::T; kwargs...) where {T}
-    isempty(kwargs) || warning("Cannot assign key word arguments to metadata of type $T")
+    isempty(kwargs) || error("Cannot assign key word arguments to metadata of type $T")
     return meta
 end
 
@@ -64,7 +64,6 @@ end
 
 
 Base.show(io::IO, A::MetaAxisArray; kwargs...) = show(io, MIME"text/plain"(), A; kwargs...)
-
 function Base.show(io::IO, m::MIME"text/plain", A::MetaAxisArray{T,N}; kwargs...) where {T,N}
     if N == 1
         print(io, "$(length(A))-element")
@@ -72,6 +71,6 @@ function Base.show(io::IO, m::MIME"text/plain", A::MetaAxisArray{T,N}; kwargs...
         print(io, join(size(A), "×"))
     end
     print(io, " MetaAxisArray{$T,$N}\n")
-    return show_array(io, parent(parent(A)), axes(A); kwargs...)
+    return show_array(io, A; kwargs...)
 end
 
