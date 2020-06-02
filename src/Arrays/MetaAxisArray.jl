@@ -22,10 +22,20 @@ end
 An AxisArray with metadata.
 
 ## Examples
-```julia
+```jldoctest
 julia> using AxisIndices
 
-julia> MetaAxisArray(ones(2, 2))
+julia> MetaAxisArray([1 2; 3 4], (["a", "b"], [:one, :two]), metadata = "some metadata")
+2×2 MetaAxisArray{Int64,2}
+ • dim_1 - ["a", "b"]
+ • dim_2 - [:one, :two]
+metadata: String
+ • some metadata
+      one   two
+  a     1     2
+  b     3     4
+
+
 ```
 """
 const MetaAxisArray{T,N,M,P<:AbstractAxisArray{T,N}} = MetadataArray{T,N,M,P}

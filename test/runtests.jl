@@ -90,6 +90,7 @@ include("copyto_tests.jl")
 include("reshape_tests.jl")
 
 
+include("vectors_tests.jl")
 include("NamedAxisArray_tests.jl")
 include("MetaAxisArray_tests.jl")
 include("NamedMetaAxisArray_tests.jl")

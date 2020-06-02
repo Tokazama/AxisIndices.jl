@@ -2,6 +2,21 @@
 # TODO: AxisVector documentation
 """
     AxisVector
+
+A vector whose indices have keys.
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisVector([1, 2], [:a, :b])
+2-element AxisArray{Int64,1}
+ • dim_1 - [:a, :b]
+
+  a   1
+  b   2
+
+```
 """
 const AxisVector{T,P<:AbstractVector{T},Ax} = AxisArray{T,1,P,Tuple{Ax}}
 
@@ -12,8 +27,12 @@ end
 
 AxisVector(x::AbstractVector{T}, ks::AbstractVector) where {T} = AxisVector{T}(x, ks)
 
+AxisVector(x::AbstractVector) = AxisArray(x)
+
 function AxisVector{T}() where {T}
-    return AxisArray{T,1,Vector{T},Tuple{OneToMRange{Int}}}(T[], SimpleAxis(OneToMRange(0)))
+    return AxisArray{T,1,Vector{T},Tuple{SimpleAxis{Int,OneToMRange{Int}}}}(
+        T[], (SimpleAxis(OneToMRange(0)),)
+    )
 end
 
 ###
@@ -131,26 +150,5 @@ function Base.pushfirst!(A::AbstractAxisVector, item::Pair)
     pushfirst!(parent(A), last(item))
     Axes.pushfirst_key!(axis, first(item))
     return A
-end
-
-###
-### f
-###
-
-function _merge_non_continuous_vectors!(x, y)
-    yaxis = axes(y, 1)
-    xaxis = axes(x, 1)
-    for (k,v) in yaxis
-        idx = findfirst(==(k), keys(xaxis)) 
-        if idx === nothing
-            Axes.push_key!(xaxis, k)
-            push!(values(x), v)
-        else
-            @inbounds setindex!(x, v, k)
-        end
-    end
-end
-
-function _merge_continuous_vectors!(x, y)
 end
 
