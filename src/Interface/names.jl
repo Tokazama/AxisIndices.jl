@@ -183,7 +183,7 @@ macro defdim(name, condition)
         @inline $name_selectdim(x, i) = selectdim(x, $name_dim(x), i)
 
         @doc $each_name_doc
-        @inline $each_name(x) = eachslice(x, $name_dim(x))
+        @inline $each_name(x) = eachslice(x, dims=$name_dim(x))
 
         nothing
     end)

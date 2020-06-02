@@ -112,6 +112,14 @@ end
     @test @inferred(obsdim(nia)) == 2
     @test @inferred(select_obsdim(nia, 2)) == selectdim(parent(parent(nia)), 2, 2)
     @test @inferred(obs_axis_type(nia)) <: Integer
+    obs_iter = each_obs(nia)
+    itr, state = iterate(obs_iter)
+    @test itr == [1, 2]
+    itr, state = iterate(obs_iter, state)
+    @test itr == [3, 4]
+    itr, state = iterate(obs_iter, state)
+    @test itr == [5, 6]
+    @test isnothing(iterate(obs_iter, state))
 end
 
 include("structaxis_tests.jl")
