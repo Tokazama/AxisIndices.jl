@@ -86,7 +86,7 @@ function Base.rotl90(x::AbstractAxisMatrix)
     return unsafe_reconstruct(x, p, axs)
 end
 
-"""
+#=
     matmul_axes(a, b) -> Tuple
 
 Returns the appropriate axes for the return of `a * b` where `a` and `b` are a
@@ -116,7 +116,7 @@ julia> AxisIndices.matmul_axes(rand(2, 4), rand(4, 2))
 julia> AxisIndices.matmul_axes(CartesianAxes((2,4)), CartesianAxes((4, 2))) == AxisIndices.matmul_axes(rand(2, 4), rand(4, 2))
 true
 ```
-"""
+=#
 matmul_axes(a::AbstractArray,  b::AbstractArray ) = matmul_axes(axes(a), axes(b))
 matmul_axes(a::Tuple{Any},     b::Tuple{Any,Any}) = (to_axis(first(a)), to_axis(last(b)))
 matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any,Any}) = (to_axis(first(a)), to_axis(last(b)))

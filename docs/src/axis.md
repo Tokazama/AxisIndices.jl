@@ -1,10 +1,5 @@
 # The Axis Interface
 
-```@index
-Pages   = ["axis.md"]
-Modules = [AxisIndices.Interface, AxisIndices.Axes]
-Order   = [:function, :type]
-```
 The following describes the components necessary to construct and manipulate existing and new subtypes of `AbstractAxis`.
 
 ## Introduction 
