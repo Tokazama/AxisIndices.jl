@@ -33,11 +33,11 @@
     end
 
     @testset "linear indexing" begin
-        v = AxisIndicesArray(1:4)
-        m = AxisIndicesArray(reshape(1:4, 2, 2))
+        v = AxisArray(1:4)
+        m = AxisArray(reshape(1:4, 2, 2))
 
         # ensure it doesn't mess up vector indexing
-        @test @inferred(v[1:3]) isa AxisIndicesArray
+        @test @inferred(v[1:3]) isa AxisArray
         # ensure it drops axes and shape just as it does with an Array
         @test @inferred(m[1:3]) isa AbstractVector
     end

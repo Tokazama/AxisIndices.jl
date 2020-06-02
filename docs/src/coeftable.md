@@ -14,7 +14,7 @@ julia> function coefarray(mm::StatsModels.TableRegressionModel; level::Real=0.95
            p = ccdf.(Ref(FDist(1, dof_residual(mm))), abs2.(tt))
            ci = se*quantile(TDist(dof_residual(mm)), (1-level)/2)
            levstr = isinteger(level*100) ? string(Integer(level*100)) : string(level*100)
-           ct = AxisIndicesArray(
+           ct = AxisArray(
                hcat(cc,se,tt,p,cc+ci,cc-ci),
                (coefnames(mm),
                ["Estimate","Std. Error","t value","Pr(>|t|)","Lower $levstr%","Upper $levstr%"])
@@ -25,7 +25,7 @@ coefarray (generic function with 1 method)
 julia> ols = lm(@formula(Y ~ X), DataFrame(X=[1,2,3], Y=[2,4,7]));
 
 julia> cfa = coefarray(ols)
-2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+2-dimensional AxisArray{Float64,2,Array{Float64,2}...}
                    Estimate   Std. Error       t value     Pr(>|t|)     Lower 95%    Upper 95%
   (Intercept)   -0.66666667   0.62360956   -1.06904497   0.47876359   -8.59037747   7.25704413
             X           2.5   0.28867513    8.66025404    0.0731864   -1.16796536   6.16796536
@@ -66,7 +66,7 @@ julia> cfa[1,"Estimate"]
 -0.6666666666666738
 
 julia> cfa[1:2,1:2]
-2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+2-dimensional AxisArray{Float64,2,Array{Float64,2}...}
                 Estimate   Std. Error
   (Intercept)     -0.667        0.624
             X        2.5        0.289
@@ -75,7 +75,7 @@ julia> cfa[1:2,1:2]
 Because keys and indices are bound together we don't lose track of what each element is when we index.
 ```julia
 julia> cfa[1,:]
-1-dimensional AxisIndicesArray{Float64,1,Array{Float64,1}...}
+1-dimensional AxisArray{Float64,1,Array{Float64,1}...}
 
     Estimate   -0.667
   Std. Error    0.624
@@ -110,7 +110,7 @@ julia> function coefarray(mm::StatsModels.TableRegressionModel; level::Real=0.95
            p = ccdf.(Ref(FDist(1, dof_residual(mm))), abs2.(tt))
            ci = se*quantile(TDist(dof_residual(mm)), (1-level)/2)
            levstr = isinteger(level*100) ? string(Integer(level*100)) : string(level*100)
-           ct = AxisIndicesArray(
+           ct = AxisArray(
                hcat(cc,se,tt,p,cc+ci,cc-ci),
                (coefnames(mm),
                CoefHeader())
@@ -118,7 +118,7 @@ julia> function coefarray(mm::StatsModels.TableRegressionModel; level::Real=0.95
        end;
 
 julia> cfa = coefarray(ols)
-2-dimensional AxisIndicesArray{Float64,2,Array{Float64,2}...}
+2-dimensional AxisArray{Float64,2,Array{Float64,2}...}
  ──────────────────────────────────────────────────────────────────────────────────────────────
                    Estimate   Std. Error       t value     Pr(>|t|)     Lower 95%    Upper 95%
  ──────────────────────────────────────────────────────────────────────────────────────────────

@@ -2,8 +2,7 @@
 module ObservationDims
 
 using NamedDims
-using AxisIndices
-using AxisIndices.Names
+using AxisIndices.Interface
 
 export
     # @defdim output
@@ -15,10 +14,12 @@ export
     obs_indices,
     nobs,
     is_observation,
-    select_obsdim
+    select_obsdim,
+    each_obs
  
 Base.@pure is_observation(x::Symbol) = (x === :obs) | (x === :observations) | (x === :samples)
 
-AxisIndices.@defdim obs is_observation
+Interface.@defdim obs is_observation
 
 end
+

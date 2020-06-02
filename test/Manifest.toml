@@ -9,6 +9,11 @@ version = "2.8.5"
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
+[[ChainedFixes]]
+git-tree-sha1 = "b409f614f6f06653155d86928a699805e90db73d"
+uuid = "9706b775-b1f4-4c74-b677-0491368ea71c"
+version = "0.1.1"
+
 [[ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
 git-tree-sha1 = "c4c1cca28748906265ed62c788d6fe6f0134d264"
@@ -98,6 +103,11 @@ uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
+
+[[MappedArrays]]
+git-tree-sha1 = "e2a02fe7ee86a10c707ff1756ab1650b40b140bb"
+uuid = "dbb5928d-eab1-5f90-85c2-b9b0edb7c900"
+version = "0.2.2"
 
 [[Markdown]]
 deps = ["Base64"]

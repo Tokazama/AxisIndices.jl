@@ -2,8 +2,8 @@
 using FixedPointNumbers, ColorTypes
 
 @testset "ReadonlyMappedArray" begin
-    a = AxisIndicesArray([1,4,9,16], ["one", "two", "three", "four"])
-    s = AxisIndicesArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
+    a = AxisArray([1,4,9,16], ["one", "two", "three", "four"])
+    s = AxisArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
 
     b = @inferred(mappedarray(sqrt, a))
     @test parent(parent(b)) === parent(a)
@@ -27,8 +27,8 @@ end
 
 @testset "MappedArray" begin
     intsym = Int == Int64 ? :Int64 : :Int32
-    a = AxisIndicesArray([1,4,9,16], ["one", "two", "three", "four"])
-    s = AxisIndicesArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
+    a = AxisArray([1,4,9,16], ["one", "two", "three", "four"])
+    s = AxisArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
     c = @inferred(mappedarray(sqrt, x->x*x, a))
     @test parent(parent(c)) === parent(a)
     @test @inferred(getindex(c, 1)) == 1
@@ -45,10 +45,10 @@ end
     @test isa(eachindex(c), CartesianIndices)
 
     sb = similar(b)
-    @test isa(sb, AxisIndicesArray{Float64})
+    @test isa(sb, AxisArray{Float64})
     @test size(sb) == size(b)
 
-    a = AxisIndicesArray([0x01 0x03; 0x02 0x04], ["a", "b"], ["one", "two"])
+    a = AxisArray([0x01 0x03; 0x02 0x04], ["a", "b"], ["one", "two"])
     b = @inferred(mappedarray(y->N0f8(y,0), x->x.i, a))
     for i = 1:4
         @test b[i] == N0f8(i/255)
@@ -59,7 +59,7 @@ end
 end
 
 @testset "of_eltype" begin
-    a = AxisIndicesArray([0.1 0.3; 0.2 0.4], ["a", "b"], ["one", "two"])
+    a = AxisArray([0.1 0.3; 0.2 0.4], ["a", "b"], ["one", "two"])
     b = @inferred(of_eltype(N0f8, a))
     @test b[1,1] === N0f8(0.1) === b["a", "one"]
     b = @inferred(of_eltype(zero(N0f8), a))
@@ -73,21 +73,21 @@ end
 end
 
 @testset "No zero(::T)" begin
-    astr = @inferred(mappedarray(length, AxisIndicesArray(["abc", "onetwothree"])))
+    astr = @inferred(mappedarray(length, AxisArray(["abc", "onetwothree"])))
     @test eltype(astr) == Int
     @test astr == [3, 11]
     a = @inferred(mappedarray(x->x+0.5, Int[]))
     @test eltype(a) == Float64
 
     # typestable string
-    astr = @inferred(mappedarray(uppercase, AxisIndicesArray(["abc", "def"])))
+    astr = @inferred(mappedarray(uppercase, AxisArray(["abc", "def"])))
     @test eltype(astr) == String
     @test astr == ["ABC","DEF"]
 end
 
 @testset "ReadOnlyMultiMappedArray" begin
-    a = AxisIndicesArray(reshape(1:6, 2, 3), ["a", "b"], ["one", "two", "three"])
-    b = AxisIndicesArray(fill(10.0f0, 2, 3), ["a", "b"], ["one", "two", "three"])
+    a = AxisArray(reshape(1:6, 2, 3), ["a", "b"], ["one", "two", "three"])
+    b = AxisArray(fill(10.0f0, 2, 3), ["a", "b"], ["one", "two", "three"])
     M = @inferred(mappedarray(+, a, b))
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexLinear()
@@ -98,7 +98,7 @@ end
     @test @inferred(M[1]) === 11.0f0
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
 
-    c = AxisIndicesArray(view(reshape(1:9, 3, 3), 1:2, :), ["a", "b"], ["one", "two", "three"])
+    c = AxisArray(view(reshape(1:9, 3, 3), 1:2, :), ["a", "b"], ["one", "two", "three"])
     M = @inferred(mappedarray(+, c, b))
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexCartesian()
@@ -109,9 +109,9 @@ end
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
 
     @testset "Type map" begin
-        a = AxisIndicesArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"]);
-        b = AxisIndicesArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"]);
-        c = AxisIndicesArray([0 1; 0 1], ["a", "b"], ["one", "two"]);
+        a = AxisArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"]);
+        b = AxisArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"]);
+        c = AxisArray([0 1; 0 1], ["a", "b"], ["one", "two"]);
         f = RGB{N0f8}
         M = @inferred(mappedarray(f, a, b, c))
         @test @inferred(eltype(M)) == RGB{N0f8}
@@ -129,9 +129,9 @@ end
 
 @testset "MultiMappedArray" begin
     intsym = Int == Int64 ? :Int64 : :Int32
-    a = AxisIndicesArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"])
-    b = AxisIndicesArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"])
-    c = AxisIndicesArray([0 1; 0 1], ["a", "b"], ["one", "two"])
+    a = AxisArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"])
+    b = AxisArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"])
+    c = AxisArray([0 1; 0 1], ["a", "b"], ["one", "two"])
     f = RGB{N0f8}
     finv = c->(red(c), green(c), blue(c))
     M = @inferred(mappedarray(f, finv, a, b, c))
@@ -154,7 +154,7 @@ end
     R[2,1] = 0.8
     @test b[1,1] === N0f8(0.8) === b["a", "one"]
 
-    a = AxisIndicesArray(view(reshape(0.1:0.1:0.6, 3, 2), 1:2, 1:2), ["a", "b"], ["one", "two"])
+    a = AxisArray(view(reshape(0.1:0.1:0.6, 3, 2), 1:2, 1:2), ["a", "b"], ["one", "two"])
     M = @inferred(mappedarray(f, finv, a, b, c))
     @test @inferred(eltype(M)) == RGB{N0f8}
     @test @inferred(IndexStyle(M)) == IndexCartesian()
@@ -163,7 +163,7 @@ end
     @test M[1,1] === RGB{N0f8}(0.1, 0.8, 0) === M["a", "one"]
     @test_throws ErrorException("indexed assignment fails for a reshaped range; consider calling collect") M[1,2] = RGB(0.25, 0.35, 0)
 
-    a = AxisIndicesArray(reshape(0.1:0.1:0.6, 3, 2), ["a", "b", "c"], ["one", "two"])
+    a = AxisArray(reshape(0.1:0.1:0.6, 3, 2), ["a", "b", "c"], ["one", "two"])
     @test_throws DimensionMismatch mappedarray(f, finv, a, b, c)
 end
 

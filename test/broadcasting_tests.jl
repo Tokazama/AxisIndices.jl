@@ -1,16 +1,17 @@
 
 @testset "BroadcastStyle" begin
-    A = typeof(AxisIndicesArray(ones(2,2)))
+    A = typeof(AxisArray(ones(2,2)))
     B = typeof(ones(2,2))
-    @test Base.BroadcastStyle(A) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
+    @test Base.BroadcastStyle(A) isa AxisIndices.Arrays.AxisArrayStyle
     SA = Base.BroadcastStyle(A)
     SB = Base.BroadcastStyle(B)
-    @test Base.BroadcastStyle(SA, SA) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
-    @test Base.BroadcastStyle(SA, SB) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
-    @test Base.BroadcastStyle(SB, SA) isa AxisIndices.AxisCore.AxisIndicesArrayStyle
+    @test Base.BroadcastStyle(SA, SA) isa AxisIndices.Arrays.AxisArrayStyle
+    @test Base.BroadcastStyle(SA, SB) isa AxisIndices.Arrays.AxisArrayStyle
+    @test Base.BroadcastStyle(SB, SA) isa AxisIndices.Arrays.AxisArrayStyle
 end
 
 @testset "combine" begin
+    #=
     @testset "broadcast_axis" begin
         @test @inferred(broadcast_axis(Axis(1:2), Axis(1:2)))       isa Axis{Int64,Int64,UnitRange{Int64},Base.OneTo{Int64}}
         @test @inferred(broadcast_axis(Axis(1:2), SimpleAxis(1:2))) isa Axis{Int64,Int64,UnitRange{Int64},UnitRange{Int64}}
@@ -36,6 +37,7 @@ end
     end
 
     @test @inferred(broadcast_axis(SimpleAxis(1:2), SimpleAxis(1:2))) == SimpleAxis(1:2)
+    =#
 
     @test @inferred(Base.Broadcast.broadcast_shape((1:10,), (1:10, 1:10), (1:10,))) == (1:10, 1:10)
     b1 = Broadcast.broadcast_shape(
@@ -121,7 +123,7 @@ end
 
     #= TODO moved to docs
     @testset "standard case" begin
-        a = AxisIndicesArray(ones(3), (2:4,))
+        a = AxisArray(ones(3), (2:4,))
         @test a .+ a == 2ones(3)
         @test keys(axes(a .+ a, 1)) == 2:4
 
@@ -134,8 +136,8 @@ end
 
     #= TODO Need to explain how order matters
     @testset "Order matters" begin
-        x = AxisIndicesArray(ones(3, 5), (:, nothing))
-        y = AxisIndicesArray(ones(3, 5), (nothing, :y))
+        x = AxisArray(ones(3, 5), (:, nothing))
+        y = AxisArray(ones(3, 5), (nothing, :y))
 
         lhs = x .+ y
         rhs = y .+ x
@@ -145,8 +147,8 @@ end
     =#
 
    @testset "broadcasting" begin
-        v = AxisIndicesArray(zeros(3,), (2:4,))
-        m = AxisIndicesArray(ones(3, 3), (2:4, 3:5))
+        v = AxisArray(zeros(3,), (2:4,))
+        m = AxisArray(ones(3, 3), (2:4, 3:5))
         s = 0
 
         @test @inferred(v .+ m) == ones(3, 3) == @inferred(m .+ v)

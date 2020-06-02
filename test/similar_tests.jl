@@ -14,9 +14,9 @@ end
 end
 
 @testset "similar arrays" begin
-    x = AxisIndicesArray(ones(2,2), ["a", "b"], [:one, :two]);
-    @test @inferred(similar(x, (1,1))) isa AxisIndicesArray{eltype(x),2}
-    @test @inferred(similar(x, Int, (1,1))) isa AxisIndicesArray{Int,2}
+    x = AxisArray(ones(2,2), ["a", "b"], [:one, :two]);
+    @test @inferred(similar(x, (1,1))) isa AxisArray{eltype(x),2}
+    @test @inferred(similar(x, Int, (1,1))) isa AxisArray{Int,2}
     @test @inferred(axes_keys(similar(x, (Base.OneTo(10),Base.OneTo(10))))[1]) == 1:10
     @test @inferred(axes_keys(similar(x, (2:3,)))[1]) == 2:3
 
@@ -26,7 +26,7 @@ end
 end
 
 @testset "similar by axes" begin
-    x = AxisIndicesArray([1,2,3])
+    x = AxisArray([1,2,3])
     z = [i for i in x]
     @test axes(x) == axes(z)
 end

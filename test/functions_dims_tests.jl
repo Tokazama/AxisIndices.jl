@@ -1,7 +1,7 @@
 #= TODO
 
 dims = 2
-a = AxisIndicesArray(ones(10, 1, 1, 20), (2:11, 3:3, 4:4, 5:24))
+a = AxisArray(ones(10, 1, 1, 20), (2:11, 3:3, 4:4, 5:24))
 
 p = dropdims(parent(a); dims=dims)
 axs = AxisIndices.drop_axes(a, dims)
@@ -19,7 +19,7 @@ end
 
 # FIXME spits out Crazy errors
 @testset "selectdim" begin
-    a = AxisIndicesArray(reshape(1:6, (2, 3)), (2:3, 2:4));
+    a = AxisArray(reshape(1:6, (2, 3)), (2:3, 2:4));
 
     @test selectdim(a, 1, 1) == a[1, :]
     @test axes_keys(selectdim(a, 1, 1)) == (2:4,)
@@ -30,7 +30,7 @@ end
 
 @testset "$f" for f in (adjoint, transpose, permutedims)
     @testset "Vector $f" begin
-        v = AxisIndicesArray([10, 20, 30], (2:4,))
+        v = AxisArray([10, 20, 30], (2:4,))
         @test f(v) == [10 20 30]
         @test axes_keys(f(v)) == (1:1, 2:4)
 
@@ -47,7 +47,7 @@ end
     end
 
     @testset "Matrix $f" begin
-        m = AxisIndicesArray([10 20 30; 11 22 33], (2:3, 2:4))
+        m = AxisArray([10 20 30; 11 22 33], (2:3, 2:4))
         @test f(m) == [10 11; 20 22; 30 33]
         @test keys.(axes(f(m))) == (2:4, 2:3)
 
@@ -59,10 +59,10 @@ end
 end
 
 @testset "permutedims" begin
-    v = AxisIndicesArray([10, 20, 30], (2:4,))
+    v = AxisArray([10, 20, 30], (2:4,))
     @test axes_keys(permutedims(transpose(v))) == (2:4, 1:1)
 
-    a = AxisIndicesArray(ones(10, 20, 30, 40), (2:11, 2:21, 2:31, 2:41));
+    a = AxisArray(ones(10, 20, 30, 40), (2:11, 2:21, 2:31, 2:41));
     @test (axes_keys(permutedims(a, (1, 2, 3, 4))) ==
            axes_keys(permutedims(a, 1:4)) ==
            (2:11, 2:21, 2:31, 2:41)
@@ -75,14 +75,14 @@ end
 # using the same logic as permutedims, transpose etc
 @testset "pinv" begin
     @testset "Matrix" begin
-        a = AxisIndicesArray([1.0 2 3; 4 5 6], (2:3, 4:6))
+        a = AxisArray([1.0 2 3; 4 5 6], (2:3, 4:6))
         @test keys.(axes(pinv(a))) == (4:6, 2:3)
         @test a * pinv(a) ≈ [1.0 0; 0 1]
         @test keys.(axes(a * pinv(a))) == (2:3, 2:3)
     end
 
     @testset "Vector" begin
-        v = AxisIndicesArray([1.0, 2, 3], (2:4,))
+        v = AxisArray([1.0, 2, 3], (2:4,))
         @test keys.(axes(pinv(v))) == (1:1, 2:4)
 
         @test keys.(axes(pinv(pinv(v)))) == (2:4,)

@@ -6,34 +6,22 @@ module AxisIndices
     replace(read(path, String), r"^```julia"m => "```jldoctest README")
 end AxisIndices
 
+using Reexport
 using StaticRanges
-using Statistics
-using Dates
+using ChainedFixes
 using IntervalSets
-using MappedArrays
-using PrettyTables
-using LinearAlgebra
-using Base: @propagate_inbounds, OneTo, tail, front, Fix2
-using Base.Cartesian
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type, checkindexlo, checkindexhi
 
 export
-    AxisCore,
-    AbstractAxisIndices,
-    AxisIndicesArray,
     AbstractAxis,
     AbstractSimpleAxis,
     Axis,
-    AxisRow,
-    AxisTable,
-    SimpleAxis,
     CartesianAxes,
-    LinearAxes,
-    NamedIndicesArray,
-    NamedDimsArray,
-    NIArray,
+    CenteredAxis,
     Indices,
     Keys,
+    LinearAxes,
+    MetaAxis,
+    SimpleAxis,
     StructAxis,
     # Reexport types
     LinMRange,
@@ -52,50 +40,36 @@ export
     dimnames,
     dim,
     # methods
-    parent_type,
     srange,
     mrange,
-    values_type,
-    keys_type,
-    first_key,
-    last_key,
-    rowaxis,
-    rowkeys,
-    rowtype,
-    colaxis,
-    colkeys,
-    coltype,
     structview,
-    and,
-    ⩓,
-    or,
-    ⩔,
+    and, ⩓, or, ⩔,
     ..,
-    indices,
-    axes_keys,
-    pretty_array,
-    # traits,
-    is_simple_axis
+    pretty_array
+
+include("./Interface/Interface.jl")
+@reexport using .Interface
+using .Interface: step_key, append_axis!
+
+include("./Styles/Styles.jl")
+using .Styles
+using .Styles: to_index, to_keys
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays
 
-include("./AxisCore/AxisCore.jl")
-using .AxisCore
+include("./Axes/Axes.jl")
+using .Axes
+using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axis
 
-include("./Math/Math.jl")
-using .Math
 
-include("./Mapped/Mapped.jl")
-using .Mapped
-
-include("./Names/Names.jl")
-using .Names
+include("./Arrays/Arrays.jl")
+@reexport using .Arrays
 
 include("./ObservationDims.jl")
-using .Names
+using .ObservationDims
 
-include("./AxisTables/AxisTables.jl")
-using .AxisTables
+include("./Tabular/Tabular.jl")
+@reexport using .Tabular
 
 end

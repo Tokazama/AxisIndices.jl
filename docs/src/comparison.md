@@ -17,6 +17,6 @@ Therefore, this package expects users seeking a complete replacement for AxisArr
 There are many packages that offer overlapping features.
 For example, [Dictionaries.jl](https://github.com/andyferris/Dictionaries.jl) implements a focused improvement on dictionaries where mapping keys to indices highly overlaps.
 However, as Dictionaries.jl continues to evolve many of the types provided therein may prove extremely useful in constructing the keys of an `Axis` type thereby giving these dictionaries multidimensional functionality.
-Similarly, many packages provide overlapping features that could actually be extended with the addition (not replacement) of AxisIndices.
+Similarly, many packages provide overlapping features that could actually be extended with the addition of AxisIndices.
 
 

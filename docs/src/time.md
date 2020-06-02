@@ -8,7 +8,7 @@ Second, we define a new trait that changes indexing.
 
 This first section defines the minimum `keys`, `values`, `similar_type` and constructors for the `TimeAxis` type.
 ```jldoctest time_axis_example
-julia> using AxisIndices, Dates, Unitful
+julia> using AxisIndices, Dates, Unitful, ChainedFixes
 
 julia> struct TimeAxis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
            axis::Axis{K,V,Ks,Vs}
@@ -29,7 +29,7 @@ julia> struct TimeAxis{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
                for (k,v) in kwargs
                    d[k] = v
                end
-               return new{keytype(ax),valtype(ax),keys_type(ax),values_type(ax)}(ax, d)
+               return new{keytype(ax),valtype(ax),keys_type(ax),indices_type(ax)}(ax, d)
            end
        end
 
@@ -40,9 +40,9 @@ julia> Base.values(t::TimeAxis) = values(getfield(t, :axis))
 julia> function AxisIndices.similar_type(
            t::TimeAxis{K,V,Ks,Vs},
            new_keys_type::Type=Ks,
-           new_values_type::Type=Vs
+           new_indices_type::Type=Vs
        ) where {K,V,Ks,Vs}
-           return TimeAxis{eltype(new_keys_type),eltype(new_values_type),new_keys_type,new_values_type}
+           return TimeAxis{eltype(new_keys_type),eltype(new_indices_type),new_keys_type,new_indices_type}
        end
 ```
 
@@ -102,11 +102,11 @@ true
 
 This can naturally turn any array that is an `AbstractAxisIndices` subtype into a collection of time series data.
 ```jldoctest time_axis_example
-julia> x = AxisIndicesArray(collect(1:2:20), t);
+julia> x = AxisArray(collect(1:2:20), t);
 
 julia> x[:time_1]
-AxisIndicesArray{Int64,1,Array{Int64,1}...}
- • dim_1 - TimeAxis(1 second:1 second:3 seconds => Base.OneTo(3))
+3-element AxisArray{Int64,1}
+ • dim_1 - 1 second:1 second:3 seconds
 
    1 second   1
   2 seconds   3
@@ -114,4 +114,3 @@ AxisIndicesArray{Int64,1,Array{Int64,1}...}
 
 
 ```
-
