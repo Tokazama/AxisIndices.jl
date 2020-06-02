@@ -14,10 +14,12 @@ export
     obs_indices,
     nobs,
     is_observation,
-    select_obsdim
+    select_obsdim,
+    each_obs
  
 Base.@pure is_observation(x::Symbol) = (x === :obs) | (x === :observations) | (x === :samples)
 
 Interface.@defdim obs is_observation
 
 end
+

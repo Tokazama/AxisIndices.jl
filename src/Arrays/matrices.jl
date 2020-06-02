@@ -198,7 +198,7 @@ end
 for fun in (:cor, :cov)
 
     fun_doc = """
-        $fun(x::AbstractAxisArrayMatrix; dims=1, kwargs...)
+        $fun(x::AbstractAxisMatrix; dims=1, kwargs...)
 
     Performs `$fun` on the parent matrix of `x` and reconstructs a similar type
     with the appropriate axes.
@@ -232,3 +232,4 @@ for f in (:mean, :std, :var, :median)
         return reconstruct_reduction(a, Statistics.$f(parent(a); dims=dims, kwargs...), dims)
     end
 end
+

@@ -1,7 +1,7 @@
 # Tabular Interface
 
-
-# TODO
+!!! warning
+    Currently the Table interface isn't complete. Details of REPL printing and construction may change.
 
 `AxisIndices.jl` integrates with the `Tables.jl` interface via `AxisTable`.
 
@@ -54,4 +54,16 @@ Table
 ### Adding Rows
 
 TODO
+
+
+## Reference
+```@index
+Pages   = ["table.md"]
+Modules = [AxisIndices.Tabular]
+Order   = [:function, :type]
+```
+
+```@autodocs
+Modules = [AxisIndices.Tabular]
+```
 

@@ -1,5 +1,10 @@
 # The Axis Interface
 
+```@index
+Pages   = ["axis.md"]
+Modules = [AxisIndices.Interface, AxisIndices.Axes]
+Order   = [:function, :type]
+```
 The following describes the components necessary to construct and manipulate existing and new subtypes of `AbstractAxis`.
 
 ## Introduction 
@@ -301,9 +306,16 @@ However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
 
-## Documentation
+## Reference
 
+```@index
+Pages   = ["axis.md"]
+Modules = [AxisIndices.Interface, AxisIndices.Axes]
+Order   = [:function, :type]
+```
 ```@autodocs
 Modules = [AxisIndices.Interface]
 ```
-
+```@autodocs
+Modules = [AxisIndices.Axes]
+```

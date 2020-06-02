@@ -69,6 +69,9 @@ julia> @defdim time is_time
 * `select_name_dim(x, i)`: equivalent to `selectdim(x, name_dim(x), i)`
 * `each_name(x)`: equivalent to `eachslice(x, name_dim(x))`
 
+!!! warning
+    `@defdim` should be considered experimental and subject to change
+
 """
 macro defdim(name, condition)
 

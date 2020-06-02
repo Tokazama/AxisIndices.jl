@@ -125,6 +125,11 @@ str = String(take!(io))
 =#
 
 #include("offset_array_tests.jl")
+F = svd(AxisArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))));
+io = IOBuffer()
+show(io, F)
+str = String(take!(io))
+@test str[1:7] == "AxisSVD"
 
 # this avoids errors due to differences in how Symbols are printing between versions of Julia
 if !(VERSION < v"1.4")

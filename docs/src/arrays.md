@@ -171,7 +171,13 @@ julia> A_axis[!=(.2s), in(["a", "c"])]
 ## Combining Different Axes TODO
 
 
-## Documentation
+## Reference
+
+```@index
+Pages   = ["arrays.md"]
+Modules = [AxisIndices.Arrays]
+Order   = [:function, :type]
+```
 
 ```@autodocs
 Modules = [AxisIndices.Arrays]

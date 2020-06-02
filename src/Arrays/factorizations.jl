@@ -1,11 +1,11 @@
-"""
+#=
     get_factorization(F::Factorization, A::AbstractArray, d::Symbol)
 
 Used internally to compose an `AxisArray` for each component of a factor
 decomposition. `F` is the result of decomposition, `A` is an arry (likely
 a subtype of `AbstractAxisArray`), and `d` is a symbol referring to a component
 of the factorization.
-"""
+=#
 function get_factorization end
 
 
@@ -246,27 +246,6 @@ julia> axes(F.Vt)
 
 julia> axes(F.U * Diagonal(F.S) * F.Vt)
 (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
-
-julia> F
-AxisSVD{Float64}
-U factor:
-2×2 AxisArray{Float64,2}
- • dim_1 - 2:3
- • dim_2 - 1:2
-                         1                     2
-  2   -0.40455358483375703   -0.9145142956773042
-  3    -0.9145142956773045    0.4045535848337568
-singular values:
-2-element Array{Float64,1}:
- 5.464985704219043
- 0.3659661906262574
-Vt factor:
-2×2 AxisArray{Float64,2}
- • dim_1 - 1:2
- • dim_2 - 3:4
-                        3                     4
-  1   -0.5760484367663209   -0.8174155604703631
-  2    0.8174155604703631   -0.5760484367663209
 
 ```
 """
