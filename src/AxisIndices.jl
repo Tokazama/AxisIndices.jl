@@ -21,6 +21,13 @@ export
     Keys,
     LinearAxes,
     MetaAxis,
+    MetaAxis,
+    MetaCartesianAxes,
+    MetaLinearAxes,
+    NamedCartesianAxes,
+    NamedLinearAxes,
+    NamedMetaCartesianAxes,
+    NamedMetaLinearAxes,
     SimpleAxis,
     StructAxis,
     # Reexport types

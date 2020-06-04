@@ -2,6 +2,7 @@ module Interface
 
 using NamedDims
 using StaticRanges
+import MetadataArrays: MetadataArray
 
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
 

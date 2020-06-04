@@ -153,6 +153,18 @@ function Base.getindex(A::CartesianAxes, inds...)
     return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
 end
 
+Base.show(io::IO, A::CartesianAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::CartesianAxes{N}; kwargs...) where {N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " CartesianAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+
 """
     LinearAxes
 
@@ -186,5 +198,300 @@ end
 
 @propagate_inbounds function Base.getindex(A::LinearAxes, inds...)
     return Base._getindex(IndexStyle(A), A, to_indices(A, Tuple(inds))...)
+end
+
+Base.show(io::IO, A::LinearAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::LinearAxes{N}; kwargs...) where {N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " LinearAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+# TODO Documentation for various <>Axes aliases
+# - NamedCartesianAxes
+# - 
+
+
+"""
+    MetaCartesianAxes
+
+Conveniently construct a `CartesianAxes` that has metadata.
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> MetaCartesianAxes(([:a, :b], ["one", "two"]); metadata="some metadata")
+2×2 MetaCartesianAxes{2}
+ • dim_1 - [:a, :b]
+ • dim_2 - ["one", "two"]
+metadata: String
+ • some metadata
+                       one                    two
+  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
+  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
+
+```
+"""
+const MetaCartesianAxes{N,M,Axs} = MetadataArray{CartesianIndex{N},N,M,CartesianAxes{N,Axs}}
+
+function MetaCartesianAxes(args...; metadata=nothing, kwargs...)
+    return MetadataArray(CartesianAxes(args...), _construct_meta(metadata; kwargs...))
+end
+
+Base.show(io::IO, A::MetaCartesianAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::MetaCartesianAxes{N}; kwargs...) where {N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " MetaCartesianAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+
+"""
+    MetaLinearAxes
+
+Conveniently construct a `LinearAxes` that has metadata.
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> MetaLinearAxes(([:a, :b], ["one", "two"]); metadata="some metadata")
+2×2 MetaLinearAxes{2}
+ • dim_1 - [:a, :b]
+ • dim_2 - ["one", "two"]
+metadata: String
+ • some metadata
+      one   two
+  a     1     3
+  b     2     4
+
+```
+"""
+const MetaLinearAxes{N,M,Axs} = MetadataArray{Int,N,M,LinearAxes{N,Axs}}
+
+function MetaLinearAxes(args...; metadata=nothing, kwargs...)
+    return MetadataArray(LinearAxes(args...), _construct_meta(metadata; kwargs...))
+end
+
+Base.show(io::IO, A::MetaLinearAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::MetaLinearAxes{N}; kwargs...) where {N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " MetaLinearAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+"""
+    NamedCartesianAxes
+
+Conveniently construct a `CartesianAxes` where each dimension has a name.
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> x = NamedCartesianAxes{(:dimx, :dimy)}(([:a, :b], ["one", "two"]))
+2×2 NamedCartesianAxes{2}
+ • dimx - [:a, :b]
+ • dimy - ["one", "two"]
+                       one                    two
+  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
+  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
+
+julia> x == NamedCartesianAxes((dimx = [:a, :b], dimy = ["one", "two"]))
+true
+
+```
+"""
+const NamedCartesianAxes{L,N,Axs} = NamedDimsArray{L,CartesianIndex{N},N,CartesianAxes{N,Axs}}
+
+NamedCartesianAxes{L}(axs::Tuple) where {L} = NamedDimsArray{L}(CartesianAxes(axs))
+
+function NamedCartesianAxes{L}(axs::Union{AbstractVector,Integer}...) where {L}
+    return NamedDimsArray{L}(CartesianAxes(axs))
+end
+
+NamedCartesianAxes(axs::NamedTuple{L}) where {L} = NamedDimsArray{L}(CartesianAxes(values(axs)))
+
+NamedCartesianAxes(A::AbstractArray) = NamedCartesianAxes(named_axes(A))
+
+Base.show(io::IO, A::NamedCartesianAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::NamedCartesianAxes{L,N}; kwargs...) where {L,N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " NamedCartesianAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+"""
+    NamedLinearAxes
+
+Provides `LinearAxes` where each dimension has a name.
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> x = NamedLinearAxes{(:dimx,:dimy)}(([:a, :b], ["one", "two"]))
+2×2 NamedLinearAxes{2}
+ • dimx - [:a, :b]
+ • dimy - ["one", "two"]
+      one   two
+  a     1     3
+  b     2     4
+
+julia> x == NamedLinearAxes((dimx = [:a, :b], dimy = ["one", "two"]))
+true
+
+```
+"""
+const NamedLinearAxes{L,N,Axs} = NamedDimsArray{L,Int,N,LinearAxes{N,Axs}}
+
+NamedLinearAxes{L}(axs::Tuple) where {L} = NamedDimsArray{L}(LinearAxes(axs))
+
+function NamedLinearAxes{L}(axs::Union{AbstractVector,Integer}...) where {L}
+    return NamedDimsArray{L}(LinearAxes(axs))
+end
+
+NamedLinearAxes(axs::NamedTuple{L}) where {L} = NamedDimsArray{L}(LinearAxes(values(axs)))
+
+NamedLinearAxes(A::AbstractArray) = NamedLinearAxes(named_axes(A))
+
+Base.show(io::IO, A::NamedLinearAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::NamedLinearAxes{L,N}; kwargs...) where {L,N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " NamedLinearAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+"""
+    NamedMetaCartesianAxes
+
+Conveniently construct a `CartesianAxes` that has metadata and each dimension has a name.
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> x = NamedMetaCartesianAxes{(:dimx,:dimy)}(([:a, :b], ["one", "two"]); metadata="some metadata")
+2×2 NamedMetaCartesianAxes{2}
+ • dimx - [:a, :b]
+ • dimy - ["one", "two"]
+metadata: String
+ • some metadata
+                       one                    two
+  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
+  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
+
+julia> x == NamedMetaCartesianAxes((dimx = [:a, :b], dimy = ["one", "two"]); metadata="some metadata")
+true
+
+```
+"""
+const NamedMetaCartesianAxes{L,N,M,Axs} = NamedDimsArray{L,CartesianIndex{N},N,MetaCartesianAxes{N,M,Axs}}
+
+function NamedMetaCartesianAxes{L}(axs::Tuple; metadata=nothing, kwargs...) where {L}
+    return NamedDimsArray{L}(MetaCartesianAxes(axs; metadata=metadata, kwargs...))
+end
+
+function NamedMetaCartesianAxes{L}(axs::Union{AbstractVector,Integer}...;  metadata=nothing, kwargs...) where {L}
+    return NamedDimsArray{L}(MetaCartesianAxes(axs, metadata=metadata, kwargs...))
+end
+
+function NamedMetaCartesianAxes(axs::NamedTuple{L};  metadata=nothing, kwargs...) where {L}
+    return NamedDimsArray{L}(MetaCartesianAxes(values(axs);  metadata=metadata, kwargs...))
+end
+
+function NamedMetaCartesianAxes(A::AbstractArray;  metadata=nothing, kwargs...)
+    return NamedMetaCartesianAxes(named_axes(A);  metadata=metadata, kwargs...)
+end
+
+Base.show(io::IO, A::NamedMetaCartesianAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::NamedMetaCartesianAxes{L,N}; kwargs...) where {L,N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " NamedMetaCartesianAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
+end
+
+"""
+    NamedMetaLinearAxes
+
+Conveniently construct a `LinearAxes` that has metadata and each dimension has a name.
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> x = NamedMetaLinearAxes{(:dimx,:dimy)}(([:a, :b], ["one", "two"]); metadata="some metadata")
+2×2 NamedMetaLinearAxes{2}
+ • dimx - [:a, :b]
+ • dimy - ["one", "two"]
+metadata: String
+ • some metadata
+      one   two
+  a     1     3
+  b     2     4
+
+julia> x == NamedMetaLinearAxes((dimx = [:a, :b], dimy = ["one", "two"]); metadata="some metadata")
+true
+
+```
+"""
+const NamedMetaLinearAxes{L,N,M,Axs} = NamedDimsArray{L,Int,N,MetaLinearAxes{N,M,Axs}}
+
+function NamedMetaLinearAxes{L}(axs::Tuple; metadata=nothing, kwargs...) where {L}
+    return NamedDimsArray{L}(MetaLinearAxes(axs; metadata=metadata, kwargs...))
+end
+
+function NamedMetaLinearAxes{L}(axs::Union{AbstractVector,Integer}...;  metadata=nothing, kwargs...) where {L}
+    return NamedDimsArray{L}(MetaLinearAxes(axs, metadata=metadata, kwargs...))
+end
+
+function NamedMetaLinearAxes(axs::NamedTuple{L};  metadata=nothing, kwargs...) where {L}
+    return NamedDimsArray{L}(MetaLinearAxes(values(axs);  metadata=metadata, kwargs...))
+end
+
+function NamedMetaLinearAxes(A::AbstractArray;  metadata=nothing, kwargs...)
+    return NamedMetaLinearAxes(named_axes(A);  metadata=metadata, kwargs...)
+end
+
+Base.show(io::IO, A::NamedMetaLinearAxes; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+function Base.show(io::IO, m::MIME"text/plain", A::NamedMetaLinearAxes{L,N}; kwargs...) where {L,N}
+    if N == 1
+        print(io, "$(length(A))-element")
+    else
+        print(io, join(size(A), "×"))
+    end
+    print(io, " NamedMetaLinearAxes{$N}\n")
+    return PrettyArrays.show_array(io, A; kwargs...)
 end
 

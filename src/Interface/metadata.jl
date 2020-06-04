@@ -1,4 +1,18 @@
 
+function _construct_meta(meta::AbstractDict{Symbol}; kwargs...)
+    for (k, v) in kwargs
+        meta[k] = v
+    end
+    return meta
+end
+
+_construct_meta(meta::Nothing; kwargs...) = _construct_meta(Dict{Symbol,Any}(); kwargs...)
+
+function _construct_meta(meta::T; kwargs...) where {T}
+    isempty(kwargs) || error("Cannot assign key word arguments to metadata of type $T")
+    return meta
+end
+
 """
     metadata(x)
 
@@ -7,6 +21,8 @@ Returns metadata for `x`.
 metadata(x) = nothing
 metadata(x::SubArray) = metadata(parent(x))
 metadata(x::Base.ReshapedArray) = metadata(parent(x))
+# define our own metadata method
+Interface.metadata(x::MetadataArray) = getfield(x, :metadata)
 
 
 """
