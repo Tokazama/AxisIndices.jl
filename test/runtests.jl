@@ -1,7 +1,6 @@
 
 using Test
 using Statistics
-using DelimitedFiles
 using LinearAlgebra
 using StaticRanges
 using Documenter
