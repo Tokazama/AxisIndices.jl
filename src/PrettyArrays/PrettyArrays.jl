@@ -77,6 +77,23 @@ function PrettyArrays.show_array(io::IO, A::MetadataArray; kwargs...)
     return PrettyArrays.show_array(io, parent(A); metadata=metadata(A), kwargs...)
 end
 
+macro assign_show(T)
+    print_name = QuoteNode(T)
+    esc(quote
+        Base.show(io::IO, A::$T; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
+        function Base.show(io::IO, m::MIME"text/plain", A::$T; kwargs...)
+            N = ndims(A)
+            if N == 1
+                print(io, "$(length(A))-element")
+            else
+                print(io, join(size(A), "×"))
+            end
+            print(io, " " * string($print_name) * "{$(eltype(A)),$N}\n")
+            return PrettyArrays.show_array(io, A; kwargs...)
+        end
+    end)
+end
+
 
 end
 
