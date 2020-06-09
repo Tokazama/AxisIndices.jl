@@ -694,8 +694,6 @@ end
 end
 =#
 
-
-#=
 # v  = OffsetArray([1,1e100,1,-1e100], (-3,))*1000
 # v2 = OffsetArray([1,-1e100,1,1e100], (5,))*1000
 # @test isa(v, OffsetArray)
@@ -705,28 +703,30 @@ end
 # @test isequal(cumsum_kbn(v2), cv2)
 # @test isequal(sum_kbn(v), sum_kbn(parent(v)))
 
+#= FIXME
 @testset "Collections" begin
     A = OffsetArray(rand(4,4), (-3,5))
 
     @test unique(A, dims=1) == OffsetArray(parent(A), 0, first(axes(A, 2)) - 1)
     @test unique(A, dims=2) == OffsetArray(parent(A), first(axes(A, 1)) - 1, 0)
     v = OffsetArray(rand(8), (-2,))
-    @test sort(v) == OffsetArray(sort(parent(v)), axes(v, 1).offset)
-    @test sortslices(A; dims=1) == OffsetArray(sortslices(parent(A); dims=1), map(offset, axes(A)))
-    @test sortslices(A; dims=2) == OffsetArray(sortslices(parent(A); dims=2), map(offset, axes(A)))
-    @test sort(A, dims = 1) == OffsetArray(sort(parent(A), dims = 1), map(offset, axes(A)))
-    @test sort(A, dims = 2) == OffsetArray(sort(parent(A), dims = 2), map(offset, axes(A)))
+    @test sort(v) == OffsetArray(sort(parent(v)), getoffset(axes(v, 1)))
+    @test sortslices(A; dims=1) == OffsetArray(sortslices(parent(A); dims=1), map(getoffset, axes(A)))
+    @test sortslices(A; dims=2) == OffsetArray(sortslices(parent(A); dims=2), map(getoffset, axes(A)))
+    @test sort(A, dims = 1) == OffsetArray(sort(parent(A), dims = 1), map(getoffset, axes(A)))
+    @test sort(A, dims = 2) == OffsetArray(sort(parent(A), dims = 2), map(getoffset, axes(A)))
 
-    @test mapslices(v->sort(v), A, dims = 1) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 1), A.offsets)
-    @test mapslices(v->sort(v), A, dims = 2) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 2), A.offsets)
+    @test mapslices(v->sort(v), A, dims = 1) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 1), map(getoffset, axes(A)))
+    @test mapslices(v->sort(v), A, dims = 2) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 2), map(getoffset, axes(A)))
 end
+=#
 
+# TODO move this test to an appropriate file
 @testset "fill" begin
-    B = fill(5, 1:3, -1:1)
+    B = fill(5, OffsetAxis(1:3), OffsetAxis(-1:1))
     @test axes(B) == (1:3,-1:1)
     @test all(B.==5)
 end
-=#
 
 # TODO I have a different approach to this. The offset is preserved
 #=

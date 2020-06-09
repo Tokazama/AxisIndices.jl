@@ -142,8 +142,8 @@ show(io, F)
 str = String(take!(io))
 @test str[1:7] == "AxisSVD"
 
-# this avoids errors due to differences in how Symbols are printing between versions of Julia
-if !(VERSION < v"1.4")
+# TODO Change to 1.5 once beta is fix is released
+if !(VERSION < v"1.4" < VERSION)
     @testset "docs" begin
         doctest(AxisIndices)
     end

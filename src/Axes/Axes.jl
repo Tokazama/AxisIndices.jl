@@ -6,7 +6,8 @@ using StaticArrays
 using StaticRanges
 using AxisIndices.Interface
 using AxisIndices.Interface: AbstractIndices
-using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, check_axis_length, assign_indices
+using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, assign_indices
+using AxisIndices.Interface: check_axis_length, check_axis_unique
 using AxisIndices.Interface: _construct_meta
 using AxisIndices.Interface: as_staticness
 
@@ -48,7 +49,6 @@ export
     structview
 
 include("AbstractAxis.jl")
-include("mutate.jl")
 include("Axis.jl")
 include("SimpleAxis.jl")
 include("StructAxis.jl")
@@ -56,6 +56,7 @@ include("MetaAxis.jl")
 include("AbstractOffsetAxis.jl")
 include("CenteredAxis.jl")
 include("OffsetAxis.jl")
+include("mutate.jl")
 include("promotion.jl")
 include("to_axis.jl")
 include("to_axes.jl")

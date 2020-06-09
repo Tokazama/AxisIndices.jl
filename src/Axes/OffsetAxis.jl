@@ -169,9 +169,6 @@ Base.keys(axis::OffsetAxis) = getfield(axis, :keys)
 
 Base.values(axis::OffsetAxis) = getfield(axis, :indices)
 
-
-Interface.is_indices_axis(::Type{<:OffsetAxis}) = true
-
 function StaticRanges.similar_type(::Type{A}, ks_type::Type, inds_type::Type) where {A<:OffsetAxis}
     return OffsetAxis{eltype(ks_type),eltype(inds_type),ks_type,inds_type}
 end
@@ -187,51 +184,13 @@ function Interface.unsafe_reconstruct(axis::OffsetAxis{K,I,Ks}, inds::Inds) wher
     )
 end
 
-@inline function Interface.assign_indices(axis::OffsetAxis, inds::AbstractIndices)
-    return OffsetAxis{keytype(axis),eltype(inds),keys_type(axis),typeof(inds)}(keys(axis), inds)
+#@inline function Interface.assign_indices(axis::OffsetAxis, inds::AbstractIndices)
+#    return OffsetAxis{keytype(axis),eltype(inds),keys_type(axis),typeof(inds)}(keys(axis), inds)
+#end
+
+
+function _reset_keys!(axis::OffsetAxis{K,I,Ks,Inds}, len) where {K,I,Ks,Inds}
+    ks = keys(axis)
+    set_length!(ks, len)
 end
 
-function StaticRanges.set_length!(axis::OffsetAxis, len)
-    can_set_length(axis) || error("Cannot use set_length! for instances of typeof $(typeof(axis)).")
-    set_length!(indices(axis), len)
-    set_length!(keys(axis), len)
-    return axis
-end
-
-function StaticRanges.set_last!(axis::OffsetAxis{K,I}, val::I) where {K,I}
-    can_set_last(axis) || throw(MethodError(set_last!, (axis, val)))
-    set_last!(indices(axis), val)
-    resize_last!(keys(axis), length(indices(axis)))
-    return axis
-end
-
-function Base.pop!(axis::OffsetAxis)
-    StaticRanges.can_set_last(axis) || error("Cannot change size of index of type $(typeof(axis)).")
-    pop!(keys(axis))
-    return pop!(indices(axis))
-end
-
-function Base.popfirst!(axis::OffsetAxis)
-    StaticRanges.can_set_first(axis) || error("Cannot change size of index of type $(typeof(axis)).")
-    pop!(keys(axis))
-    return popfirst!(indices(axis))
-end
-
-# TODO check for existing key first
-push_key!(axis::OffsetAxis, key) = grow_last!(axis, 1)
-
-pushfirst_key!(axis::OffsetAxis, key) = grow_last!(axis, 1)
-
-function StaticRanges.grow_last!(axis::OffsetAxis, n::Integer)
-    can_set_length(axis) ||  throw(MethodError(grow_last!, (axis, n)))
-    StaticRanges.grow_last!(keys(axis), n)
-    StaticRanges.grow_last!(indices(axis), n)
-    return nothing
-end
-
-function StaticRanges.shrink_last!(axis::OffsetAxis, n::Integer)
-    can_set_length(axis) ||  throw(MethodError(shrink_last!, (axis, n)))
-    StaticRanges.shrink_last!(keys(axis), n)
-    StaticRanges.shrink_last!(indices(axis), n)
-    return nothing
-end

@@ -24,6 +24,8 @@ Base.collect(axis::AbstractOffsetAxis) = collect(keys(axis))
 
 Styles.AxisIndicesStyle(::Type{A}, ::Type{T}) where {A<:AbstractOffsetAxis,T} = KeyedStyle(T)
 
+Interface.is_indices_axis(::Type{<:AbstractOffsetAxis}) = true
+
 @propagate_inbounds function Base.getindex(axis::AbstractOffsetAxis, i::Integer)
     @boundscheck if !in(i, keys(axis))
         throw(BoundsError(axis, i))
