@@ -365,9 +365,6 @@ function Interface.print_axis_compactly(io, axis::AbstractAxis)
     return Interface.print_axis_compactly(io, keys(axis))
 end
 
-Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = Interface.print_axis(io, axis)
-Base.show(io::IO, axis::AbstractAxis) = Interface.print_axis(io, axis)
-
 # This is different than how most of Julia does a summary, but it also makes errors
 # infinitely easier to read when wrapping things at multiple levels or using Unitful keys
 function Base.summary(io::IO, a::AbstractAxis)
@@ -393,6 +390,17 @@ end
 Base.isempty(a::AbstractAxis) = isempty(values(a))
 
 Base.sum(x::AbstractAxis) = sum(values(x))
+
+for f in (:(==), :isequal)
+    @eval begin
+        Base.$(f)(x::AbstractAxis, y::AbstractAxis) = $f(eachindex(x), eachindex(y))
+        Base.$(f)(x::AbstractArray, y::AbstractAxis) = $f(x, eachindex(y))
+        Base.$(f)(x::AbstractAxis, y::AbstractArray) = $f(eachindex(x), y)
+
+        Base.$(f)(x::OrdinalRange, y::AbstractAxis) = $f(x, eachindex(y))
+        Base.$(f)(x::AbstractAxis, y::OrdinalRange) = $f(eachindex(x), y)
+    end
+end
 
 # TODO document
 reduce_axes(old_axes::Tuple{Vararg{Any,N}}, new_axes::Tuple, dims::Colon) where {N} = ()
@@ -452,4 +460,35 @@ end
 function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
     return Axis(reverse(keys(old_axis)), new_index, false)
 end
+
+@inline function Base.compute_offset1(parent, stride1::Integer, dims::Tuple{Int}, inds::Tuple{<:AbstractAxis}, I::Tuple)
+    return Base.compute_linindex(parent, I) - stride1 * first(axes(parent, first(dims)))
+end
+
+@inline Base.axes(axis::AbstractAxis) = (Base.axes1(axis),)
+
+@inline Base.axes1(axis::AbstractAxis) = copy(axis)
+
+@inline Base.unsafe_indices(axis::AbstractAxis) = (axis,)
+
+###
+### General constructors
+###
+#=
+
+(A::Type{<:AbstractAxis})(kv::Pair) = A(first(kv), last(kv))
+
+@inline function (A::Type{<:AbstractAxis{K}})(ks::AbstractIndices, inds::AbstractIndices, args...; kwargs...) where {K}
+    if eltype(ks) <: K
+        A
+    else
+        return A(AbstractIndices{K}(ks)
+    end
+end
+
+
+=#
+
+Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = Interface.print_axis(io, axis)
+Base.show(io::IO, axis::AbstractAxis) = Interface.print_axis(io, axis)
 

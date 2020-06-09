@@ -59,7 +59,7 @@ function Broadcast.copy(bc::Broadcasted{AxisArrayStyle{S}}) where S
 end
 
 function Base.copyto!(dest::AbstractAxisArray, ds::Integer, src::AbstractAxisArray, ss::Integer, n::Integer)
-    copyto!(parent(dest), to_index(eachindex(dest), ds), src, to_index(eachindex(src), ss), n)
+    return copyto!(parent(dest), to_index(eachindex(dest), ds), parent(src), to_index(eachindex(src), ss), n)
 end
 function Base.copyto!(dest::AbstractArray, ds::Integer, src::AbstractAxisArray, ss::Integer, n::Integer)
     copyto!(dest, ds, parent(src), to_index(eachindex(src), ss), n)

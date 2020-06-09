@@ -11,3 +11,8 @@ maybe_tail(x::Tuple) = tail(x)
 
 naxes(A, v::Val{N}) where {N} = ntuple(i -> axes(A, i), v)
 
+
+as_staticness(::StaticRanges.Static, x) = as_static(x)
+as_staticness(::StaticRanges.Fixed, x) = as_fixed(x)
+as_staticness(::StaticRanges.Dynamic, x) = as_dynamic(x)
+

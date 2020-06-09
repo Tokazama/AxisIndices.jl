@@ -44,9 +44,7 @@ end
 
 
 # TODO document append_keys!
-"""
-    append_keys!(x, y)
-"""
+#= append_keys!(x, y) =#
 append_keys!(x::AbstractRange, y) = set_length!(x, length(x) + length(y))
 function append_keys!(x, y)
     if eltype(x) <: eltype(y)
@@ -62,9 +60,7 @@ function append_keys!(x, y)
 end
 
 # TODO document append_axis!
-"""
-    append_axis!(x, y)
-"""
+#= append_axis!(x, y) =#
 @inline function append_axis!(x, y)
     if !is_indices_axis(x) && !is_indices_axis(y)
         append_keys!(keys(x), keys(y))

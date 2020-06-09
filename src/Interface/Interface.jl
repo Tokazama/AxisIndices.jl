@@ -1,7 +1,10 @@
 module Interface
 
 using NamedDims
+
 using StaticRanges
+using StaticRanges: OneToUnion
+
 import MetadataArrays: MetadataArray
 
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
@@ -43,6 +46,8 @@ export
 else
     using Base: IdentityUnitRange
 end
+
+const AbstractIndices{T<:Integer} = AbstractUnitRange{T}
 
 include("utils.jl")
 include("indices.jl")

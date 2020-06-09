@@ -22,6 +22,7 @@ using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
 #using OffsetArrays
+using AxisIndices.Interface: IdentityUnitRange
 
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
@@ -81,7 +82,7 @@ include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 
 include("Axis_tests.jl")
-include("CenteredAxis_tests.jl")
+#include("CenteredAxis_tests.jl")
 include("MetaAxis_tests.jl")
 
 include("mapped_arrays.jl")
@@ -96,7 +97,7 @@ include("./Axes/indexing_tests.jl")
 include("NamedAxisArray_tests.jl")
 include("MetaAxisArray_tests.jl")
 include("NamedMetaAxisArray_tests.jl")
-#include("offset_tests.jl")
+include("offset_tests.jl")
 
 @testset "pretty_array" begin
     A = AxisArray(Array{Int,0}(undef, ()))

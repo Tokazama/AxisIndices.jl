@@ -1,3 +1,4 @@
+# FIXME to_index(::OffsetAxis, :) returns the indices instead of a Slice
 module Styles
 
 using AxisIndices.Interface
@@ -167,7 +168,7 @@ AxisIndicesStyle(::Type{T}) where {T} = KeyElement()
     @boundscheck if mapping isa Nothing
         throw(BoundsError(axis, arg))
     end
-    return k2v(axis, mapping)
+    return k2v(keys(axis), indices(axis), mapping)
 end
 
 to_keys(::KeyElement, axis, arg, index) = arg
@@ -194,9 +195,7 @@ AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
     return arg
 end
 
-function to_keys(::IndexElement, axis, arg, index)
-    @inbounds(getindex(keys(axis), v2k(axis, index)))
-end
+to_keys(::IndexElement, axis, arg, index) = v2k(keys(axis), indices(axis), index)
 
 check_index(::IndexElement, axis, arg) = arg in indices(axis)
 
@@ -256,7 +255,7 @@ to_keys(::KeysCollection, axis, arg, index) = arg
     @boundscheck if length(arg) != length(mapping)
         throw(BoundsError(axis, arg))
     end
-    return k2v(axis, mapping)
+    return k2v(keys(axis), indices(axis), mapping)
 end
 
 check_index(::KeysCollection, axis, arg) = length(findin(arg, keys(axis))) == length(arg)
@@ -271,18 +270,20 @@ struct IndicesCollection <: AxisIndicesStyle end
 AxisIndicesStyle(::Type{<:AbstractArray{<:Integer}}) = IndicesCollection()
 
 @inline function to_keys(::IndicesCollection, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
+    mapping = findin(arg, indices(axis))
+    return v2k(keys(axis), indices(axis), mapping)
 end
 
+# TODO boundschecking should be replace by the yet undeveloped `allin` method in StaticRanges
 # if we're referring to an element than we just need to know if it's inbounds
 @propagate_inbounds function to_index(::IndicesCollection, axis, arg)
-    @boundscheck if !checkindex(Bool, indices(axis), arg)
+    @boundscheck if length(findin(arg, indices(axis))) != length(arg)
         throw(BoundsError(axis, arg))
     end
     return arg
 end
 
-check_index(::IndicesCollection, axis, arg) = checkindex(Bool, indices(axis), arg)
+check_index(::IndicesCollection, axis, arg) = length(findin(arg, indices(axis))) == length(arg)
 
 """
     BoolsCollection
@@ -314,11 +315,11 @@ struct IntervalCollection <: AxisIndicesStyle end
 
 AxisIndicesStyle(::Type{<:Interval}) = IntervalCollection()
 
-@inline function to_keys(::IntervalCollection, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
-end
+@inline to_keys(::IntervalCollection, axis, arg, index) = v2k(keys(axis), indices(axis), index)
 
-to_index(::IntervalCollection, axis, arg) = k2v(axis, findin(arg, keys(axis)))
+function to_index(::IntervalCollection, axis, arg)
+    return k2v(keys(axis), indices(axis), findin(arg, keys(axis)))
+end
 
 check_index(::IntervalCollection, axis, arg) = true
 
@@ -339,7 +340,7 @@ to_keys(::KeysIn, axis, arg, index) = arg.x
     @boundscheck if length(arg.x) != length(mapping)
         throw(BoundsError(axis, arg))
     end
-    return k2v(axis, mapping)
+    return k2v(keys(axis), indices(axis), mapping)
 end
 
 check_index(::KeysIn, axis, arg) = length(findin(arg.x, keys(axis))) == length(arg.x)
@@ -352,9 +353,7 @@ of indices.
 """
 struct IndicesIn <: AxisIndicesStyle end
 
-function to_keys(::IndicesIn, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
-end
+to_keys(::IndicesIn, axis, arg, index) = v2k(keys(axis), indices(axis), index)
 
 @propagate_inbounds function to_index(::IndicesIn, axis, arg)
     mapping = findin(arg.x, indices(axis))
@@ -385,7 +384,7 @@ AxisIndicesStyle(::Type{<:Fix2{<:Union{typeof(isequal),typeof(==)}}}) = KeyEqual
     @boundscheck if mapping isa Nothing
         throw(BoundsError(axis, arg))
     end
-    return k2v(axis, mapping)
+    return k2v(keys(axis), indices(axis), mapping)
 end
 
 to_keys(::KeyEquals, axis, arg, index) = arg.x
@@ -409,9 +408,7 @@ is_element(::Type{IndexEquals}) = true
     return arg.x
 end
 
-function to_keys(::IndexEquals, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
-end
+to_keys(::IndexEquals, axis, arg, index) = v2k(keys(axis), indices(axis), index)
 
 check_index(::IndexEquals, axis, arg) = checkbounds(Bool, indices(axis), arg.x)
 
@@ -427,11 +424,9 @@ AxisIndicesStyle(::Type{<:Fix2}) = KeysFix2()
 
 AxisIndicesStyle(::Type{<:ChainedFix}) = KeysFix2()
 
-@inline function to_keys(::KeysFix2, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
-end
+@inline to_keys(::KeysFix2, axis, arg, index) = v2k(keys(axis), indices(axis), index)
 
-@inline to_index(::KeysFix2, axis, arg) = k2v(axis, find_all(arg, keys(axis)))
+@inline to_index(::KeysFix2, axis, arg) = k2v(keys(axis), indices(axis), find_all(arg, keys(axis)))
 
 check_index(::KeysFix2, axis, arg) = true
 
@@ -443,9 +438,7 @@ to the corresponding collection of indices.
 """
 struct IndicesFix2 <: AxisIndicesStyle end
 
-@inline function to_keys(::IndicesFix2, axis, arg, index)
-    return @inbounds(getindex(keys(axis), v2k(axis, index)))
-end
+@inline to_keys(::IndicesFix2, axis, arg, index) = v2k(keys(axis), indices(axis), index)
 
 @inline to_index(::IndicesFix2, axis, arg) = find_all(arg, values(axis))
 
@@ -503,69 +496,68 @@ force_keys(S::AxisIndicesStyle) = S
 force_keys(S::IndicesCollection) = KeysCollection()
 force_keys(S::IndexElement) = KeyElement()
 
+
 # handle offsets
-@inline function k2v(axis::A, index::AbstractVector) where {A}
-    if StaticRanges.has_offset_axes(A)
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index .+ (first(axis) - firstindex(keys(axis)))
+function k2v(ks, inds, index::Integer)
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index + axis_offset(inds) - axis_offset(ks)))
         else
-            return index .+ (first(axis) - 1)
+            return @inbounds(getindex(inds, index + axis_offset(inds)))
         end
     else
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index .+ (firstindex(keys(axis)) - 1)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index - axis_offset(ks)))
         else
-            return index
+            return @inbounds(getindex(inds, index))
         end
     end
 end
 
-# move index from key indices space to values indices space
-@inline function k2v(axis::A, index::Integer) where {A}
-    if StaticRanges.has_offset_axes(A)
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index + (first(axis) - firstindex(keys(axis)))
+function k2v(ks, inds, index::AbstractVector{<:Integer})
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index .+ (axis_offset(inds) - axis_offset(ks))))
         else
-            return index + (first(axis) - 1)
+            return @inbounds(getindex(inds, index .+ axis_offset(inds)))
         end
     else
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index + (firstindex(keys(axis)) - 1)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index .- axis_offset(ks)))
         else
-            return index
+            return @inbounds(getindex(inds, index))
         end
     end
 end
 
-## values -> keys
-@inline function v2k(axis::A, index::AbstractVector) where {A}
-    if StaticRanges.has_offset_axes(A)
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index .+ (firstindex(keys(axis)) - first(axis))
+function v2k(ks, inds, index::Integer)
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index - axis_offset(inds) + axis_offset(ks)))
         else
-            return index .+ (1 - first(axis))
+            return @inbounds(getindex(ks, index - axis_offset(inds)))
         end
     else
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index .+ (1 - firstindex(keys(axis)))
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index + axis_offset(ks)))
         else
-            return index
+            return @inbounds(getindex(ks, index))
         end
     end
 end
 
-@inline function v2k(axis::A, index::Integer) where {A}
-    if StaticRanges.has_offset_axes(A)
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index + (firstindex(keys(axis)) - first(axis))
+function v2k(ks, inds, index::AbstractVector{<:Integer})
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index .- (axis_offset(inds) + axis_offset(ks))))
         else
-            return index + (1 - first(axis))
+            return @inbounds(getindex(ks, index .- axis_offset(inds)))
         end
     else
-        if StaticRanges.has_offset_axes(keys_type(A))
-            return index + (1 - firstindex(keys(axis)))
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index .+ axis_offset(ks)))
         else
-            return index
+            return @inbounds(getindex(ks, index))
         end
     end
 end

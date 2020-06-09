@@ -1,8 +1,3 @@
-
-as_staticness(::StaticRanges.Static, x) = as_static(x)
-as_staticness(::StaticRanges.Fixed, x) = as_fixed(x)
-as_staticness(::StaticRanges.Dynamic, x) = as_dynamic(x)
-
 # 1 arg
 to_axis(axis::AbstractAxis) = axis
 function to_axis(

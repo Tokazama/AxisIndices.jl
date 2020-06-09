@@ -5,8 +5,10 @@ using MappedArrays
 using StaticArrays
 using StaticRanges
 using AxisIndices.Interface
+using AxisIndices.Interface: AbstractIndices
 using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, check_axis_length, assign_indices
 using AxisIndices.Interface: _construct_meta
+using AxisIndices.Interface: as_staticness
 
 using AxisIndices.Styles
 using AxisIndices.Styles: to_index, to_keys
@@ -40,10 +42,9 @@ export
     NamedLinearAxes,
     NamedMetaCartesianAxes,
     NamedMetaLinearAxes,
+    OffsetAxis,
     SimpleAxis,
     StructAxis,
-    to_axis,
-    to_axes,
     structview
 
 include("AbstractAxis.jl")
@@ -52,7 +53,9 @@ include("Axis.jl")
 include("SimpleAxis.jl")
 include("StructAxis.jl")
 include("MetaAxis.jl")
+include("AbstractOffsetAxis.jl")
 include("CenteredAxis.jl")
+include("OffsetAxis.jl")
 include("promotion.jl")
 include("to_axis.jl")
 include("to_axes.jl")

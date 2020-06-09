@@ -1,13 +1,5 @@
 
-function Base.empty!(axis::AbstractAxis)
-    if is_indices_axis(axis)
-        empty!(indices(axis))
-    else
-        empty!(keys(axis))
-        empty!(indices(axis))
-    end
-    return axis
-end
+Base.empty!(axis::AbstractAxis) = set_length!(axis, 0)
 
 function StaticRanges.pop(axis::AbstractAxis)
     if is_indices_axis(axis)
@@ -44,12 +36,18 @@ end
 
 # TODO check for existing key first
 function push_key!(axis::AbstractAxis, key)
-    push!(keys(axis), key)
+    if !is_indices_axis(axis)
+        push!(keys(axis), key)
+    end
     grow_last!(indices(axis), 1)
+    return nothing
 end
 
 function pushfirst_key!(axis::AbstractAxis, key)
-    pushfirst!(keys(axis), key)
+    if !is_indices_axis(axis)
+        pushfirst!(keys(axis), key)
+    end
     grow_last!(indices(axis), 1)
+    return nothing
 end
 

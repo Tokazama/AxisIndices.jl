@@ -19,12 +19,12 @@ using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
 using AxisIndices.Interface: _construct_meta
-
-
+using AxisIndices.Interface: as_staticness
 
 using AxisIndices.Axes
 using AxisIndices.Axes: AbstractAxes
 using AxisIndices.Axes: assign_indices, permute_axes, reverse_keys, reduce_axes, reshape_axes, cat_axis
+using AxisIndices.Axes: to_axis, to_axes
 
 using AxisIndices.PrettyArrays
 
@@ -42,7 +42,9 @@ export
     AxisVector,
     MetaAxisArray,
     NamedAxisArray,
-    NamedMetaAxisArray
+    NamedMetaAxisArray,
+    OffsetArray,
+    OffsetVector
 
 # TODO these shouldn't be exported
 export matmul_axes, get_factorization
@@ -53,6 +55,7 @@ const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:Abst
 
 include("AbstractAxisArray.jl")
 include("AxisArray.jl")
+include("OffsetArray.jl")
 include("NamedAxisArray.jl")
 include("MetaAxisArray.jl")
 include("NamedMetaAxisArray.jl")
@@ -62,6 +65,7 @@ include("map.jl")
 include("factorizations.jl")
 include("vectors.jl")
 include("matrices.jl")
+include("indexing.jl")
 
 end
 

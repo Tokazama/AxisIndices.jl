@@ -7,7 +7,7 @@
 Note: the element type of a `CenteredAxis` cannot be unsigned because any instance with
 a length greater than 1 will begin at a negative value.
 """
-struct CenteredAxis{K,I,Ks<:AbstractUnitRange{K},Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I,Ks,Inds}
+struct CenteredAxis{K,I,Ks,Inds}  <: AbstractOffsetAxis{K,I,Ks,Inds}
     indices::Inds
 
     CenteredAxis{K,I,Ks,Inds}(inds::Inds) where {K,I,Ks,Inds} = new{K,I,Ks,Inds}(inds)
