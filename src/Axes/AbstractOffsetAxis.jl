@@ -33,7 +33,7 @@ end
 
 function Interface.print_axis(io, axis::AbstractOffsetAxis)
     if haskey(io, :compact)
-        print_axis_compactly(io, keys(axis))
+        Interface.print_axis_compactly(io, keys(axis))
     else
         print(io, "$(typeof(axis).name)($(keys(axis)) => $(indices(axis)))")
     end

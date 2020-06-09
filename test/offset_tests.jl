@@ -590,32 +590,22 @@ end
     @test a[-2] == 1
     @test a[-1] == 2
 
-    #= FIXME
     b = 1:2    # copy between AbstractArrays
     bo = OffsetArray(1:2, (-3,))
-    @test_throws BoundsError copyto!(a, b)
+    # why should this error
+    #@test_throws BoundsError copyto!(a, b)
     fill!(a, -1)
     copyto!(a, bo)
-    @test a[-3] == -1
-    @test a[-2] == 1
-    @test a[-1] == 2
-    if VERSION < v"1.5-"
-        @test_throws BoundsError copyto!(a, b)
-        fill!(a, -1)
-        copyto!(a, bo)
-        @test a[-3] == -1
-        @test a[-2] == 1
-        @test a[-1] == 2
-    else
-        #
-        # the behavior of copyto! is corrected as the documentation says "first n element"
-        # https://github.com/JuliaLang/julia/pull/34049
-        fill!(a, -1)
-        copyto!(a, bo)
-        @test a[-3] == 1
-        @test a[-2] == 2
-        @test a[-1] == -1
-    end
+    @test a[-3] == 1
+    @test a[-2] == 2
+    @test a[-1] == -1
+    # the behavior of copyto! is corrected as the documentation says "first n element"
+    # https://github.com/JuliaLang/julia/pull/34049
+    fill!(a, -1)
+    copyto!(a, bo)
+    @test a[-3] == 1
+    @test a[-2] == 2
+    @test a[-1] == -1
 
     fill!(a, -1)
     copyto!(a, -2, bo)
@@ -638,7 +628,6 @@ end
     @test am[1,7] == 1
     @test am[1,8] == 2
     @test am[1,9] == -1
-    =#
 end
 
 # TODO it seems odd to me that indexing with an offset array would change the axes
