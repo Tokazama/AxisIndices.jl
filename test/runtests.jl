@@ -82,7 +82,7 @@ include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 
 include("Axis_tests.jl")
-#include("CenteredAxis_tests.jl")
+include("CenteredAxis_tests.jl")
 include("MetaAxis_tests.jl")
 
 include("mapped_arrays.jl")
