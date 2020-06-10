@@ -496,7 +496,7 @@ end
     @test axes(o, 1) == 0:-1
 end
 
-if VERSION > v"1.3"
+if VERSION > v"1.4"
     @testset "searchsorted (#85)" begin
         o = OffsetVector([1,3,4,5],-2)
         @test searchsortedfirst(o,-2) == -1
