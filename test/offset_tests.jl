@@ -1,7 +1,3 @@
-
-
-Reviewed-by: Zachary P. Christensen <zchristensen7@gmail.com>
-
 # differences from OffsetArrays
 # * indexing preserves the offset so things like:
 #!!! note this is different than what OffsetArryas does because offset arrays produced 0:1
