@@ -135,7 +135,7 @@ str = String(take!(io))
 @test str[1:7] == "AxisSVD"
 
 # TODO Change to 1.5 once beta is fix is released
-if !(VERSION < v"1.4" < VERSION)
+if VERSION > v"1.4"
     @testset "docs" begin
         doctest(AxisIndices)
     end
