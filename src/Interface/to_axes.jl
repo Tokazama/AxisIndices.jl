@@ -1,5 +1,4 @@
 
-
 # N-Dimension -> M-Dimension
 function to_axes(
     A::AbstractArray{T,N},

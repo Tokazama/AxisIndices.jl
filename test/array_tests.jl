@@ -12,7 +12,7 @@
     @test x[CartesianIndex(2,2)] == 5
 
     @test eltype(similar(x, Float64, (2:3, 4:5))) <: Float64
-    @test_throws ErrorException AxisArray(rand(2,2), (2:9,2:1))
+    @test_throws DimensionMismatch AxisArray(rand(2,2), (2:9,2:1))
 
     x = AxisArray(reshape(1:8, 2, 2, 2));
     @test @inferred(x[CartesianIndex(1,1), 1]) == 1

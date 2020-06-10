@@ -11,6 +11,7 @@ using AxisIndices
 using AxisIndices.Styles
 using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes
 using AxisIndices.Interface
+using AxisIndices.Interface: check_index
 using MappedArrays
 
 using AxisIndices.Axes
@@ -22,6 +23,7 @@ using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
 #using OffsetArrays
+using AxisIndices.Interface: IdentityUnitRange
 
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
@@ -47,10 +49,12 @@ end
 @test Base.to_shape(SimpleAxis(1)) == 1
 
 include("styles_tests.jl")
-include("to_axis_tests.jl")
+
+include("./Interface/Interface.jl")
+include("./Axes/Axes.jl")
+include("./Arrays/Arrays.jl")
+
 include("getindex_tests.jl")
-include("values_tests.jl")
-include("keys_tests.jl")
 include("size_tests.jl")
 include("pop_tests.jl")
 include("popfirst_tests.jl")
@@ -65,14 +69,11 @@ include("filter_tests.jl")
 include("promotion_tests.jl")
 include("similar_tests.jl")
 include("resize_tests.jl")
-
 include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")
-
 include("drop_tests.jl")
-
 include("constructors.jl")
 include("functions_tests.jl")
 include("concatenation_tests.jl")
@@ -80,23 +81,16 @@ include("array_tests.jl")
 include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 
-include("Axis_tests.jl")
-include("CenteredAxis_tests.jl")
-include("MetaAxis_tests.jl")
-
 include("mapped_arrays.jl")
 include("traits_tests.jl")
 include("copyto_tests.jl")
 include("reshape_tests.jl")
 
 
-include("vectors_tests.jl")
-
-include("./Axes/indexing_tests.jl")
 include("NamedAxisArray_tests.jl")
 include("MetaAxisArray_tests.jl")
 include("NamedMetaAxisArray_tests.jl")
-#include("offset_tests.jl")
+include("offset_tests.jl")
 
 @testset "pretty_array" begin
     A = AxisArray(Array{Int,0}(undef, ()))
@@ -124,7 +118,6 @@ end
     @test isnothing(iterate(obs_iter, state))
 end
 
-include("structaxis_tests.jl")
 include("table_tests.jl")
 
 #= TODO this needs to be formally tested
@@ -141,8 +134,8 @@ show(io, F)
 str = String(take!(io))
 @test str[1:7] == "AxisSVD"
 
-# this avoids errors due to differences in how Symbols are printing between versions of Julia
-if !(VERSION < v"1.4")
+# TODO Change to 1.5 once beta is fix is released
+if VERSION > v"1.4"
     @testset "docs" begin
         doctest(AxisIndices)
     end

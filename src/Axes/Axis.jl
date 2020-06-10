@@ -80,15 +80,8 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I,Ks,Inds}
         check_unique::Bool=true,
         check_length::Bool=true
     ) where {K,I,Ks<:AbstractVector{K},Inds<:AbstractUnitRange{I}}
-        if check_unique
-            # FIXME uncomment once fixed on 1.5beta
-            #allunique(ks) || error("All keys must be unique.")
-            allunique(inds) || error("All values must be unique.")
-        end
-
-        if check_length
-            length(ks) == length(inds) || error("Length of keys and values must be equal, got length(keys) = $(length(ks)) and length(values) = $(length(inds)).")
-        end
+        check_unique && check_axis_unique(ks, inds)
+        check_length && check_axis_length(ks, inds)
         return new{K,I,Ks,Inds}(ks, inds)
     end
 
@@ -167,4 +160,3 @@ end
 function Interface.unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
     return similar_type(a, Ks, Vs)(ks, vs, false, false)
 end
-

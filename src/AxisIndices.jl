@@ -12,24 +12,9 @@ using ChainedFixes
 using IntervalSets
 
 export
-    AbstractAxis,
-    AbstractSimpleAxis,
-    Axis,
-    CartesianAxes,
-    CenteredAxis,
     Indices,
     Keys,
     LinearAxes,
-    MetaAxis,
-    MetaAxis,
-    MetaCartesianAxes,
-    MetaLinearAxes,
-    NamedCartesianAxes,
-    NamedLinearAxes,
-    NamedMetaCartesianAxes,
-    NamedMetaLinearAxes,
-    SimpleAxis,
-    StructAxis,
     # Reexport types
     LinMRange,
     LinSRange,
@@ -44,8 +29,6 @@ export
     StepSRange,
     UnitMRange,
     UnitSRange,
-    dimnames,
-    dim,
     # methods
     srange,
     mrange,
@@ -54,21 +37,20 @@ export
     ..,
     pretty_array
 
-include("./Interface/Interface.jl")
-@reexport using .Interface
-using .Interface: step_key, append_axis!
 
 include("./Styles/Styles.jl")
 using .Styles
-using .Styles: to_index, to_keys
+
+include("./Interface/Interface.jl")
+@reexport using .Interface
+using .Interface: step_key, append_axis!, to_axis, to_axes,  to_index, to_keys
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays
 
 include("./Axes/Axes.jl")
-using .Axes
+@reexport using .Axes
 using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axis
-
 
 include("./Arrays/Arrays.jl")
 @reexport using .Arrays

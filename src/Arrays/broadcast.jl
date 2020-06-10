@@ -58,25 +58,63 @@ function Broadcast.copy(bc::Broadcasted{AxisArrayStyle{S}}) where S
     )
 end
 
-function Base.copyto!(dest::AbstractAxisArray, ds::Integer, src::AbstractAxisArray, ss::Integer, n::Integer)
-    copyto!(parent(dest), to_index(eachindex(dest), ds), src, to_index(eachindex(src), ss), n)
+function Base.copyto!(
+    dest::AbstractAxisArray,
+    ds::Integer,
+    src::AbstractAxisArray,
+    ss::Integer,
+    n::Integer
+)
+    return copyto!(
+        parent(dest),
+        to_index(eachindex(dest), ds),
+        parent(src),
+        to_index(eachindex(src), ss),
+        n
+    )
 end
-function Base.copyto!(dest::AbstractArray, ds::Integer, src::AbstractAxisArray, ss::Integer, n::Integer)
+function Base.copyto!(
+    dest::AbstractArray,
+    ds::Integer,
+    src::AbstractAxisArray,
+    ss::Integer,
+    n::Integer
+)
+
     copyto!(dest, ds, parent(src), to_index(eachindex(src), ss), n)
 end
-function Base.copyto!(dest::AbstractAxisArray, ds::Integer, src::AbstractArray, ss::Integer, n::Integer)
-    copyto!(parent(dest), to_index(eachindex(dest), ds), src, ss, n)
+
+function Base.copyto!(
+    dest::AbstractAxisArray,
+    ds::Integer,
+    src::AbstractArray,
+    ss::Integer,
+    n::Integer
+)
+
+    return copyto!(parent(dest), to_index(eachindex(dest), ds), src, ss, n)
 end
 
 function Base.copyto!(dest::AbstractAxisArray, dstart::Integer, src::AbstractArray)
-    copyto!(parent(dest), to_index(eachindex(dest), dstart), src)
+    return copyto!(parent(dest), to_index(eachindex(dest), dstart), src)
 end
 
 function Base.copyto!(dest::AbstractAxisArray, dstart::Integer, src::AbstractAxisArray)
-    copyto!(parent(dest), to_index(eachindex(dest), dstart), parent(src))
+    return copyto!(parent(dest), to_index(eachindex(dest), dstart), parent(src))
 end
 
 function Base.copyto!(dest::AbstractArray, dstart::Integer, src::AbstractAxisArray)
-    copyto!(dest, dstart, parent(src))
+    return copyto!(dest, dstart, parent(src))
 end
 
+function Base.copyto!(dest::AbstractAxisArray, src::AbstractAxisArray)
+    return copyto!(parent(dest), parent(src))
+end
+
+function Base.copyto!(dest::AbstractAxisArray, src::AbstractArray)
+    return copyto!(parent(dest), src)
+end
+
+function Base.copyto!(dest::AbstractArray, src::AbstractAxisArray)
+    return copyto!(dest, parent(src))
+end

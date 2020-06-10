@@ -1,4 +1,17 @@
 
+_to_axis_or_simple(staticness, ::Tuple{}, ::Tuple{}, ::Bool) = ()
+_to_axis_or_simple(staticness, ::Tuple, ::Tuple{}, ::Bool) = ()
+@inline function _to_axis_or_simple(staticness, ::Tuple{}, inds::Tuple,  ::Bool)
+    return map(i -> SimpleAxis(as_staticness(staticness, i)), inds)
+end
+@inline function _to_axis_or_simple(staticness, ks::Tuple, inds::Tuple,  check_length::Bool)
+    return (
+        to_axis(as_staticness(staticness, first(ks)), as_staticness(staticness, first(inds)), check_length),
+        _to_axis_or_simple(staticness, maybe_tail(ks), maybe_tail(inds), check_length)...
+    )
+end
+
+
 """
     AxisArray{T,N,P,AI}
 
@@ -96,14 +109,7 @@ function AxisArray(
     axis_values::Tuple=axes(x),
     check_length::Bool=true
 ) where {T,N,N2}
-
-    axs = ntuple(Val(N)) do i
-        if i > N2
-            to_axis(nothing, getfield(axis_values, i))
-        else
-            to_axis(getfield(axis_keys, i), getfield(axis_values, i))
-        end
-    end
+    axs = _to_axis_or_simple(Staticness(x), axis_keys, axis_values, check_length)
     return AxisArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 
@@ -273,4 +279,25 @@ function init_array(::Dynamic, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,A
 end
 
 Base.dataids(A::AxisArray) = Base.dataids(parent(A))
+
+function Base.zeros(::Type{T}, axs::Tuple{Vararg{<:AbstractAxis}}) where {T}
+    p = zeros(T, map(length, axs))
+    return AxisArray(p, axs, axes(p), false)
+end
+
+function Base.falses(axs::Tuple{Vararg{<:AbstractAxis}}) where {T}
+    p = falses(map(length, axs))
+    return AxisArray(p, axs, axes(p), false)
+end
+
+function Base.fill(x, axs::Tuple{Vararg{<:AbstractAxis}})
+    p = fill(x, map(length, axs))
+    return AxisArray(p, axs, axes(p), false)
+end
+
+function Base.reshape(A::AbstractArray, shp::Tuple{<:AbstractAxis,Vararg{<:AbstractAxis}})
+    p = reshape(parent(A), map(length, shp))
+    axs = reshape_axes(naxes(shp, Val(length(shp))), axes(p))
+    return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs)
+end
 

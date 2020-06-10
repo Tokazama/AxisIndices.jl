@@ -40,6 +40,38 @@ end
 end
 
 ###
+### unsafe_getindex
+###
+
+function unsafe_getindex(A, args::Tuple, inds::Tuple{Vararg{<:Integer}})
+    return @inbounds(getindex(parent(A), inds...))
+end
+
+function unsafe_getindex(A, args::Tuple, inds::Tuple)
+    p = @inbounds(getindex(parent(A), inds...))
+    return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false, Staticness(p)))
+end
+
+function unsafe_view(A, args::Tuple, inds::Tuple{Vararg{<:Integer}})
+    return @inbounds(Base.view(parent(A), inds...))
+end
+
+function unsafe_view(A, args::Tuple, inds::Tuple)
+    p = view(parent(A), inds...)
+    return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false, Staticness(p)))
+end
+
+function unsafe_dotview(A, args::Tuple, inds::Tuple{Vararg{<:Integer}})
+    return @inbounds(Base.dotview(parent(A), inds...))
+end
+
+function unsafe_dotview(A, args::Tuple, inds::Tuple)
+    p = Base.dotview(parent(A), inds...)
+    return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false, Staticness(p)))
+end
+
+
+###
 ### checkbounds
 ###
 Base.checkbounds(x::AbstractAxis, i) = checkbounds(Bool, x, i)
@@ -66,7 +98,7 @@ for T in (AbstractVector{Bool},
          )
     @eval begin
         function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::$T)
-            return Styles.check_index(axis, arg)
+            return Interface.check_index(axis, arg)
         end
     end
 end

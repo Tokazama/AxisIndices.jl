@@ -87,3 +87,14 @@ function print_axis(io, axis)
     end
 end
 
+#=
+    axis_offset(x)
+
+Returns the offset from the first index of x (`firstindex(x) = 1 - axis_offset(x)`)
+=#
+@inline axis_offset(x) = offset(axes(x, 1))
+
+offset(x::OneToUnion) = 0
+offset(x::AbstractUnitRange) = first(x) - 1
+
+

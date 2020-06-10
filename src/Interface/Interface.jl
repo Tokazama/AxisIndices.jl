@@ -1,7 +1,12 @@
 module Interface
 
+using AxisIndices.Styles
 using NamedDims
 using StaticRanges
+using StaticRanges: OneToUnion
+using StaticRanges: Staticness, Fixed, Static, Dynamic
+using StaticRanges: resize_last
+
 import MetadataArrays: MetadataArray
 
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
@@ -44,6 +49,8 @@ else
     using Base: IdentityUnitRange
 end
 
+const AbstractIndices{T<:Integer} = AbstractUnitRange{T}
+
 include("utils.jl")
 include("indices.jl")
 include("keys.jl")
@@ -53,5 +60,9 @@ include("rows.jl")
 include("cols.jl")
 include("metadata.jl")
 include("constructors.jl")
+include("to_index.jl")
+include("to_keys.jl")
+include("to_axes.jl")
+include("checkindex.jl")
 
 end

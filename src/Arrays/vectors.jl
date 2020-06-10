@@ -40,7 +40,7 @@ end
 ###
 
 function Base.append!(A::AbstractAxisVector{T}, collection) where {T}
-    append_axis!(axes(A, 1), axes(collection, 1))
+    append_axis!(axes(A, 1), collection)
     append!(parent(A), collection)
     return A
 end

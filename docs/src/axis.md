@@ -232,6 +232,16 @@ true
 
 ```
 
+## Quick Look at `AbstractAxis` Types
+
+| `AbstractAxis` Type | Usage                                                                               |
+|--------------------:|:------------------------------------------------------------------------------------|
+| `Axis`              | Attach keys to indices                                                              |
+| `SimpleAxis`        | Give standard indices access AxisIndices's syntax                                   |
+| `CenteredAxis`      | Enforce indexing that is centered around zero                                       |
+| `OffsetAxis`        | Enforce indexing with where the first index is offset from 1                        |
+| `MetaAxis`          | Attach arbitrary metadata to an axis                                                |
+| `StructAxis`        | Map a type's field names and field types to each element along an axis.             |
 
 ## Performance
 

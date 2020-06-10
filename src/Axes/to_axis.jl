@@ -1,8 +1,3 @@
-
-as_staticness(::StaticRanges.Static, x) = as_static(x)
-as_staticness(::StaticRanges.Fixed, x) = as_fixed(x)
-as_staticness(::StaticRanges.Dynamic, x) = as_dynamic(x)
-
 # 1 arg
 to_axis(axis::AbstractAxis) = axis
 function to_axis(
@@ -94,4 +89,9 @@ function to_axis(
 
     return to_axis(axis, keys(ks), vs, check_length, staticness)
 end
+
+# This can't be changed for a type
+StaticRanges.as_static(axis::StructAxis) = axis
+StaticRanges.as_fixed(axis::StructAxis) = axis
+StaticRanges.as_dynamic(axis::StructAxis) = axis
 

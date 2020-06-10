@@ -1,45 +1,68 @@
 # TODO Mutating methods on CenteredAxis need to be specialize to ensure the center
 # is maintained
 
+function _construct_centered_keys(::Type{K}, inds) where {K}
+    len = length(inds)
+    start = K(-div(len, 2))
+    stop = K(start + len - 1)
+    S = Staticness(inds)
+    if is_static(S)
+        ks = UnitSRange{K}(start, stop)
+    elseif is_fixed(S)
+        ks = UnitRange{K}(start, stop)
+    else  # is_dynamic(S)
+        ks = UnitMRange{K}(start, stop)
+    end
+end
+
 """
     CenteredAxis(indices)
 
 Note: the element type of a `CenteredAxis` cannot be unsigned because any instance with
 a length greater than 1 will begin at a negative value.
 """
-struct CenteredAxis{K,I,Ks<:AbstractUnitRange{K},Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I,Ks,Inds}
+struct CenteredAxis{K,I,Ks,Inds}  <: AbstractOffsetAxis{K,I,Ks,Inds}
+    keys::Ks
     indices::Inds
 
-    CenteredAxis{K,I,Ks,Inds}(inds::Inds) where {K,I,Ks,Inds} = new{K,I,Ks,Inds}(inds)
+    function CenteredAxis{K,I,Ks,Inds}(ks::Ks, inds::Inds, check_length::Bool=true, ensure_centered::Bool=true) where {K,I,Ks,Inds}
+        check_length && check_axis_length(ks, inds)
+        if ensure_centered && (abs(first(ks)) - abs(last(ks))) > 1  # FIXME this doesn't handle things like 2:2
+            error("keys are not centered around zero.")
+        end
 
-    CenteredAxis{K,I,Ks,Inds}(inds) where {K,I,Ks,Inds} = CenteredAxis{I,Ks,Inds}(Inds(inds))
+        return new{K,I,Ks,Inds}(ks, inds)
+    end
 
-    # CenteredAxis{K,I,Ks}
-    CenteredAxis{K,I,Ks}(inds::Inds) where {K,I,Ks,Inds} = CenteredAxis{K,I,Ks,Inds}(inds)
-
-    # CenteredAxis{K,I}
-    function CenteredAxis{K,I}(inds::AbstractUnitRange{I}) where {K,I}
-        if is_static(inds)
-            return CenteredAxis{K,I,UnitSRange{K,centered_start(K, inds),centered_stop(K, inds)}}(inds)
+    function CenteredAxis{K,I,Ks,Inds}(inds, check_length::Bool=true, ensure_centered::Bool=true) where {K,I,Ks,Inds}
+        if is_static(Ks)
+            return CenteredAxis{K,I,Ks,Inds}(Ks(), inds, check_length, ensure_centered)
         else
-            return CenteredAxis{K,I,UnitRange{K}}(inds)
+            return CenteredAxis{K,I,Ks,Inds}(Ks(_construct_centered_keys(K, inds)), inds, check_length, ensure_centered)
         end
     end
 
-    function CenteredAxis{K,I}(inds::AbstractUnitRange) where {K,I}
-        return CenteredAxis{K,I}(AbstractUnitRange{I}(inds))
+    # CenteredAxis{K,I}
+    function CenteredAxis{K,I}(inds::AbstractIndices) where {K,I}
+        if eltype(inds) <: I
+            ks = _construct_centered_keys(K, inds)
+            return CenteredAxis{K,I,typeof(ks),typeof(inds)}(ks, inds, false, false)
+        else
+            return CenteredAxis{K,I}(AbstractIndices{I}(inds))
+
+        end
     end
 
     # CenteredAxis{K}
-    CenteredAxis{K}(inds::AbstractUnitRange{I}) where {K,I} = CenteredAxis{K,I}(inds)
+    CenteredAxis{K}(inds::AbstractIndices{I}) where {K,I} = CenteredAxis{K,I}(inds)
 
     # CenteredAxis
-    CenteredAxis(inds::AbstractUnitRange{I}) where {I} = CenteredAxis{I}(inds)
+    CenteredAxis(inds::AbstractIndices{I}) where {I} = CenteredAxis{I}(inds)
 end
 
-Interface.is_indices_axis(::Type{<:CenteredAxis}) = true
+Base.keys(axis::CenteredAxis) = getfield(axis, :keys)
 
-Base.values(axis::CenteredAxis)= getfield(axis, :indices)
+Base.values(axis::CenteredAxis) = getfield(axis, :indices)
 
 
 ### centered_start
@@ -53,21 +76,9 @@ _centered_start_from_len(::Type{T}, len) where {T} = T(-div(len, 2))
 end
 _centered_stop_from_len_and_start(start::T, len) where {T} = T(start + len - 1)
 
-@inline function Base.keys(axis::CenteredAxis{K,I,Ks}) where {K,I,Ks}
-    if is_static(Ks)
-        return Ks()
-    else
-        len = length(axis)
-        start = _centered_start_from_len(K, len)
-        return Ks(start, _centered_stop_from_len_and_start(start, len))
-    end
-end
-
 function StaticRanges.similar_type(::A, vs_type::Type=indices_type(A)) where {A<:CenteredAxis}
     return similar_type(A, vs_type)
 end
-
-Styles.AxisIndicesStyle(::Type{A}, ::Type{T}) where {A<:CenteredAxis,T} = KeyedStyle(T)
 
 function _centered_axis_similar_type(::Type{Ks}, ::Type{Inds}) where {Ks,Inds}
     if Ks <: OneToUnion
@@ -108,5 +119,19 @@ function StaticRanges.similar_type(
 ) where {Ks}
 
     return _centered_axis_similar_type(Ks)
+end
+
+function Interface.unsafe_reconstruct(axis::CenteredAxis, inds)
+    return CenteredAxis{keytype(axis),eltype(inds)}(inds)
+end
+
+function _reset_keys!(axis::CenteredAxis)
+    len = length(indices(axis))
+    start = K(-div(len, 2))
+    stop = K(start + len - 1)
+    ks = keys(axis)
+    set_first!(ks, start)
+    set_last!(ks, stop)
+    return nothing
 end
 

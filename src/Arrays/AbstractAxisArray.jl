@@ -1,3 +1,4 @@
+# TODO unique(::AbstractAxisArray; dims)
 
 """
     AbstractAxisArray
@@ -136,26 +137,10 @@ end
 ###
 ### Indexing
 ###
-for (unsafe_f, f) in ((:unsafe_getindex, :getindex),
-                      (:unsafe_view, :view),
-                      (:unsafe_dotview, :dotview))
+for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:unsafe_dotview, :dotview))
     @eval begin
-        function $unsafe_f(
-            A::AbstractArray{T,N},
-            args::Tuple,
-            inds::Tuple{Vararg{<:Integer}},
-        ) where {T,N}
-
-            return @inbounds(Base.$f(parent(A), inds...))
-        end
-
-        @propagate_inbounds function $unsafe_f(A, args::Tuple, inds::Tuple)
-            p = Base.$f(parent(A), inds...)
-            return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false, Staticness(p)))
-        end
-
         @propagate_inbounds function Base.$f(A::AbstractAxisArray, args...)
-            return $unsafe_f(A, args, to_indices(A, args))
+            return Axes.$unsafe_f(A, args, to_indices(A, args))
         end
     end
 end

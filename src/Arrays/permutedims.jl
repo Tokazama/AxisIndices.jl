@@ -86,3 +86,18 @@ for f in (
     end
 end
 
+function Base.sortslices(A::AbstractAxisArray; dims, kwargs...)
+    return _sortslices(A, Val{dims}(); kwargs...)
+end
+
+function _sortslices(A, d::Val{dims}; kws...) where dims
+    itspace = Base.compute_itspace(parent(A), d)
+    vecs = map(its->view(parent(A), its...), itspace)
+    p = sortperm(vecs; kws...)
+    B = similar(A)
+    for (x, its) in zip(p, itspace)
+        B[map(Indices, its)...] = vecs[x]
+    end
+    return B
+end
+

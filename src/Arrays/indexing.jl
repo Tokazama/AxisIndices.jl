@@ -8,6 +8,12 @@ end
     return (to_index(eachindex(IndexLinear(), A), first(I)),)
 end
 
+#=
+function Base.to_indices(A::AbstractAxisArray, args::Tuple{Vararg{Union{Integer, CartesianIndex}}})
+    return to_indices(A, axes(A), I)
+end
+=#
+
 for T in (Any, Integer, CartesianIndex{1}, AbstractVector)
     @eval begin
         @propagate_inbounds function Base.to_indices(

@@ -255,3 +255,4 @@ end  # Base
         @test keys.(axes(f(maxes; dims=1))) == (2:2, 3:4)
     end
 end
+

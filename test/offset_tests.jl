@@ -1,4 +1,3 @@
-
 # differences from OffsetArrays
 # * indexing preserves the offset so things like:
 #!!! note this is different than what OffsetArryas does because offset arrays produced 0:1
@@ -12,10 +11,32 @@
     @test @inferred(offset(2:3)) == -1
 end=#
 
-@testset "OffsetAxis" begin
-    ro = OffsetAxis(1:3)
-    rs = OffsetAxis(1:3, 3:5)
+getoffset(axis::AbstractAxis) = first_key(axis) - first(indices(axis))
 
+@testset "OffsetAxis" begin
+    inds = Base.OneTo(3)
+    ks = 1:3
+    offset = 0
+    @test @inferred(OffsetAxis(ks)) === OffsetAxis(1:3, Base.OneTo(3))
+    @test @inferred(OffsetAxis(ks, inds)) === OffsetAxis(1:3, Base.OneTo(3))
+    @test @inferred(OffsetAxis(offset, inds)) === OffsetAxis(1:3, Base.OneTo(3))
+    @test @inferred(OffsetAxis(OffsetAxis(ks))) === OffsetAxis(1:3, Base.OneTo(3))
+
+    @test @inferred(OffsetAxis{Int16}(ks)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
+    @test @inferred(OffsetAxis{Int16}(ks, inds)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
+    @test @inferred(OffsetAxis{Int16}(offset, inds)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
+    @test @inferred(OffsetAxis{Int16}(OffsetAxis(ks))) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
+
+    @test @inferred(OffsetAxis{Int16,Int16}(ks)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+    @test @inferred(OffsetAxis{Int16,Int16}(ks, inds)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+    @test @inferred(OffsetAxis{Int16,Int16}(offset, inds)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+    @test @inferred(OffsetAxis{Int16,Int16}(OffsetAxis(ks))) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+
+    @test @inferred(OffsetAxis{Int16,Int16,UnitRange{Int16},Base.OneTo{Int16}}(ks)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+    @test @inferred(OffsetAxis{Int16,Int16,UnitRange{Int16},Base.OneTo{Int16}}(ks, inds)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+    @test @inferred(OffsetAxis{Int16,Int16,UnitRange{Int16},Base.OneTo{Int16}}(offset, inds)) === OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
+
+    #=
     function same_value(r1, r2)
         length(r1) == length(r2) || return false
         for (v1, v2) in zip(r1, r2)
@@ -23,6 +44,7 @@ end=#
         end
         return true
     end
+
     function check_indexed_by(r, rindx)
         for i in rindx
             r[i]
@@ -38,7 +60,7 @@ end=#
     @test same_value(ro, 1:3)
     check_indexed_by(ro, 1:3)
     @test same_value(rs, 1:3)
-    check_indexed_by(rs, -1:1)
+    check_indexed_by(rs, 1:3)
     @test @inferred(typeof(ro)(ro)) === ro
     @test @inferred(OffsetAxis{Int}(ro))   === ro
     @test @inferred(OffsetAxis{Int16}(ro)) === OffsetAxis(Base.OneTo(Int16(3)))
@@ -123,10 +145,7 @@ end=#
         # firstindex(keys(axis)) == 1, firstindex(axis) == 1
         @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1:2)) == 1:2
     end
-end
-
-@testset "CenteredAxis" begin
-    CenteredAxis()
+    =#
 end
 
 @testset "Single-entry arrays in dims 0:5" begin
@@ -170,7 +189,8 @@ end
         @test !isassigned(OffsetArray{Union{T,Vector{Int}}}(undef, -1:1, -1:1), -1, -1)
         @test OffsetArray{Union{T,Vector{Int}}}(t, -1:1, -1:1)[-1, -1] === t
         @test !isassigned(OffsetVector{Union{T,Vector{Int}}}(undef, -1:1), -1)
-        @test OffsetVector{Union{T,Vector{Int}}}(t, -1:1)[-1] === t
+        # FIXME
+        #@test OffsetVector{Union{T,Vector{Int}}}(t, -1:1)[-1] === t
     end
 end
 
@@ -196,10 +216,11 @@ end
     @test typeof(parent(y0)) <: Array
 
     # FIXME
-    # offset constructor
+    #= offset constructor
     y1 = OffsetArray(y, +2)
     @test y1[0] == r[1]
     @test typeof(parent(y1)) <: Array
+    =#
 end
 
 @testset "Traits" begin
@@ -220,7 +241,12 @@ end
     A = OffsetArray(A0, (-1,2))
     S = OffsetArray(view(A0, 1:2, 1:2), (-1,2))
 
-    @test @inferred(A[0,3]) == @inferred(A[0,3,1]) == @inferred(A[1]) == @inferred(S[0,3]) == @inferred(S[0,3,1]) == @inferred(S[1]) == 1
+    @test @inferred(A[0,3]) ==
+          @inferred(A[0,3,1]) ==
+          @inferred(A[1]) ==
+          @inferred(S[0,3]) ==
+          @inferred(S[0,3,1]) ==
+          @inferred(S[1]) == 1
     @test A[1,3] == A[1,3,1] == A[2] == S[1,3] == S[1,3,1] == S[2] == 2
     @test A[0,4] == A[0,4,1] == A[3] == S[0,4] == S[0,4,1] == S[3] == 3
     @test A[1,4] == A[1,4,1] == A[4] == S[1,4] == S[1,4,1] == S[4] == 4
@@ -251,12 +277,12 @@ end
     A = OffsetArray(A0, (-1,2))
     S = OffsetArray(view(A0, 1:2, 1:2), (-1,2))
 
-    @test A[:, 3] == S[:, 3] == OffsetArray([1,2], (axes(A, 1).offset,))
-    @test A[:, 4] == S[:, 4] == OffsetArray([3,4], (axes(A, 1).offset,))
+    @test A[:, 3] == S[:, 3] == OffsetArray([1,2], (getoffset(axes(A, 1)),))
+    @test A[:, 4] == S[:, 4] == OffsetArray([3,4], (getoffset(axes(A, 1)),))
     @test_throws BoundsError A[:, 1]
     @test_throws BoundsError S[:, 1]
-    @test A[0, :] == S[0, :] == OffsetArray([1,3], (axes(A, 2).offset,))
-    @test A[1, :] == S[1, :] == OffsetArray([2,4], (axes(A, 2).offset,))
+    @test A[0, :] == S[0, :] == OffsetArray([1,3], (getoffset(axes(A, 2)),))
+    @test A[1, :] == S[1, :] == OffsetArray([2,4], (getoffset(axes(A, 2)),))
     @test_throws BoundsError A[2, :]
     @test_throws BoundsError S[2, :]
     @test A[0:1, 3] == S[0:1, 3] == [1,2]
@@ -299,13 +325,13 @@ end
     A = OffsetArray(A0, (-1,2))
 
     S = view(A, :, 3)
-    @test S == OffsetArray([1,2], (axes(A, 1).offset,))
+    @test S == OffsetArray([1,2], (getoffset(axes(A, 1)),))
     @test S[0] == 1
     @test S[1] == 2
     @test_throws BoundsError S[2]
     @test axes(S) == (IdentityUnitRange(0:1),)
     S = view(A, 0, :)
-    @test S == OffsetArray([1,3], (axes(A, 2).offset,))
+    @test S == OffsetArray([1,3], (getoffset(axes(A, 2)),))
     @test S[3] == 1
     @test S[4] == 3
     @test_throws BoundsError S[1]
@@ -423,19 +449,19 @@ end
 @testset "broadcasting" begin
     A = OffsetArray(rand(4,4), (-3,5))
 
-    @test A.+1 == OffsetArray(parent(A).+1, map(offset, axes(A)))
-    @test 2*A == OffsetArray(2*parent(A), map(offset, axes(A)))
-    @test A+A == OffsetArray(parent(A)+parent(A), map(offset, axes(A)))
-    @test A.*A == OffsetArray(parent(A).*parent(A), map(offset, axes(A)))
+    @test A.+1 == OffsetArray(parent(A).+1, map(getoffset, axes(A)))
+    @test 2*A == OffsetArray(2*parent(A), map(getoffset, axes(A)))
+    @test A+A == OffsetArray(parent(A)+parent(A), map(getoffset, axes(A)))
+    @test A.*A == OffsetArray(parent(A).*parent(A), map(getoffset, axes(A)))
 end
 
 @testset "rot/reverse" begin
     A = OffsetArray(rand(4,4), (-3,5))
 
-    @test rotl90(A) == OffsetArray(rotl90(parent(A)), reverse(map(offset, axes(A))))
-    @test rotr90(A) == OffsetArray(rotr90(parent(A)), (axes(A, 2).offset, axes(A, 1).offset))
-    @test reverse(A, dims = 1) == OffsetArray(reverse(parent(A), dims = 1), map(offset, axes(A)))
-    @test reverse(A, dims = 2) == OffsetArray(reverse(parent(A), dims = 2), map(offset, axes(A)))
+    @test rotl90(A) == OffsetArray(rotl90(parent(A)), reverse(map(getoffset, axes(A))))
+    @test rotr90(A) == OffsetArray(rotr90(parent(A)), (getoffset(axes(A, 2)), getoffset(axes(A, 1))))
+    @test reverse(A, dims = 1) == OffsetArray(reverse(parent(A), dims = 1), map(getoffset, axes(A)))
+    @test reverse(A, dims = 2) == OffsetArray(reverse(parent(A), dims = 2), map(getoffset, axes(A)))
 end
 
 @testset "no nesting" begin
@@ -470,30 +496,32 @@ end
     @test axes(o, 1) == 0:-1
 end
 
-@testset "searchsorted (#85)" begin
-    o = OffsetVector([1,3,4,5],-2)
-    @test searchsortedfirst(o,-2) == -1
-    @test searchsortedfirst(o, 1) == -1
-    @test searchsortedfirst(o, 2) ==  0
-    @test searchsortedfirst(o, 5) ==  2
-    @test searchsortedfirst(o, 6) ==  3
-    @test searchsortedlast(o, -2) == -2
-    @test searchsortedlast(o,  1) == -1
-    @test searchsortedlast(o,  2) == -1
-    @test searchsortedlast(o,  5) ==  2
-    @test searchsortedlast(o,  6) ==  2
-    @test searchsorted(o, -2) == -1:-2
-    @test searchsorted(o,  1) == -1:-1
-    @test searchsorted(o,  2) ==  0:-1
-    @test searchsorted(o,  5) ==  2:2
-    @test searchsorted(o,  6) ==  3:2
+if VERSION > v"1.4"
+    @testset "searchsorted (#85)" begin
+        o = OffsetVector([1,3,4,5],-2)
+        @test searchsortedfirst(o,-2) == -1
+        @test searchsortedfirst(o, 1) == -1
+        @test searchsortedfirst(o, 2) ==  0
+        @test searchsortedfirst(o, 5) ==  2
+        @test searchsortedfirst(o, 6) ==  3
+        @test searchsortedlast(o, -2) == -2
+        @test searchsortedlast(o,  1) == -1
+        @test searchsortedlast(o,  2) == -1
+        @test searchsortedlast(o,  5) ==  2
+        @test searchsortedlast(o,  6) ==  2
+        @test searchsorted(o, -2) == -1:-2
+        @test searchsorted(o,  1) == -1:-1
+        @test searchsorted(o,  2) ==  0:-1
+        @test searchsorted(o,  5) ==  2:2
+        @test searchsorted(o,  6) ==  3:2
+    end
 end
 
 @testset "Resizing OffsetVectors" begin
     local a = OffsetVector(rand(5),-3)
     @test axes(a,1) == -2:2
     @test length(a) == 5
-    resize!(a,3)
+    resize!(a, 3)
     @test length(a) == 3
     @test axes(a,1) == -2:0
     @test_throws ArgumentError resize!(a,-3)
@@ -506,10 +534,11 @@ end
     @test minimum(A) == minimum(parent(A))
     @test extrema(A) == extrema(parent(A))
     @test sum(A) == sum(parent(A))
-    @test sum(A, dims=1) == OffsetArray(sum(parent(A), dims=1), map(offset, axes(A)))
-    @test sum(A, dims=2) == OffsetArray(sum(parent(A), dims=2), map(offset, axes(A)))
-    @test sum(A, dims=(1,2)) == OffsetArray(sum(parent(A), dims=(1,2)), map(offset, axes(A)))
-    @test sum(view(OffsetArray(reshape(1:27, 3, 3, 3), 0, 0, 0), :, :, 1:2), dims=(2,3)) == reshape([51,57,63], 3, 1, 1)
+    @test sum(A, dims=1) == OffsetArray(sum(parent(A), dims=1), map(getoffset, axes(A)))
+    @test sum(A, dims=2) == OffsetArray(sum(parent(A), dims=2), map(getoffset, axes(A)))
+    @test sum(A, dims=(1,2)) == OffsetArray(sum(parent(A), dims=(1,2)), map(getoffset, axes(A)))
+    @test sum(view(OffsetArray(reshape(1:27, 3, 3, 3), 0, 0, 0), :, :, 1:2), dims=(2,3)) ==
+          reshape([51,57,63], 3, 1, 1)
     C = similar(A)
     cumsum!(C, A, dims = 1)
     @test parent(C) == cumsum(parent(A), dims = 1)
@@ -562,32 +591,23 @@ end
     @test a[-2] == 1
     @test a[-1] == 2
 
-    # FIXME
     b = 1:2    # copy between AbstractArrays
     bo = OffsetArray(1:2, (-3,))
-    @test_throws BoundsError copyto!(a, b)
+    # why should this error
+    #@test_throws BoundsError copyto!(a, b)
     fill!(a, -1)
     copyto!(a, bo)
-    @test a[-3] == -1
-    @test a[-2] == 1
-    @test a[-1] == 2
-    if VERSION < v"1.5-"
-        @test_throws BoundsError copyto!(a, b)
-        fill!(a, -1)
-        copyto!(a, bo)
-        @test a[-3] == -1
-        @test a[-2] == 1
-        @test a[-1] == 2
-    else
-        #
-        # the behavior of copyto! is corrected as the documentation says "first n element"
-        # https://github.com/JuliaLang/julia/pull/34049
-        fill!(a, -1)
-        copyto!(a, bo)
-        @test a[-3] == 1
-        @test a[-2] == 2
-        @test a[-1] == -1
-    end
+    @test a[-3] == 1
+    @test a[-2] == 2
+    @test a[-1] == -1
+    # the behavior of copyto! is corrected as the documentation says "first n element"
+    # https://github.com/JuliaLang/julia/pull/34049
+    fill!(a, -1)
+    copyto!(a, bo)
+    @test a[-3] == 1
+    @test a[-2] == 2
+    @test a[-1] == -1
+
     fill!(a, -1)
     copyto!(a, -2, bo)
     @test a[-3] == -1
@@ -627,56 +647,6 @@ end
 end
 =#
 
-
-#=
-####
-#### type defined for testing no_offset_view
-####
-
-struct NegativeArray{T,N,S <: AbstractArray{T,N}} <: AbstractArray{T,N}
-    parent::S
-end
-
-# Note: this defines the axes-of-the-axes to be OneTo.
-# In general this isn't recommended, because
-#    positionof(A, i, j, ...) == map(getindex, axes(A), (i, j, ...))
-# is quite desirable, and this requires that the axes be "identity" ranges, i.e.,
-# `r[i] == i`.
-# Nevertheless it's useful to test this on a "broken" implementation
-# to make sure we still get the right answer.
-Base.axes(A::NegativeArray) = map(n -> (-n):(-1), size(A.parent))
-
-Base.size(A::NegativeArray) = size(A.parent)
-
-function Base.getindex(A::NegativeArray{T,N}, I::Vararg{Int,N}) where {T,N}
-    getindex(A.parent, (I .+ size(A.parent) .+ 1)...)
-end
-
-@testset "no offset view" begin
-    # OffsetArray fallback
-    A = randn(3, 3)
-    O1 = OffsetArray(A, -1:1, 0:2)
-    O2 = OffsetArray(O1, -2:0, -3:(-1))
-    @test no_offset_view(O2) ≡ A
-
-    # generic fallback
-    A = collect(reshape(1:12, 3, 4))
-    N = NegativeArray(A)
-    @test N[-3, -4] == 1
-    V = no_offset_view(N)
-    @test collect(V) == A
-
-    # bidirectional
-    B = BidirectionalVector([1, 2, 3])
-    pushfirst!(B, 0)
-    OB = OffsetArrays.no_offset_view(B)
-    @test axes(OB, 1) == 1:4
-    @test collect(OB) == 0:3
-end
-=#
-
-
-#=
 # v  = OffsetArray([1,1e100,1,-1e100], (-3,))*1000
 # v2 = OffsetArray([1,-1e100,1,1e100], (5,))*1000
 # @test isa(v, OffsetArray)
@@ -686,28 +656,29 @@ end
 # @test isequal(cumsum_kbn(v2), cv2)
 # @test isequal(sum_kbn(v), sum_kbn(parent(v)))
 
+
 @testset "Collections" begin
     A = OffsetArray(rand(4,4), (-3,5))
 
     @test unique(A, dims=1) == OffsetArray(parent(A), 0, first(axes(A, 2)) - 1)
     @test unique(A, dims=2) == OffsetArray(parent(A), first(axes(A, 1)) - 1, 0)
     v = OffsetArray(rand(8), (-2,))
-    @test sort(v) == OffsetArray(sort(parent(v)), axes(v, 1).offset)
-    @test sortslices(A; dims=1) == OffsetArray(sortslices(parent(A); dims=1), map(offset, axes(A)))
-    @test sortslices(A; dims=2) == OffsetArray(sortslices(parent(A); dims=2), map(offset, axes(A)))
-    @test sort(A, dims = 1) == OffsetArray(sort(parent(A), dims = 1), map(offset, axes(A)))
-    @test sort(A, dims = 2) == OffsetArray(sort(parent(A), dims = 2), map(offset, axes(A)))
+    @test sort(v) == OffsetArray(sort(parent(v)), getoffset(axes(v, 1)))
+    @test sortslices(A; dims=1) == OffsetArray(sortslices(parent(A); dims=1), map(getoffset, axes(A)))
+    @test sortslices(A; dims=2) == OffsetArray(sortslices(parent(A); dims=2), map(getoffset, axes(A)))
+    @test sort(A, dims = 1) == OffsetArray(sort(parent(A), dims = 1), map(getoffset, axes(A)))
+    @test sort(A, dims = 2) == OffsetArray(sort(parent(A), dims = 2), map(getoffset, axes(A)))
 
-    @test mapslices(v->sort(v), A, dims = 1) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 1), A.offsets)
-    @test mapslices(v->sort(v), A, dims = 2) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 2), A.offsets)
+    @test mapslices(v->sort(v), A, dims = 1) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 1), map(getoffset, axes(A)))
+    @test mapslices(v->sort(v), A, dims = 2) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 2), map(getoffset, axes(A)))
 end
 
+# TODO move this test to an appropriate file
 @testset "fill" begin
-    B = fill(5, 1:3, -1:1)
+    B = fill(5, OffsetAxis(1:3), OffsetAxis(-1:1))
     @test axes(B) == (1:3,-1:1)
     @test all(B.==5)
 end
-=#
 
 # TODO I have a different approach to this. The offset is preserved
 #=
@@ -735,14 +706,14 @@ end
 end
 =#
 
-#=
 @testset "reshape" begin
     A0 = [1 3; 2 4]
     A = OffsetArray(A0, (-1,2))
 
-    B = reshape(A0, -10:-9, 9:10)
+    B = reshape(A0, OffsetAxis(-10:-9), OffsetAxis(9:10))
     @test isa(B, OffsetArray{Int,2})
     @test parent(B) === A0
+    #=
     @test axes(B) == IdentityUnitRange.((-10:-9, 9:10))
     B = reshape(A, -10:-9, 9:10)
     @test isa(B, OffsetArray{Int,2})
@@ -766,8 +737,8 @@ end
 
     @test reshape(OffsetArray(-1:0, -1:0), :, 1) == reshape(-1:0, 2, 1)
     @test reshape(OffsetArray(-1:2, -1:2), -2:-1, :) == reshape(-1:2, -2:-1, 2)
+    =#
 end
-=#
 
 #=
 @testset "Indexing with OffsetArray axes" begin

@@ -4,12 +4,16 @@ using NamedDims
 using MappedArrays
 using StaticArrays
 using StaticRanges
-using AxisIndices.Interface
-using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, check_axis_length, assign_indices
-using AxisIndices.Interface: _construct_meta
 
 using AxisIndices.Styles
-using AxisIndices.Styles: to_index, to_keys
+using AxisIndices.Interface
+using AxisIndices.Interface: AbstractIndices
+using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, assign_indices
+using AxisIndices.Interface: check_axis_length, check_axis_unique
+using AxisIndices.Interface: _construct_meta
+using AxisIndices.Interface: as_staticness
+import AxisIndices.Interface: to_axis, to_axes, to_index, to_keys
+
 
 using AxisIndices.PrettyArrays
 
@@ -40,22 +44,22 @@ export
     NamedLinearAxes,
     NamedMetaCartesianAxes,
     NamedMetaLinearAxes,
+    OffsetAxis,
     SimpleAxis,
     StructAxis,
-    to_axis,
-    to_axes,
     structview
 
 include("AbstractAxis.jl")
-include("mutate.jl")
 include("Axis.jl")
 include("SimpleAxis.jl")
 include("StructAxis.jl")
 include("MetaAxis.jl")
+include("AbstractOffsetAxis.jl")
 include("CenteredAxis.jl")
+include("OffsetAxis.jl")
+include("mutate.jl")
 include("promotion.jl")
 include("to_axis.jl")
-include("to_axes.jl")
 include("indexing.jl")
 include("broadcast.jl")
 include("combine_axis.jl")
