@@ -295,3 +295,9 @@ function Base.fill(x, axs::Tuple{Vararg{<:AbstractAxis}})
     return AxisArray(p, axs, axes(p), false)
 end
 
+function Base.reshape(A::AbstractArray, shp::Tuple{<:AbstractAxis,Vararg{<:AbstractAxis}})
+    p = reshape(parent(A), map(length, shp))
+    axs = reshape_axes(naxes(shp, Val(length(shp))), axes(p))
+    return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs)
+end
+

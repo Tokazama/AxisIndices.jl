@@ -1,4 +1,5 @@
 # FIXME to_index(::OffsetAxis, :) returns the indices instead of a Slice
+# TODO - Indices and Keys don't need AxisIndicesStyle pass in to_index b/c force_* bypasses this
 module Styles
 
 using AxisIndices.Interface
@@ -131,11 +132,11 @@ based on each axis and indexing argument (as opposed to the array and indexing a
 end
 
 @propagate_inbounds function to_index(axis, arg::Indices)
-    return to_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+    return to_index(force_indices(AxisIndicesStyle(axis, arg)), axis, arg.x)
 end
 
 @propagate_inbounds function to_index(axis, arg::Keys)
-    return to_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+    return to_index(force_keys(AxisIndicesStyle(axis, arg)), axis, arg.x)
 end
 
 # check_index - basically checkindex but passes a style trait argument
@@ -487,6 +488,8 @@ AxisIndicesStyle(::Type{A}, ::Type{T}) where {A,T} = AxisIndicesStyle(T)
 
 AxisIndicesStyle(::Type{Indices{T}}) where {T} = force_indices(AxisIndicesStyle(T))
 force_indices(S::AxisIndicesStyle) = S
+force_indices(::KeyedStyle{S}) where {S} = force_indices(S)
+force_indices(::KeyElement) = IndexElement()
 force_indices(::KeyEquals) = IndexEquals()
 force_indices(::KeysFix2) = IndicesFix2()
 force_indices(::KeysIn) = IndicesIn()

@@ -160,4 +160,3 @@ end
 function Interface.unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
     return similar_type(a, Ks, Vs)(ks, vs, false, false)
 end
-

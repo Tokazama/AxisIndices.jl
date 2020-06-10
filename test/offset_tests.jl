@@ -646,54 +646,6 @@ end
 end
 =#
 
-
-#=
-####
-#### type defined for testing no_offset_view
-####
-
-struct NegativeArray{T,N,S <: AbstractArray{T,N}} <: AbstractArray{T,N}
-    parent::S
-end
-
-# Note: this defines the axes-of-the-axes to be OneTo.
-# In general this isn't recommended, because
-#    positionof(A, i, j, ...) == map(getindex, axes(A), (i, j, ...))
-# is quite desirable, and this requires that the axes be "identity" ranges, i.e.,
-# `r[i] == i`.
-# Nevertheless it's useful to test this on a "broken" implementation
-# to make sure we still get the right answer.
-Base.axes(A::NegativeArray) = map(n -> (-n):(-1), size(A.parent))
-
-Base.size(A::NegativeArray) = size(A.parent)
-
-function Base.getindex(A::NegativeArray{T,N}, I::Vararg{Int,N}) where {T,N}
-    getindex(A.parent, (I .+ size(A.parent) .+ 1)...)
-end
-
-@testset "no offset view" begin
-    # OffsetArray fallback
-    A = randn(3, 3)
-    O1 = OffsetArray(A, -1:1, 0:2)
-    O2 = OffsetArray(O1, -2:0, -3:(-1))
-    @test no_offset_view(O2) ≡ A
-
-    # generic fallback
-    A = collect(reshape(1:12, 3, 4))
-    N = NegativeArray(A)
-    @test N[-3, -4] == 1
-    V = no_offset_view(N)
-    @test collect(V) == A
-
-    # bidirectional
-    B = BidirectionalVector([1, 2, 3])
-    pushfirst!(B, 0)
-    OB = OffsetArrays.no_offset_view(B)
-    @test axes(OB, 1) == 1:4
-    @test collect(OB) == 0:3
-end
-=#
-
 # v  = OffsetArray([1,1e100,1,-1e100], (-3,))*1000
 # v2 = OffsetArray([1,-1e100,1,1e100], (5,))*1000
 # @test isa(v, OffsetArray)
@@ -703,7 +655,7 @@ end
 # @test isequal(cumsum_kbn(v2), cv2)
 # @test isequal(sum_kbn(v), sum_kbn(parent(v)))
 
-#= FIXME
+
 @testset "Collections" begin
     A = OffsetArray(rand(4,4), (-3,5))
 
@@ -719,7 +671,6 @@ end
     @test mapslices(v->sort(v), A, dims = 1) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 1), map(getoffset, axes(A)))
     @test mapslices(v->sort(v), A, dims = 2) == OffsetArray(mapslices(v->sort(v), parent(A), dims = 2), map(getoffset, axes(A)))
 end
-=#
 
 # TODO move this test to an appropriate file
 @testset "fill" begin
@@ -754,14 +705,14 @@ end
 end
 =#
 
-#=
 @testset "reshape" begin
     A0 = [1 3; 2 4]
     A = OffsetArray(A0, (-1,2))
 
-    B = reshape(A0, -10:-9, 9:10)
+    B = reshape(A0, OffsetAxis(-10:-9), OffsetAxis(9:10))
     @test isa(B, OffsetArray{Int,2})
     @test parent(B) === A0
+    #=
     @test axes(B) == IdentityUnitRange.((-10:-9, 9:10))
     B = reshape(A, -10:-9, 9:10)
     @test isa(B, OffsetArray{Int,2})
@@ -785,8 +736,8 @@ end
 
     @test reshape(OffsetArray(-1:0, -1:0), :, 1) == reshape(-1:0, 2, 1)
     @test reshape(OffsetArray(-1:2, -1:2), -2:-1, :) == reshape(-1:2, -2:-1, 2)
+    =#
 end
-=#
 
 #=
 @testset "Indexing with OffsetArray axes" begin

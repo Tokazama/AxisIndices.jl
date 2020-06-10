@@ -375,16 +375,8 @@ end
 We need to assign new indices to axes of `A` but `reshape` may have changed the
 size of any axis
 =#
-@inline function reshape_axis(axis::A, inds) where {A}
-    if is_indices_axis(A)
-        return unsafe_reconstruct(axis, inds)
-    else
-        return unsafe_reconstruct(axis, resize_last(keys(axis), length(inds)), inds)
-    end
-end
-
 @inline function reshape_axes(axs::Tuple, inds::Tuple{Vararg{Any,N}}) where {N}
-    return map(reshape_axis, axs, inds)
+    return map((a, i) -> resize_last(a, i), axs, inds)
 end
 
 Base.isempty(a::AbstractAxis) = isempty(values(a))
