@@ -7,8 +7,10 @@ using StaticArrays
 using StaticRanges
 using AxisIndices.Styles
 using AxisIndices.Interface
+using AxisIndices.Interface: to_index, to_axis
+
 using AxisIndices.Axes
-using AxisIndices.Axes: to_axis, unsafe_getindex
+using AxisIndices.Axes: unsafe_getindex
 using AxisIndices.Arrays
 using PrettyTables
 using Tables

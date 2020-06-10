@@ -11,6 +11,7 @@ using AxisIndices
 using AxisIndices.Styles
 using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes
 using AxisIndices.Interface
+using AxisIndices.Interface: check_index
 using MappedArrays
 
 using AxisIndices.Axes
@@ -48,10 +49,10 @@ end
 @test Base.to_shape(SimpleAxis(1)) == 1
 
 include("styles_tests.jl")
-include("to_axis_tests.jl")
+
+include("./Interface/Interface.jl")
+include("./Axes/Axes.jl")
 include("getindex_tests.jl")
-include("values_tests.jl")
-include("keys_tests.jl")
 include("size_tests.jl")
 include("pop_tests.jl")
 include("popfirst_tests.jl")
@@ -66,7 +67,6 @@ include("filter_tests.jl")
 include("promotion_tests.jl")
 include("similar_tests.jl")
 include("resize_tests.jl")
-
 include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
@@ -81,10 +81,6 @@ include("array_tests.jl")
 include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 
-include("Axis_tests.jl")
-include("CenteredAxis_tests.jl")
-include("MetaAxis_tests.jl")
-
 include("mapped_arrays.jl")
 include("traits_tests.jl")
 include("copyto_tests.jl")
@@ -93,7 +89,6 @@ include("reshape_tests.jl")
 
 include("vectors_tests.jl")
 
-include("./Axes/indexing_tests.jl")
 include("NamedAxisArray_tests.jl")
 include("MetaAxisArray_tests.jl")
 include("NamedMetaAxisArray_tests.jl")
@@ -125,7 +120,6 @@ end
     @test isnothing(iterate(obs_iter, state))
 end
 
-include("structaxis_tests.jl")
 include("table_tests.jl")
 
 #= TODO this needs to be formally tested

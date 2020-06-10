@@ -44,3 +44,68 @@ as_staticness(::StaticRanges.Static, x) = as_static(x)
 as_staticness(::StaticRanges.Fixed, x) = as_fixed(x)
 as_staticness(::StaticRanges.Dynamic, x) = as_dynamic(x)
 
+# handle offsets
+function k2v(ks, inds, index::Integer)
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index + axis_offset(inds) - axis_offset(ks)))
+        else
+            return @inbounds(getindex(inds, index + axis_offset(inds)))
+        end
+    else
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index - axis_offset(ks)))
+        else
+            return @inbounds(getindex(inds, index))
+        end
+    end
+end
+
+function k2v(ks, inds, index::AbstractVector{<:Integer})
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index .+ (axis_offset(inds) - axis_offset(ks))))
+        else
+            return @inbounds(getindex(inds, index .+ axis_offset(inds)))
+        end
+    else
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(inds, index .- axis_offset(ks)))
+        else
+            return @inbounds(getindex(inds, index))
+        end
+    end
+end
+
+function v2k(ks, inds, index::Integer)
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index - axis_offset(inds) + axis_offset(ks)))
+        else
+            return @inbounds(getindex(ks, index - axis_offset(inds)))
+        end
+    else
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index + axis_offset(ks)))
+        else
+            return @inbounds(getindex(ks, index))
+        end
+    end
+end
+
+function v2k(ks, inds, index::AbstractVector{<:Integer})
+    if StaticRanges.has_offset_axes(inds)
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index .- (axis_offset(inds) + axis_offset(ks))))
+        else
+            return @inbounds(getindex(ks, index .- axis_offset(inds)))
+        end
+    else
+        if StaticRanges.has_offset_axes(ks)
+            return @inbounds(getindex(ks, index .+ axis_offset(ks)))
+        else
+            return @inbounds(getindex(ks, index))
+        end
+    end
+end
+

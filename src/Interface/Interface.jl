@@ -1,9 +1,11 @@
 module Interface
 
+using AxisIndices.Styles
 using NamedDims
-
 using StaticRanges
 using StaticRanges: OneToUnion
+using StaticRanges: Staticness, Fixed, Static, Dynamic
+using StaticRanges: resize_last
 
 import MetadataArrays: MetadataArray
 
@@ -58,5 +60,9 @@ include("rows.jl")
 include("cols.jl")
 include("metadata.jl")
 include("constructors.jl")
+include("to_index.jl")
+include("to_keys.jl")
+include("to_axes.jl")
+include("checkindex.jl")
 
 end

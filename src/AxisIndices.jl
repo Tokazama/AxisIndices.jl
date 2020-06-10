@@ -37,13 +37,13 @@ export
     ..,
     pretty_array
 
-include("./Interface/Interface.jl")
-@reexport using .Interface
-using .Interface: step_key, append_axis!, to_axis
 
 include("./Styles/Styles.jl")
 using .Styles
-using .Styles: to_index, to_keys, to_axes
+
+include("./Interface/Interface.jl")
+@reexport using .Interface
+using .Interface: step_key, append_axis!, to_axis, to_axes,  to_index, to_keys
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays

@@ -98,7 +98,7 @@ for T in (AbstractVector{Bool},
          )
     @eval begin
         function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::$T)
-            return Styles.check_index(axis, arg)
+            return Interface.check_index(axis, arg)
         end
     end
 end

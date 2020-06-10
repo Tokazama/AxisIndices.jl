@@ -19,12 +19,11 @@ using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
 using AxisIndices.Interface: _construct_meta
-using AxisIndices.Interface: as_staticness
+using AxisIndices.Interface: as_staticness, to_axis, to_axes, to_index
 
 using AxisIndices.Axes
 using AxisIndices.Axes: AbstractAxes
 using AxisIndices.Axes: assign_indices, permute_axes, reverse_keys, reduce_axes, reshape_axes, cat_axis
-using AxisIndices.Axes: to_axis, to_axes
 
 using AxisIndices.PrettyArrays
 
