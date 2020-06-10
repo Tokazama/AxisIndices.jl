@@ -13,7 +13,7 @@ using AxisIndices.Interface: as_staticness
 import AxisIndices.Interface: to_axis
 
 using AxisIndices.Styles
-using AxisIndices.Styles: to_index, to_keys
+using AxisIndices.Styles: to_index, to_keys, to_axes
 
 using AxisIndices.PrettyArrays
 
@@ -60,7 +60,6 @@ include("OffsetAxis.jl")
 include("mutate.jl")
 include("promotion.jl")
 include("to_axis.jl")
-include("to_axes.jl")
 include("indexing.jl")
 include("broadcast.jl")
 include("combine_axis.jl")

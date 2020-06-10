@@ -3,7 +3,9 @@
     centered_axis = @inferred(CenteredAxis(1:10))
     @test @inferred(keys(centered_axis)) == -5:4
     @test @inferred(indices(centered_axis)) == 1:10
+    @test typeof(centered_axis)(keys(centered_axis), indices(centered_axis)) isa typeof(centered_axis)
     centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
+    @test typeof(centered_axis)(keys(centered_axis), indices(centered_axis)) isa typeof(centered_axis)
     @test keytype(centered_axis) <: Int32
     centered_axis = @inferred(CenteredAxis{Int32,Int32}(UnitSRange(1, 10)))
     @test eltype(centered_axis) <: Int32

@@ -39,11 +39,11 @@ export
 
 include("./Interface/Interface.jl")
 @reexport using .Interface
-using .Interface: step_key, append_axis!
+using .Interface: step_key, append_axis!, to_axis
 
 include("./Styles/Styles.jl")
 using .Styles
-using .Styles: to_index, to_keys
+using .Styles: to_index, to_keys, to_axes
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays
@@ -51,7 +51,6 @@ using .PrettyArrays
 include("./Axes/Axes.jl")
 @reexport using .Axes
 using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axis
-using .Axes: to_axis, to_axes
 
 include("./Arrays/Arrays.jl")
 @reexport using .Arrays
