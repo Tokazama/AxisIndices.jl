@@ -52,6 +52,8 @@ include("styles_tests.jl")
 
 include("./Interface/Interface.jl")
 include("./Axes/Axes.jl")
+include("./Arrays/Arrays.jl")
+
 include("getindex_tests.jl")
 include("size_tests.jl")
 include("pop_tests.jl")
@@ -71,9 +73,7 @@ include("staticness_tests.jl")
 include("checkbounds.jl")
 include("functions_dims_tests.jl")
 include("math_tests.jl")
-
 include("drop_tests.jl")
-
 include("constructors.jl")
 include("functions_tests.jl")
 include("concatenation_tests.jl")
@@ -86,8 +86,6 @@ include("traits_tests.jl")
 include("copyto_tests.jl")
 include("reshape_tests.jl")
 
-
-include("vectors_tests.jl")
 
 include("NamedAxisArray_tests.jl")
 include("MetaAxisArray_tests.jl")
