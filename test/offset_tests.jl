@@ -1,4 +1,7 @@
 
+
+Reviewed-by: Zachary P. Christensen <zchristensen7@gmail.com>
+
 # differences from OffsetArrays
 # * indexing preserves the offset so things like:
 #!!! note this is different than what OffsetArryas does because offset arrays produced 0:1
@@ -498,7 +501,6 @@ end
 end
 
 if VERSION > v"1.3"
-
     @testset "searchsorted (#85)" begin
         o = OffsetVector([1,3,4,5],-2)
         @test searchsortedfirst(o,-2) == -1
