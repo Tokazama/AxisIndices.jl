@@ -13,6 +13,7 @@ using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
 
 export
     AxisIterator,
+    AxesIterator,
     @defdim,
     # methods
     axes_keys,

@@ -72,7 +72,7 @@ function pretty_array(
         println(io, "$(dnames[end])[", keys(keyinds[end])[idxs[end]], "]] =")
         pretty_array(
             io,
-            view(A, axes(A,1), axes(A,2), idxs...),
+            view(A, :, :, idxs...),
             (axs[1], axs[2]),
             (dnames[1], dnames[2]),
             backend;

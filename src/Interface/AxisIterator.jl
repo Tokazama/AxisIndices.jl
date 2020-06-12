@@ -123,6 +123,10 @@ struct AxisIterator{B<:AbstractRange{<:Integer},W<:AbstractRange{<:Integer}}
     end
 end
 
+dilation(x::AxisIterator) = step(getfield(x, :window))
+
+stride(x::AxisIterator) = step(getfield(x, :bounds))
+
 @inline function _to_size(axis, x)
     if is_key(x)
         return Int(div(x, step(keys(axis))))
@@ -181,4 +185,131 @@ end
 
 _iterate(itr, w::AbstractUnitRange) = (first(w) + itr):(last(w) + itr)
 _iterate(itr, w::OrdinalRange) = (first(w) + itr):step(w):(last(w) + itr)
+
+@inline function Base.first(itr::AxisIterator)
+    return _iterate(first(getfield(w, :bounds)), getfield(w, :window))
+end
+
+@inline function Base.last(itr::AxisIterator)
+    return _iterate(last(getfield(w, :bounds)), getfield(w, :window))
+end
+
+
+"""
+    AxesIterator
+
+N-dimensional iterator of `AxisIterator`s.
+
+## Examples
+
+"""
+struct AxesIterator{I<:Tuple{Vararg{<:AxisIterator}}}
+    iterators::I
+
+    function AxesIterator(
+        axs::NTuple{N,Any},
+        sz::NTuple{N,Any};
+        first_pad=ntuple(_ -> nothing, Val(N)),
+        last_pad=ntuple(_ -> nothing, Val(N)),
+        stride=ntuple(_ -> nothing, Val(N)),
+        dilation=ntuple(_ -> nothing, Val(N))
+    ) where {N}
+
+        itrs = map(_axis_iterator, axs, map(_to_size, axs, sz), first_pad, last_pad, stride, dilation)
+        return new{typeof(itrs)}(itrs)
+    end
+
+    AxesIterator(A::AbstractArray, sz; kwargs...) = AxesIterator(axes(A), sz; kwargs...)
+end
+
+Base.length(itr::AxesIterator) = prod(map(length, getfield(itr, :iterators)))
+
+inc(::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
+@inline function inc(itr::Tuple{Any}, olditr::Tuple{Any}, state::Tuple{Any})
+    newitr = iterate(first(itr), first(state))
+    if newitr === nothing
+        return nothing
+    else
+        return (first(newitr),), (last(newitr),)
+    end
+end
+
+@inline function inc(itr::Tuple{Any,Vararg{Any}}, olditr::Tuple{Any,Vararg{Any}}, state::Tuple{Any,Vararg{Any}})
+    subitr = first(itr)
+    substate = first(state)
+    nextsubitr = iterate(subitr, substate)
+    if nextsubitr === nothing
+        subitr, substate = iterate(subitr)
+        nextitr = inc(tail(itr), tail(olditr), tail(state))
+        if nextitr === nothing
+            return nothing
+        else
+            return (subitr, first(nextitr)...), (substate, last(nextitr)...)
+        end
+    else
+        return (first(nextsubitr), tail(olditr)...), (last(nextsubitr), tail(state)...)
+    end
+end
+
+@inline firstinc(itr::Tuple{Any}) = iterate(first(itr))
+
+@inline function firstinc(itr::Tuple{Any,Any})
+    itr_i = iterate(first(itr))
+    if itr_i === nothing
+        return nothing
+    else
+        nextitr = firstinc(tail(itr))
+        if nextitr === nothing
+            return nothing
+        else
+            return (first(itr_i), first(nextitr)), (last(itr_i), last(nextitr))
+        end
+    end
+end
+
+@inline function firstinc(itr::Tuple{Any,Vararg{Any}})
+    itr_i = iterate(first(itr))
+    if itr_i === nothing
+        return nothing
+    else
+        nextitr = firstinc(tail(itr))
+        if nextitr === nothing
+            return nothing
+        else
+            return (first(itr_i), first(nextitr)...), (last(itr_i), last(nextitr)...)
+        end
+    end
+end
+
+function Base.iterate(itr::AxesIterator)
+    newitr = firstinc(itr.iterators)
+    if newitr === nothing
+        return nothing
+    else
+        return first(newitr), newitr
+    end
+end
+
+function Base.iterate(itr::AxesIterator, state)
+    if state === nothing
+        return nothing
+    else
+        newitrs = inc(itr.iterators, first(state), last(state))
+        if newitrs === nothing
+            return nothing
+        else
+            return (first(newitrs), newitrs)
+        end
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", itr::AxesIterator)
+    axs = axes(getfield(itr, :axes))
+    print(io, "AxesIterator:\n")
+    for itrs_i in getfield(itr, :iterators)
+        print(io, " • $(itrs_i)")
+        print(io, "\n")
+    end
+end
+
 

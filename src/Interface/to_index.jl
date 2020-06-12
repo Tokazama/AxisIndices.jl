@@ -1,4 +1,5 @@
 # FIXME to_index(::OffsetAxis, :) returns the indices instead of a Slice
+# FIXME to_index(::IndicesCollection, axis, ::AbstractAxis) causes problems (i.e., axis[axis] -> errors)
 
 """
     to_index(axis, arg) -> to_index(AxisIndicesStyle(axis, arg), axis, arg)
@@ -103,7 +104,7 @@ end
 
 @inline to_index(::IndicesFix2, axis, arg) = find_all(arg, values(axis))
 
-to_index(::SliceCollection, axis, arg) = Base.Slice(values(axis))
+to_index(::SliceCollection, axis, arg) = Base.Slice(indices(axis))
 
 to_index(::KeyedStyle{S}, axis, arg) where {S} = to_index(S, axis, arg)
 
