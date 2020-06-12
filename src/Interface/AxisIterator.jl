@@ -187,11 +187,11 @@ _iterate(itr, w::AbstractUnitRange) = (first(w) + itr):(last(w) + itr)
 _iterate(itr, w::OrdinalRange) = (first(w) + itr):step(w):(last(w) + itr)
 
 @inline function Base.first(itr::AxisIterator)
-    return _iterate(first(getfield(w, :bounds)), getfield(w, :window))
+    return _iterate(first(getfield(itr, :bounds)), getfield(itr, :window))
 end
 
 @inline function Base.last(itr::AxisIterator)
-    return _iterate(last(getfield(w, :bounds)), getfield(w, :window))
+    return _iterate(last(getfield(itr, :bounds)), getfield(itr, :window))
 end
 
 
@@ -303,8 +303,10 @@ function Base.iterate(itr::AxesIterator, state)
     end
 end
 
+Base.first(itr::AxesIterator) = map(first, getfield(itr, :iterators))
+Base.last(itr::AxesIterator) = map(last, getfield(itr, :iterators))
+
 function Base.show(io::IO, ::MIME"text/plain", itr::AxesIterator)
-    axs = axes(getfield(itr, :axes))
     print(io, "AxesIterator:\n")
     for itrs_i in getfield(itr, :iterators)
         print(io, " • $(itrs_i)")
