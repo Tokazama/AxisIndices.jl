@@ -15,6 +15,7 @@
 
     axis = Axis(range(2.0, step=3.0, length=20))
     itr = AxisIterator(axis, 9.0)
+    @test length(itr) == 6
     @test iterate(itr) == (1:3, 0)
     @test first(itr) == 1:3
     @test iterate(itr, 0) == (4:6, 3)
@@ -37,6 +38,7 @@
     @test iterate(itr) == (2:4, 1)
     @test iterate(itr, 1) ==(7:9, 6)
     @test @inferred(collect(itr)) == [2:4, 7:9, 12:14]
+    @test iterate(itr, 11) === nothing
 end
 
 @testset "AxesIterator" begin
@@ -48,6 +50,8 @@ end
     @test iterate(axsitr) == ((2:4, 2:4, 2:4), ((2:4, 2:4, 2:4), (1, 1, 1)))
     @test first(axsitr) == (2:4, 2:4, 2:4)
     @test last(axsitr) == (12:14, 12:14, 12:14)
+    @test iterate(axsitr, ((12:14, 12:14, 12:14), (11,11,11))) === nothing
+    @test length(axsitr) == 27
 
     @test collect(axsitr) == [(2:4, 2:4, 2:4),
                     (7:9, 2:4, 2:4),

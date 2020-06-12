@@ -1,15 +1,24 @@
 
 @testset "keys" begin
-    a1 = Axis(2:3 => 1:2)
+    axis = Axis(2:3 => 1:2)
 
     @test keytype(typeof(Axis(1.0:10.0))) <: Float64
-    @test haskey(a1, 3)
-    @test !haskey(a1, 4)
+    @test keys_type(axis) == UnitRange{Int}
+    @test haskey(axis, 3)
+    @test !haskey(axis, 4)
+    @test axes_keys(axis) == (2:3,)
+    @test last_key(axis) == 3
+
+    A = AxisArray(ones(3,2), [:one, :two, :three])
+    @test keys_type(A, 1) == Array{Symbol,1}
+
 
     @testset "reverse" begin
         x = [1, 2, 3]
         y = AxisArray(x)
         z = AxisArray(x, Axis([:one, :two, :three]))
+
+
 
         revx = reverse(x)
         revy = @inferred(reverse(y))

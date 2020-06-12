@@ -123,4 +123,3 @@ Base.OneTo{Int64}
 """
 keys_type(::T) where {T} = keys_type(T)
 keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
-

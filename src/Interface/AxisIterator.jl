@@ -6,14 +6,20 @@ Creates an iterator for indexing ranges of elements within `axis`.
 
 ## Examples
 
-Size of the window may be determined by providing an explicit size or the size in
-terms of the keys of an axis.
 ```jldoctest axis_iterator_examples
 julia> using AxisIndices
 
 julia> axis = Axis(range(2.0, step=3.0, length=20))
 Axis(2.0:3.0:59.0 => Base.OneTo(20))
 
+julia> AxisIterator(axis, 3)
+AxisIterator((1:3):3:(16:18))
+```
+The final print out indicates that the first window is `1:3` and all subsequent iterations move by `3` until reaching `16:18`.
+
+
+The size of the window may be determined by providing an explicit size or the size in terms of the keys of an axis.
+```jldoctest axis_iterator_examples
 julia> collect(AxisIterator(axis, 3))
 6-element Array{Any,1}:
  1:3
@@ -123,10 +129,6 @@ struct AxisIterator{B<:AbstractRange{<:Integer},W<:AbstractRange{<:Integer}}
     end
 end
 
-dilation(x::AxisIterator) = step(getfield(x, :window))
-
-stride(x::AxisIterator) = step(getfield(x, :bounds))
-
 @inline function _to_size(axis, x)
     if is_key(x)
         return Int(div(x, step(keys(axis))))
@@ -194,6 +196,13 @@ end
     return _iterate(last(getfield(itr, :bounds)), getfield(itr, :window))
 end
 
+Base.show(io::IO, ::MIME"text/plain", itr::AxisIterator) = print_axis_iterator(io, itr)
+
+function print_axis_iterator(io, itr::AxisIterator)
+    print(io, "AxisIterator(")
+    print(io, "($(first(itr))):" * "$(step(getfield(itr, :bounds)))" *":($(last(itr)))")
+    print(io, ")")
+end
 
 """
     AxesIterator
@@ -201,7 +210,16 @@ end
 N-dimensional iterator of `AxisIterator`s.
 
 ## Examples
+```julia
+julia> using AxisIndices
 
+julia> AxesIterator(CartesianAxes((20, 20, 20)), (3,3,3))
+AxesIterator:
+ • AxisIterator((1:3):3:(16:18))
+ • AxisIterator((1:3):3:(16:18))
+ • AxisIterator((1:3):3:(16:18))
+
+```
 """
 struct AxesIterator{I<:Tuple{Vararg{<:AxisIterator}}}
     iterators::I
@@ -308,9 +326,14 @@ Base.last(itr::AxesIterator) = map(last, getfield(itr, :iterators))
 
 function Base.show(io::IO, ::MIME"text/plain", itr::AxesIterator)
     print(io, "AxesIterator:\n")
-    for itrs_i in getfield(itr, :iterators)
-        print(io, " • $(itrs_i)")
-        print(io, "\n")
+    itrs = getfield(itr, :iterators)
+    N = length(itrs)
+    for i in 1:N
+        print(io, " • ")
+        print_axis_iterator(io, itrs[i])
+        if i != N
+            print(io, "\n")
+        end
     end
 end
 
