@@ -12,6 +12,7 @@ import MetadataArrays: MetadataArray
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
 
 export
+    WindowInterator,
     @defdim,
     # methods
     axes_keys,
@@ -64,5 +65,7 @@ include("to_index.jl")
 include("to_keys.jl")
 include("to_axes.jl")
 include("checkindex.jl")
+include("WindowInterator.jl")
 
 end
+
