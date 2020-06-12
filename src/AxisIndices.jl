@@ -44,6 +44,7 @@ using .Styles
 include("./Interface/Interface.jl")
 @reexport using .Interface
 using .Interface: step_key, append_axis!, to_axis, to_axes,  to_index, to_keys
+using .Interface: assign_indices
 
 include("./PrettyArrays/PrettyArrays.jl")
 using .PrettyArrays

@@ -1,10 +1,22 @@
+# check_index - basically checkindex but passes a style trait argument
+@propagate_inbounds function check_index(axis, arg)
+    return check_index(AxisIndicesStyle(axis, arg), axis, arg)
+end
+
+@propagate_inbounds function check_index(axis, arg::Indices)
+    return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+end
+
+@propagate_inbounds function check_index(axis, arg::Keys)
+    return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
+end
+
 
 check_index(::KeyElement, axis, arg) = arg in keys(axis)
 
 check_index(::IndexElement, axis, arg) = arg in indices(axis)
 
 check_index(::BoolElement, axis, arg) = checkindex(Bool, indices(axis), arg)
-
 
 check_index(::CartesianElement, axis, arg) = checkindex(Bool, indices(axis), first(arg.I))
 
@@ -31,4 +43,3 @@ check_index(::IndicesFix2, axis, arg) = true
 check_index(::SliceCollection, axis, arg) = true
 
 check_index(::KeyedStyle{S}, axis, arg) where {S} = check_index(S, axis, arg)
-

@@ -22,19 +22,6 @@ end
     return to_keys(AxisIndicesStyle(axis, arg), axis, arg.x, index)
 end
 
-# check_index - basically checkindex but passes a style trait argument
-@propagate_inbounds function check_index(axis, arg)
-    return check_index(AxisIndicesStyle(axis, arg), axis, arg)
-end
-
-@propagate_inbounds function check_index(axis, arg::Indices)
-    return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
-end
-
-@propagate_inbounds function check_index(axis, arg::Keys)
-    return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
-end
-
 to_keys(::KeyElement, axis, arg, index) = arg
 
 to_keys(::IndexElement, axis, arg, index) = v2k(keys(axis), indices(axis), index)
@@ -45,7 +32,6 @@ to_keys(::KeysCollection, axis, arg, index) = arg
     mapping = findin(arg, indices(axis))
     return v2k(keys(axis), indices(axis), mapping)
 end
-
 
 @inline function to_keys(::BoolsCollection, axis, arg, index)
     return @inbounds(getindex(keys(axis), index))
