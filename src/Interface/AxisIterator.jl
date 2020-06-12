@@ -210,7 +210,7 @@ end
 N-dimensional iterator of `AxisIterator`s.
 
 ## Examples
-```julia
+```jldoctest
 julia> using AxisIndices
 
 julia> AxesIterator(CartesianAxes((20, 20, 20)), (3,3,3))

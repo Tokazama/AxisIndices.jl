@@ -11,10 +11,10 @@ makedocs(;
             "Axis Interface" => "axis.md",
             "Array Interface" => "arrays.md",
             "Tabular Interface" => "table.md",
+            "Observations" => "observations.md",
             "Internals of Indexing" => "internals_of_indexing.md",
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
-            "Observations" => "observations.md",
         ],
         "Examples" => [
             "CoefTable" => "coeftable.md",
