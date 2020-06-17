@@ -6,7 +6,7 @@ function to_axes(
     interim_indices::Tuple,
     new_indices::Tuple,
     check_length::Bool=false,
-    staticness=StaticRanges.Staticness(I),
+    staticness=StaticRanges.Staticness(first(interim_indices)),
 ) where {T,N,M}
     return _to_axes(axes(A), args, interim_indices, new_indices, check_length, staticness)
 end
@@ -18,7 +18,7 @@ function to_axes(
     interim_indices::Tuple,
     new_indices::Tuple,
     check_length::Bool=false,
-    staticness=StaticRanges.Staticness(I),
+    staticness=StaticRanges.Staticness(first(interim_indices)),
 ) where {T}
     return _to_axes(axes(A), args, interim_indices, new_indices, check_length, staticness)
 end
@@ -30,7 +30,7 @@ end
     interim_indices::Tuple,
     new_indices::Tuple,
     check_length::Bool=false,
-    staticness=StaticRanges.Staticness(I),
+    staticness=StaticRanges.Staticness(first(interim_indices)),
 ) where {T,N}
     axis = axes(A, 1)
     index = first(new_indices)

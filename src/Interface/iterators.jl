@@ -337,4 +337,3 @@ function Base.show(io::IO, ::MIME"text/plain", itr::AxesIterator)
     end
 end
 
-

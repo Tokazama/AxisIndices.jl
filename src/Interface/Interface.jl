@@ -66,7 +66,7 @@ include("to_index.jl")
 include("to_keys.jl")
 include("to_axes.jl")
 include("checkindex.jl")
-include("AxisIterator.jl")
+include("iterators.jl")
 
 end
 

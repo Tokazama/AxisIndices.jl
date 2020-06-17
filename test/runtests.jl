@@ -9,7 +9,7 @@ using Dates
 using Tables
 using AxisIndices
 using AxisIndices.Styles
-using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes
+using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes, to_axes
 using AxisIndices.Interface
 using AxisIndices.Interface: check_index
 using MappedArrays

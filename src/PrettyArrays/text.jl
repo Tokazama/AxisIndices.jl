@@ -304,4 +304,3 @@ rows of the body. Thus, if `1` is added to `body_hlines`, then a horizontal line
 will be drawn after the first data row. (**Default** = `Int[]`)
 =#
 get_body_hlines(row::AbstractUnitRange, col::AbstractUnitRange) = Int[]
-

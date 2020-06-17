@@ -113,7 +113,7 @@ function pretty_array(
     io::IO,
     A::AbstractMatrix,
     axs::Tuple=axes(A),
-    dnames::Tuple=(:_,:_),
+    dnames::Tuple=(:dim_1, :dim_2),
     backend::Symbol=:text;
     kwargs...
 )
@@ -156,6 +156,7 @@ function pretty_array(
     backend::Symbol=:text;
     kwargs...
 ) where {T,N}
+
     return pretty_array(stdout, A, axs, dnames, backend; kwargs...)
 end
 
@@ -167,6 +168,7 @@ function pretty_array(
     backend::Symbol=:text;
     kwargs...
 ) where {T,N}
+
     io = IOBuffer()
     pretty_array(io, A, axs, dnames, backend; kwargs...)
     return String(take!(io))
