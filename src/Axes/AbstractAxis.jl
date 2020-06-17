@@ -444,14 +444,14 @@ for f in (:as_static, :as_fixed, :as_dynamic)
     end
 end
 
-# TODO how do I make this generic?
-function reverse_keys(old_axis::AbstractAxis, new_index::AbstractUnitRange)
-    return similar(old_axis, reverse(keys(old_axis)), new_index, false)
+function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
+    if is_indices_axis(axis)
+        return to_axis(reverse(keys(axis)), newinds, false)
+    else
+        return similar(axis, reverse(keys(axis)), newinds, false)
+    end
 end
 
-function reverse_keys(old_axis::AbstractSimpleAxis, new_index::AbstractUnitRange)
-    return Axis(reverse(keys(old_axis)), new_index, false)
-end
 
 @inline function Base.compute_offset1(parent, stride1::Integer, dims::Tuple{Int}, inds::Tuple{<:AbstractAxis}, I::Tuple)
     return Base.compute_linindex(parent, I) - stride1 * first(axes(parent, first(dims)))
@@ -463,24 +463,5 @@ end
 
 @inline Base.unsafe_indices(axis::AbstractAxis) = (axis,)
 
-###
-### General constructors
-###
-#=
-
-(A::Type{<:AbstractAxis})(kv::Pair) = A(first(kv), last(kv))
-
-@inline function (A::Type{<:AbstractAxis{K}})(ks::AbstractIndices, inds::AbstractIndices, args...; kwargs...) where {K}
-    if eltype(ks) <: K
-        A
-    else
-        return A(AbstractIndices{K}(ks)
-    end
-end
-
-
-=#
-
 Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = Interface.print_axis(io, axis)
 Base.show(io::IO, axis::AbstractAxis) = Interface.print_axis(io, axis)
-
