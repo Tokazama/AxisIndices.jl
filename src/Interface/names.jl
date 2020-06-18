@@ -105,6 +105,12 @@ macro defdim(name, condition)
     Returns the axis corresponding to the $name dimension.
     """
 
+    name_axis_itr = """
+        $name_axis(x, size[; first_pad=nothing, last_pad=nothing, stride=nothing, dilation=nothing])
+
+    Returns an `AxisIterator` along the $name axis.
+    """
+
     name_indices = Symbol(name, :_indices)
     name_indices_doc = """
         $name_indices(x)
@@ -169,6 +175,9 @@ macro defdim(name, condition)
 
         @doc $name_axis_doc
         @inline $name_axis(x) = axes(x, $name_dim(x))
+
+        @doc $name_axis_itr
+        @inline $name_axis(x, sz; kwargs...) = AxisIterator(axes(x, $name_dim(x)), sz; kwargs...)
 
         @doc $name_keys_doc
         @inline $name_keys(x) = keys($name_axis(x))

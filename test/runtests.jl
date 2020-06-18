@@ -115,6 +115,9 @@ end
     itr, state = iterate(obs_iter, state)
     @test itr == [5, 6]
     @test isnothing(iterate(obs_iter, state))
+
+    A = NamedAxisArray(reshape(1:40, 2, 20), x = 2:3, observations = 1:20)
+    @test collect(obs_axis(A, 2)) == [1:2, 3:4, 5:6, 7:8, 9:10, 11:12, 13:14, 15:16, 17:18,19:20]
 end
 
 include("table_tests.jl")

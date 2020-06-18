@@ -29,7 +29,7 @@ julia> data[observations = :subject_1]
 
 ```
 
-But there are a number of convenient methods for accessing observation data with this module.
+...but there are a number of convenient methods for accessing observation data with this module.
 ```jldoctest observation_docs
 julia> using AxisIndices.ObservationDims
 
