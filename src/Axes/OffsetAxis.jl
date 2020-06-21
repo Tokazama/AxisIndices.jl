@@ -65,82 +65,79 @@ OffsetAxis(0:1 => 2:3)
 
 ```
 """
-struct OffsetAxis{K<:Integer,I,Ks<:AbstractIndices{K},Inds} <: AbstractOffsetAxis{K,I,Ks,Inds}
+struct OffsetAxis{I,Ks<:AbstractUnitRange{I},Inds} <: AbstractOffsetAxis{I,Ks,Inds}
     keys::Ks
     indices::Inds
 
-
-    # OffsetAxis{K,V,Ks,Vs}
-    @inline function OffsetAxis{K,I,Ks,Inds}(ks::AbstractIndices, inds::AbstractIndices, check_length::Bool=true) where {K,I,Ks,Inds}
+    @inline function OffsetAxis{I,Ks,Inds}(
+        ks::AbstractUnitRange,
+        inds::AbstractUnitRange,
+        check_length::Bool=true
+    ) where {I,Ks,Inds}
         check_length && check_axis_length(ks, inds)
-        return new{K,I,Ks,Inds}(ks, inds)
-        #=
         if ks isa Ks
             if inds isa Inds
                 check_length && check_axis_length(ks, inds)
-                return new{K,I,Ks,Inds}(ks, inds)
+                return new{I,Ks,Inds}(ks, inds)
             else
-                return OffsetAxis{K,I,Ks,Inds}(ks, Inds(inds), check_length)
+                return OffsetAxis{I}(ks, Inds(inds), check_length)
             end
         else
-            return OffsetAxis{K,I,Ks,Inds}(Ks(ks), inds, check_length)
+            if inds isa Inds
+                return OffsetAxis{I}(Ks(ks), inds, check_length)
+            else
+                return OffsetAxis{I}(Ks(ks), Inds(inds), check_length)
+            end
         end
-        =#
     end
 
-    function OffsetAxis{K,I,Ks,Inds}(axis::OffsetAxis) where {K,I,Ks,Inds}
-        return new{K,I,Ks,Inds}(Ks(keys(axis)), Inds(indices(axis)))
+    function OffsetAxis{I,Ks,Inds}(axis::OffsetAxis) where {I,Ks,Inds}
+        return new{I,Ks,Inds}(Ks(keys(axis)), Inds(indices(axis)))
     end
 
-    function OffsetAxis{K,I,Ks,Inds}(ks::AbstractIndices) where {K,I,Ks,Inds}
+    function OffsetAxis{I,Ks,Inds}(ks::AbstractUnitRange) where {I,Ks,Inds}
         if Inds <: OneToUnion
-            return OffsetAxis{K,I,Ks,Inds}(ks, Inds(length(ks)), false)
+            return OffsetAxis{I,Ks,Inds}(ks, Inds(length(ks)), false)
         else
-            return OffsetAxis{K,I,Ks,Inds}(ks, Inds(1, length(ks)), false)
+            return OffsetAxis{I,Ks,Inds}(ks, Inds(1, length(ks)), false)
         end
     end
 
-    function OffsetAxis{K,I,Ks,Inds}(offset::Integer, inds::AbstractIndices) where {K,I,Ks,Inds}
-        return OffsetAxis{K,I,Ks,Inds}(Ks(first(inds) + offset, last(inds) + offset), inds, false)
+    function OffsetAxis{I,Ks,Inds}(offset::Integer, inds::AbstractUnitRange) where {I,Ks,Inds}
+        return OffsetAxis{I,Ks,Inds}(Ks(first(inds) + offset, last(inds) + offset), inds, false)
     end
 
     # OffsetAxis{K,I}}(::AbstractUnitRange, ::AbstractUnitRange)
-    @inline function OffsetAxis{K,I}(ks::AbstractIndices, inds::AbstractIndices, cl::Bool=true) where {K,I}
-        if eltype(ks) <: K
+    @inline function OffsetAxis{I}(ks::AbstractUnitRange, inds::AbstractUnitRange, cl::Bool=true) where {I}
+        if eltype(ks) <: I
             if eltype(inds) <: I
-                return OffsetAxis{K,I,typeof(ks),typeof(inds)}(ks, inds, cl)
+                return OffsetAxis{I,typeof(ks),typeof(inds)}(ks, inds, cl)
             else
-                return OffsetAxis{K,I}(ks, AbstractIndices{I}(inds), cl)
+                return OffsetAxis{I}(ks, AbstractUnitRange{I}(inds), cl)
             end
         else
-            return OffsetAxis{K,I}(AbstractIndices{K}(ks), inds, cl)
+            return OffsetAxis{I}(AbstractUnitRange{I}(ks), inds, cl)
         end
     end
 
-    @inline function OffsetAxis{K,I}(axis::OffsetAxis) where {K,I}
-        return OffsetAxis{K,I}(keys(axis), indices(axis), false)
+    @inline function OffsetAxis{I}(axis::OffsetAxis) where {I}
+        return OffsetAxis{I}(keys(axis), indices(axis), false)
     end
 
-    @inline function OffsetAxis{K,I}(ks::AbstractIndices) where {K,I}
-        return OffsetAxis{K,I}(ks, OneTo{I}(length(ks)), false)
+    @inline function OffsetAxis{I}(ks::AbstractUnitRange) where {I}
+        return OffsetAxis{I}(ks, OneTo{I}(length(ks)), false)
     end
 
-    function OffsetAxis{K,I}(offset::Integer, inds::AbstractIndices) where {K,I}
-        return OffsetAxis{K,I}(_construct_offset_keys(I(offset), inds), inds, false)
+    function OffsetAxis{I}(offset::Integer, inds::AbstractUnitRange) where {I}
+        if is_static(inds)
+            ks = UnitSRange{I}(first(inds) + offset, last(inds) + offset)
+        elseif is_fixed(inds)
+            ks = UnitRange{I}(first(inds) + offset, last(inds) + offset)
+        else
+            ks = UnitMRange{I}(first(inds) + offset, last(inds) + offset)
+        end
+        return OffsetAxis{I}(ks, inds, false)
     end
-
-    # OffsetAxis{K}
-    function OffsetAxis{K}(ks::AbstractIndices, inds::AbstractIndices, check_length::Bool=true) where {K}
-        return OffsetAxis{K,eltype(inds)}(ks, inds, check_length)
-    end
-
-    function OffsetAxis{K}(offset::Integer, inds::AbstractIndices) where {K}
-        return OffsetAxis{K}(_construct_offset_keys(K(offset), inds), inds, false)
-    end
-
-    OffsetAxis{K}(axis::OffsetAxis) where {K} = OffsetAxis{K}(keys(axis), indices(axis), false)
-
-    OffsetAxis{K}(axis::AbstractIndices) where {K} = OffsetAxis(AbstractUnitRange{K}(axis))
 
     # OffsetAxis(::AbstractUnitRange, ::AbstractUnitRange)
     function OffsetAxis(ks::AbstractUnitRange, inds::AbstractUnitRange, check_length::Bool=true)
@@ -158,9 +155,7 @@ struct OffsetAxis{K<:Integer,I,Ks<:AbstractIndices{K},Inds} <: AbstractOffsetAxi
     end
 
     # OffsetAxis(::Integer, ::AbstractUnitRange)
-    function OffsetAxis(offset::Integer, inds::AbstractIndices)
-        return OffsetAxis(_construct_offset_keys(offset, inds), inds, false)
-    end
+    OffsetAxis(offset::Integer, inds::AbstractUnitRange) = OffsetAxis{eltype(inds)}(offset, inds)
 
     OffsetAxis(axis::OffsetAxis) = axis
 end
@@ -169,15 +164,16 @@ Base.keys(axis::OffsetAxis) = getfield(axis, :keys)
 
 Base.values(axis::OffsetAxis) = getfield(axis, :indices)
 
+# FIXME keys_type should never be included in this callTODO
 function StaticRanges.similar_type(::Type{A}, ks_type::Type, inds_type::Type) where {A<:OffsetAxis}
-    return OffsetAxis{eltype(ks_type),eltype(inds_type),ks_type,inds_type}
+    return OffsetAxis{eltype(inds_type),ks_type,inds_type}
 end
 
 function StaticRanges.similar_type(::Type{A}, inds_type::Type) where {A<:OffsetAxis}
-    return OffsetAxis{keytype(A),eltype(inds_type),keys_type(A),inds_type}
+    return OffsetAxis{eltype(inds_type),keys_type(A),inds_type}
 end
 
-function Interface.unsafe_reconstruct(axis::OffsetAxis{K,I,Ks}, inds::Inds) where {K,I,Ks,Inds}
+function Interface.unsafe_reconstruct(axis::OffsetAxis{I,Ks}, inds::Inds) where {I,Ks,Inds}
     return similar_type(axis, Ks, Inds)(
         Ks(first(inds) + first(axis) - first(indices(axis)), last(inds) + last(axis) - last(indices(axis))),
         inds
@@ -189,7 +185,7 @@ end
 #end
 
 
-function _reset_keys!(axis::OffsetAxis{K,I,Ks,Inds}, len) where {K,I,Ks,Inds}
+function _reset_keys!(axis::OffsetAxis{I,Ks,Inds}, len) where {I,Ks,Inds}
     ks = keys(axis)
     set_length!(ks, len)
 end

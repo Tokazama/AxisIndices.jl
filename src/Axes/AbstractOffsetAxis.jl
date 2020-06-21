@@ -1,6 +1,6 @@
 
 """
-    AbstractOffsetAxis{K,I,Ks,Inds}
+    AbstractOffsetAxis{I,Ks,Inds}
 
 Supertype for axes that begin indexing offset from one. All subtypes of `AbstractOffsetAxis`
 use the keys for indexing and only convert to the underlying indices when
@@ -8,7 +8,7 @@ use the keys for indexing and only convert to the underlying indices when
 with an `AbstractOffsetAxis`. See [`OffsetAxis`](@ref), [`CenteredAxis`](@ref),
 and [`IdentityAxis`](@ref) for more details and examples.
 """
-abstract type AbstractOffsetAxis{K,I,Ks,Inds} <: AbstractAxis{K,I,Ks,Inds} end
+abstract type AbstractOffsetAxis{I,Ks,Inds} <: AbstractAxis{I,I,Ks,Inds} end
 
 @inline Base.first(axis::AbstractOffsetAxis) = first(keys(axis))
 
