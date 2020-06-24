@@ -101,3 +101,24 @@ function _sortslices(A, d::Val{dims}; kws...) where dims
     return B
 end
 
+"""
+    permuteddimsview(A, perm)
+
+returns a "view" of `A` with its dimensions permuted as specified by
+`perm`. This is like `permutedims`, except that it produces a view
+rather than a copy of `A`; consequently, any manipulations you make to
+the output will be mirrored in `A`. Compared to the copy, the view is
+much faster to create, but generally slower to use.
+"""
+permuteddimsview(A, perm) = Base.PermutedDimsArrays.PermutedDimsArray(A, perm)
+function permuteddimsview(A::AbstractAxisArray, perm)
+    p = Base.PermutedDimsArrays.PermutedDimsArray(parent(A), perm)
+    return unsafe_reconstruct(A, p, permute_axes(A, p, perm))
+end
+
+function permuteddimsview(A::NamedDimsArray{L}, perm) where {L}
+    dnames = NamedDims.permute_dimnames(L, perm)
+    return NamedDimsArray{dnames}(permuteddimsview(parent(A), perm))
+end
+
+

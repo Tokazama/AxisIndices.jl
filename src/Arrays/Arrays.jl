@@ -43,7 +43,8 @@ export
     NamedAxisArray,
     NamedMetaAxisArray,
     OffsetArray,
-    OffsetVector
+    OffsetVector,
+    permuteddimsview
 
 # TODO these shouldn't be exported
 export matmul_axes, get_factorization

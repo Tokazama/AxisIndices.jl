@@ -8,6 +8,25 @@ has_dimnames(::T) where {T} = has_dimnames(T)
 has_dimnames(::Type{T}) where {T} = false
 has_dimnames(::Type{T}) where {T<:NamedDimsArray} = true
 
+"""
+    named_axes(A) -> NamedTuple{names}(axes)
+
+Returns a `NamedTuple` where the names are the dimension names and each indice
+is the corresponding dimensions's axis. If dimnesion names are not defined for `x`
+default names are returned. `x` should have an `axes` method.
+
+```jldoctest
+julia> using AxisIndices
+
+julia> A = reshape(1:24, 2,3,4);
+
+julia> named_axes(A)
+(dim_1 = Base.OneTo(2), dim_2 = Base.OneTo(3), dim_3 = Base.OneTo(4))
+
+julia> named_axes(NamedAxisArray{(:a, :b, :c)}(A))
+(a = SimpleAxis(Base.OneTo(2)), b = SimpleAxis(Base.OneTo(3)), c = SimpleAxis(Base.OneTo(4)))
+```
+"""
 function named_axes(x::AbstractArray{T,N}) where {T,N}
     if has_dimnames(x)
         return NamedTuple{dimnames(x)}(axes(x))
@@ -81,7 +100,7 @@ macro defdim(name, condition)
     name_dim_doc = """
         $name_dim(x) -> Int
 
-    Returns the dimension corresponding to the $name.
+    Returns the dimension corresponding to $name.
     """
 
     nname = Symbol(:n, name)

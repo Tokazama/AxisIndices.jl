@@ -94,17 +94,19 @@ function permute_axes(old_array::AbstractVector, new_array::AbstractMatrix)
 end
 
 function permute_axes(old_array::AbstractMatrix, new_array::AbstractMatrix)
-    (assign_indices(axes(old_array, 2), axes(new_array, 1)),
-     assign_indices(axes(old_array, 1), axes(new_array, 2)))
+    return (
+        assign_indices(axes(old_array, 2), axes(new_array, 1)),
+        assign_indices(axes(old_array, 1), axes(new_array, 2))
+    )
 end
 
 function permute_axes(old_array::AbstractMatrix, new_array::AbstractVector)
-    (assign_indices(axes(old_array, 2), axes(new_array, 1)),)
+    return (assign_indices(axes(old_array, 2), axes(new_array, 1)),)
 end
 
 function permute_axes(old_array::AbstractArray{T1,N}, new_array::AbstractArray{T2,N}, perms) where {T1,T2,N}
     ntuple(Val(N)) do i
-        assign_indices(axes(A, perms[i]), axes(p, i))
+        assign_indices(axes(old_array, perms[i]), axes(new_array, i))
     end
 end
 
