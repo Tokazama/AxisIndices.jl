@@ -61,6 +61,94 @@ end
 # So `condition` also has to be pure, which shouldn't be hard because it should basically
 # just be comparing symbols
 
+macro def_naxis(name, name_dim)
+    nname = Symbol(:n, name)
+    nname_doc = """
+        $nname(x) -> Int
+
+    Returns the size along the dimension corresponding to the $name.
+    """
+
+    esc(quote
+        @doc $nname_doc
+        @inline $nname(x) = Base.size(x, $name_dim(x))
+    end)
+end
+
+
+macro def_axis_keys(name, name_dims)
+    name_keys = Symbol(name, :_keys)
+    name_keys_doc = """
+        $name_keys(x)
+
+    Returns the keys corresponding to the $name axis
+    """
+    esc(quote
+        @doc $name_keys_doc
+        @inline $name_keys(x) = keys(axes(x, $name_dims(x)))
+    end)
+end
+
+
+
+macro def_axis_indices(name, name_dim)
+    name_indices = Symbol(name, :_indices)
+    name_indices_doc = """
+        $name_indices(x)
+
+    Returns the indices corresponding to the $name axis
+    """
+    esc(quote
+        @doc $name_indices_doc
+        @inline $name_indices(x) = indices(axes(x, $name_dim(x)))
+    end)
+end
+
+
+# TODO I'm not sure this is the best name for this one
+macro def_axis_type(name, name_dim)
+    name_type = Symbol(name, :_axis_type)
+    name_type_doc = """
+        $name_type(x)
+
+    Returns the key type corresponding to the $name axis.
+    """
+
+    esc(quote
+        @doc $name_type_doc
+        @inline $name_type(x) = keytype(axes(x, $name_dim(x)))
+    end)
+end
+
+macro def_selectdim(name, name_dim)
+    name_selectdim = Symbol(:select_, name, :dim)
+    name_selectdim_doc = """
+        $name_selectdim(x, i)
+
+    Return a view of all the data of `x` where the index for the $name dimension equals `i`.
+    """
+
+    esc(quote
+        @doc $name_selectdim_doc
+        @inline $name_selectdim(x, i) = selectdim(x, $name_dim(x), i)
+
+    end)
+end
+
+macro def_eachslice(name, name_dim)
+    each_name = Symbol(:each_, name)
+    each_name_doc = """
+        $each_name(x)
+
+    Create a generator that iterates over the $name dimensions `A`, returning views that select
+    all the data from the other dimensions in `A`.
+    """
+    esc(quote
+        @doc $each_name_doc
+        @inline $each_name(x) = eachslice(x, dims=$name_dim(x))
+    end)
+end
+
 """
     @defdim name condition
 
@@ -92,7 +180,16 @@ julia> @defdim time is_time
     `@defdim` should be considered experimental and subject to change
 
 """
-macro defdim(name, condition)
+macro defdim(
+    name,
+    condition,
+    def_naxis::Bool=true,
+    def_axis_keys::Bool=true,
+    def_axis_indices::Bool=true,
+    def_axis_type::Bool=true,
+    def_selectdim::Bool=true,
+    def_eachslice::Bool=true,
+)
 
     dim_noerror_name = Symbol(:dim_noerror_, name)
 
@@ -101,13 +198,6 @@ macro defdim(name, condition)
         $name_dim(x) -> Int
 
     Returns the dimension corresponding to $name.
-    """
-
-    nname = Symbol(:n, name)
-    nname_doc = """
-        $nname(x) -> Int
-
-    Returns the size along the dimension corresponding to the $name.
     """
 
     has_name_dim = Symbol(:has_, name, :dim)
@@ -130,42 +220,6 @@ macro defdim(name, condition)
     Returns an `AxisIterator` along the $name axis.
     """
 
-    name_indices = Symbol(name, :_indices)
-    name_indices_doc = """
-        $name_indices(x)
-
-    Returns the indices corresponding to the $name axis
-    """
-
-    name_keys = Symbol(name, :_keys)
-    name_keys_doc = """
-        $name_keys(x)
-
-    Returns the keys corresponding to the $name axis
-    """
-
-    name_type = Symbol(name, :_axis_type)
-    name_type_doc = """
-        $name_type(x)
-
-    Returns the key type corresponding to the $name axis.
-    """
-
-    name_selectdim = Symbol(:select_, name, :dim)
-    name_selectdim_doc = """
-        $name_selectdim(x, i)
-
-    Return a view of all the data of `x` where the index for the $name dimension equals `i`.
-    """
-
-    each_name = Symbol(:each_, name)
-    each_name_doc = """
-        $each_name(x)
-
-    Create a generator that iterates over the $name dimensions `A`, returning views that select
-    all the data from the other dimensions in `A`.
-    """
-
     err_msg = "Method $(Symbol(condition)) is not true for any dimensions of "
 
     esc(quote
@@ -186,9 +240,6 @@ macro defdim(name, condition)
             end
         end
 
-        @doc $nname_doc
-        @inline $nname(x) = Base.size(x, $name_dim(x))
-
         @doc $has_name_dim_doc
         @inline $has_name_dim(x) = !($dim_noerror_name(dimnames(x)) === 0)
 
@@ -198,22 +249,30 @@ macro defdim(name, condition)
         @doc $name_axis_itr
         @inline $name_axis(x, sz; kwargs...) = AxisIterator(axes(x, $name_dim(x)), sz; kwargs...)
 
-        @doc $name_keys_doc
-        @inline $name_keys(x) = keys($name_axis(x))
+        if $def_naxis
+            Interface.@def_naxis($name, $name_dim)
+        end
 
-        @doc $name_indices_doc
-        @inline $name_indices(x) = values($name_axis(x))
+        if $def_axis_keys
+            Interface.@def_axis_keys($name, $name_dim)
+        end
 
-        @doc $name_type_doc
-        @inline $name_type(x) = keytype($name_axis(x))
+        if $def_axis_indices
+            Interface.@def_axis_indices($name, $name_dim)
+        end
 
-        @doc $name_selectdim_doc
-        @inline $name_selectdim(x, i) = selectdim(x, $name_dim(x), i)
+        if $def_axis_type
+            Interface.@def_axis_type($name, $name_dim)
+        end
 
-        @doc $each_name_doc
-        @inline $each_name(x) = eachslice(x, dims=$name_dim(x))
+        if $def_selectdim
+            Interface.@def_selectdim($name, $name_dim)
+        end
+
+        if $def_eachslice
+            Interface.@def_eachslice($name, $name_dim)
+        end
 
         nothing
     end)
 end
-

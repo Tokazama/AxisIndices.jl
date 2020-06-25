@@ -325,3 +325,10 @@ Base.vcat(A::AbstractAxisArray{T,N}) where {T,N} = A
 
 Base.cat(A::AbstractAxisArray{T,N}; dims) where {T,N} = A
 
+function Base.convert(::Type{T}, A::AbstractArray) where {T<:AbstractAxisArray}
+    if A isa T
+        return A
+    else
+        return T(A)
+    end
+end

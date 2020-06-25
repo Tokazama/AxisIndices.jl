@@ -37,7 +37,28 @@ end
 
 OffsetArray{T,N}(A, inds::Vararg) where {T,N} = OffsetArray{T,N}(A, inds)
 
-@inline function OffsetArray{T,N}(A::AbstractArray{T,N}, inds::NTuple{M,Any}) where {T,N,M}
+function OffsetArray{T,N}(A::AbstractArray{T,N}, inds::Tuple) where {T,N}
+    return OffsetArray{T,N,typeof(A)}(A, inds)
+end
+
+function OffsetArray{T,N}(A::AbstractArray{T2,N}, inds::Tuple) where {T,T2,N}
+    return OffsetArray{T,N}(copyto!(Array{T}(undef, size(A)), A), inds)
+end
+
+
+function OffsetArray{T,N,P}(A::AbstractArray, inds::NTuple{M,Any}) where {T,N,P<:AbstractArray{T,N},M}
+    return OffsetArray{T,N,P}(convert(P, A))
+end
+
+OffsetArray{T,N,P}(A::OffsetArray{T,N,P}) where {T,N,P} = A
+
+function OffsetArray{T,N,P}(A::OffsetArray) where {T,N,P}
+    p = convert(P, parent(A))
+    axs = map(assign_indices, axes(A), axes(p))
+    return AxisArray{T,N,P,typeof(axs)}(p, axs)
+end
+
+function OffsetArray{T,N,P}(A::P, inds::NTuple{M,Any}) where {T,N,P<:AbstractArray{T,N},M}
     S = Staticness(A)
     if N === M
         axs = map((x, y) -> OffsetAxis(as_staticness(S, x), as_staticness(S, y)), inds, axes(A))

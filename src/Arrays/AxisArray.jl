@@ -225,17 +225,15 @@ julia> size(AxisArray{Int,2}(undef, (["a", "b"], [:one, :two])))
 (2, 2)
 
 """
-function AxisArray{T,N}(x::AbstractArray{T2,N}, axis_keys::Tuple, check_length::Bool=true) where {T,T2,N}
-    return AxisArray{T,N}(map(T, x), axis_keys, check_length)
+function AxisArray{T,N}(A::AbstractArray{T2,N}, axis_keys::Tuple, check_length::Bool=true) where {T,T2,N}
+    return AxisArray{T,N}(copyto!(Array{T}(undef, size(A)), A), axis_keys, check_length)
 end
 
 function AxisArray{T,N}(init::ArrayInitializer, args...) where {T,N}
     return AxisArray{T,N}(init, args)
 end
 
-function AxisArray{T,N}(x::AbstractArray, args...) where {T,N}
-    return AxisArray{T,N}(x, args)
-end
+AxisArray{T,N}(x::AbstractArray, args...) where {T,N} = AxisArray{T,N}(x, args)
 
 function AxisArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{Any,N}}) where {T,N}
     return AxisArray{T,N}(init, map(to_axis, axs))
@@ -246,14 +244,27 @@ function AxisArray{T,N}(init::ArrayInitializer, axs::AbstractAxes{N}) where {T,N
     return AxisArray{T,N,typeof(p),typeof(axs)}(p, axs)
 end
 
-function AxisArray{T,N}(
-    x::AbstractArray{T,N},
-    axs::Tuple{Vararg{Any,N2}},
-    check_length::Bool=true
-) where {T,N,N2}
+function AxisArray{T,N}(x::AbstractArray{T,N}, axs::Tuple, check_length::Bool=true) where {T,N}
+    return AxisArray{T,N,typeof(x)}(x, axs, check_length)
+end
 
+###
+### AxisArray{T,N,P}
+###
+AxisArray{T,N,P}(A::AbstractArray, args...) where {T,N,P} = AxisArray{T,N,P}(A, args)
+
+function AxisArray{T,N,P}(
+    x::AbstractArray,
+    axs::Tuple,
+    check_length::Bool=true
+) where {T,N,P}
+
+    return AxisArray{T,N,P}(convert(P, x), axs, check_length)
+end
+
+function AxisArray{T,N,P}(x::P, axs::Tuple, check_length::Bool=true) where {T,N,P<:AbstractArray{T,N}}
     axs = to_axes((), axs, axes(x), check_length, Staticness(x))
-    return AxisArray{T,N,typeof(x),typeof(axs)}(x, axs)
+    return AxisArray{T,N,P,typeof(axs)}(x, axs)
 end
 
 ###
@@ -301,3 +312,8 @@ function Base.reshape(A::AbstractArray, shp::Tuple{<:AbstractAxis,Vararg{<:Abstr
     return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs)
 end
 
+AxisArray{T,N,P}(A::AxisArray{T,N,P}) where {T,N,P} = A
+
+function AxisArray{T,N,P}(A::AxisArray) where {T,N,P}
+    return AxisArray{T,N,P}(convert(P, parent(A)), axes(A))
+end
