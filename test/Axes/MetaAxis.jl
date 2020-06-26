@@ -5,6 +5,9 @@
     meta_axis = MetaAxis([:a, :b])
     @test @inferred(meta_axis[1:2]) isa MetaAxis
 
+    metaproperty!(meta_axis, :p1, 1)
+    @test metaproperty(meta_axis, :p1) == 1
+
     meta_axis = MetaAxis([:a, :b], 1:2)
     @test @inferred(meta_axis[1:2]) isa MetaAxis
     @test @inferred(meta_axis[:a]) == 1
@@ -15,6 +18,7 @@
     @test @inferred(metadata_type(typeof(meta_axis))) <: Dict{Symbol,Any}
     @test !@inferred(is_indices_axis(meta_axis))
     @test !@inferred(is_indices_axis(typeof(meta_axis)))
+
 
 
     meta_axis2 = MetaAxis(1:2, nothing)
@@ -30,6 +34,9 @@
     A = AxisArray(ones(2,2), meta_axis, 1:2)
     @test typeof(axis_meta(A)) <: Tuple{<:Dict,Nothing}
     @test typeof(axis_meta(A, 1)) <: Dict
+    axis_metaproperty!(A, 1, :p2, 2)
+    @test axis_metaproperty(A, 1, :p2) == 2
+
 
     @test metadata(MetaAxis([:a, :b], 1:2, 1)) isa Int
 end

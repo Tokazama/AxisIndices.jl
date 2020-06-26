@@ -78,22 +78,22 @@ axis_meta(x::AbstractArray, i) = metadata(axes(x, i))
 """
     axis_metaproperty(x, i, meta_key)
 
-Return the metadata of `x` paired to `meta_key`.
+Return the metadata of `x` paired to `meta_key` at axis `i`.
 """
 axis_metaproperty(x, i, meta_key::Symbol) = getindex(axis_meta(x, i), meta_key)
+
+"""
+    axis_metaproperty!(x, meta_key, val)
+
+Set the metadata of `x` paired to `meta_key` at axis `i`.
+"""
+axis_metaproperty!(x, i, meta_key::Symbol, val) = setindex!(axis_meta(x, i), val, meta_key)
 
 """
     has_axis_metaproperty(x, meta_key)
 """
 has_axis_metaproperty(x, i, meta_key::Symbol) = haskey(axis_meta(x, i), meta_key)
 
-
-"""
-    meta_axis!(x, meta_key, val)
-
-Set the metadata of `x` paired to `meta_key`.
-"""
-axis_metaproperty!(x, i, meta_key::Symbol) = setindex!(axis_meta(x, i), meta_key)
 
 """
     has_metadata(x) -> Bool
