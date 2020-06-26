@@ -150,4 +150,3 @@ function _reset_keys!(axis::CenteredAxis{K}) where {K}
     set_last!(ks, stop)
     return nothing
 end
-
