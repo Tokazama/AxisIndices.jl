@@ -19,14 +19,6 @@ end
     return view(A, axs...)
 end
 
-# reshape
-# For now we only implement the version that drops dimension names
-# TODO
-#Base.reshape(ia::AbstractAxisMatrix, d::Vararg{Union{Colon, Int}}) = reshape(parent(ia), d)
-## return axes even when they are permuted
-function Base.axes(a::PermutedDimsArray{T,N,permin,permout,<:AbstractAxisArray}) where {T,N,permin,permout}
-    return permute_axes(parent(a), permin)
-end
 
 """
     diag(M::AbstractAxisMatrix, k::Integer=0; dim::Val=Val(1))
@@ -111,6 +103,7 @@ the output will be mirrored in `A`. Compared to the copy, the view is
 much faster to create, but generally slower to use.
 """
 permuteddimsview(A, perm) = Base.PermutedDimsArrays.PermutedDimsArray(A, perm)
+#=
 function permuteddimsview(A::AbstractAxisArray, perm)
     p = Base.PermutedDimsArrays.PermutedDimsArray(parent(A), perm)
     return unsafe_reconstruct(A, p, permute_axes(A, p, perm))
@@ -121,4 +114,13 @@ function permuteddimsview(A::NamedDimsArray{L}, perm) where {L}
     return NamedDimsArray{dnames}(permuteddimsview(parent(A), perm))
 end
 
+# For now we only implement the version that drops dimension names
+# TODO
+#Base.reshape(ia::AbstractAxisMatrix, d::Vararg{Union{Colon, Int}}) = reshape(parent(ia), d)
+## return axes even when they are permuted
+#
+function Base.axes(a::PermutedDimsArray{T,N,permin,permout,<:AbstractAxisArray}) where {T,N,permin,permout}
+    return permute_axes(parent(a), permout)
+end
 
+=# reshape

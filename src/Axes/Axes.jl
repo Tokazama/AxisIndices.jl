@@ -6,11 +6,14 @@ using StaticArrays
 using StaticRanges
 
 using AxisIndices.Styles
+
+using AxisIndices.Metadata
+using AxisIndices.Metadata: _construct_meta
+
 using AxisIndices.Interface
 using AxisIndices.Interface: AbstractIndices
 using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, assign_indices
 using AxisIndices.Interface: check_axis_length, check_axis_unique
-using AxisIndices.Interface: _construct_meta
 using AxisIndices.Interface: as_staticness
 import AxisIndices.Interface: to_axis, to_axes, to_index, to_keys
 

@@ -1,6 +1,7 @@
 module Interface
 
 using AxisIndices.Styles
+using AxisIndices.Metadata
 using NamedDims
 using StaticRanges
 using StaticRanges: OneToUnion
@@ -60,7 +61,6 @@ include("names.jl")
 include("axes.jl")
 include("rows.jl")
 include("cols.jl")
-include("metadata.jl")
 include("constructors.jl")
 include("to_index.jl")
 include("to_keys.jl")

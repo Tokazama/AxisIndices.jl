@@ -35,7 +35,7 @@ julia> AxisIndices.drop_axes(rand(2, 4), 2)
 ```
 """
 drop_axes(x::AbstractArray, d::Int) = drop_axes(x, (d,))
-drop_axes(x::AbstractArray, d::Tuple) = drop_axes(x, dims(dimnames(x), d))
+drop_axes(x::AbstractArray, d::Tuple) = drop_axes(x, dim(dimnames(x), d))
 drop_axes(x::AbstractArray, d::Tuple{Vararg{Int}}) = drop_axes(axes(x), d)
 drop_axes(x::Tuple{Vararg{<:Any}}, d::Int) = drop_axes(x, (d,))
 drop_axes(x::Tuple{Vararg{<:Any}}, d::Tuple) = _drop_axes(x, d)

@@ -1,4 +1,10 @@
 
+# TODO this should be defined in NamedDims
+@inline function NamedDims.dimnames(::Base.PermutedDimsArray{T,N,permin,permout,A}) where {T,N,permin,permout,A<:NamedDimsArray}
+    dn = dimnames(A)
+    return map(i -> getfield(dn, i), permin)
+end
+
 """
     has_dimnames(x) -> Bool
 

@@ -41,6 +41,9 @@ export
 include("./Styles/Styles.jl")
 using .Styles
 
+include("./Metadata/Metadata.jl")
+using .Metadata
+
 include("./Interface/Interface.jl")
 @reexport using .Interface
 using .Interface: step_key, append_axis!, to_axis, to_axes,  to_index, to_keys

@@ -15,10 +15,12 @@ using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
 
 using AxisIndices.Styles
 
+using AxisIndices.Metadata
+using AxisIndices.Metadata: _construct_meta
+
 using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
-using AxisIndices.Interface: _construct_meta
 using AxisIndices.Interface: as_staticness, to_axis, to_axes, to_index
 
 using AxisIndices.Axes
@@ -68,4 +70,3 @@ include("matrices.jl")
 include("indexing.jl")
 
 end
-

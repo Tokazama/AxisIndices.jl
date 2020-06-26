@@ -141,7 +141,7 @@ end
 
 Interface.unsafe_reconstruct(axis::CenteredAxis, inds) = CenteredAxis{eltype(inds)}(inds)
 
-function _reset_keys!(axis::CenteredAxis)
+function _reset_keys!(axis::CenteredAxis{K}) where {K}
     len = length(indices(axis))
     start = K(-div(len, 2))
     stop = K(start + len - 1)

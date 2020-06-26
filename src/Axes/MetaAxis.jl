@@ -15,7 +15,7 @@ struct MetaAxis{K,I,Ks,Inds,P<:AbstractAxis{K,I,Ks,Inds},M} <: AbstractAxis{K,I,
     function MetaAxis(axis::AbstractAxis{K,I,Ks,Inds}, meta::M) where {K,I,Ks,Inds,M}
         return MetaAxis{K,I,Ks,Inds,typeof(axis),M}(axis, meta)
     end
-    MetaAxis(axis::AbstractAxis) = MetaAxis(axis, nothing)
+    MetaAxis(axis::AbstractAxis) = MetaAxis(axis, Dict{Symbol,Any}())
 
     MetaAxis(ks::AbstractVector) = MetaAxis(to_axis(ks))
     MetaAxis(ks::AbstractVector, inds::AbstractUnitRange) = MetaAxis(to_axis(ks, inds))
@@ -47,4 +47,3 @@ end
 function Interface.unsafe_reconstruct(axis::MetaAxis, ks)
     return MetaAxis(Interface.unsafe_reconstruct(parent(axis), ks), metadata(axis))
 end
-
