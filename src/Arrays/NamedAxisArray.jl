@@ -118,3 +118,25 @@ function Base.show(io::IO, m::MIME"text/plain", A::NamedAxisArray{L,T,N}; kwargs
     return show_array(io, A; kwargs...)
 end
 
+for f in (:getindex, :view, :dotview)
+    @eval begin
+        @propagate_inbounds function Base.$f(A::NamedAxisArray; named_inds...)
+            inds = NamedDims.order_named_inds(A; named_inds...)
+            return Base.$f(A, inds...)
+        end
+
+        @propagate_inbounds function Base.$f(a::NamedAxisArray, raw_inds...)
+            inds = Interface.to_indices(parent(a), raw_inds)  # checkbounds happens within to_indices
+            data = @inbounds(Base.$f(parent(a), inds...))
+            data isa AbstractArray || return data # Case of scalar output
+            L = NamedDims.remaining_dimnames_from_indexing(dimnames(a), inds)
+            if L === ()
+                # Cases that merge dimensions down to vector like `mat[mat .> 0]`,
+                # and also zero-dimensional `view(mat, 1,1)`
+                return data
+            else
+                return NamedDimsArray{L}(data)
+            end
+        end
+    end
+end

@@ -1,11 +1,15 @@
 # TODO - Indices and Keys don't need AxisIndicesStyle pass in to_index b/c force_* bypasses this
+# as_indices
+# as_keys
+# ndims
+# ArgsStyle is better name
 module Styles
 
 using ChainedFixes
 using IntervalSets
 using StaticRanges
 using StaticRanges: Staticness, resize_last
-using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
+using Base: @propagate_inbounds, OneTo, Fix2, tail, front
 
 export
     Indices,
@@ -17,6 +21,7 @@ export
     CartesianElement,
     KeysCollection,
     IndicesCollection,
+    CartesianIndexCollection,
     IntervalCollection,
     BoolsCollection,
     KeysIn,
@@ -107,8 +112,6 @@ is_element(::Type{KeyElement}) = true
 
 AxisIndicesStyle(::Type{T}) where {T} = KeyElement()
 
-
-
 """
     IndexElement
 
@@ -121,8 +124,6 @@ is_element(::Type{IndexElement}) = true
 is_index(::Type{IndexElement}) = true
 
 AxisIndicesStyle(::Type{<:Integer}) = IndexElement()
-
-
 
 """
     BoolElement
@@ -137,7 +138,6 @@ is_element(::Type{BoolElement}) = true
 is_index(::Type{BoolElement}) = true
 
 AxisIndicesStyle(::Type{Bool}) = BoolElement()
-
 
 """
     CartesianElement
@@ -161,8 +161,6 @@ struct KeysCollection <: AxisIndicesStyle end
 
 AxisIndicesStyle(::Type{<:AbstractArray{T}}) where {T} = KeysCollection()
 
-
-
 """
     IndicesCollection
 
@@ -172,6 +170,16 @@ struct IndicesCollection <: AxisIndicesStyle end
 
 AxisIndicesStyle(::Type{<:AbstractArray{<:Integer}}) = IndicesCollection()
 
+"""
+    CartesianIndexCollection
+
+A subtype of `AxisIndicesStyle` for propagating an argument to a collection of indices.
+"""
+struct CartesianIndexCollection <: AxisIndicesStyle end
+
+AxisIndicesStyle(::Type{<:AbstractArray{<:CartesianIndex}}) = CartesianIndexCollection()
+
+is_element(::Type{CartesianIndexCollection}) = true
 
 """
     BoolsCollection
@@ -183,7 +191,6 @@ struct BoolsCollection <: AxisIndicesStyle end
 
 AxisIndicesStyle(::Type{<:AbstractArray{Bool}}) = BoolsCollection()
 
-
 """
     IntervalCollection
 
@@ -193,8 +200,6 @@ from keys within said interval to a collection of indices.
 struct IntervalCollection <: AxisIndicesStyle end
 
 AxisIndicesStyle(::Type{<:Interval}) = IntervalCollection()
-
-
 
 """
     KeysIn
@@ -206,8 +211,6 @@ struct KeysIn <: AxisIndicesStyle end
 
 AxisIndicesStyle(::Type{<:Fix2{typeof(in)}}) = KeysIn()
 
-
-
 """
     IndicesIn
 
@@ -215,8 +218,6 @@ A subtype of `AxisIndicesStyle` for mapping all keys given `in(keys)` to a colle
 of indices.
 """
 struct IndicesIn <: AxisIndicesStyle end
-
-
 
 """
     KeyEquals
@@ -232,7 +233,6 @@ AxisIndicesStyle(::Type{<:Approx}) = KeyEquals()
 
 AxisIndicesStyle(::Type{<:Fix2{<:Union{typeof(isequal),typeof(==)}}}) = KeyEquals()
 
-
 """
     IndexEquals
 
@@ -242,8 +242,6 @@ to a single index.
 struct IndexEquals <: AxisIndicesStyle end
 
 is_element(::Type{IndexEquals}) = true
-
-
 
 """
     KeysFix2
@@ -257,7 +255,6 @@ AxisIndicesStyle(::Type{<:Fix2}) = KeysFix2()
 
 AxisIndicesStyle(::Type{<:ChainedFix}) = KeysFix2()
 
-
 """
     IndicesFix2
 
@@ -265,7 +262,6 @@ A subtype of `AxisIndicesStyle` for mapping all indices from fixed argument (e.g
 to the corresponding collection of indices.
 """
 struct IndicesFix2 <: AxisIndicesStyle end
-
 
 """
     SliceCollection
@@ -279,7 +275,6 @@ AxisIndicesStyle(::Type{Colon}) = SliceCollection()
 AxisIndicesStyle(::Type{<:Base.Slice}) = SliceCollection()
 
 is_index(::Type{SliceCollection}) = true
-
 
 """
     KeyedStyle{S}
@@ -310,5 +305,7 @@ AxisIndicesStyle(::Type{Keys{T}}) where {T} = force_keys(AxisIndicesStyle(T))
 force_keys(S::AxisIndicesStyle) = S
 force_keys(S::IndicesCollection) = KeysCollection()
 force_keys(S::IndexElement) = KeyElement()
+
+
 
 end

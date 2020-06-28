@@ -2,7 +2,7 @@ module Axes
 
 using NamedDims
 using MappedArrays
-using StaticArrays
+import StaticArrays: SVector
 using StaticRanges
 
 using AxisIndices.Styles

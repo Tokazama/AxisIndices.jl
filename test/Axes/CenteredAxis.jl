@@ -44,4 +44,3 @@
             CenteredAxis{Int64,UnitRange{Int64},OneToSRange{Int64,10}}
     end
 end
-

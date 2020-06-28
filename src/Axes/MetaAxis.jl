@@ -47,3 +47,7 @@ end
 function Interface.unsafe_reconstruct(axis::MetaAxis, ks)
     return MetaAxis(Interface.unsafe_reconstruct(parent(axis), ks), metadata(axis))
 end
+
+Base.getproperty(axis::MetaAxis, k::Symbol) = metaproperty(axis, k)
+
+Base.setproperty!(axis::MetaAxis, k::Symbol, val) = metaproperty!(axis, k, val)

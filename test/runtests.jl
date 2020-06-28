@@ -1,33 +1,83 @@
 
 using Test
 using Statistics
-using DelimitedFiles
-using LinearAlgebra
 using StaticRanges
+import StaticRanges.StaticArrays
+using NamedDims
+using IntervalSets
+using Tables
+using LinearAlgebra
+using TableTraits
+using TableTraitsUtils
+using MappedArrays
+import MetadataArrays
+
+#=
+pkgs = (MetadataArrays,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core)
+
+ambs = detect_ambiguities(pkgs...);
+using AxisIndices
+ambs = setdiff(detect_ambiguities(AxisIndices, pkgs...), ambs);
+
+itr[1].name
+unique([itr[1].name for itr in ambs])
+if !isempty(ambs)
+    println("Ambiguities:")
+    for a in ambs
+        println(a)
+    end
+end
+ :map
+ :similar
+ :copyto!
+ :*
+ :mapreduce
+ :checkbounds
+ :vcat
+ :(==)
+ :checkindex
+ :isequal
+ :getindex
+ Symbol("mapreduce##kw")
+ :mappedarray
+ :BroadcastStyle
+ :sum!
+ :map!
+ :maximum!
+ :CartesianIndices
+ :prod!
+ :MetaAxis
+ :minimum!
+
+=#
+
+using DelimitedFiles
 using Documenter
 using Dates
-using Tables
 using AxisIndices
 using AxisIndices.Styles
 using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes, to_axes
 using AxisIndices.Interface
 using AxisIndices.Interface: check_index
-using MappedArrays
-
 using AxisIndices.Axes
-
 using AxisIndices.Arrays
 using AxisIndices.Tabular
 using AxisIndices: matmul_axes # from MappedArrays
 using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
-#using OffsetArrays
 using AxisIndices.Interface: IdentityUnitRange
 
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
+
+@test isempty(setdiff(detect_ambiguities(StaticRanges,Base,Core), detect_ambiguities(StaticArrays,Base,Core)))
+
+setdiff(detect_ambiguities(AxisIndices,Base,Core,StaticRanges), detect_ambiguities(StaticArrays,Base,Core))
+
+
+
 
 
 struct Axis2{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}

@@ -140,13 +140,13 @@ end
 for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:unsafe_dotview, :dotview))
     @eval begin
         @propagate_inbounds function Base.$f(A::AbstractAxisArray, args...)
-            return Axes.$unsafe_f(A, args, to_indices(A, args))
+            return Axes.$unsafe_f(A, args, Interface.to_indices(A, args))
         end
     end
 end
 
 @propagate_inbounds function Base.setindex!(a::AbstractAxisArray, value, inds...)
-    return setindex!(parent(a), value, to_indices(a, inds)...)
+    return setindex!(parent(a), value, Interface.to_indices(a, inds)...)
 end
 
 
@@ -332,3 +332,5 @@ function Base.convert(::Type{T}, A::AbstractArray) where {T<:AbstractAxisArray}
         return T(A)
     end
 end
+
+Base.LogicalIndex(A::AbstractAxisArray) = Base.LogicalIndex(parent(A))

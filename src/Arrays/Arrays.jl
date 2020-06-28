@@ -67,6 +67,5 @@ include("map.jl")
 include("factorizations.jl")
 include("vectors.jl")
 include("matrices.jl")
-include("indexing.jl")
 
 end

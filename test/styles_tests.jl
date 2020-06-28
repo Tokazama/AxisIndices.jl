@@ -153,22 +153,22 @@ end
     V = AxisArray(ones(2), ["a", "b"]);
 
     @testset "linear indexing" begin
-        @test @inferred(to_indices(A, (1,))) == (1,)
-        @test @inferred(to_indices(A, (1:2,))) == (1:2,)
+        @test @inferred(Interface.to_indices(A, (1,))) == (1,)
+        @test @inferred(Interface.to_indices(A, (1:2,))) == (1:2,)
 
         @testset "Linear indexing doesn't ruin vector indexing" begin
-            @test @inferred(to_indices(V, (1:2,))) == (1:2,)
-            @test @inferred(to_indices(V, (1,))) == (1,)
-            @test @inferred(to_indices(V, ("a",))) == (1,)
+            @test @inferred(Interface.to_indices(V, (1:2,))) == (1:2,)
+            @test @inferred(Interface.to_indices(V, (1,))) == (1,)
+            @test @inferred(Interface.to_indices(V, ("a",))) == (1,)
         end
     end
 
-    @test @inferred(to_indices(A, (1, 1))) == (1, 1)
-    @test @inferred(to_indices(A, (1, 1:2))) == (1, 1:2)
-    @test @inferred(to_indices(A, (1:2, 1))) == (1:2, 1)
-    @test @inferred(to_indices(A, (1, :))) == (1, Base.Slice(Axis(1.0:2.0)))
-    @test @inferred(to_indices(A, (:, 1))) == (Base.Slice(Axis(1:2)), 1)
-    @test @inferred(to_indices(A, ([true, true], :))) == (Base.LogicalIndex(Bool[1, 1]), Base.Slice(Axis(1.0:2.0)))
-    @test @inferred(to_indices(A, (CartesianIndices((1,)), 1))) == (Axis(1:1 => 1:1), 1)
-    @test @inferred(to_indices(A, (1, 1.0))) == (1,1)
+    @test @inferred(Interface.to_indices(A, (1, 1))) == (1, 1)
+    @test @inferred(Interface.to_indices(A, (1, 1:2))) == (1, 1:2)
+    @test @inferred(Interface.to_indices(A, (1:2, 1))) == (1:2, 1)
+    @test @inferred(Interface.to_indices(A, (1, :))) == (1, Base.Slice(Axis(1.0:2.0)))
+    @test @inferred(Interface.to_indices(A, (:, 1))) == (Base.Slice(Axis(1:2)), 1)
+    @test @inferred(Interface.to_indices(A, ([true, true], :))) == (Base.LogicalIndex(Bool[1, 1]), Base.Slice(Axis(1.0:2.0)))
+    @test @inferred(Interface.to_indices(A, (CartesianIndices((1,)), 1))) == (Axis(1:1 => 1:1), 1)
+    @test @inferred(Interface.to_indices(A, (1, 1.0))) == (1,1)
 end

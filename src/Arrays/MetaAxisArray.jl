@@ -1,5 +1,4 @@
 
-
 """
     MetaAxisArray
 
@@ -68,3 +67,8 @@ function Base.show(io::IO, m::MIME"text/plain", A::MetaAxisArray{T,N}; kwargs...
     return show_array(io, A; kwargs...)
 end
 
+Base.getproperty(A::MetaAxisArray, k::Symbol) = metaproperty(A, k)
+
+Base.setproperty!(A::MetaAxisArray, k::Symbol, val) = metaproperty!(A, k, val)
+
+Base.parent(A::MetaAxisArray) = getfield(A, :parent)
