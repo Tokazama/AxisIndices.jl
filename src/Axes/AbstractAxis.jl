@@ -388,7 +388,10 @@ for f in (:(==), :isequal)
         Base.$(f)(x::AbstractAxis, y::AbstractAxis) = $f(eachindex(x), eachindex(y))
         Base.$(f)(x::AbstractArray, y::AbstractAxis) = $f(x, eachindex(y))
         Base.$(f)(x::AbstractAxis, y::AbstractArray) = $f(eachindex(x), y)
-
+        Base.$(f)(x::AbstractRange, y::AbstractAxis) = $f(x, eachindex(y))
+        Base.$(f)(x::AbstractAxis, y::AbstractRange) = $f(eachindex(x), y)
+        Base.$(f)(x::StaticRanges.GapRange, y::AbstractAxis) = $f(x, eachindex(y))
+        Base.$(f)(x::AbstractAxis, y::StaticRanges.GapRange) = $f(eachindex(x), y)
         Base.$(f)(x::OrdinalRange, y::AbstractAxis) = $f(x, eachindex(y))
         Base.$(f)(x::AbstractAxis, y::OrdinalRange) = $f(eachindex(x), y)
     end

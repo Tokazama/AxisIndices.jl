@@ -12,16 +12,27 @@ struct MetaAxis{K,I,Ks,Inds,P<:AbstractAxis{K,I,Ks,Inds},M} <: AbstractAxis{K,I,
         return new{K,I,Ks,Inds,P,M}(axis, meta)
     end
 
-    function MetaAxis(axis::AbstractAxis{K,I,Ks,Inds}, meta::M) where {K,I,Ks,Inds,M}
-        return MetaAxis{K,I,Ks,Inds,typeof(axis),M}(axis, meta)
+    function MetaAxis(arg1::A1) where {A1}
+        if A1 <: AbstractAxis
+            return MetaAxis(arg1, Dict{Symbol,Any}())
+        else
+            return MetaAxis(to_axis(arg1))
+        end
     end
-    MetaAxis(axis::AbstractAxis) = MetaAxis(axis, Dict{Symbol,Any}())
 
-    MetaAxis(ks::AbstractVector) = MetaAxis(to_axis(ks))
-    MetaAxis(ks::AbstractVector, inds::AbstractUnitRange) = MetaAxis(to_axis(ks, inds))
+    function MetaAxis(arg1::A1, arg2::A2) where {A1,A2}
+        if A1 <: AbstractAxis  # arg2 is metadata b/c already have axis
+            return MetaAxis{keytype(A1),valtype(A1),keys_type(A1),indices_type(A1),A1,A2}(arg1, arg2)
+        else
+            if A2 <: AbstractUnitRange
+                return MetaAxis(to_axis(arg1, arg2))
+            else
+                return MetaAxis(to_axis(arg1), arg2)
+            end
+        end
+    end
 
-    MetaAxis(ks::AbstractVector, meta) = MetaAxis(to_axis(ks), meta)
-    MetaAxis(ks::AbstractVector, inds::AbstractUnitRange, meta) = MetaAxis(to_axis(ks, inds), meta)
+    MetaAxis(arg1, arg2, meta) = MetaAxis(to_axis(arg1, arg2), meta)
 end
 
 Base.parent(axis::MetaAxis) = getfield(axis, :parent)

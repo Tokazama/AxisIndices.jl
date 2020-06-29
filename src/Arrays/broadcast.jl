@@ -118,3 +118,11 @@ end
 function Base.copyto!(dest::AbstractArray, src::AbstractAxisArray)
     return copyto!(dest, parent(src))
 end
+
+function Base.copyto!(dest::AbstractAxisArray, src::SparseArrays.AbstractSparseMatrix)
+    return copyto!(parent(dest), src)
+end
+
+function Base.copyto!(dest::SparseArrays.AbstractSparseMatrix, src::AbstractAxisArray)
+    return copyto!(dest, parent(src))
+end

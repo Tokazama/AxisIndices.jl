@@ -1,6 +1,7 @@
 
 module Arrays
 
+using SparseArrays
 using NamedDims
 using LinearAlgebra
 using Statistics

@@ -29,7 +29,6 @@ function unsafe_dotview(A, args::Tuple, inds::Tuple)
     return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false, Staticness(p)))
 end
 
-
 ###
 ### checkbounds
 ###
@@ -44,6 +43,17 @@ end
 @inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::CartesianIndex)
     return checkindex(Bool, axis, arg)
 end
+#@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::Base.LogicalIndex)
+#    return checkindex(Bool, axis, arg)
+#end
+@inline function Base.checkbounds(::Type{Bool}, A::AbstractAxis, I::Base.LogicalIndex{<:Any,<:AbstractArray{Bool,1}})
+    return eachindex(eachindex) == eachindex(IndexLinear(), I.mask)
+end
+
+# TODO test this more thoroughly
+@inline function Base.checkbounds(::Type{Bool}, A::AbstractArray, i::AbstractArray{<:CartesianIndex})
+    return Base.checkbounds_indices(Bool, axes(A), (i,))
+end
 
 for T in (AbstractVector{Bool},
           AbstractArray,
@@ -54,6 +64,7 @@ for T in (AbstractVector{Bool},
           CartesianIndex{1},
           Base.LogicalIndex,
           AbstractArray{Bool},
+          Colon,
           Any
          )
     @eval begin
@@ -100,6 +111,8 @@ end
 end
 _axis_getindex(axis::AbstractAxis, arg, index) = index
 
+Base.getindex(axis::AbstractAxis, arg::Colon) = copy(axis)
+
 """
     CartesianAxes
 
@@ -134,13 +147,11 @@ CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(
 
 Base.axes(A::CartesianAxes) = getfield(A, :indices)
 
-function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
-    Base.@_propagate_inbounds_meta
+@propagate_inbounds function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
     return CartesianIndex(map(getindex, axes(A), inds))
 end
 
-function Base.getindex(A::CartesianAxes, inds...)
-    Base.@_propagate_inbounds_meta
+@propagate_inbounds function Base.getindex(A::CartesianAxes, inds...)
     return Base._getindex(IndexStyle(A), A, Interface.to_indices(A, Tuple(inds))...)
 end
 
@@ -171,7 +182,9 @@ LinearAxes(ks::Tuple{Vararg{<:Any,N}}) where {N} = LinearIndices(map(to_axis, ks
 Base.axes(A::LinearAxes) = getfield(A, :indices)
 
 @boundscheck function Base.getindex(iter::LinearAxes, i::Int)
-    @boundscheck checkbounds(iter, i)
+    @boundscheck if !in(i, eachindex(iter))
+        throw(BoundsError(iter, i))
+    end
     return i
 end
 

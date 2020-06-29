@@ -25,8 +25,21 @@ for f in (:map, :map!)
                 Broadcast.combine_axes(a, b, cs...,)
             )
         end
+
+        function Base.$f(f::F, a::NamedDimsArray, b::AbstractAxisArray, cs::AbstractArray...) where {F}
+            data = Base.$f(f, unname(a), unname(b), unname.(cs)...)
+            new_names = unify_names(dimnames(a), dimnames(b), dimnames.(cs)...)
+            return NamedDimsArray(data, new_names)
+        end
+
+        function Base.$f(f::F, a::AbstractAxisArray, b::NamedDimsArray, cs::AbstractArray...) where {F}
+            data = Base.$f(f, unname(a), unname(b), unname.(cs)...)
+            new_names = unify_names(dimnames(a), dimnames(b), dimnames.(cs)...)
+            return NamedDimsArray(data, new_names)
+        end
     end
 end
+
 
 Base.map(f, A::AbstractAxisArray) = unsafe_reconstruct(A, map(f, parent(A)), axes(A))
 

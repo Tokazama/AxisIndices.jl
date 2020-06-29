@@ -178,13 +178,23 @@ for f in (:cumsum, :cumprod)
     end
 end
 
-for f in (:(==), :isequal, :isapprox)
-    @eval begin
-        @inline Base.$f(a::AbstractAxisArray, b::AbstractAxisArray; kw...) = $f(parent(a), parent(b); kw...)
-        @inline Base.$f(a::AbstractAxisArray, b::AbstractArray; kw...) = $f(parent(a), b; kw...)
-        @inline Base.$f(a::AbstractArray, b::AbstractAxisArray; kw...) = $f(a, parent(b); kw...)
-    end
-end
+Base.isapprox(a::AbstractAxisArray, b::AbstractAxisArray; kw...) = isapprox(parent(a), parent(b); kw...)
+Base.isapprox(a::AbstractAxisArray, b::AbstractArray; kw...) = isapprox(parent(a), b; kw...)
+Base.isapprox(a::AbstractArray, b::AbstractAxisArray; kw...) = isapprox(a, parent(b); kw...)
+
+Base.:(==)(a::AbstractAxisArray, b::AbstractAxisArray) = ==(parent(a), parent(b))
+Base.:(==)(a::AbstractAxisArray, b::AbstractArray) = ==(parent(a), b)
+Base.:(==)(a::AbstractArray, b::AbstractAxisArray) = ==(a, parent(b))
+Base.:(==)(a::AbstractAxisArray, b::AbstractAxis) = ==(parent(a), b)
+Base.:(==)(a::AbstractAxis, b::AbstractAxisArray) = ==(a, parent(b))
+Base.:(==)(a::AbstractAxisArray, b::GapRange) = ==(parent(a), b)
+Base.:(==)(a::GapRange, b::AbstractAxisArray) = ==(a, parent(b))
+
+Base.:isequal(a::AbstractAxisArray, b::AbstractAxisArray) = isequal(parent(a), parent(b))
+Base.:isequal(a::AbstractAxisArray, b::AbstractArray) = isequal(parent(a), b)
+Base.:isequal(a::AbstractArray, b::AbstractAxisArray) = isequal(a, parent(b))
+Base.:isequal(a::AbstractAxisArray, b::AbstractAxis) = isequal(parent(a), b)
+Base.:isequal(a::AbstractAxis, b::AbstractAxisArray) = isequal(a, parent(b))
 
 for f in (:zero, :one, :copy)
     @eval begin
