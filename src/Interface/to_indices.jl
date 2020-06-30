@@ -9,7 +9,7 @@ is_multidim_arg(::Type{T}) where {T} = false
 is_multidim_arg(::Type{CartesianIndex{N}}) where {N} = true
 is_multidim_arg(::Type{<:AbstractArray{T,N}}) where {T,N} = true
 is_multidim_arg(::Type{<:AbstractArray{T,1}}) where {T} = false
-is_multidim_arg(::Type{<:AbstractArray{CartesianIndex{N},1}}) where {T,N} = false
+is_multidim_arg(::Type{<:AbstractArray{CartesianIndex{N},1}}) where {T,N} = true
 
 function to_indices(A::AbstractArray{T,N}, args::Tuple{Arg,Vararg{Any,M}}) where {T,N,Arg,M}
     return Interface.to_indices(A, axes(A), args)
@@ -74,10 +74,10 @@ end
     arg::AbstractArray{CartesianIndex{N}},
     args::Tuple
 ) where {N}
-    (first(I), to_indices(A, inds, tail(I))...)
+    #(first(I), to_indices(A, inds, tail(I))...)
 
     axs_front, axstail = Base.IteratorsMD.split(axs, Val(N))
-    @boundscheck !checkindex(Bool, axs_front, arg) || throw(BoundsError(axs_front, arg))
+    @boundscheck Base.checkbounds_indices(Bool, axs_front, (arg,)) || throw(BoundsError(axs_front, arg))
     return (arg, Interface.to_indices(A, axstail, args)...)
 end
 @propagate_inbounds function _multi_to_indices(
