@@ -1,6 +1,6 @@
 # Internals of Indexing
 
-This section is those who want to understand how indexing is implemented in `AxisIndices` and some of the logic behind it.
+This section is for those who want to understand how indexing is implemented in `AxisIndices` and some of the logic behind it.
 It goes over:
 
 * The three steps of indexing.
@@ -9,22 +9,26 @@ It goes over:
     3. Reconstructing axes
 * Introduction to `AxisIndicesStyle` traits
 
+Although the basic concepts used here are very unlikely to change, small details (such as internally used naming and types) may change.
+Therefore, the exact implementation of these concepts are actively being developed and improved.
+
 ## Mapping to Indices
 
-AxisIndices attempts to redirect the traditional `to_indices` method from the following...
+AxisIndices attempts to redirect the uses its own internal implementation of `to_indices`.
+Where the the method from base looks somewhate like the following...
 
 
 ```julia
-function to_indices(A, axes::Tuple, args::Tuple)
-    return (to_index(A, first(args)), to_indices(A, tail(axes), tail(args))...)
+function Base.to_indices(A, axes::Tuple, args::Tuple)
+    return (Base.to_index(A, first(args)), Base.to_indices(A, tail(axes), tail(args))...)
 end
 ```
 
-to...
+AxisIndices looks more like...
 
 ```julia
-function to_indices(A, axes::Tuple, args::Tuple)
-    return (to_index(first(axes), first(args)), to_indices(A, tail(axes), tail(args))...)
+function AxisIndices.to_indices(A, axes::Tuple, args::Tuple)
+    return (AxisIndices.to_index(first(axes), first(args)), AxisIndices.to_indices(A, tail(axes), tail(args))...)
 end
 ```
 

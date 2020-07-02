@@ -1,8 +1,10 @@
 # TimeAxis Guide
 
 Here we define an axis that specifically supports time.
-First, we compose the type and necessary methods for accessing it's properties and constructing it.
-Second, we define a new trait that changes indexing.
+Users aren't typically expected to create a unique axis type, and a more featureful implementation is available through the [TimeAxes.jl](https://github.com/Tokazama/TimeAxes.jl) package.
+However, this section may still be a useful starting point for those wishing to create a novel axis type, because the process should generally be the same:
+1. Compose the type and necessary methods for accessing it's properties and constructing it.
+2. Define a new trait that changes indexing.
 
 ## 1. The TimeAxis Type
 

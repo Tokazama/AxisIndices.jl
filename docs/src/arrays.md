@@ -168,6 +168,26 @@ julia> A_axis[!=(.2s), in(["a", "c"])]
 
 ```
 
+Indexing notation from the [EllipsisNotation.jl](https://github.com/ChrisRackauckas/EllipsisNotation.jl) packages is also supported.
+```jldoctest indexing_examples
+julia> A = AxisArray{Int}(undef, 2, 4, 2);
+
+julia> A[..,1] = [2 1 4 5
+                  2 2 3 6];
+
+julia> A[..,2] = [3 2 6 5 3 2 6 6];
+
+julia> A[:,:,1] == [2 1 4 5
+                    2 2 3 6]
+true
+
+julia> A = AxisArray(ones(3,3,3,3,3));
+
+julia> size(A[1:1, .., 1:1])
+(1, 3, 3, 3, 1)
+
+```
+
 ## Combining Different Axes TODO
 
 
