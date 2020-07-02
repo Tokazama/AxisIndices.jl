@@ -1,5 +1,6 @@
 module Interface
 
+using EllipsisNotation
 using AxisIndices.Styles
 using AxisIndices.Metadata
 using NamedDims
@@ -10,6 +11,7 @@ using StaticRanges: resize_last
 
 import MetadataArrays: MetadataArray
 
+using EllipsisNotation: Ellipsis
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
 
 export
@@ -49,6 +51,7 @@ export
     # NamedDims API
     dim,
     dimnames
+
 
 @static if !isdefined(Base, :IdentityUnitRange)
     const IdentityUnitRange = Base.Slice

@@ -11,7 +11,6 @@ end
     return check_index(AxisIndicesStyle(axis, arg), axis, arg.x)
 end
 
-
 check_index(::KeyElement, axis, arg) = arg in keys(axis)
 
 check_index(::IndexElement, axis, arg) = arg in indices(axis)

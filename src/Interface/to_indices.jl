@@ -10,6 +10,7 @@ is_multidim_arg(::Type{CartesianIndex{N}}) where {N} = true
 is_multidim_arg(::Type{<:AbstractArray{T,N}}) where {T,N} = true
 is_multidim_arg(::Type{<:AbstractArray{T,1}}) where {T} = false
 is_multidim_arg(::Type{<:AbstractArray{CartesianIndex{N},1}}) where {T,N} = true
+is_multidim_arg(::Type{Ellipsis}) = true
 
 function to_indices(A::AbstractArray{T,N}, args::Tuple{Arg,Vararg{Any,M}}) where {T,N,Arg,M}
     return Interface.to_indices(A, axes(A), args)
@@ -23,6 +24,7 @@ end
         return (to_index(eachindex(IndexLinear(), A), first(args)),)
     end
 end
+
 
 @propagate_inbounds function to_indices(A::AbstractArray{T,N}, args::Tuple{}) where {T,N}
     return (to_index(eachindex(IndexLinear(), A)),)
@@ -41,8 +43,21 @@ end
         return _multi_to_indices(A, axs, first(args), tail(args))
     else
         return (to_index(first(axs), first(args)), Interface.to_indices(A, maybe_tail(axs), tail(args))...)
+
     end
 end
+
+@propagate_inbounds function _multi_to_indices(A, axs::Tuple, arg::Ellipsis, args::Tuple)
+    return Interface.to_indices(A, axs, (EllipsisNotation.fillcolons(axs, args)..., args...))
+end
+
+#=
+@inline function to_indices(A, inds, I::Tuple{Ellipsis, Vararg{Any, N}}) where N
+    # Align the remaining indices to the tail of the `inds`
+    colons = fillcolons(inds, tail(I))
+    to_indices(A, inds, (colons..., tail(I)...))
+end
+=#
 
 @propagate_inbounds function _multi_to_indices(
     A,
@@ -124,5 +139,4 @@ to_indices(A::AbstractArray{T,N}, axs::Tuple{}, args::Tuple{}) where {T,N} = ()
 end
 _maybe_linear_logical_index(::IndexStyle, A, i) = to_index(A, i)
 _maybe_linear_logical_index(::IndexLinear, A, i) = Base.LogicalIndex{Int}(i)
-
 

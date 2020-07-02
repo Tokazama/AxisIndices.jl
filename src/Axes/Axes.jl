@@ -2,6 +2,8 @@ module Axes
 
 using NamedDims
 using MappedArrays
+import EllipsisNotation: Ellipsis
+import StaticArrays: StaticIndexing
 import StaticArrays: SVector
 using StaticRanges
 

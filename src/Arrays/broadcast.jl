@@ -119,10 +119,20 @@ function Base.copyto!(dest::AbstractArray, src::AbstractAxisArray)
     return copyto!(dest, parent(src))
 end
 
-function Base.copyto!(dest::AbstractAxisArray, src::SparseArrays.AbstractSparseMatrix)
+function Base.copyto!(dest::AbstractAxisMatrix, src::SparseArrays.AbstractSparseMatrix)
     return copyto!(parent(dest), src)
 end
 
-function Base.copyto!(dest::SparseArrays.AbstractSparseMatrix, src::AbstractAxisArray)
+function Base.copyto!(dest::SparseArrays.AbstractSparseMatrix, src::AbstractAxisMatrix)
     return copyto!(dest, parent(src))
+end
+
+function Base.copyto!(dest::SparseVector, src::AbstractAxisVector{T}) where {T}
+    return copyto!(dest, parent(src))
+end
+
+Base.copyto!(dest::PermutedDimsArray, src::AbstractAxisArray) = copyto!(dest, parent(src))
+
+function Base.copyto!(dest::AbstractAxisMatrix, src::SparseArrays.AbstractSparseMatrixCSC)
+    return copyto!(parent(dest), src)
 end

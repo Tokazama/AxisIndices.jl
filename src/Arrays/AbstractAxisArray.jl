@@ -145,6 +145,8 @@ for (unsafe_f, f) in ((:unsafe_getindex, :getindex), (:unsafe_view, :view), (:un
     end
 end
 
+Base.getindex(A::AbstractAxisArray, ::Ellipsis) = A
+
 @propagate_inbounds function Base.setindex!(a::AbstractAxisArray, value, inds...)
     return setindex!(parent(a), value, Interface.to_indices(a, inds)...)
 end
@@ -155,7 +157,9 @@ end
 ###
 for f in (:sum!, :prod!, :maximum!, :minimum!)
     for (A,B) in ((AbstractAxisArray, AbstractArray),
+                  (AbstractAxisArray, NamedDimsArray),
                   (AbstractArray,       AbstractAxisArray),
+                  (NamedDimsArray,       AbstractAxisArray),
                   (AbstractAxisArray, AbstractAxisArray))
         @eval begin
             function Base.$f(a::$A, b::$B)

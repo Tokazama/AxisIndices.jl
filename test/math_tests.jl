@@ -70,6 +70,7 @@ end
 @testset "matmul" begin
 
 
+    #=
     @testset "matmul_axes" begin
         axs2, axs1 = (Axis(1:2), Axis(1:4)), (Axis(1:6),);
 
@@ -85,6 +86,7 @@ end
 
         @test matmul_axes(CartesianAxes((2,4)), CartesianAxes((4, 2))) == matmul_axes(ones(2, 4), ones(4, 2))
     end
+    =#
 
    @testset "Matrix-Matrix" begin
         a = AxisArray(ones(2, 3), (3:4, 1:3));

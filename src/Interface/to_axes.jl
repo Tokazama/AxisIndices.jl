@@ -108,6 +108,24 @@ end
     return _to_axes(old_axes, tail(args), tail(interim_indices), new_indices, check_length, staticness)
 end
 
+@inline function _to_axes(
+    old_axes::Tuple{A,Vararg{Any}},
+    args::Tuple{Ellipsis,Vararg{Any}},
+    interim_indices::Tuple,
+    new_indices::Tuple{I,Vararg{Any}},
+    check_length::Bool,
+    staticness
+) where {A,I}
+    _to_axes(
+        old_axes,
+        (EllipsisNotation.fillcolons(old_axes, maybe_tail(args))..., maybe_tail(args)...),
+        interim_indices,
+        new_indices,
+        check_length,
+        staticness
+    )
+end
+
 _to_axes(::Tuple, ::Tuple{CartesianIndex{N},Vararg{Any}}, ::Tuple, ::Tuple{}, ::Bool, ::Any) where {N} = ()
 _to_axes(::Tuple, ::Tuple{Any,Vararg{Any}},               ::Tuple, ::Tuple{}, ::Bool, ::Any) = ()
 _to_axes(::Tuple, ::Tuple,                                ::Tuple, ::Tuple{}, ::Bool, ::Any) = ()

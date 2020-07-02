@@ -94,3 +94,5 @@ for f in (:getindex, :view, :dotview)
         end
     end
 end
+
+Base.getindex(A::NamedMetaAxisArray, ::Ellipsis) = A

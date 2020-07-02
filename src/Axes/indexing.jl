@@ -1,7 +1,7 @@
+
 ###
 ### unsafe_getindex
 ###
-
 function unsafe_getindex(A, args::Tuple, inds::Tuple{Vararg{<:Integer}})
     return @inbounds(getindex(parent(A), inds...))
 end
@@ -33,26 +33,38 @@ end
 ### checkbounds
 ###
 Base.checkbounds(x::AbstractAxis, i) = checkbounds(Bool, x, i)
-
+#=
+@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::CartesianIndex)
+    return checkindex(Bool, axis, arg)
+end
+function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, i::AbstractArray{<:CartesianIndex})
+    return Base.checkbounds_indices(Bool, (axis,), (i,))
+end
+=#
+@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::Base.LogicalIndex)
+    return checkindex(Bool, axis, arg)
+end
 @inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg)
     return checkindex(Bool, axis, arg)
 end
 @inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::AbstractVector)
     return checkindex(Bool, axis, arg)
 end
-@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::CartesianIndex)
-    return checkindex(Bool, axis, arg)
+
+@inline function Base.checkbounds(
+    ::Type{Bool},
+    axis::AbstractAxis,
+    i::Union{CartesianIndex, AbstractArray{<:CartesianIndex}}
+)
+
+    return Base.checkbounds_indices(Bool, (axis,), (i,))
 end
+
 #@inline function Base.checkbounds(::Type{Bool}, axis::AbstractAxis, arg::Base.LogicalIndex)
 #    return checkindex(Bool, axis, arg)
 #end
 @inline function Base.checkbounds(::Type{Bool}, A::AbstractAxis, I::Base.LogicalIndex{<:Any,<:AbstractArray{Bool,1}})
     return eachindex(eachindex) == eachindex(IndexLinear(), I.mask)
-end
-
-# TODO test this more thoroughly
-@inline function Base.checkbounds(::Type{Bool}, A::AbstractArray, i::AbstractArray{<:CartesianIndex})
-    return Base.checkbounds_indices(Bool, axes(A), (i,))
 end
 
 for T in (AbstractVector{Bool},
@@ -65,8 +77,8 @@ for T in (AbstractVector{Bool},
           Base.LogicalIndex,
           AbstractArray{Bool},
           Colon,
-          Any
-         )
+          Real,
+          Any)
     @eval begin
         function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::$T)
             return Interface.check_index(axis, arg)
@@ -74,6 +86,9 @@ for T in (AbstractVector{Bool},
     end
 end
 
+function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::StaticIndexing)
+    return Interface.check_index(axis, arg.ind)
+end
 
 ###
 ### getindex
@@ -101,6 +116,8 @@ end
 @propagate_inbounds function Base.getindex(axis::AbstractAxis, arg)
     return _axis_getindex(axis, arg, to_index(axis, arg))
 end
+
+Base.getindex(axis::AbstractAxis, ::Ellipsis) = axis
 
 @inline function _axis_getindex(axis::AbstractAxis, arg, inds::AbstractUnitRange)
     if is_indices_axis(axis)
@@ -135,25 +152,49 @@ CartesianIndex(2, 2)
 """
 const CartesianAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = CartesianIndices{N,R}
 
-function CartesianAxes(ks::Tuple{Vararg{<:Integer,N}}) where {N}
-    return CartesianIndices(map(SimpleAxis, ks))
-end
+_cartesian_axes(axs::Tuple{}) = ()
+_cartesian_axes(axs::Tuple) = (to_axis(first(axs)), _cartesian_axes(tail(axs))...)
 
-function CartesianAxes(ks::Tuple{Vararg{<:Any,N}}) where {N}
-    return CartesianIndices(ntuple(i -> to_axis(getfield(ks, i), false), Val(N)))
-end
-
-CartesianAxes(ks::Tuple{Vararg{<:AbstractAxis,N}}) where {N} = CartesianIndices(ks)
+CartesianAxes(axs::Tuple{Vararg{Any,N}}) where {N} = CartesianIndices(_cartesian_axes(axs))
 
 Base.axes(A::CartesianAxes) = getfield(A, :indices)
 
-@propagate_inbounds function Base.getindex(A::CartesianAxes, inds::Vararg{Int})
+@propagate_inbounds function Base.getindex(
+    A::CartesianIndices{N,<:NTuple{N,<:AbstractAxis}},
+    inds::Vararg{Int}
+) where {N}
+
     return CartesianIndex(map(getindex, axes(A), inds))
 end
 
-@propagate_inbounds function Base.getindex(A::CartesianAxes, inds...)
+Base.getindex(A::CartesianIndices{N,<:NTuple{N,<:AbstractAxis}}, ::Ellipsis) where {N} = A
+
+@propagate_inbounds function Base.getindex(
+    A::CartesianAxes{N,<:NTuple{N,<:AbstractAxis}},
+    inds...
+) where {N}
+
     return Base._getindex(IndexStyle(A), A, Interface.to_indices(A, Tuple(inds))...)
 end
+
+@propagate_inbounds function Base.getindex(
+    A::CartesianIndices{N,<:NTuple{N,<:AbstractAxis}},
+    inds::Vararg{Int,N}
+) where {N}
+
+    return CartesianIndex(Interface.to_indices(A, Tuple(inds)))
+end
+
+#=
+@inline function Base.getindex(iter::CartesianIndices{N,R}, I::Vararg{Int, N}) where {N,R}
+    @boundscheck checkbounds(iter, I...)
+    CartesianIndex(I .- first.(Base.axes1.(iter.indices)) .+ first.(iter.indices))
+end
+
+CartesianIndices{N,NTuple{N,<:AbstractAxis}} where N
+=#
+
+
 
 """
     LinearAxes
@@ -191,6 +232,8 @@ end
 @propagate_inbounds function Base.getindex(A::LinearAxes, inds...)
     return Base._getindex(IndexStyle(A), A, Interface.to_indices(A, Tuple(inds))...)
 end
+
+Base.getindex(A::LinearAxes, ::Ellipsis) = A
 
 """
     MetaCartesianAxes

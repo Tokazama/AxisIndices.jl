@@ -20,14 +20,19 @@ ambs = detect_ambiguities(pkgs...);
 using AxisIndices
 ambs = setdiff(detect_ambiguities(AxisIndices, pkgs...), ambs);
 
+unique([i[1].name for i in ambs])
 for amb_i in ambs
-    if amb_i[1].name == :map
+    if amb_i[1].name == :CartesianIndices
         print(amb_i)
     end
 end
 
+inds = [i[1].name == :copyto! for i in ambs]
+ambs[[i[1].name == :mapreduce for i in ambs]]
+
 itr[1].name
 unique([itr[1].name for itr in ambs])
+
 if !isempty(ambs)
     println("Ambiguities:")
     for a in ambs

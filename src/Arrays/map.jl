@@ -39,7 +39,21 @@ for f in (:map, :map!)
         end
     end
 end
+function Base.map(f::F, a::StaticArray, b::AbstractAxisArray, cs::AbstractArray...) where {F}
+    return unsafe_reconstruct(
+        b,
+        map(f, a, parent(b), parent.(cs)...),
+        Broadcast.combine_axes(a, b, cs...,)
+    )
+end
 
+function Base.map(f::F, a::AbstractAxisArray, b::StaticArray, cs::AbstractArray...) where {F}
+    return unsafe_reconstruct(
+        b,
+        map(f, parent(a), b, parent.(cs)...),
+        Broadcast.combine_axes(a, b, cs...,)
+    )
+end
 
 Base.map(f, A::AbstractAxisArray) = unsafe_reconstruct(A, map(f, parent(A)), axes(A))
 

@@ -6,6 +6,7 @@ using NamedDims
 using LinearAlgebra
 using Statistics
 
+using EllipsisNotation: Ellipsis
 using ArrayInterface
 using MappedArrays
 using StaticArrays
@@ -54,7 +55,7 @@ export matmul_axes, get_factorization
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
-const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
+#const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 
 include("AbstractAxisArray.jl")
 include("AxisArray.jl")
