@@ -342,6 +342,11 @@ function Base.:*(a::AbstractAxisVector, b::Adjoint{<:Any,<:AbstractMatrix})
     p = *(a, parent(b))
     return _matmul(a, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
+
+function Base.:*(a::Transpose{<:Any,<:AbstractMatrix{T}}, b::AbstractAxisVector{S}) where {T,S}
+    p = *(a, parent(b))
+    return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
+end
 #*(u::TransposeAbsVec{T}, v::AbstractVector{T}) where {T<:Real} = dot(u.parent, v)
 #*(u::AdjOrTransAbsVec, v::AbstractVector) = sum(uu*vv for (uu, vv) in zip(u, v))
 

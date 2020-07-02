@@ -1,6 +1,7 @@
 
 include("vectors.jl")
 include("AxisArray.jl")
+include("matrices.jl")
 
 @testset "permuteddimsview" begin
     @testset "standard" begin
