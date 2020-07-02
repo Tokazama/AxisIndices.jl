@@ -243,18 +243,16 @@ end
 
 @declare_axisarray_matmul StaticMatrix
 
+@declare_axisarray_matmul LinearAlgebra.AdjOrTransAbsVec
+
+@declare_axisarray_matmul LinearAlgebra.TransposeAbsVec
+
 #@declare_axisarray_matmul StaticVector
 
 const RealHermSymComplexHerm = Union{Hermitian{T,S}, Hermitian{Complex{T},S}, Symmetric{T,S}} where S where T<:Real
-function Base.:*(a::Adjoint{<:Any,<:RealHermSymComplexHerm}, b::AbstractAxisVector)
-    p = *(a, parent(b))
-    return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
-end
-function Base.:*(a::Adjoint{<:Any,<:RealHermSymComplexHerm}, b::AbstractAxisMatrix)
-    p = *(a, parent(b))
-    return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
-end
-function Base.:*(a::AbstractAxisMatrix, b::Adjoint{<:Any,<:RealHermSymComplexHerm})
+@declare_axisarray_matmul RealHermSymComplexHerm
+
+function Base.:*(a::Adjoint{<:Any,<:AbstractMatrix{T}}, b::AbstractAxisVector{S}) where {T,S}
     p = *(a, parent(b))
     return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
@@ -326,14 +324,7 @@ function Base.:(*)(a::AbstractAxisMatrix, b::Adjoint{<:Any,<:LinearAlgebra.Abstr
     p = *(parent(a), b)
     return _matmul(a, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
-function Base.:*(a::LinearAlgebra.AdjOrTransAbsVec, b::AbstractAxisVector)
-    p = *(a, parent(b))
-    return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
-end
-function Base.:*(a::AbstractAxisVector, b::LinearAlgebra.AdjOrTransAbsVec)
-    p = *(parent(a), b)
-    return _matmul(a, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
-end
+
 function Base.:*(a::AbstractAxisVector, b::Transpose{<:Any,<:AbstractMatrix})
     p = *(a, parent(b))
     return _matmul(a, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
@@ -347,179 +338,3 @@ function Base.:*(a::Transpose{<:Any,<:AbstractMatrix{T}}, b::AbstractAxisVector{
     p = *(a, parent(b))
     return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
-#*(u::TransposeAbsVec{T}, v::AbstractVector{T}) where {T<:Real} = dot(u.parent, v)
-#*(u::AdjOrTransAbsVec, v::AbstractVector) = sum(uu*vv for (uu, vv) in zip(u, v))
-
-#=
-function Base.:(*)(A::AbstractMatrix, B::AbstractMatrix)
-    TS = promote_op(matprod, eltype(A), eltype(B))
-    mul!(similar(B, TS, (size(A,1), size(B,2))), A, B)
-end
-
-function (*)(A::AbstractMatrix, B::AbstractMatrix)
-    TS = promote_op(matprod, eltype(A), eltype(B))
-    mul!(similar(B, TS, (size(A,1), size(B,2))), A, B)
-end
-function (*)(R::AbstractRotation{T}, A::AbstractVecOrMat{S}) where {T,S}
-    TS = typeof(zero(T)*zero(S) + zero(T)*zero(S))
-    lmul!(convert(AbstractRotation{TS}, R), TS == S ? copy(A) : convert(AbstractArray{TS}, A))
-end
-(*)(A::AbstractVector, adjR::Adjoint{<:Any,<:AbstractRotation}) = _absvecormat_mul_adjrot(A, adjR)
-(*)(A::AbstractMatrix, adjR::Adjoint{<:Any,<:AbstractRotation}) = _absvecormat_mul_adjrot(A, adjR)
-
-#function Base.:*(a::Diagonal{T1}, b::AbstractAxisMatrix{T2}) where {T}
-    return _matmul(b, promote_type(T1, T2), *(a, parent(b)), matmul_axes(a, b))
-end
-function Base.:*(a::AbstractAxisArray{T1,2}, b::Diagonal{T2}) where {T1,T2}
-    return _matmul(a, promote_type(T1, T2), *(parent(a), b), matmul_axes(a, b))
-end
-function Base.:*(
-    a::Adjoint{T1,<:AbstractVector{T1}},
-    b::AbstractAxisArray{T,1,<:AbstractVector{T}}
-) where {T1<:Number,T}
-
-    return *(a, parent(b))
-end
-function Base.:*(
-    a::Transpose{T1,<:AbstractVector{T1}},
-    b::AbstractAxisArray{T,1,<:AbstractVector{T}}
-) where {T1<:Real,T}
-
-    return *(a, parent(b))
-end
-
-
-=#
-
-# vector^T * vector
-#function Base.:*(a::AbstractAxisArray{T,2,<:CoVector}, b::AbstractAxisVector) where {T}
-#    return *(parent(a), parent(b))
-#end
-#=
-for mat in (:AbstractVector, :AbstractMatrix)
-    ### Multiplication with triangle to the left and hence rhs cannot be transposed.
-    @eval begin
-        function *(A::AbstractTriangular, B::$mat)
-            require_one_based_indexing(B)
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            lmul!(convert(AbstractArray{TAB}, A), BB)
-        end
-
-        function *(transA::Transpose{<:Any,<:AbstractTriangular}, B::$mat)
-            require_one_based_indexing(B)
-            A = transA.parent
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            lmul!(transpose(convert(AbstractArray{TAB}, A)), BB)
-        end
-    end
-    ### Left division with triangle to the left hence rhs cannot be transposed. No quotients.
-    @eval begin
-        function \(A::Union{UnitUpperTriangular,UnitLowerTriangular}, B::$mat)
-            require_one_based_indexing(B)
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            ldiv!(convert(AbstractArray{TAB}, A), BB)
-        end
-        function \(adjA::Adjoint{<:Any,<:Union{UnitUpperTriangular,UnitLowerTriangular}}, B::$mat)
-            require_one_based_indexing(B)
-            A = adjA.parent
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            ldiv!(adjoint(convert(AbstractArray{TAB}, A)), BB)
-        end
-        function \(transA::Transpose{<:Any,<:Union{UnitUpperTriangular,UnitLowerTriangular}}, B::$mat)
-            require_one_based_indexing(B)
-            A = transA.parent
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            ldiv!(transpose(convert(AbstractArray{TAB}, A)), BB)
-        end
-    end
-    ### Left division with triangle to the left hence rhs cannot be transposed. Quotients.
-    @eval begin
-        function \(A::Union{UpperTriangular,LowerTriangular}, B::$mat)
-            require_one_based_indexing(B)
-            TAB = typeof((zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))/one(eltype(A)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            ldiv!(convert(AbstractArray{TAB}, A), BB)
-        end
-        function \(adjA::Adjoint{<:Any,<:Union{UpperTriangular,LowerTriangular}}, B::$mat)
-            require_one_based_indexing(B)
-            A = adjA.parent
-            TAB = typeof((zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))/one(eltype(A)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            ldiv!(adjoint(convert(AbstractArray{TAB}, A)), BB)
-        end
-        function \(transA::Transpose{<:Any,<:Union{UpperTriangular,LowerTriangular}}, B::$mat)
-            require_one_based_indexing(B)
-            A = transA.parent
-            TAB = typeof((zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))/one(eltype(A)))
-            BB = similar(B, TAB, size(B))
-            copyto!(BB, B)
-            ldiv!(transpose(convert(AbstractArray{TAB}, A)), BB)
-        end
-    end
-    ### Right division with triangle to the right hence lhs cannot be transposed. No quotients.
-    @eval begin
-        function /(A::$mat, B::Union{UnitUpperTriangular, UnitLowerTriangular})
-            require_one_based_indexing(A)
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            AA = similar(A, TAB, size(A))
-            copyto!(AA, A)
-            rdiv!(AA, convert(AbstractArray{TAB}, B))
-        end
-        function /(A::$mat, adjB::Adjoint{<:Any,<:Union{UnitUpperTriangular, UnitLowerTriangular}})
-            require_one_based_indexing(A)
-            B = adjB.parent
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            AA = similar(A, TAB, size(A))
-            copyto!(AA, A)
-            rdiv!(AA, adjoint(convert(AbstractArray{TAB}, B)))
-        end
-        function /(A::$mat, transB::Transpose{<:Any,<:Union{UnitUpperTriangular, UnitLowerTriangular}})
-            require_one_based_indexing(A)
-            B = transB.parent
-            TAB = typeof(zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))
-            AA = similar(A, TAB, size(A))
-            copyto!(AA, A)
-            rdiv!(AA, transpose(convert(AbstractArray{TAB}, B)))
-        end
-    end
-    ### Right division with triangle to the right hence lhs cannot be transposed. Quotients.
-    @eval begin
-        function /(A::$mat, B::Union{UpperTriangular,LowerTriangular})
-            require_one_based_indexing(A)
-            TAB = typeof((zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))/one(eltype(A)))
-            AA = similar(A, TAB, size(A))
-            copyto!(AA, A)
-            rdiv!(AA, convert(AbstractArray{TAB}, B))
-        end
-        function /(A::$mat, adjB::Adjoint{<:Any,<:Union{UpperTriangular,LowerTriangular}})
-            require_one_based_indexing(A)
-            B = adjB.parent
-            TAB = typeof((zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))/one(eltype(A)))
-            AA = similar(A, TAB, size(A))
-            copyto!(AA, A)
-            rdiv!(AA, adjoint(convert(AbstractArray{TAB}, B)))
-        end
-        function /(A::$mat, transB::Transpose{<:Any,<:Union{UpperTriangular,LowerTriangular}})
-            require_one_based_indexing(A)
-            B = transB.parent
-            TAB = typeof((zero(eltype(A))*zero(eltype(B)) + zero(eltype(A))*zero(eltype(B)))/one(eltype(A)))
-            AA = similar(A, TAB, size(A))
-            copyto!(AA, A)
-            rdiv!(AA, transpose(convert(AbstractArray{TAB}, B)))
-        end
-    end
-end
-
-=#

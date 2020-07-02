@@ -42,6 +42,21 @@
         @test av * av' == [1 2 3; 2 4 6; 3 6 9]
     end
 
+    @testset "Transpose/Adjoint" begin
+        A = ones(3, 3)
+        @test A * AxisArray(ones(3)) == A * ones(3)
+        @test A' * AxisArray(ones(3)) == A' * ones(3)
+        @test A' * AxisArray(ones(3)) == A' * ones(3)
+        @test A' * AxisArray(ones(3,3)) == A' * ones(3, 3)
+        @test ones(3)' * A == AxisArray(ones(3))' * A
+        @test ones(1, 3) * A == AxisArray(ones(1, 3)) * A
+
+        @test transpose(A) * AxisArray(ones(3)) == transpose(A) * ones(3)
+        @test transpose(A) * AxisArray(ones(3)) == transpose(A) * ones(3)
+        @test transpose(A) * AxisArray(ones(3,3)) == transpose(A) * ones(3, 3)
+        @test transpose(ones(3)) * A == transpose(AxisArray(ones(3))) * A
+    end
+
     @testset "Hermitian" begin
         A = Hermitian([1 0 2+2im 0 3-3im; 0 4 0 5 0; 6-6im 0 7 0 8+8im; 0 9 0 1 0; 2+2im 0 3-3im 0 4])
         @test A * AxisArray(ones(5)) == A * ones(5)
