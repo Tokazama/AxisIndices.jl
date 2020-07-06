@@ -4,6 +4,9 @@
     dn = dimnames(A)
     return map(i -> getfield(dn, i), permin)
 end
+@inline function NamedDims.dimnames(::Base.ReinterpretArray{T,N,T2,P}) where {T,N,T2,P}
+    return dimnames(P)
+end
 
 """
     has_dimnames(x) -> Bool
@@ -13,6 +16,7 @@ Returns `true` if `x` has names for each dimension.
 has_dimnames(::T) where {T} = has_dimnames(T)
 has_dimnames(::Type{T}) where {T} = false
 has_dimnames(::Type{T}) where {T<:NamedDimsArray} = true
+has_dimnames(::Type{Base.ReinterpretArray{T,N,T2,P}}) where {T,N,T2,P} = has_dimnames(P)
 
 """
     named_axes(A) -> NamedTuple{names}(axes)
