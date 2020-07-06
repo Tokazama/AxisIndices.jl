@@ -33,6 +33,7 @@ using AxisIndices.PrettyArrays
 
 using Base: @propagate_inbounds, OneTo, tail
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using Base: ReinterpretArray
 
 import MetadataArrays: MetadataArray
 

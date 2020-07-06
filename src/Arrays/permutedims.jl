@@ -102,17 +102,18 @@ rather than a copy of `A`; consequently, any manipulations you make to
 the output will be mirrored in `A`. Compared to the copy, the view is
 much faster to create, but generally slower to use.
 """
-permuteddimsview(A, perm) = Base.PermutedDimsArrays.PermutedDimsArray(A, perm)
-#=
+permuteddimsview(A, perm) = PermutedDimsArray(A, perm)
 function permuteddimsview(A::AbstractAxisArray, perm)
-    p = Base.PermutedDimsArrays.PermutedDimsArray(parent(A), perm)
+    p = PermutedDimsArray(parent(A), perm)
     return unsafe_reconstruct(A, p, permute_axes(A, p, perm))
 end
-
 function permuteddimsview(A::NamedDimsArray{L}, perm) where {L}
     dnames = NamedDims.permute_dimnames(L, perm)
     return NamedDimsArray{dnames}(permuteddimsview(parent(A), perm))
 end
+
+#=
+
 
 # For now we only implement the version that drops dimension names
 # TODO

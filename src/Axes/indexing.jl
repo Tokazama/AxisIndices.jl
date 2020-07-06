@@ -90,6 +90,10 @@ function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::StaticIndexing)
     return Interface.check_index(axis, arg.ind)
 end
 
+function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::AbstractAxis)
+    return Interface.check_index(axis, eachindex(arg))
+end
+
 ###
 ### getindex
 ###

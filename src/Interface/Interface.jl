@@ -3,6 +3,7 @@ module Interface
 using EllipsisNotation
 using AxisIndices.Styles
 using AxisIndices.Metadata
+using MappedArrays
 using NamedDims
 using StaticRanges
 using StaticRanges: OneToUnion
@@ -11,6 +12,7 @@ using StaticRanges: resize_last
 
 import MetadataArrays: MetadataArray
 
+using MappedArrays: ReadonlyMultiMappedArray, MultiMappedArray, ReadonlyMappedArray
 using EllipsisNotation: Ellipsis
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
 
