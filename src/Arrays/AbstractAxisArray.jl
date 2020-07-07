@@ -348,3 +348,4 @@ function Base.convert(::Type{T}, A::AbstractArray) where {T<:AbstractAxisArray}
 end
 
 Base.LogicalIndex(A::AbstractAxisArray) = Base.LogicalIndex(parent(A))
+

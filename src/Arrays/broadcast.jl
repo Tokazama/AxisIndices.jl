@@ -30,6 +30,14 @@ Base.BroadcastStyle(::AxisArrayStyle{A}, ::AxisArrayStyle{B}) where {A, B} = Axi
 Base.BroadcastStyle(::AxisArrayStyle{A}, b::DefaultArrayStyle) where {A} = AxisArrayStyle(A(), b)
 Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::AxisArrayStyle{B}) where {B,M} = AxisArrayStyle(a, B())
 
+function Base.BroadcastStyle(a::AxisArrayStyle{A}, b::NamedDims.NamedDimsStyle{B}) where {A,B}
+    return NamedDims.NamedDimsStyle(a, B())
+end
+function Base.BroadcastStyle(a::NamedDims.NamedDimsStyle{M}, b::AxisArrayStyle{B}) where {B,M}
+    return NamedDims.NamedDimsStyle(M(), b)
+end
+
+
 #=
     unwrap_broadcasted
 

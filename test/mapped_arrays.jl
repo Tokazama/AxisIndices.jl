@@ -2,11 +2,13 @@
 using FixedPointNumbers, ColorTypes
 
 @testset "ReadonlyMappedArray" begin
-    a = AxisArray([1,4,9,16], ["one", "two", "three", "four"])
-    s = AxisArray(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
+    a = NamedAxisArray{(:x,)}([1,4,9,16], ["one", "two", "three", "four"])
+    s = NamedAxisArray{(:_, :_)}(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
 
     b = @inferred(mappedarray(sqrt, a))
-    @test parent(parent(b)) === parent(a)
+    @test @inferred(has_dimnames(b))
+    @test @inferred(dimnames(b)) == (:x,)
+    @test parent(parent(parent(b))) === parent(parent(a))
     @test eltype(b) == Float64
     @test @inferred(getindex(b, 1)) == 1
     @test b[2] == 2 == b["two"]
@@ -73,7 +75,9 @@ end
 end
 
 @testset "No zero(::T)" begin
-    astr = @inferred(mappedarray(length, AxisArray(["abc", "onetwothree"])))
+    astr = @inferred(mappedarray(length, NamedAxisArray{(:x,)}(["abc", "onetwothree"])))
+    @test @inferred(has_dimnames(astr))
+    @test @inferred(dimnames(astr)) == (:x,)
     @test eltype(astr) == Int
     @test astr == [3, 11]
     a = @inferred(mappedarray(x->x+0.5, Int[]))
@@ -86,9 +90,11 @@ end
 end
 
 @testset "ReadOnlyMultiMappedArray" begin
-    a = AxisArray(reshape(1:6, 2, 3), ["a", "b"], ["one", "two", "three"])
-    b = AxisArray(fill(10.0f0, 2, 3), ["a", "b"], ["one", "two", "three"])
+    a = NamedAxisArray{(:x, :y)}(reshape(1:6, 2, 3), ["a", "b"], ["one", "two", "three"])
+    b = NamedAxisArray{(:_, :_)}(fill(10.0f0, 2, 3), ["a", "b"], ["one", "two", "three"])
     M = @inferred(mappedarray(+, a, b))
+    @test @inferred(has_dimnames(M))
+    @test @inferred(dimnames(M)) == (:x, :y)
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexLinear()
     @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
@@ -109,11 +115,13 @@ end
     @test @inferred(M[CartesianIndex(1, 1)]) === 11.0f0
 
     @testset "Type map" begin
-        a = AxisArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"]);
-        b = AxisArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"]);
-        c = AxisArray([0 1; 0 1], ["a", "b"], ["one", "two"]);
+        a = NamedAxisArray{(:x, :y)}([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"]);
+        b = NamedAxisArray{(:_, :_)}(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"]);
+        c = NamedAxisArray{(:_, :_)}([0 1; 0 1], ["a", "b"], ["one", "two"]);
         f = RGB{N0f8}
         M = @inferred(mappedarray(f, a, b, c))
+        @test @inferred(has_dimnames(M))
+        @test @inferred(dimnames(M)) == (:x, :y)
         @test @inferred(eltype(M)) == RGB{N0f8}
         @test @inferred(IndexStyle(M)) == IndexLinear()
         @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
@@ -129,12 +137,14 @@ end
 
 @testset "MultiMappedArray" begin
     intsym = Int == Int64 ? :Int64 : :Int32
-    a = AxisArray([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"])
-    b = AxisArray(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"])
-    c = AxisArray([0 1; 0 1], ["a", "b"], ["one", "two"])
+    a = NamedAxisArray{(:x, :y)}([0.1 0.2; 0.3 0.4], ["a", "b"], ["one", "two"])
+    b = NamedAxisArray{(:_, :_)}(N0f8[0.6 0.5; 0.4 0.3], ["a", "b"], ["one", "two"])
+    c = NamedAxisArray{(:_, :_)}([0 1; 0 1], ["a", "b"], ["one", "two"])
     f = RGB{N0f8}
     finv = c->(red(c), green(c), blue(c))
     M = @inferred(mappedarray(f, finv, a, b, c))
+    @test @inferred(has_dimnames(M))
+    @test @inferred(dimnames(M)) == (:x, :y)
     @test @inferred(eltype(M)) == RGB{N0f8}
     @test @inferred(IndexStyle(M)) == IndexLinear()
     @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
@@ -154,7 +164,7 @@ end
     R[2,1] = 0.8
     @test b[1,1] === N0f8(0.8) === b["a", "one"]
 
-    a = AxisArray(view(reshape(0.1:0.1:0.6, 3, 2), 1:2, 1:2), ["a", "b"], ["one", "two"])
+    a = NamedAxisArray{(:x, :y)}(view(reshape(0.1:0.1:0.6, 3, 2), 1:2, 1:2), ["a", "b"], ["one", "two"])
     M = @inferred(mappedarray(f, finv, a, b, c))
     @test @inferred(eltype(M)) == RGB{N0f8}
     @test @inferred(IndexStyle(M)) == IndexCartesian()

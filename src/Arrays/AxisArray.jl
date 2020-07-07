@@ -158,6 +158,9 @@ function AxisArray(x::Vector{T}, axis_keys::Tuple, check_length::Bool=true) wher
     return AxisArray(x, (first(axis_keys),), (as_dynamic(axes(x, 1)),), check_length)
 end
 
+function AxisArray(x::Vector{T}, axis_keys::Tuple{}, check_length::Bool=true) where {T}
+    return AxisArray(x)
+end
 
 function AxisArray(x::Vector{T}, axs::AbstractAxes{1}, check_length::Bool=true) where {T}
     check_length && check_axis_length(first(axs), axes(x, 1))
