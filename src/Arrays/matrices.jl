@@ -274,8 +274,8 @@ function Base.:*(a::Transpose{<:Any,<:LinearAlgebra.AbstractTriangular}, b::Abst
     return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
 function Base.:*(a::AbstractAxisMatrix, b::Transpose{<:Any,<:RealHermSymComplexHerm})
-    p = *(a, parent(b))
-    return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
+    p = *(parent(a), b)
+    return _matmul(a, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
 function Base.:*(a::LinearAlgebra.AbstractTriangular, b::AbstractAxisVector)
     p = *(a, parent(b))
@@ -307,7 +307,7 @@ end
 
 NamedDims.@declare_matmul(AbstractAxisMatrix, AbstractAxisVector)
 
-
+#=
 function Base.:*(a::LinearAlgebra.AbstractRotation, b::AbstractAxisVector)
     p = *(a, parent(b))
     return _matmul(b, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
@@ -324,6 +324,7 @@ function Base.:(*)(a::AbstractAxisMatrix, b::Adjoint{<:Any,<:LinearAlgebra.Abstr
     p = *(parent(a), b)
     return _matmul(a, p, Arrays.matmul_axes(axes(a), axes(b), axes(p)))
 end
+=#
 
 function Base.:*(a::AbstractAxisVector, b::Transpose{<:Any,<:AbstractMatrix})
     p = *(a, parent(b))

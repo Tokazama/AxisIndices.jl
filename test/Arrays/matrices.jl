@@ -50,11 +50,13 @@
         @test A' * AxisArray(ones(3,3)) == A' * ones(3, 3)
         @test ones(3)' * A == AxisArray(ones(3))' * A
         @test ones(1, 3) * A == AxisArray(ones(1, 3)) * A
+        @test AxisArray(ones(3)) * ones(3)' == ones(3) * ones(3)'
 
         @test transpose(A) * AxisArray(ones(3)) == transpose(A) * ones(3)
         @test transpose(A) * AxisArray(ones(3)) == transpose(A) * ones(3)
         @test transpose(A) * AxisArray(ones(3,3)) == transpose(A) * ones(3, 3)
         @test transpose(ones(3)) * A == transpose(AxisArray(ones(3))) * A
+        @test AxisArray(ones(3)) * transpose(ones(3)) == ones(3) * transpose(ones(3))
     end
 
     @testset "Hermitian" begin
@@ -63,9 +65,11 @@
         @test A' * AxisArray(ones(5)) == A' * ones(5)
         @test A' * AxisArray(ones(5)) == A' * ones(5)
         @test A' * AxisArray(ones(5,5)) == A' * ones(5, 5)
+        @test AxisArray(ones(5,5)) * A' == ones(5,5) * A'
         @test ones(5)' * A == AxisArray(ones(5))' * A
         @test ones(1, 5) * A == AxisArray(ones(1, 5)) * A
 
+        @test AxisArray(ones(5,5)) * transpose(A) == ones(5,5) * transpose(A)
         @test transpose(A) * AxisArray(ones(5)) == transpose(A) * ones(5)
         @test transpose(A) * AxisArray(ones(5)) == transpose(A) * ones(5)
         @test transpose(A) * AxisArray(ones(5,5)) == transpose(A) * ones(5, 5)
