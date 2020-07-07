@@ -223,24 +223,24 @@
     end
     =#
 
-    #= TODO
     @testset "equality" begin
-        nda = AxisArray([10 20; 30 40], (:x, :y))
-        nda2 = AxisArray([10 20; 30 40], (:x, :_))
-        nda3 = AxisArray([10 20; 30 40], (:x, :z))
-        nda4 = AxisArray([11 22; 33 44], (:x, :y))
-        ndv = AxisArray([10, 20, 30], (:x,))
+        a = AxisArray([10 20; 30 40])
+        a2 = AxisArray([10 20; 30 40])
+        a3 = AxisArray([10 20; 30 40])
+        a4 = AxisArray([11 22; 33 44])
+        v = AxisArray([10, 20, 30])
 
         @testset "$eq" for eq in (Base.:(==), isequal, isapprox)
-            @test eq(nda, nda)
-            @test eq(nda, nda2)
-            @test eq(nda, nda3) == false
-            @test eq(nda, nda4) == false
-            @test eq(nda, ndv) == false
+            @test eq(a, a) == eq(parent(a), a) == eq(a, parent(a))
+            @test eq(a, a2)
+            @test eq(a, a3)
+            @test !eq(a, a4)
         end
-        @test isapprox(nda, nda4; atol=2π)
+        @test isapprox(a, a4; atol=2π)
+        @test isapprox(a, parent(a4); atol=2π)
+        @test isapprox(parent(a), a4; atol=2π)
+        @test AxisArray(1:2) == SimpleAxis(1:2)
     end
-    =#
 
 end  # Base
 

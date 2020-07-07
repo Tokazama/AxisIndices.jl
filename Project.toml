@@ -1,7 +1,7 @@
 name = "AxisIndices"
 uuid = "f52c9ee2-1b1c-4fd8-8546-6350938c7f11"
 authors = ["Tokazama <zchristensen7@gmail.com>"]
-version = "0.5"
+version = "0.5.1"
 
 [deps]
 ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
