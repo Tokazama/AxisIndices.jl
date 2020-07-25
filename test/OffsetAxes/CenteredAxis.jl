@@ -32,15 +32,15 @@
 
         # codecov doesn't catch these with the previous methods like it should but we should
         # make sure they are still necessary so as no to maintain dead code.
-        @test AxisIndices.Axes._centered_axis_similar_type(OneTo{Int}) <:
+        @test AxisIndices.OffsetAxes._centered_axis_similar_type(OneTo{Int}) <:
             CenteredAxis{Int64,UnitRange{Int64},OneTo{Int64}}
-        @test AxisIndices.Axes._centered_axis_similar_type(OneToSRange{Int,10}) <:
+        @test AxisIndices.OffsetAxes._centered_axis_similar_type(OneToSRange{Int,10}) <:
             CenteredAxis{Int64,UnitSRange{Int64,-5,4},OneToSRange{Int64,10}}
-        @test AxisIndices.Axes._centered_axis_similar_type(UnitSRange{Int,1,10}) <:
+        @test AxisIndices.OffsetAxes._centered_axis_similar_type(UnitSRange{Int,1,10}) <:
             CenteredAxis{Int64,UnitSRange{Int64,-5,4},UnitSRange{Int64,1,10}}
-        @test AxisIndices.Axes._centered_axis_similar_type(UnitSRange{Int,1,10}, OneToSRange{Int,10}) <:
+        @test AxisIndices.OffsetAxes._centered_axis_similar_type(UnitSRange{Int,1,10}, OneToSRange{Int,10}) <:
             CenteredAxis{Int64,UnitSRange{Int64,1,10},OneToSRange{Int64,10}}
-        @test AxisIndices.Axes._centered_axis_similar_type(UnitRange{Int}, OneToSRange{Int,10}) <:
+        @test AxisIndices.OffsetAxes._centered_axis_similar_type(UnitRange{Int}, OneToSRange{Int,10}) <:
             CenteredAxis{Int64,UnitRange{Int64},OneToSRange{Int64,10}}
     end
 end

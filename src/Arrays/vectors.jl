@@ -65,8 +65,8 @@ end
     deleteat!(a::AbstractAxisVector, arg)
 
 Remove the items corresponding to `A[arg]`, and return the modified `a`. Subsequent
-items are shifted to fill the resulting gap. If the axis of `a` is an `AbstractSimpleAxis`
-then it is shortened to match the length of `a`. If the 
+items are shifted to fill the resulting gap. If the axis of `a` is an `SimpleAxis`
+then it is shortened to match the length of `a`.
 
 ## Examples
 ```jldoctest

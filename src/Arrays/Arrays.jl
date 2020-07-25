@@ -60,7 +60,6 @@ const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
 include("AbstractAxisArray.jl")
 include("AxisArray.jl")
-include("OffsetArray.jl")
 include("NamedAxisArray.jl")
 include("MetaAxisArray.jl")
 include("NamedMetaAxisArray.jl")

@@ -3,7 +3,7 @@
 # - implement constructors that use Val for static offset
 # 
 
-@inline function _construct_offset_keys(offset::T, inds::AbstractIndices) where {T}
+@inline function _construct_offset_keys(offset::T, inds::Tuple{Vararg{<:AbstractUnitRange{<:Integer}}}) where {T}
     if is_static(inds)
         return UnitSRange{T}(first(inds) + offset, last(inds) + offset)
     elseif is_fixed(inds)
@@ -190,3 +190,24 @@ function _reset_keys!(axis::OffsetAxis{I,Ks,Inds}, len) where {I,Ks,Inds}
     set_length!(ks, len)
 end
 
+
+"""
+    offset(x)
+
+Shortcut for creating `OffsetAxis` where `x` is the first argument to [`OffsetAxis`](@ref).
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisArray(ones(3), offset(2))
+3-element AxisArray{Float64,1}
+ • dim_1 - 3:5
+
+  3   1.0
+  4   1.0
+  5   1.0
+
+```
+"""
+offset(x) = inds -> OffsetAxis(x, inds)

@@ -83,6 +83,7 @@ include("styles_tests.jl")
 include("./Interface/Interface.jl")
 include("./Axes/Axes.jl")
 include("./Arrays/Arrays.jl")
+include("./OffsetAxes/OffsetAxes.jl")
 
 include("getindex_tests.jl")
 include("size_tests.jl")

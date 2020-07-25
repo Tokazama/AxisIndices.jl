@@ -18,13 +18,13 @@ end
 """
     unsafe_reconstruct(axis, indices)
 
-Reconstructs an `AbstractSimpleAxis` of the same type as `axis` but values of type `Vs`.
+Reconstructs an axis of the same type as `axis` using indices.
 """
-function unsafe_reconstruct(axis::AbstractUnitRange, vs)
+function unsafe_reconstruct(axis::AbstractUnitRange, inds)
     if is_indices_axis(axis)
-        return similar_type(axis, typeof(vs))(vs)
+        return similar_type(axis, typeof(inds))(inds)
     else
-        return unsafe_reconstruct(axis, vs, vs)
+        return unsafe_reconstruct(axis, inds, inds)
     end
 end
 

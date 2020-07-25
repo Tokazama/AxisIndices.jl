@@ -37,6 +37,8 @@ Base.parent(x::AxisArray) = getfield(x, :parent)
 
 Base.axes(x::AxisArray) = getfield(x, :axes)
 
+Metadata.metadata(x::AxisArray) = metadata(parent(x))
+
 function StaticRanges.similar_type(
     ::AxisArray{T,N,P,AI},
     parent_type::Type=P,

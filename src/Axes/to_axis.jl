@@ -1,3 +1,4 @@
+
 # 1 arg
 to_axis(axis::AbstractAxis) = axis
 function to_axis(
@@ -30,21 +31,32 @@ function to_axis(
 end
 function to_axis(
     ks::AbstractVector,
-    vs::AbstractUnitRange{<:Integer},
+    inds::AbstractUnitRange{<:Integer},
     check_length::Bool=true,
-    staticness=Staticness(vs)
+    staticness=Staticness(inds)
 )
-    return Axis(as_staticness(staticness, ks), as_staticness(staticness, vs), check_length)
+
+    return Axis(as_staticness(staticness, ks), as_staticness(staticness, inds), check_length)
 end
 
 function to_axis(
     ks::AbstractAxis,
-    vs::AbstractUnitRange{<:Integer},
+    inds::AbstractUnitRange{<:Integer},
     check_length::Bool=true,
-    staticness=Staticness(vs)
+    staticness=Staticness(inds)
 )
 
-    return resize_last(ks, as_staticness(staticness, vs))
+    return resize_last(ks, as_staticness(staticness, inds))
+end
+
+function to_axis(
+    f::Function,
+    inds::AbstractUnitRange{<:Integer},
+    check_length::Bool=true,
+    staticness=Staticness(inds)
+)
+
+    return f(inds)
 end
 
 # 3 arg
@@ -89,9 +101,4 @@ function to_axis(
 
     return to_axis(axis, keys(ks), vs, check_length, staticness)
 end
-
-# This can't be changed for a type
-StaticRanges.as_static(axis::StructAxis) = axis
-StaticRanges.as_fixed(axis::StructAxis) = axis
-StaticRanges.as_dynamic(axis::StructAxis) = axis
 

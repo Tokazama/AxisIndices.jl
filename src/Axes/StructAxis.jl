@@ -108,3 +108,7 @@ end
 end
 
 
+# This can't be changed for a type
+StaticRanges.as_static(axis::StructAxis) = axis
+StaticRanges.as_fixed(axis::StructAxis) = axis
+StaticRanges.as_dynamic(axis::StructAxis) = axis

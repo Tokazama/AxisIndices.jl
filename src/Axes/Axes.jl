@@ -32,15 +32,16 @@ using StaticRanges: shrink_last!
 
 import MetadataArrays: MetadataArray
 
+using ArrayInterface
+using ArrayInterface: known_first, known_last
+
 using Base: @propagate_inbounds, tail, OneTo
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle
 
 export
     AbstractAxis,
-    AbstractSimpleAxis,
     Axis,
     CartesianAxes,
-    CenteredAxis,
     LinearAxes,
     MetaAxis,
     MetaCartesianAxes,
@@ -49,7 +50,6 @@ export
     NamedLinearAxes,
     NamedMetaCartesianAxes,
     NamedMetaLinearAxes,
-    OffsetAxis,
     SimpleAxis,
     StructAxis,
     structview
@@ -59,9 +59,6 @@ include("Axis.jl")
 include("SimpleAxis.jl")
 include("StructAxis.jl")
 include("MetaAxis.jl")
-include("AbstractOffsetAxis.jl")
-include("CenteredAxis.jl")
-include("OffsetAxis.jl")
 include("mutate.jl")
 include("promotion.jl")
 include("to_axis.jl")

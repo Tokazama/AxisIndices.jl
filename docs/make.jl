@@ -10,6 +10,7 @@ makedocs(;
         "Manual" => [
             "Axis Interface" => "axis.md",
             "Array Interface" => "arrays.md",
+            "OffsetAxes" => "offset_axes.md",
             "Tabular Interface" => "table.md",
             "Observations" => "observations.md",
             "Internals of Indexing" => "internals_of_indexing.md",

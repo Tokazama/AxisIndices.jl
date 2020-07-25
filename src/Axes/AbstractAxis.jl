@@ -9,13 +9,6 @@ An `AbstractVector` subtype optimized for indexing.
 """
 abstract type AbstractAxis{K,V<:Integer,Ks,Vs} <: AbstractUnitRange{V} end
 
-"""
-    AbstractSimpleAxis{V,Vs}
-
-A subtype of `AbstractAxis` where the keys and values are represented by a single collection.
-"""
-abstract type AbstractSimpleAxis{V,Vs} <: AbstractAxis{V,V,Vs,Vs} end
-
 Base.keytype(::Type{<:AbstractAxis{K}}) where {K} = K
 
 Base.haskey(axis::AbstractAxis{K}, key::K) where {K} = key in keys(axis)
@@ -55,6 +48,12 @@ end
 
 Base.firstindex(axis::AbstractAxis) = first(indices(axis))
 
+function ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis}
+    return known_first(indices_type(T))
+end
+
+Metadata.metadata(axis::AbstractAxis) = metadata(indices(axis))
+
 ###
 ### last
 ###
@@ -83,6 +82,10 @@ function StaticRanges.set_last(axis::AbstractAxis{K,V}, val::V) where {K,V}
 end
 
 Base.lastindex(a::AbstractAxis) = last(indices(a))
+
+function ArrayInterface.known_last(::Type{T}) where {T<:AbstractAxis}
+    return known_last(indices_type(T))
+end
 
 ###
 ### length
@@ -128,21 +131,16 @@ Base.size(axis::AbstractAxis) = (length(axis),)
 ### similar
 ###
 function StaticRanges.similar_type(
-    ::A,
-    ks_type::Type=keys_type(A),
-    vs_type::Type=indices_type(A)
-) where {A<:AbstractAxis}
-
-    return similar_type(A, ks_type, vs_type)
-end
-
-function StaticRanges.similar_type(
-    ::A,
+    ::Type{A},
     ks_type::Type=keys_type(A),
     vs_type::Type=ks_type
-) where {A<:AbstractSimpleAxis}
+) where {A<:AbstractAxis}
 
-    return similar_type(A, vs_type)
+    if is_indices_axis(A)
+        return similar_type(A, ks_type, inds_type)
+    else
+        return similar_type(A, inds_type)
+    end
 end
 
 """

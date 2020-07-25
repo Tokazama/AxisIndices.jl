@@ -35,7 +35,7 @@ ERROR: BoundsError: attempt to access 9-element SimpleAxis(2:10 => 2:10) at inde
 [...]
 ```
 """
-struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractSimpleAxis{I,Inds}
+struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,I,Inds,Inds}
     values::Inds
 
     SimpleAxis{I,Inds}(inds::Inds) where {I,Inds<:AbstractUnitRange{I}} = new{I,Inds}(inds)

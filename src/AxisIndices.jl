@@ -59,6 +59,12 @@ using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axi
 include("./Arrays/Arrays.jl")
 @reexport using .Arrays
 
+include("./OffsetAxes/OffsetAxes.jl")
+@reexport using .OffsetAxes
+
+include("./PaddedViews/PaddedViews.jl")
+using .PaddedViews
+
 include("./ObservationDims.jl")
 using .ObservationDims
 

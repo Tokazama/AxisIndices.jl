@@ -7,10 +7,10 @@ for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:*, typeof(*), Real))
     @eval begin
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            return _broadcast(r, broadcast($f, x, values(r)))
+            return _broadcast(r, broadcast($f, x, indices(r)))
         end
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            return _broadcast(r, broadcast($f, values(r), x))
+            return _broadcast(r, broadcast($f, indices(r), x))
         end
     end
 end
@@ -54,7 +54,8 @@ function _bcs1(a, b)
         if _bcsm(b, a)
             return combine_axis(b, a)
         else
-            throw(DimensionMismatch("arrays could not be broadcast to a common size; got a dimension with lengths $(length(a)) and $(length(b))"))
+            throw(DimensionMismatch("arrays could not be broadcast to a common size;" *
+                                    " got a dimension with lengths $(length(a)) and $(length(b))"))
         end
     end
 end

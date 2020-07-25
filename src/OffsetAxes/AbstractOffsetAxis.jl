@@ -41,6 +41,15 @@ function Interface.print_axis(io, axis::AbstractOffsetAxis)
     end
 end
 
+function ArrayInterface.known_first(::Type{T}) where {T<:AbstractOffsetAxis}
+    return known_first(keys_type(T))
+end
+
+function ArrayInterface.known_last(::Type{T}) where {T<:AbstractOffsetAxis}
+    return known_last(keys_type(T))
+end
+
+
 #=
 """
     offset(x)
@@ -108,4 +117,53 @@ for f in (:find_lasteq,
 end
 
 =#
+
+function Base.pop!(axis::AbstractOffsetAxis)
+    StaticRanges.can_set_last(axis) || error("Cannot change size of index of type $(typeof(axis)).")
+    out = pop!(indices(axis))
+    _reset_keys!(axis, length(indices(axis)))
+    return out
+end
+
+function StaticRanges.set_last!(axis::AbstractOffsetAxis{K,I}, val::I) where {K,I}
+    can_set_last(axis) || throw(MethodError(set_last!, (axis, val)))
+    set_last!(indices(axis), val)
+    _reset_keys!(axis, length(indices(axis)))
+    return axis
+end
+
+function Base.popfirst!(axis::AbstractOffsetAxis)
+    StaticRanges.can_set_first(axis) || error("Cannot change size of index of type $(typeof(axis)).")
+    out = popfirst!(indices(axis))
+    _reset_keys!(axis, length(indices(axis)))
+    return out
+end
+
+function StaticRanges.grow_last!(axis::AbstractOffsetAxis, n::Integer)
+    can_set_length(axis) ||  throw(MethodError(grow_last!, (axis, n)))
+    len = length(axis) + n
+    StaticRanges.grow_last!(indices(axis), n)
+    _reset_keys!(axis, len)
+    return nothing
+end
+
+function StaticRanges.shrink_last!(axis::AbstractOffsetAxis, n::Integer)
+    can_set_length(axis) ||  throw(MethodError(shrink_last!, (axis, n)))
+    len = length(axis) - n
+    StaticRanges.shrink_last!(indices(axis), n)
+    _reset_keys!(axis, len)
+    return nothing
+end
+
+function StaticRanges.set_length!(axis::AbstractOffsetAxis, len)
+    can_set_length(axis) || error("Cannot use set_length! for instances of typeof $(typeof(axis)).")
+    set_length!(indices(axis), len)
+    _reset_keys!(axis, len)
+    return axis
+end
+
+# TODO check for existing key first
+push_key!(axis::AbstractOffsetAxis, key) = grow_last!(axis, 1)
+
+pushfirst_key!(axis::AbstractOffsetAxis, key) = grow_last!(axis, 1)
 

@@ -150,3 +150,25 @@ function _reset_keys!(axis::CenteredAxis{K}) where {K}
     set_last!(ks, stop)
     return nothing
 end
+
+# TODO CenteredAxis examples
+"""
+    center(inds::AbstractUnitRange{<:Integer}) -> CenterAxis(inds)
+
+Shortcut for creating [`CenterAxis`](@ref).
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisArray(ones(3), center)
+3-element AxisArray{Float64,1}
+ • dim_1 - -1:1
+
+  -1   1.0
+   0   1.0
+   1   1.0
+
+```
+"""
+center(inds) = CenteredAxis(inds)
