@@ -111,7 +111,7 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I,Ks,Inds}
         else  # is_dynamic
             new_ks = as_dynamic(ks)
         end
-        return Axis{eltype(new_ks),eltype(inds),typeof(new_ks),typeof(inds)}(ks, inds, check_unique, check_length)
+        return Axis{eltype(new_ks),eltype(inds),typeof(new_ks),typeof(inds)}(new_ks, inds, check_unique, check_length)
     end
 
     function Axis(ks, check_unique::Bool=true)

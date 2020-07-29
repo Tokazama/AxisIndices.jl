@@ -3,7 +3,7 @@
 ### getindex
 ###
 @propagate_inbounds function Base.getindex(x::AbstractTable, arg1, arg2)
-    return get_index(x, rowaxis(x), colaxis(x), arg1, arg2)
+    return get_index(x, row_axis(x), col_axis(x), arg1, arg2)
 end
 
 @propagate_inbounds function get_index(x, raxis, caxis, arg1, arg2)
@@ -28,9 +28,35 @@ end
     return @inbounds(unsafe_getindex(parent(x), (arg2,), (i2,)))
 end
 
+# FIXME
+#=
+ERROR: MethodError: no method matching similar(::Type{Array{Array{String,1},1}}, ::Tuple{Base.IdentityUnitRange{OneToMRange{Int64}}})
+Closest candidates are:
+  similar(::AbstractAxisArray{T,N,P,AI} where AI where P where N, ::Tuple{Vararg{AbstractArray{T,1} where T,N}}) where {T, N} at /Users/zchristensen/projects/AxisIndices.jl/src/Arrays/AbstractAxisArray.jl:53
+  similar(::AbstractArray{T,N} where N, ::Tuple) where T at abstractarray.jl:626
+  similar(::Type{T}, ::Union{Integer, AbstractUnitRange}...) where T<:AbstractArray at abstractarray.jl:669
+  ...
+Stacktrace:
+ [1] _array_for(::Type{Array{String,1}}, ::Base.Slice{OneToMRange{Int64}}, ::Base.HasShape{1}) at ./array.jl:680
+ [2] collect(::Base.Generator{Base.Slice{OneToMRange{Int64}},AxisIndices.Tabular.var"#12#13"{Table{Array{AbstractArray{T,1} where T,1},SimpleAxis{Int64,Base.OneTo{Int64}},Axis{Symbol,Int64,Array{Symbol,1},OneToMRange{Int64}}},Colon,Array{Int64,1}}}) at ./a
+rray.jl:693
+ [3] _unsafe_getindex(::Table{Array{AbstractArray{T,1} where T,1},SimpleAxis{Int64,Base.OneTo{Int64}},Axis{Symbol,Int64,Array{Symbol,1},OneToMRange{Int64}}}, ::SimpleAxis{Int64,Base.OneTo{Int64}}, ::Axis{Symbol,Int64,Array{Symbol,1},OneToMRange{Int64}}, ::
+Array{Int64,1}, ::Function, ::Array{Int64,1}, ::Base.Slice{OneToMRange{Int64}}) at /Users/zchristensen/projects/AxisIndices.jl/src/Tabular/indexing.jl:32
+ [4] get_index(::Table{Array{AbstractArray{T,1} where T,1},SimpleAxis{Int64,Base.OneTo{Int64}},Axis{Symbol,Int64,Array{Symbol,1},OneToMRange{Int64}}}, ::SimpleAxis{Int64,Base.OneTo{Int64}}, ::Axis{Symbol,Int64,Array{Symbol,1},OneToMRange{Int64}}, ::Array{I
+nt64,1}, ::Function) at /Users/zchristensen/projects/AxisIndices.jl/src/Tabular/indexing.jl:10
+ [5] getindex(::Table{Array{AbstractArray{T,1} where T,1},SimpleAxis{Int64,Base.OneTo{Int64}},Axis{Symbol,Int64,Array{Symbol,1},OneToMRange{Int64}}}, ::Array{Int64,1}, ::Function) at /Users/zchristensen/projects/AxisIndices.jl/src/Tabular/indexing.jl:6
+ [6] top-level scope at REPL[7]:1
+
+=#
 @inline function _unsafe_getindex(x, raxis, caxis, arg1, arg2, i1::AbstractVector, i2::AbstractVector)
     return Table([@inbounds(getindex(unsafe_getindex(parent(x), (arg2,), (i,)), i1)) for i in i2], caxis[i2])
 end
+
+@inline function _unsafe_getindex(x, raxis, caxis, arg1, arg2, i1::AbstractVector, ::Base.Slice)
+    return Table([@inbounds(getindex(col_i, i1)) for col_i in parent(x)], caxis)
+end
+
+
 
 
 ###
@@ -61,10 +87,10 @@ end
             error("Cannot create new column $arg2 because length of provided column is not the same as the number of rows.")
         end
     else
-        setindex!(getindex(parent(x), to_index(colaxis(x), arg2)), vals, to_index(rowaxis(x), arg1))
+        setindex!(getindex(parent(x), to_index(col_axis(x), arg2)), vals, to_index(row_axis(x), arg1))
     end
 end
 
 @propagate_inbounds function Base.setindex!(x::AbstractTable, vals, arg1, arg2)
-    set_index!(x, rowaxis(x), colaxis(x), vals, arg1, arg2)
+    set_index!(x, row_axis(x), col_axis(x), vals, arg1, arg2)
 end

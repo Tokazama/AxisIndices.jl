@@ -19,8 +19,6 @@
     @test !@inferred(is_indices_axis(meta_axis))
     @test !@inferred(is_indices_axis(typeof(meta_axis)))
 
-
-
     meta_axis2 = MetaAxis(1:2, nothing)
     @test Interface.combine_metadata(meta_axis, meta_axis2) isa Dict
     @test Interface.combine_metadata(meta_axis2, meta_axis) isa Dict

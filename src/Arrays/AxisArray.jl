@@ -1,13 +1,13 @@
 
-_to_axis_or_simple(staticness, ::Tuple{}, ::Tuple{}, ::Bool) = ()
-_to_axis_or_simple(staticness, ::Tuple, ::Tuple{}, ::Bool) = ()
-@inline function _to_axis_or_simple(staticness, ::Tuple{}, inds::Tuple,  ::Bool)
-    return map(i -> SimpleAxis(as_staticness(staticness, i)), inds)
+_to_axis_or_simple(::Tuple{}, ::Tuple{}, ::Bool) = ()
+_to_axis_or_simple(::Tuple, ::Tuple{}, ::Bool) = ()
+@inline function _to_axis_or_simple(::Tuple{}, inds::Tuple,  ::Bool)
+    return map(i -> to_axis(i), inds)
 end
-@inline function _to_axis_or_simple(staticness, ks::Tuple, inds::Tuple,  check_length::Bool)
+@inline function _to_axis_or_simple(ks::Tuple, inds::Tuple,  check_length::Bool)
     return (
-        to_axis(as_staticness(staticness, first(ks)), as_staticness(staticness, first(inds)), check_length),
-        _to_axis_or_simple(staticness, maybe_tail(ks), maybe_tail(inds), check_length)...
+        to_axis(first(ks), first(inds), check_length),
+        _to_axis_or_simple(maybe_tail(ks), maybe_tail(inds), check_length)...
     )
 end
 
@@ -31,11 +31,13 @@ struct AxisArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: AbstractAxisA
     end
 end
 
-StaticRanges.parent_type(::Type{<:AxisArray{T,N,P,Ax}}) where {T,N,P,Ax} = P
-
 Base.parent(x::AxisArray) = getfield(x, :parent)
 
 Base.axes(x::AxisArray) = getfield(x, :axes)
+
+ArrayInterface.parent_type(::Type{<:AxisArray{T,N,P,Ax}}) where {T,N,P,Ax} = P
+
+NamedDims.dimnames(::Type{T}) where {T<:AxisArray} = dimnames(parent_type(T))
 
 Metadata.metadata(x::AxisArray) = metadata(parent(x))
 
@@ -111,7 +113,7 @@ function AxisArray(
     axis_values::Tuple=axes(x),
     check_length::Bool=true
 ) where {T,N,N2}
-    axs = _to_axis_or_simple(Staticness(x), axis_keys, axis_values, check_length)
+    axs = _to_axis_or_simple(axis_keys, axis_values, check_length)
     return AxisArray{T,N,typeof(x),typeof(axs)}(x, axs)
 end
 
@@ -144,32 +146,78 @@ AxisArray(x::AbstractArray, args...) = AxisArray(x, args)
 ###
 ### Vectors: is uniquely dynamic and its size is mutable
 ###
-function AxisArray(x::Vector)
+function AxisArray(x::AbstractVector)
     return AxisArray(x, (SimpleAxis(as_dynamic(axes(x, 1))),), false)
 end
 
-function AxisArray(x::Vector{T}, axis_keys::AbstractAxis, check_length::Bool=true) where {T}
+function AxisArray(
+    x::AbstractVector{T},
+    axis_keys::AbstractAxis,
+    check_length::Bool=true
+) where {T}
+
     return AxisArray(x, (axis_keys,), check_length)
 end
 
-function AxisArray(x::Vector{T}, axis_keys::AbstractVector, check_length::Bool=true) where {T}
+function AxisArray(
+    x::AbstractVector{T},
+    axis_keys::AbstractVector,
+    check_length::Bool=true
+) where {T}
+
     return AxisArray(x, (axis_keys,), (as_dynamic(axes(x, 1)),), check_length)
 end
 
-function AxisArray(x::Vector{T}, axis_keys::Tuple, check_length::Bool=true) where {T}
-    return AxisArray(x, (first(axis_keys),), (as_dynamic(axes(x, 1)),), check_length)
+function AxisArray(
+    x::AbstractVector{T},
+    axis_keys::Tuple,
+    check_length::Bool=true
+) where {T}
+
+    return AxisArray(
+        x,
+        (first(axis_keys),),
+        (as_dynamic(axes(x, 1)),),
+        check_length
+    )
 end
 
-function AxisArray(x::Vector{T}, axis_keys::Tuple{}, check_length::Bool=true) where {T}
+function AxisArray(
+    x::AbstractVector{T},
+    axis_keys::Tuple{},
+    check_length::Bool=true
+) where {T}
+
     return AxisArray(x)
 end
 
-function AxisArray(x::Vector{T}, axs::AbstractAxes{1}, check_length::Bool=true) where {T}
-    check_length && check_axis_length(first(axs), axes(x, 1))
-    return AxisArray{T,1,Vector{T},typeof(axs)}(x, axs)
+function AxisArray(
+    x::AbstractVector{T},
+    axs::Tuple{<:AbstractAxis},
+    check_length::Bool=true
+) where {T}
+
+    axis = first(axs)
+    inds = 
+    if check_length && indices(axis) != axes(x, 1)
+        error("provided axis doesn't have same indices as provided vector")
+    end
+    #=
+    if is_dynamic(x)
+        new_axes = (to_axis(first(axs), as_dynamic(axes(x, 1)), check_length),)
+    else
+        new_axes = (to_axis(first(axs), axes(x, 1), check_length),)
+    end
+    =#
+    return AxisArray{T,1,typeof(x),typeof(axs)}(x, axs)
 end
 
-function AxisArray(x::AbstractArray{T,0}, axs::Tuple{}=(), check_length::Bool=false) where {T}
+function AxisArray(
+    x::AbstractArray{T,0},
+    axs::Tuple{}=(),
+    check_length::Bool=false
+) where {T}
+
     return AxisArray{T,0,typeof(x),Tuple{}}(x, ())
 end
 
@@ -245,7 +293,7 @@ function AxisArray{T,N}(init::ArrayInitializer, axs::Tuple{Vararg{Any,N}}) where
 end
 
 function AxisArray{T,N}(init::ArrayInitializer, axs::AbstractAxes{N}) where {T,N}
-    p = init_array(StaticRanges._combine(typeof(axs)), T, init, axs)
+    p = init_array(T, init, axs)
     return AxisArray{T,N,typeof(p),typeof(axs)}(p, axs)
 end
 
@@ -268,9 +316,10 @@ function AxisArray{T,N,P}(
 end
 
 function AxisArray{T,N,P}(x::P, axs::Tuple, check_length::Bool=true) where {T,N,P<:AbstractArray{T,N}}
-    axs = to_axes((), axs, axes(x), check_length, Staticness(x))
+    axs = to_axes((), axs, axes(x), check_length)
     return AxisArray{T,N,P,typeof(axs)}(x, axs)
 end
+
 
 ###
 ### init_array
@@ -279,12 +328,21 @@ end
 _length(x::Integer) = x
 _length(x) = length(x)
 
-function init_array(::Static, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
-    return MArray{Tuple{map(_length, sz)...},T,N}(undef)
+function init_array(::Type{T}, init::ArrayInitializer, axs::NTuple{N,Any}) where {T,N}
+    create_static_array = true
+    for i in 1:N
+        is_static(getfield(axs, i)) || return Array{T,N}(init, map(_length, axs))
+    end
+    return MArray{Tuple{map(_length, axs)...},T,N}(init)
 end
 
-function init_array(::Fixed, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
-    return Array{T,N}(undef, map(_length, sz))
+#=
+function static_init_array(::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
+    return
+end
+
+function fixed_init_array(::Fixed, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
+    return
 end
 
 # TODO
@@ -293,6 +351,7 @@ end
 function init_array(::Dynamic, ::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
     return Array{T,N}(undef, map(_length, sz))
 end
+=#
 
 Base.dataids(A::AxisArray) = Base.dataids(parent(A))
 

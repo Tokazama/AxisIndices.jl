@@ -284,7 +284,7 @@ end
 
 for f in (:grow_last, :grow_first, :shrink_last, :shrink_first, :resize_first, :resize_last)
     @eval begin
-        function StaticRanges.$f(axis::AbstractAxis, n::Integer)
+        @inline function StaticRanges.$f(axis::AbstractAxis, n::Integer)
             if is_indices_axis(axis)
                 return unsafe_reconstruct(axis, StaticRanges.$f(indices(axis), n))
             else
@@ -301,7 +301,7 @@ end
 
 for f in (:shrink_last, :shrink_first)
     @eval begin
-        function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
+        @inline function StaticRanges.$f(axis::AbstractAxis, n::AbstractUnitRange{<:Integer})
             if is_indices_axis(axis)
                 return unsafe_reconstruct(axis, n)
             else
@@ -425,13 +425,6 @@ end
 
 # StaticRanges.has_offset_axes is taken care of by any array type that defines `axes_type`
 
-function StaticRanges.Staticness(::Type{A}) where {A<:AbstractAxis}
-    if is_indices_axis(A)
-        return StaticRanges.Staticness(indices_type(A))
-    else
-        return StaticRanges._combine(Tuple{indices_type(A),keys_type(A)})
-    end
-end
 
 for f in (:as_static, :as_fixed, :as_dynamic)
     @eval begin
@@ -445,6 +438,18 @@ for f in (:as_static, :as_fixed, :as_dynamic)
     end
 end
 
+for f in (:is_static, :is_fixed, :is_dynamic)
+    @eval begin
+        function StaticRanges.$f(::Type{A}) where {A<:AbstractAxis}
+            if is_indices_axis(A)
+                return StaticRanges.$f(indices_type(A))
+            else
+                return StaticRanges.$f(keys_type(A)) & StaticRanges.$f(indices_type(A))
+            end
+        end
+    end
+end
+
 function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
     if is_indices_axis(axis)
         return to_axis(reverse(keys(axis)), newinds, false)
@@ -452,7 +457,6 @@ function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
         return similar(axis, reverse(keys(axis)), newinds, false)
     end
 end
-
 
 @inline function Base.compute_offset1(parent, stride1::Integer, dims::Tuple{Int}, inds::Tuple{<:AbstractAxis}, I::Tuple)
     return Base.compute_linindex(parent, I) - stride1 * first(axes(parent, first(dims)))

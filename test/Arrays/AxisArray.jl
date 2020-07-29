@@ -19,7 +19,7 @@
         A_static_axes = @inferred(AxisArray(A_static));
 
         @test isa(@inferred(axes(A_fixed_axes)),
-                  Tuple{Axis{String,Int64,Vector{String},OneTo{Int64}},Axis{Symbol,Int64,Vector{Symbol},OneTo{Int64}}})
+                  Tuple{Axis{String,Int64,<:AbstractVector{String},OneTo{Int64}},Axis{Symbol,Int64,<:AbstractVector{Symbol},OneTo{Int64}}})
         @test isa(@inferred(axes(A_static_axes)),
                   Tuple{SimpleAxis{Int64,OneToSRange{Int64,2}},SimpleAxis{Int64,OneToSRange{Int64,2}}})
     end

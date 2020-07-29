@@ -78,7 +78,6 @@ function to_axis(
     ks::StructAxis{T},
     vs::AbstractUnitRange{<:Integer},
     check_length::Bool=true,
-    staticness=Staticness(vs)
 ) where {T}
 
     check_length && check_axis_length(ks, vs)

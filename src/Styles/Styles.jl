@@ -8,7 +8,7 @@ module Styles
 using ChainedFixes
 using IntervalSets
 using StaticRanges
-using StaticRanges: Staticness, resize_last
+using StaticRanges: resize_last
 using Base: @propagate_inbounds, OneTo, Fix2, tail, front
 
 export

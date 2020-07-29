@@ -59,25 +59,33 @@ function OffsetArray{T,N,P}(A::OffsetArray) where {T,N,P}
 end
 
 function OffsetArray{T,N,P}(A::P, inds::NTuple{M,Any}) where {T,N,P<:AbstractArray{T,N},M}
-    S = Staticness(A)
-    if N === M
-        axs = map((x, y) -> OffsetAxis(as_staticness(S, x), as_staticness(S, y)), inds, axes(A))
-    elseif N < M
-        axs = ntuple(Val(N)) do i
-            OffsetAxis(as_staticness(S, getfield(inds, i)), as_staticness(S, axes(A, i)))
+    if N === 1
+        if M === 1
+            axs = (OffsetAxis(first(inds), of_staticness(A, axes(A, 1))),)
+        else
+            axs = (OffsetAxis(of_staticness(A, axes(A, 1))),)
         end
-    else  # N > M
-        axs = ntuple(Val(N)) do i
-            inds_i = as_staticness(S, axes(A, i))
-            if i > M
-                OffsetAxis(inds_i, inds_i)
-            else
-                OffsetAxis(inds_i, as_staticness(S, axes(A, i)))
+    else
+        if N === M
+            axs = map((x, y) -> OffsetAxis(x, y), inds, axes(A))
+        elseif N < M
+            axs = ntuple(Val(N)) do i
+                OffsetAxis(getfield(inds, i), axes(A, i))
+            end
+        else  # N > M
+            axs = ntuple(Val(N)) do i
+                inds_i = axes(A, i)
+                if i > M
+                    OffsetAxis(inds_i, inds_i)
+                else
+                    OffsetAxis(inds_i, axes(A, i))
+                end
             end
         end
     end
     return AxisArray{T,N,typeof(A),typeof(axs)}(A, axs)
 end
+
 
 function OffsetArray{T,N}(A::AbstractAxisArray, inds::Tuple) where {T,N}
     return OffsetArray{T,N}(parent(A), inds)

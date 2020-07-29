@@ -7,7 +7,6 @@ using MappedArrays
 using NamedDims
 using StaticRanges
 using StaticRanges: OneToUnion
-using StaticRanges: Staticness, Fixed, Static, Dynamic
 using StaticRanges: resize_last
 
 import MetadataArrays: MetadataArray
@@ -27,9 +26,9 @@ export
     axis_meta,
     axis_metaproperty,
     axis_metaproperty!,
-    colaxis,
-    colkeys,
-    coltype,
+    col_axis,
+    col_keys,
+    col_type,
     drop_axes,
     first_key,
     has_dimnames,
@@ -40,13 +39,14 @@ export
     metaproperty,
     metaproperty!,
     named_axes,
+    parent_type,
     indices,
     indices_type,
     is_indices_axis,
     keys_type,
-    rowaxis,
-    rowkeys,
-    rowtype,
+    row_axis,
+    row_keys,
+    row_type,
     select_axes,
     step_key,
     unsafe_reconstruct,

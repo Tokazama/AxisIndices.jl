@@ -29,6 +29,7 @@ Base.length(x::AbstractAxisArray) = prod(size(x))
 Base.size(x::AbstractAxisArray) = map(length, axes(x))
 
 StaticRanges.axes_type(::Type{<:AbstractAxisArray{T,N,P,AI}}) where {T,N,P,AI} = AI
+StaticRanges.axes_type(::Type{<:AbstractAxisArray{T,N,P,AI}}, i::Int) where {T,N,P,AI} = AI.parameters[i]
 
 function Base.axes(x::AbstractAxisArray{T,N}, i::Integer) where {T,N}
     if i > N
@@ -56,13 +57,13 @@ end
 
 @inline function Base.similar(A::AbstractAxisArray, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false, Staticness(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 # Necessary to avoid ambiguities with OffsetArrays
 @inline function Base.similar(A::AbstractAxisArray, ::Type{T}, dims::NTuple{N,Int}) where {T,N}
     p = similar(parent(A), T, dims)
-    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p), false, Staticness(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), (), axes(p), false))
 end
 
 function Base.similar(A::AbstractAxisArray, ::Type{T}) where {T}
@@ -77,17 +78,17 @@ function Base.similar(
 ) where {T, N}
 
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false, Staticness(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 function Base.similar(A::AbstractAxisArray, ::Type{T}, ks::Tuple{OneTo,Vararg{OneTo,N}}) where {T, N}
     p = similar(parent(A), T, map(length, ks))
-    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false, Staticness(p)))
+    return unsafe_reconstruct(A, p, to_axes(axes(A), ks, axes(p), false))
 end
 
 function Base.similar(::Type{T}, ks::AbstractAxes{N}) where {T<:AbstractArray, N}
     p = similar(T, map(length, ks))
-    axs = to_axes((), ks, axes(p), false, Staticness(p))
+    axs = to_axes((), ks, axes(p), false)
     return AxisArray{eltype(T),N,typeof(p),typeof(axs)}(p, axs)
 end
 

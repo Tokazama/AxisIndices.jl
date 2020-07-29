@@ -7,13 +7,17 @@ using LinearAlgebra
 using Statistics
 
 using EllipsisNotation: Ellipsis
+
 using ArrayInterface
+using ArrayInterface: parent_type
+
 using MappedArrays
 using StaticArrays
+
 using StaticRanges
 using StaticRanges: can_set_length
 using StaticRanges: resize_last, resize_last!, grow_last, grow_last!, grow_first!, shrink_last!, shrink_first!
-using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
+using StaticRanges: Length, OneToUnion
 
 using AxisIndices.Styles
 
@@ -23,7 +27,7 @@ using AxisIndices.Metadata: _construct_meta
 using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
-using AxisIndices.Interface: as_staticness, to_axis, to_axes, to_index
+using AxisIndices.Interface: to_axis, to_axes, to_index
 
 using AxisIndices.Axes
 using AxisIndices.Axes: AbstractAxes
@@ -47,8 +51,6 @@ export
     MetaAxisArray,
     NamedAxisArray,
     NamedMetaAxisArray,
-    OffsetArray,
-    OffsetVector,
     permuteddimsview
 
 # TODO these shouldn't be exported

@@ -29,7 +29,7 @@ to_keys(::IndexElement, axis, arg, index) = v2k(keys(axis), indices(axis), index
 to_keys(::KeysCollection, axis, arg, index) = arg
 
 @inline function to_keys(::IndicesCollection, axis, arg, index)
-    mapping = findin(arg, indices(axis))
+    mapping = find_all_in(arg, indices(axis))
     return v2k(keys(axis), indices(axis), mapping)
 end
 

@@ -52,7 +52,7 @@ end
 
 
 function Base.popfirst!(A::AbstractAxisVector)
-    shrink_first!(axes(A, 1), 1)
+    Axes.popfirst_axis!(axes(A, 1))
     return popfirst!(parent(A))
 end
 
@@ -139,7 +139,8 @@ function Base.push!(A::AbstractAxisVector, item::Pair)
 end
 
 function Base.pushfirst!(A::AbstractAxisVector, item)
-    grow_first!(axes(A, 1), 1)
+    # TODO check for dynamic vector with appropriate error message
+    Axes.pushfirst_axis!(axes(A, 1))
     pushfirst!(parent(A), item)
     return A
 end
@@ -148,7 +149,7 @@ function Base.pushfirst!(A::AbstractAxisVector, item::Pair)
     axis = axes(A, 1)
     StaticRanges.can_set_first(axis) || throw(MethodError(pushfirst!, (A, item)))
     pushfirst!(parent(A), last(item))
-    Axes.pushfirst_key!(axis, first(item))
+    Axes.pushfirst_axis!(axis, first(item))
     return A
 end
 

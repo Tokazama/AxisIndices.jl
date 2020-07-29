@@ -10,15 +10,16 @@
     @test last_key(axis) == 3
 
     A = AxisArray(ones(3,2), [:one, :two, :three])
-    @test keys_type(A, 1) == Array{Symbol,1}
+
+    KS = keys_type(A, 1)
+    #@test is_fixed(KS)
+    @test eltype(KS) <: Symbol
 
 
     @testset "reverse" begin
         x = [1, 2, 3]
         y = AxisArray(x)
         z = AxisArray(x, Axis([:one, :two, :three]))
-
-
 
         revx = reverse(x)
         revy = @inferred(reverse(y))

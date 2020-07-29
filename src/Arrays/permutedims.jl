@@ -42,7 +42,7 @@ julia> axes_keys(diag(A, 1; dim=Val(2)))
 """
 function LinearAlgebra.diag(M::AbstractAxisArray, k::Integer=0; dim::Val{D}=Val(1)) where {D}
     p = diag(parent(M), k)
-    return unsafe_reconstruct(M, p, (resize_last(axes(M, D), axes(p, 1)),))
+    return unsafe_reconstruct(M, p, (StaticRanges.shrink_last(axes(M, D), axes(p, 1)),))
 end
 
 """

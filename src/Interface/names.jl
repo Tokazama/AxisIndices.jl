@@ -171,7 +171,7 @@ macro def_axis_type(name, name_dim)
 end
 
 macro def_selectdim(name, name_dim)
-    name_selectdim = Symbol(:select_, name, :dim)
+    name_selectdim = Symbol(:select_, name)
     name_selectdim_doc = """
         $name_selectdim(x, i)
 

@@ -43,21 +43,18 @@
     end
 end
 
-
-
-
 @testset "column methods" begin
     A = AxisArray(ones(2,2), ["a", "b"], [:one, :two])
-    @test @inferred(colaxis(A)) isa Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
-    @test @inferred(colkeys(A)) == [:one, :two]
-    @test @inferred(coltype(A)) <: Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}
+    @test @inferred(col_axis(A)) isa Axis{Symbol,Int64,<:AbstractVector{Symbol},Base.OneTo{Int64}}
+    @test @inferred(col_keys(A)) == [:one, :two]
+    @test @inferred(col_type(A)) <: Axis{Symbol,Int64,<:AbstractVector{Symbol},Base.OneTo{Int64}}
 end
 
 @testset "row methods" begin
     A = AxisArray(ones(2,2), ["a", "b"], [:one, :two])
-    @test @inferred(rowaxis(A)) isa Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
-    @test @inferred(rowkeys(A)) == ["a", "b"]
-    @test @inferred(rowtype(A)) <: Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}
+    @test @inferred(row_axis(A)) isa Axis{String,Int64,<:AbstractVector{String},Base.OneTo{Int64}}
+    @test @inferred(row_keys(A)) == ["a", "b"]
+    @test @inferred(row_type(A)) <: Axis{String,Int64,<:AbstractVector{String},Base.OneTo{Int64}}
 end
 
 #=

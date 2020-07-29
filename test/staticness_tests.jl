@@ -1,5 +1,5 @@
 
-@testset "Staticness" begin
+@testset "staticn/fixed/dynamic" begin
     # as_[mutable/immutable/static]
     for (i,m,s) in ((SimpleAxis(UnitRange(1, 3)), SimpleAxis(UnitMRange(1, 3)), SimpleAxis(UnitSRange(1, 3))),
                     (Axis(UnitRange(1, 3),UnitRange(1, 3)), Axis(UnitMRange(1, 3),UnitMRange(1, 3)), Axis(UnitSRange(1, 3),UnitSRange(1, 3))),
@@ -23,5 +23,3 @@
         end
     end
 end
-i,m,s = SimpleAxis(UnitRange(1, 3)), SimpleAxis(UnitMRange(1, 3)), SimpleAxis(UnitSRange(1, 3))
-

@@ -10,6 +10,7 @@
           @inferred(A[["a", "b"], 1:2, 1:2, 1]) ==
           @inferred(parent(A)[1:2, 1:2, 1:2]) ==
           @inferred(parent(A)[["a", "b"], 1:2, 1:2, 1])
+
     @test @inferred(A[1:10]) == 1:10
 
     @test keys(@inferred(AxisIndices.named_axes(A))) == (:x,:y,:z)
@@ -19,4 +20,4 @@
     @test dimnames(@inferred(NamedAxisArray{(:x, :y),Int}(undef, (2,2)))) == (:x, :y)
     @test dimnames(@inferred(NamedAxisArray{(:x, :y),Int,2}(undef, 1:2, 1:2))) == (:x, :y)
 end
-
+AxisArray(reshape(1:24, 2, 3, 4), ["a", "b"], ["one", "two", "three"], 2:5)

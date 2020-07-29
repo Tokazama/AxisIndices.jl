@@ -15,7 +15,7 @@ using AxisIndices.Styles
 using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
-using AxisIndices.Interface: as_staticness, to_axis, to_axes, to_index
+using AxisIndices.Interface: to_axis, to_axes, to_index
 
 using AxisIndices.Axes
 
@@ -26,7 +26,7 @@ using ArrayInterface
 using ArrayInterface: known_first, known_last
 
 using StaticRanges
-using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
+using StaticRanges: Length, OneToUnion
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
 using StaticRanges: checkindexlo, checkindexhi
 using StaticRanges: grow_first!, grow_last!

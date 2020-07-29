@@ -9,7 +9,7 @@ is_multidim_arg(::Type{T}) where {T} = false
 is_multidim_arg(::Type{CartesianIndex{N}}) where {N} = true
 is_multidim_arg(::Type{<:AbstractArray{T,N}}) where {T,N} = true
 is_multidim_arg(::Type{<:AbstractArray{T,1}}) where {T} = false
-is_multidim_arg(::Type{<:AbstractArray{CartesianIndex{N},1}}) where {T,N} = true
+is_multidim_arg(::Type{<:AbstractArray{CartesianIndex{N},1}}) where {N} = true
 is_multidim_arg(::Type{Ellipsis}) = true
 
 function to_indices(A::AbstractArray{T,N}, args::Tuple{Arg,Vararg{Any,M}}) where {T,N,Arg,M}
@@ -110,7 +110,7 @@ end
     #return (to_index(first(axs), arg), Interface.to_indices(A, axes_tail, args)...)
 end
 
-@propagate_inbounds function to_indices(A::AbstractArray{T,N}, axs::Tuple, args::Tuple{}) where {T,N,Arg}
+@propagate_inbounds function to_indices(A::AbstractArray{T,N}, axs::Tuple, args::Tuple{}) where {T,N}
     @boundscheck if length(first(axs)) == 1
         throw(BoundsError(first(axs), ()))
     end

@@ -45,10 +45,31 @@ function push_key!(axis::AbstractAxis, key)
     return nothing
 end
 
-function pushfirst_key!(axis::AbstractAxis, key)
+function pushfirst_axis!(axis::AbstractAxis)
+    if !is_indices_axis(axis)
+        grow_first!(keys(axis), 1)
+    end
+    grow_last!(indices(axis), 1)
+    return nothing
+end
+
+function pushfirst_axis!(axis::AbstractAxis, key)
     if !is_indices_axis(axis)
         pushfirst!(keys(axis), key)
     end
     grow_last!(indices(axis), 1)
     return nothing
 end
+
+function popfirst_axis!(axis::AbstractAxis)
+    if !is_indices_axis(axis)
+        if StaticRanges.can_set_first(axis)
+            StaticRanges.shrink_first!(keys(axis), 1)
+        else
+            shrink_last!(keys(axis), 1)
+        end
+    end
+    shrink_last!(indices(axis), 1)
+    return nothing
+end
+

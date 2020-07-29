@@ -21,33 +21,33 @@ function check_cols_type(x::AbstractVector{<:AbstractVector}, caxis::StructAxis)
     return nothing
 end
 
-function _create_colaxis(x::AbstractVector{<:AbstractVector}, caxis::AbstractAxis)
+function _create_col_axis(x::AbstractVector{<:AbstractVector}, caxis::AbstractAxis)
     check_cols_length(x, caxis)
     return caxis
 end
 
-function _create_colaxis(x::AbstractVector{<:AbstractVector}, caxis::AbstractVector{Symbol})
-    return _create_colaxis(x, to_axis(caxis, indices(x, 1)))
+function _create_col_axis(x::AbstractVector{<:AbstractVector}, caxis::AbstractVector{Symbol})
+    return _create_col_axis(x, to_axis(caxis, indices(x, 1)))
 end
 
-function _create_colaxis(x::AbstractVector{<:AbstractVector}, ::Type{T}) where {T}
+function _create_col_axis(x::AbstractVector{<:AbstractVector}, ::Type{T}) where {T}
     return StructAxis{T}(indices(x, 1))
 end
 
-function _create_colaxis(x::AbstractVector{<:AbstractVector}, ::Nothing)
-    return _create_colaxis(x, rowkeys(x))
+function _create_col_axis(x::AbstractVector{<:AbstractVector}, ::Nothing)
+    return _create_col_axis(x, row_keys(x))
 end
 
-function _create_colaxis(x::AbstractVector{<:AbstractVector}, caxis::AbstractVector{<:Integer})
+function _create_col_axis(x::AbstractVector{<:AbstractVector}, caxis::AbstractVector{<:Integer})
     return to_axis([Symbol(:x, col_i) for col_i in caxis], indices(x, 1))
 end
 
 # TODO
-function _create_rowaxis(x::AbstractVector{<:AbstractVector}, ::Nothing)
-    return _create_rowaxis(x, to_axis(axes(first(x), 1)))
+function _create_row_axis(x::AbstractVector{<:AbstractVector}, ::Nothing)
+    return _create_row_axis(x, to_axis(axes(first(x), 1)))
 end
 
-function _create_rowaxis(x::AbstractVector{<:AbstractVector}, raxis::AbstractAxis)
+function _create_row_axis(x::AbstractVector{<:AbstractVector}, raxis::AbstractAxis)
     check_rows_length(x, raxis)
     return raxis
 end
@@ -59,8 +59,8 @@ Stores a vector of columns that may be acccessed via the Tables.jl interface.
 """
 struct Table{P<:AbstractVector{<:AbstractVector},RA,CA} <: AbstractTable{P,RA,CA}
     parent::P
-    rowaxis::RA
-    colaxis::CA
+    row_axis::RA
+    col_axis::CA
 
     function Table{P,RA,CA}(x::P, raxis::RA, caxis::CA) where {P,RA,CA}
         check_cols_type(x, caxis)
@@ -74,10 +74,10 @@ struct Table{P<:AbstractVector{<:AbstractVector},RA,CA} <: AbstractTable{P,RA,CA
 
     function Table(x::AbstractMatrix, raxis::AbstractAxis, caxis::AbstractAxis)
         if size(x, 1) != length(raxis)
-            error("Got size(data, 1) = $(size(x, 1)) and length(rowaxis) = $(length(raxis))")
+            error("Got size(data, 1) = $(size(x, 1)) and length(row_axis) = $(length(raxis))")
         end
         if size(x, 2) != length(caxis)
-            error("Got size(data, 2) = $(size(x, 2)) and length(colaxis) = $(length(caxis))")
+            error("Got size(data, 2) = $(size(x, 2)) and length(col_axis) = $(length(caxis))")
         end
         data = Vector{Vector{T}}(undef, size(x, 2))
         @inbounds for i in axes(x, 2)
@@ -86,15 +86,15 @@ struct Table{P<:AbstractVector{<:AbstractVector},RA,CA} <: AbstractTable{P,RA,CA
         Table{Vector{AbstractVector},typeof(raxis),typeof(caxis)}(data, raxis, caxis)
     end
 
-    function Table(x::AbstractVector{<:AbstractVector}; rowaxis=nothing, colaxis=nothing)
-        caxis = _create_colaxis(x, colaxis)
-        raxis = _create_rowaxis(x, rowaxis)
+    function Table(x::AbstractVector{<:AbstractVector}; row_axis=nothing, col_axis=nothing)
+        caxis = _create_col_axis(x, col_axis)
+        raxis = _create_row_axis(x, row_axis)
         return Table{typeof(x),typeof(raxis),typeof(caxis)}(x, raxis, caxis)
     end
 
-    function Table(x::AxisVector{<:Any,<:AbstractVector{<:AbstractVector}}; rowaxis=nothing, colaxis=nothing)
-        caxis = _create_colaxis(x, colaxis)
-        raxis = _create_rowaxis(x, rowaxis)
+    function Table(x::AxisVector{<:Any,<:AbstractVector{<:AbstractVector}}; row_axis=nothing, col_axis=nothing)
+        caxis = _create_col_axis(x, col_axis)
+        raxis = _create_row_axis(x, row_axis)
         return Table{parent_type(x),typeof(raxis),typeof(caxis)}(parent(x), raxis, caxis)
     end
 
@@ -125,7 +125,7 @@ struct Table{P<:AbstractVector{<:AbstractVector},RA,CA} <: AbstractTable{P,RA,CA
             push!(new_data, v)
         end
         caxis = Axis(ks)
-        raxis = _create_rowaxis(new_data, nothing)
+        raxis = _create_row_axis(new_data, nothing)
         return Table{typeof(new_data),typeof(raxis),typeof(caxis)}(new_data, raxis, caxis)
     end
 
@@ -138,7 +138,7 @@ struct Table{P<:AbstractVector{<:AbstractVector},RA,CA} <: AbstractTable{P,RA,CA
             push!(new_data, v)
         end
         caxis = Axis(ks)
-        raxis = _create_rowaxis(new_data, nothing)
+        raxis = _create_row_axis(new_data, nothing)
         return Table{typeof(new_data),typeof(raxis),typeof(caxis)}(new_data, raxis, caxis)
     end
 
@@ -148,9 +148,9 @@ end
 
 Base.parent(x::Table) = getfield(x, :parent)
 
-Interface.rowaxis(x::Table) = getfield(x, :rowaxis)
+Interface.row_axis(x::Table) = getfield(x, :row_axis)
 
-Interface.colaxis(x::Table) = getfield(x, :colaxis)
+Interface.col_axis(x::Table) = getfield(x, :col_axis)
 
 Base.getproperty(x::Table, i) = getindex(x, :, i)
 
@@ -158,7 +158,7 @@ Base.getproperty(x::Table, i::Symbol) = getindex(x, :, i)
 
 Base.setproperty!(x::Table, i::Symbol, val) = setindex!(x, val, :, i)
 
-Base.propertynames(x::Table) = colkeys(x)
+Base.propertynames(x::Table) = col_keys(x)
 
 Table(x::AbstractVector{<:AbstractVector}, ks::AbstractVector) = Table(AxisArray(x, ks))
 

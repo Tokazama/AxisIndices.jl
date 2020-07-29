@@ -40,10 +40,6 @@ end
     end
 end
 
-as_staticness(::StaticRanges.Static, x) = as_static(x)
-as_staticness(::StaticRanges.Fixed, x) = as_fixed(x)
-as_staticness(::StaticRanges.Dynamic, x) = as_dynamic(x)
-
 # handle offsets
 function k2v(ks, inds, index::Integer)
     if StaticRanges.has_offset_axes(inds)

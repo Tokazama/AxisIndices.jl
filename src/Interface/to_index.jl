@@ -52,7 +52,7 @@ end
 end
 
 @propagate_inbounds function to_index(::KeysCollection, axis, arg)
-    mapping = findin(arg, keys(axis))
+    mapping = find_all_in(arg, keys(axis))
     @boundscheck if length(arg) != length(mapping)
         throw(BoundsError(axis, arg))
     end
@@ -62,7 +62,7 @@ end
 # TODO boundschecking should be replace by the yet undeveloped `allin` method in StaticRanges
 # if we're referring to an element than we just need to know if it's inbounds
 @propagate_inbounds function to_index(::IndicesCollection, axis, arg)
-    @boundscheck if length(findin(arg, indices(axis))) != length(arg)
+    @boundscheck if length(find_all_in(arg, indices(axis))) != length(arg)
         throw(BoundsError(axis, arg))
     end
     return arg
@@ -73,11 +73,11 @@ end
 end
 
 function to_index(::IntervalCollection, axis, arg)
-    return k2v(keys(axis), indices(axis), findin(arg, keys(axis)))
+    return k2v(keys(axis), indices(axis), find_all_in(arg, keys(axis)))
 end
 
 @propagate_inbounds function to_index(::KeysIn, axis, arg)
-    mapping = findin(arg.x, keys(axis))
+    mapping = find_all_in(arg.x, keys(axis))
     @boundscheck if length(arg.x) != length(mapping)
         throw(BoundsError(axis, arg))
     end
@@ -85,7 +85,7 @@ end
 end
 
 @propagate_inbounds function to_index(::IndicesIn, axis, arg)
-    mapping = findin(arg.x, indices(axis))
+    mapping = find_all_in(arg.x, indices(axis))
     @boundscheck if length(arg.x) != length(mapping)
         throw(BoundsError(axis, arg))
     end

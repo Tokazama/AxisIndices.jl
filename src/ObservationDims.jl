@@ -14,7 +14,7 @@ export
     obs_indices,
     nobs,
     is_observation,
-    select_obsdim,
+    select_obs,
     each_obs
  
 Base.@pure is_observation(x::Symbol) = (x === :obs) | (x === :observations) | (x === :samples)

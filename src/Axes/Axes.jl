@@ -4,7 +4,7 @@ using NamedDims
 using MappedArrays
 import EllipsisNotation: Ellipsis
 import StaticArrays: StaticIndexing
-import StaticArrays: SVector
+import StaticArrays: SVector, SOneTo
 using StaticRanges
 
 using AxisIndices.Styles
@@ -16,14 +16,13 @@ using AxisIndices.Interface
 using AxisIndices.Interface: AbstractIndices
 using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, assign_indices
 using AxisIndices.Interface: check_axis_length, check_axis_unique
-using AxisIndices.Interface: as_staticness
 import AxisIndices.Interface: to_axis, to_axes, to_index, to_keys
 
 
 using AxisIndices.PrettyArrays
 
 using StaticRanges
-using StaticRanges: Static, Fixed, Dynamic, Staticness, Length, OneToUnion
+using StaticRanges: Length, OneToUnion
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
 using StaticRanges: checkindexlo, checkindexhi
 using StaticRanges: grow_first!, grow_last!
@@ -33,7 +32,7 @@ using StaticRanges: shrink_last!
 import MetadataArrays: MetadataArray
 
 using ArrayInterface
-using ArrayInterface: known_first, known_last
+using ArrayInterface: known_first, known_last, parent_type
 
 using Base: @propagate_inbounds, tail, OneTo
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle

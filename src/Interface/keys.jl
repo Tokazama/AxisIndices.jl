@@ -122,4 +122,7 @@ Base.OneTo{Int64}
 ```
 """
 keys_type(::T) where {T} = keys_type(T)
-keys_type(::Type{T}) where {T} = OneTo{Int}  # default for things is usually LinearIndices{1}
+keys_type(::Type{T}) where {T<:AbstractRange} = OneTo{Int}  # default for things is usually LinearIndices{1}
+@inline function keys_type(::Type{T}) where {T<:AbstractArray}
+    return Tuple{ntuple(i -> keys_type(T, i), Val(ndims(T)))...}
+end

@@ -19,18 +19,18 @@
     r = TableRow(1, x)
     @test Tables.columnnames(r) == [:a, :b]
     @test @inferred(propertynames(r)) == [:a, :b]
-    @test @inferred(colaxis(r)) isa Axis
+    @test @inferred(col_axis(r)) isa Axis
 
     @testset "StructAxis Columns" begin
-        x = Table([[1,2],[3,4]]; colaxis=NamedTuple{(:a, :b),Tuple{Int,Int}})
+        x = Table([[1,2],[3,4]]; col_axis=NamedTuple{(:a, :b),Tuple{Int,Int}})
         @test @inferred(Tables.schema(x)) isa Tables.Schema{(:a,:b),Tuple{Int,Int}}
         @test @inferred(propertynames(x)) == [:a, :b]
 
-        @test @inferred(colaxis(x)) isa StructAxis
+        @test @inferred(col_axis(x)) isa StructAxis
 
-        @test @inferred(rowaxis(x)) isa SimpleAxis
-        @test @inferred(rowtype(x)) <: SimpleAxis
-        @test @inferred(colaxis(x)) isa StructAxis
+        @test @inferred(row_axis(x)) isa SimpleAxis
+        @test @inferred(row_type(x)) <: SimpleAxis
+        @test @inferred(col_axis(x)) isa StructAxis
 
     end
 end
