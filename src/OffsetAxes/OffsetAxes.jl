@@ -15,7 +15,8 @@ using AxisIndices.Styles
 using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
-using AxisIndices.Interface: to_axis, to_axes, to_index
+using AxisIndices.Interface: to_axis, to_axes, to_index, assign_indices
+
 
 using AxisIndices.Axes
 
