@@ -39,6 +39,10 @@ end
     @test @inferred(broadcast_axis(SimpleAxis(1:2), SimpleAxis(1:2))) == SimpleAxis(1:2)
     =#
 
+    @testset "Multiple broadcasts" begin
+        @test (AxisArray(ones(2)) .- AxisArray(ones(2))) .^ 2 == zeros(2)
+    end
+
     @test @inferred(Base.Broadcast.broadcast_shape((1:10,), (1:10, 1:10), (1:10,))) == (1:10, 1:10)
     b1 = Broadcast.broadcast_shape(
         axes(CartesianIndices((1,))),

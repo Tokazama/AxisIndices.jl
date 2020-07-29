@@ -59,11 +59,7 @@ _get_first_axis_indices(args::Tuple{}) = nothing
 # We need to implement copy because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
 function Broadcast.copy(bc::Broadcasted{AxisArrayStyle{S}}) where S
-    return unsafe_reconstruct(
-        get_first_axis_indices(bc),
-        Broadcast.copy(unwrap_broadcasted(bc)),
-        Broadcast.combine_axes(bc.args...)
-    )
+    return AxisArray(copy(unwrap_broadcasted(bc)), Broadcast.combine_axes(bc.args...))
 end
 
 function Base.copyto!(
