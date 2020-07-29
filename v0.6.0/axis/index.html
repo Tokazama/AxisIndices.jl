@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Axis Interface · AxisIndices.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">AxisIndices.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../quick_start/">Quick Start</a></li><li><span class="tocitem">Manual</span><ul><li class="is-active"><a class="tocitem" href>Axis Interface</a><ul class="internal"><li><a class="tocitem" href="#Introduction"><span>Introduction</span></a></li><li><a class="tocitem" href="#Indexing-an-Axis"><span>Indexing an Axis</span></a></li><li><a class="tocitem" href="#Quick-Look-at-AbstractAxis-Types"><span>Quick Look at <code>AbstractAxis</code> Types</span></a></li><li><a class="tocitem" href="#Performance"><span>Performance</span></a></li><li><a class="tocitem" href="#Reference"><span>Reference</span></a></li></ul></li><li><a class="tocitem" href="../arrays/">Array Interface</a></li><li><a class="tocitem" href="../offset_axes/">OffsetAxes</a></li><li><a class="tocitem" href="../table/">Tabular Interface</a></li><li><a class="tocitem" href="../observations/">Observations</a></li><li><a class="tocitem" href="../internals_of_indexing/">Internals of Indexing</a></li><li><a class="tocitem" href="../pretty_printing/">Pretty Printing</a></li><li><a class="tocitem" href="../compatibility/">Compatibility</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../coeftable/">CoefTable</a></li><li><a class="tocitem" href="../time/">TimeAxis Guide</a></li></ul></li><li><a class="tocitem" href="../comparison/">Comparison to Other Packages</a></li><li><a class="tocitem" href="../acknowledgments/">Acknowledgments</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Axis Interface</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Axis Interface</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Tokazma/AxisIndices.jl/blob/master/docs/src/axis.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="The-Axis-Interface"><a class="docs-heading-anchor" href="#The-Axis-Interface">The Axis Interface</a><a id="The-Axis-Interface-1"></a><a class="docs-heading-anchor-permalink" href="#The-Axis-Interface" title="Permalink"></a></h1><p>The following describes the components necessary to construct and manipulate existing and new subtypes of <code>AbstractAxis</code>.</p><h2 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h2><p>The supertype to all axis types herein is the <code>AbstractAxis</code>, which is a subtype of <code>AbstractUnitRange{&lt;:Integer}</code>.</p><p>If we have a set of keys <code>a b c</code> and a set of indices <code>1 2 3</code> then the key <code>a</code> maps to the index <code>1</code>. Given these definitions, the <code>AbstractAxis</code> differs from the classic dictionary in the following two ways:</p><ol><li>The <code>valtype</code> of <code>AbstractAxis</code> is always an integer.</li><li>The <code>values</code> are always unique and continuous.</li></ol><p>The two main axis types defined here are <code>Axis</code> and <code>SimpleAxis</code>. The standard syntax for indexing doesn&#39;t change at all for these types.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; using Dates
+
+julia&gt; using ChainedFixes  # provides `and`, `or`, `⩓`, `⩔` methods
+
+julia&gt; sa = SimpleAxis(1:10)
+SimpleAxis(1:10)
+
+julia&gt; sa[2]
+2
+
+julia&gt; sa[&gt;(2)]
+SimpleAxis(3:10)
+
+julia&gt; a = Axis(1:10)
+Axis(1:10 =&gt; Base.OneTo(10))
+
+julia&gt; a[2]
+2
+
+julia&gt; a[2:3]
+Axis(2:3 =&gt; 2:3)</code></pre><p>But now we can also use functions to index by the keys of an <code>AbstractAxis</code>.</p><pre><code class="language-julia-repl">julia&gt; a = Axis(2.0:11.0, 1:10)
+Axis(2.0:1.0:11.0 =&gt; 1:10)
+
+julia&gt; a[1]
+1
+
+julia&gt; a[isequal(2.0)]
+1
+
+julia&gt; a[&gt;(2)]
+Axis(3.0:1.0:11.0 =&gt; 2:10)
+
+julia&gt; a[&gt;(2.0)]
+Axis(3.0:1.0:11.0 =&gt; 2:10)
+
+julia&gt; a[and(&gt;(2.0), &lt;(8.0))]
+Axis(3.0:1.0:7.0 =&gt; 2:6)
+
+julia&gt; sa[in(3:5)]
+SimpleAxis(3:5)</code></pre><p>This also allows certain syntax special treatment because they are obviously not referring to traditional integer based indexing.</p><pre><code class="language-julia-repl">julia&gt; x, y, z = Axis([:one, :two, :three]), Axis([&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]), Axis(Second(1):Second(1):Second(3));
+
+julia&gt; x[:one]
+1
+
+julia&gt; x[:one] == y[&quot;one&quot;] == z[Second(1)]
+true
+
+julia&gt; x[[:one, :two]]
+2-element Array{Int64,1}:
+ 1
+ 2</code></pre><p>Note in the last example that a vector was returned instead of an <code>AbstractAxis</code>. An <code>AbstractAxis</code> is a subtype of <code>AbstractUnitRange</code> and therefore cannot be reformed after any operation that does not guarantee the return of another unit range. This is similar to the behavior of <code>UnitRange</code> in base.</p><h2 id="Indexing-an-Axis"><a class="docs-heading-anchor" href="#Indexing-an-Axis">Indexing an Axis</a><a id="Indexing-an-Axis-1"></a><a class="docs-heading-anchor-permalink" href="#Indexing-an-Axis" title="Permalink"></a></h2><p>Setup for running axis examples.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, Unitful, IntervalSets, ChainedFixes
+
+julia&gt; using Unitful: s
+
+julia&gt; time1 = Axis((1.5:.5:10)s)
+Axis((1.5:0.5:10.0) s =&gt; Base.OneTo(18))
+
+julia&gt; time2 = Axis((1.5:.5:10)s, 2:19)
+Axis((1.5:0.5:10.0) s =&gt; 2:19)</code></pre><h3 id="Indexing-With-Integers"><a class="docs-heading-anchor" href="#Indexing-With-Integers">Indexing With Integers</a><a id="Indexing-With-Integers-1"></a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Integers" title="Permalink"></a></h3><p>Integers will map directly to the indices of an axis.</p><pre><code class="language-julia-repl">julia&gt; time1[1]
+1
+
+julia&gt; time1[2]
+2
+
+julia&gt; time2[2]
+2
+
+julia&gt; time2[1]
+ERROR: BoundsError: attempt to access 18-element Axis((1.5:0.5:10.0) s =&gt; 2:19) at index [1]
+[...]</code></pre><p>Notice that <code>time2[1]</code> throws an error. This is because the indices of the <code>time2</code> axis don&#39;t contain a 1 and begins at 2. This allows an axis to map to any single dimensional memory mapping, even if it doesn&#39;t start at 1.</p><p>Indexing an axis with a collection of integers works similarly to indexing any other <code>AbstractUnitRange</code>. That is, using other subtypes of <code>AbstractUnitRange</code> preserves the structure...</p><pre><code class="language-julia-repl">julia&gt; time1[1:2]
+Axis((1.5:0.5:2.0) s =&gt; 1:2)
+
+julia&gt; time2[2:3]
+Axis((1.5:0.5:2.0) s =&gt; 2:3)</code></pre><p>However, we can&#39;t ensure that the resulting range will have a step of one in other cases so only the indices are returned.</p><pre><code class="language-julia-repl">julia&gt; time1[1:2:4]
+1:2:3
+
+julia&gt; time1[[1, 2, 3]]
+3-element Array{Int64,1}:
+ 1
+ 2
+ 3
+
+julia&gt; time1[firstindex(time1):end]
+Axis((1.5:0.5:10.0) s =&gt; 1:18)
+</code></pre><h3 id="Indexing-With-Keys"><a class="docs-heading-anchor" href="#Indexing-With-Keys">Indexing With Keys</a><a id="Indexing-With-Keys-1"></a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Keys" title="Permalink"></a></h3><pre><code class="language-julia-repl">julia&gt; time1[1.5s]
+1
+
+julia&gt; time2[1.5s]
+2</code></pre><pre><code class="language-julia-repl">julia&gt; time1[1.5s..3s]
+Axis((1.5:0.5:3.0) s =&gt; 1:4)
+
+julia&gt; time1[3s..4.5s]
+Axis((3.0:0.5:4.5) s =&gt; 4:7)</code></pre><h3 id="Keys-and-Indices"><a class="docs-heading-anchor" href="#Keys-and-Indices"><code>Keys</code> and <code>Indices</code></a><a id="Keys-and-Indices-1"></a><a class="docs-heading-anchor-permalink" href="#Keys-and-Indices" title="Permalink"></a></h3><p>If our keys are integers and we want to ensure that we always refer keys we can use <code>Keys</code></p><pre><code class="language-julia-repl">julia&gt; Axis((2:11), 1:10)[Keys(&lt;(5))]
+Axis(2:4 =&gt; 1:3)
+
+julia&gt; Axis((2:11), 1:10)[Indices(&lt;(5))]
+Axis(2:5 =&gt; 1:4)
+
+julia&gt; Axis((2:11), 1:10)[Keys(3)]
+2
+
+julia&gt; Axis((2:11), 1:10)[Indices(3)]
+3
+</code></pre><h3 id="Approximate-Indexing"><a class="docs-heading-anchor" href="#Approximate-Indexing">Approximate Indexing</a><a id="Approximate-Indexing-1"></a><a class="docs-heading-anchor-permalink" href="#Approximate-Indexing" title="Permalink"></a></h3><pre><code class="language-julia-repl">julia&gt; axis = Axis([pi + 0, pi + 1]);
+
+julia&gt; axis[3.141592653589793]
+1
+
+julia&gt; axis[3.14159265358979]
+ERROR: BoundsError: attempt to access 2-element Axis([3.141592653589793, 4.141592653589793] =&gt; OneToMRange(2)) at index [3.14159265358979]
+[...]
+
+julia&gt; axis[isapprox(3.14159265358979)]
+1
+
+julia&gt; axis[isapprox(3.14, atol=1e-2)]
+1</code></pre><h3 id="Indexing-With-Functions"><a class="docs-heading-anchor" href="#Indexing-With-Functions">Indexing With Functions</a><a id="Indexing-With-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Indexing-With-Functions" title="Permalink"></a></h3><p>Operators that typically return <code>true</code> or <code>false</code> can often </p><pre><code class="language-julia-repl">julia&gt; time1[&lt;(3.0s)]
+Axis((1.5:0.5:2.5) s =&gt; 1:3)
+
+julia&gt; time1[&gt;(3.0s)]
+Axis((3.5:0.5:10.0) s =&gt; 5:18)
+
+julia&gt; time1[==(6.0s)]
+10
+
+julia&gt; time1[!=(6.0s)] == vcat(1:9, 11:18)
+true</code></pre><p>These operators can also be combined to get more specific regions of an axis.</p><pre><code class="language-julia-repl">julia&gt; time1[and(&gt;(2.5s), &lt;(10.0s))]
+Axis((3.0:0.5:9.5) s =&gt; 4:17)
+
+julia&gt; time1[&gt;(2.5s) ⩓ &lt;(10.0s)]  # equivalent to `and` you can use \And&lt;TAB&gt;
+Axis((3.0:0.5:9.5) s =&gt; 4:17)
+
+julia&gt; time1[or(&lt;(2.5s),  &gt;(9.0s))] == vcat(1:2, 17:18)
+true
+
+julia&gt; time1[&lt;(2.5s) ⩔ &gt;(9.0s)] == vcat(1:2, 17:18) # equivalent to `or` you can use \Or&lt;TAB&gt;
+true
+</code></pre><h2 id="Quick-Look-at-AbstractAxis-Types"><a class="docs-heading-anchor" href="#Quick-Look-at-AbstractAxis-Types">Quick Look at <code>AbstractAxis</code> Types</a><a id="Quick-Look-at-AbstractAxis-Types-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-Look-at-AbstractAxis-Types" title="Permalink"></a></h2><table><tr><th style="text-align: right"><code>AbstractAxis</code> Type</th><th style="text-align: left">Usage</th></tr><tr><td style="text-align: right"><code>Axis</code></td><td style="text-align: left">Attach keys to indices</td></tr><tr><td style="text-align: right"><code>SimpleAxis</code></td><td style="text-align: left">Give standard indices access AxisIndices&#39;s syntax</td></tr><tr><td style="text-align: right"><code>CenteredAxis</code></td><td style="text-align: left">Enforce indexing that is centered around zero</td></tr><tr><td style="text-align: right"><code>OffsetAxis</code></td><td style="text-align: left">Enforce indexing with where the first index is offset from 1</td></tr><tr><td style="text-align: right"><code>MetaAxis</code></td><td style="text-align: left">Attach arbitrary metadata to an axis</td></tr><tr><td style="text-align: right"><code>StructAxis</code></td><td style="text-align: left">Map a type&#39;s field names and field types to each element along an axis.</td></tr></table><h2 id="Performance"><a class="docs-heading-anchor" href="#Performance">Performance</a><a id="Performance-1"></a><a class="docs-heading-anchor-permalink" href="#Performance" title="Permalink"></a></h2><p>Indexing <code>CartesianAxes</code> is comparable to that of <code>CartesianIndices</code>.</p><pre><code class="language-julia">julia&gt; using AxisIndices, BenchmarkTools
+
+julia&gt; cartaxes = CartesianAxes((Axis(2.0:5.0), Axis(1:4)));
+
+julia&gt; cartinds = CartesianIndices((1:4, 1:4));
+
+julia&gt; @btime getindex(cartaxes, 2, 2)
+20.848 ns (1 allocation: 32 bytes)
+CartesianIndex(2, 2)
+
+julia&gt; @btime getindex(cartinds, 2, 2)
+22.317 ns (1 allocation: 32 bytes)
+CartesianIndex(2, 2)
+
+julia&gt; @btime getindex(cartaxes, ==(3.0), 2)
+444.374 ns (7 allocations: 416 bytes)
+CartesianIndex(2, 2)</code></pre><p>Indexing <code>LinearAxes</code> is comparable to that of <code>LinearIndices</code></p><pre><code class="language-julia">julia&gt; using AxisIndices, BenchmarkTools
+
+julia&gt; linaxes = LinearAxes((Axis(1.0:4.0), Axis(1:4)));
+
+julia&gt; lininds = LinearIndices((1:4, 1:4));
+
+julia&gt; @btime getindex(linaxes, 2, 2)
+18.275 ns (0 allocations: 0 bytes)
+6
+
+julia&gt; @btime getindex(lininds, 2, 2)
+18.849 ns (0 allocations: 0 bytes)
+6
+
+julia&gt; @btime getindex(linaxes, ==(3.0), 2)
+381.098 ns (6 allocations: 384 bytes)
+7</code></pre><p>You may notice there&#39;s significant overhead for using the filtering syntax. However, the filtering syntax takes advantage of a special type in base, <code>Fix2</code>. This means that we can take advantage of filtering methods that have been optimized for specific types of keys.  Here we do the same thing as above but we create a function that knows it&#39;s going to perform filtering.</p><pre><code class="language-julia">julia&gt; getindex_filter(a, i1, i2) = a[==(i1), ==(i2)]
+getindex_filter (generic function with 1 method)
+
+julia&gt; @btime getindex_filter(linaxes, 3.0, 2)
+57.216 ns (0 allocations: 0 bytes)
+7
+
+julia&gt; linaxes2 = LinearAxes((Axis(Base.OneTo(4)), Axis(Base.OneTo(4))));
+
+julia&gt; @btime getindex_filter(linaxes2, 3, 2)
+22.070 ns (0 allocations: 0 bytes)
+7</code></pre><p>Indexing <code>linaxes</code> is much faster now that it can be optimized inside of a function call. However, it&#39;s still a little over twice as slow as normal indexing. That&#39;s largely because of the cost of searching <code>1.0:4.0</code> (which is a <code>StepRangeLen</code> type in this case). The second benchmark demonstrates how close we really are to standard indexing given similar range types.</p><h2 id="Reference"><a class="docs-heading-anchor" href="#Reference">Reference</a><a id="Reference-1"></a><a class="docs-heading-anchor-permalink" href="#Reference" title="Permalink"></a></h2><ul><li><a href="#AxisIndices.Interface.axes_keys-Tuple{Any,Any}"><code>AxisIndices.Interface.axes_keys</code></a></li><li><a href="#AxisIndices.Interface.axes_keys-Tuple{Any}"><code>AxisIndices.Interface.axes_keys</code></a></li><li><a href="#AxisIndices.Interface.axis_eltype-Tuple{Any,Any}"><code>AxisIndices.Interface.axis_eltype</code></a></li><li><a href="#AxisIndices.Interface.col_axis-Tuple{Any}"><code>AxisIndices.Interface.col_axis</code></a></li><li><a href="#AxisIndices.Interface.col_keys-Tuple{Any}"><code>AxisIndices.Interface.col_keys</code></a></li><li><a href="#AxisIndices.Interface.col_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.col_type</code></a></li><li><a href="#AxisIndices.Interface.drop_axes-Tuple{AbstractArray,Int64}"><code>AxisIndices.Interface.drop_axes</code></a></li><li><a href="#AxisIndices.Interface.first_key-Tuple{Any}"><code>AxisIndices.Interface.first_key</code></a></li><li><a href="#AxisIndices.Interface.has_dimnames-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.has_dimnames</code></a></li><li><a href="#AxisIndices.Interface.indices-Tuple{Any}"><code>AxisIndices.Interface.indices</code></a></li><li><a href="#AxisIndices.Interface.indices-Tuple{Any,Any}"><code>AxisIndices.Interface.indices</code></a></li><li><a href="#AxisIndices.Interface.indices-Tuple{AbstractUnitRange}"><code>AxisIndices.Interface.indices</code></a></li><li><a href="#AxisIndices.Interface.indices_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.indices_type</code></a></li><li><a href="#AxisIndices.Interface.indices_type-Union{Tuple{T}, Tuple{T,Any}} where T"><code>AxisIndices.Interface.indices_type</code></a></li><li><a href="#AxisIndices.Interface.is_indices_axis-Tuple{Any}"><code>AxisIndices.Interface.is_indices_axis</code></a></li><li><a href="#AxisIndices.Interface.keys_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.keys_type</code></a></li><li><a href="#AxisIndices.Interface.keys_type-Union{Tuple{T}, Tuple{T,Any}} where T"><code>AxisIndices.Interface.keys_type</code></a></li><li><a href="#AxisIndices.Interface.last_key-Tuple{Any}"><code>AxisIndices.Interface.last_key</code></a></li><li><a href="#AxisIndices.Interface.named_axes-Union{Tuple{AbstractArray{T,N}}, Tuple{N}, Tuple{T}} where N where T"><code>AxisIndices.Interface.named_axes</code></a></li><li><a href="#AxisIndices.Interface.row_axis-Tuple{Any}"><code>AxisIndices.Interface.row_axis</code></a></li><li><a href="#AxisIndices.Interface.row_keys-Tuple{Any}"><code>AxisIndices.Interface.row_keys</code></a></li><li><a href="#AxisIndices.Interface.row_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.row_type</code></a></li><li><a href="#AxisIndices.Interface.step_key-Tuple{AbstractArray{T,1} where T}"><code>AxisIndices.Interface.step_key</code></a></li><li><a href="#AxisIndices.Interface.to_index-Tuple{Any}"><code>AxisIndices.Interface.to_index</code></a></li><li><a href="#AxisIndices.Interface.to_keys-Tuple{Any,Any,Any}"><code>AxisIndices.Interface.to_keys</code></a></li><li><a href="#AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractArray,AbstractArray,Tuple}"><code>AxisIndices.Interface.unsafe_reconstruct</code></a></li><li><a href="#AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractUnitRange,Any,Any}"><code>AxisIndices.Interface.unsafe_reconstruct</code></a></li><li><a href="#AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractUnitRange,Any}"><code>AxisIndices.Interface.unsafe_reconstruct</code></a></li><li><a href="#AxisIndices.Interface.AxesIterator"><code>AxisIndices.Interface.AxesIterator</code></a></li><li><a href="#AxisIndices.Interface.AxisIterator"><code>AxisIndices.Interface.AxisIterator</code></a></li><li><a href="#AxisIndices.Axes.permute_axes-Union{Tuple{N}, Tuple{T}, Tuple{AbstractArray{T,N},Any}} where N where T"><code>AxisIndices.Axes.permute_axes</code></a></li><li><a href="#AxisIndices.Axes.permute_axes-Tuple{AbstractArray{T,1} where T}"><code>AxisIndices.Axes.permute_axes</code></a></li><li><a href="#AxisIndices.Axes.permute_axes-Tuple{AbstractArray{T,2} where T}"><code>AxisIndices.Axes.permute_axes</code></a></li><li><a href="#AxisIndices.Axes.structview-Tuple{Any}"><code>AxisIndices.Axes.structview</code></a></li><li><a href="#AxisIndices.Axes.AbstractAxis"><code>AxisIndices.Axes.AbstractAxis</code></a></li><li><a href="#AxisIndices.Axes.Axis"><code>AxisIndices.Axes.Axis</code></a></li><li><a href="#AxisIndices.Axes.CartesianAxes"><code>AxisIndices.Axes.CartesianAxes</code></a></li><li><a href="#AxisIndices.Axes.LinearAxes"><code>AxisIndices.Axes.LinearAxes</code></a></li><li><a href="#AxisIndices.Axes.MetaAxis"><code>AxisIndices.Axes.MetaAxis</code></a></li><li><a href="#AxisIndices.Axes.MetaCartesianAxes"><code>AxisIndices.Axes.MetaCartesianAxes</code></a></li><li><a href="#AxisIndices.Axes.MetaLinearAxes"><code>AxisIndices.Axes.MetaLinearAxes</code></a></li><li><a href="#AxisIndices.Axes.NamedCartesianAxes"><code>AxisIndices.Axes.NamedCartesianAxes</code></a></li><li><a href="#AxisIndices.Axes.NamedLinearAxes"><code>AxisIndices.Axes.NamedLinearAxes</code></a></li><li><a href="#AxisIndices.Axes.NamedMetaCartesianAxes"><code>AxisIndices.Axes.NamedMetaCartesianAxes</code></a></li><li><a href="#AxisIndices.Axes.NamedMetaLinearAxes"><code>AxisIndices.Axes.NamedMetaLinearAxes</code></a></li><li><a href="#AxisIndices.Axes.SimpleAxis"><code>AxisIndices.Axes.SimpleAxis</code></a></li><li><a href="#AxisIndices.Axes.SimpleAxis-Tuple{Integer}"><code>AxisIndices.Axes.SimpleAxis</code></a></li><li><a href="#AxisIndices.Axes.SimpleAxis-Tuple{Integer,Integer}"><code>AxisIndices.Axes.SimpleAxis</code></a></li><li><a href="#AxisIndices.Axes.StructAxis"><code>AxisIndices.Axes.StructAxis</code></a></li></ul><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.AxesIterator" href="#AxisIndices.Interface.AxesIterator"><code>AxisIndices.Interface.AxesIterator</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">AxesIterator</code></pre><p>N-dimensional iterator of <code>AxisIterator</code>s.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; AxesIterator(CartesianAxes((20, 20, 20)), (3,3,3))
+AxesIterator:
+ • AxisIterator((1:3):3:(16:18))
+ • AxisIterator((1:3):3:(16:18))
+ • AxisIterator((1:3):3:(16:18))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/iterators.jl#LL207-L223">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.AxisIterator" href="#AxisIndices.Interface.AxisIterator"><code>AxisIndices.Interface.AxisIterator</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">AxisIterator(axis, window_size[, first_pad=nothing, last_pad=nothing, stride=nothing, dilation=nothing])</code></pre><p>Creates an iterator for indexing ranges of elements within <code>axis</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; axis = Axis(range(2.0, step=3.0, length=20))
+Axis(2.0:3.0:59.0 =&gt; Base.OneTo(20))
+
+julia&gt; AxisIterator(axis, 3)
+AxisIterator((1:3):3:(16:18))</code></pre><p>The final print out indicates that the first window is <code>1:3</code> and all subsequent iterations move by <code>3</code> until reaching <code>16:18</code>.</p><p>The size of the window may be determined by providing an explicit size or the size in terms of the keys of an axis.</p><pre><code class="language-julia-repl">julia&gt; collect(AxisIterator(axis, 3))
+6-element Array{Any,1}:
+ 1:3
+ 4:6
+ 7:9
+ 10:12
+ 13:15
+ 16:18
+
+julia&gt; collect(AxisIterator(axis, 9.0))
+6-element Array{Any,1}:
+ 1:3
+ 4:6
+ 7:9
+ 10:12
+ 13:15
+ 16:18
+</code></pre><p>The iterator may start with padding from the beginning..</p><pre><code class="language-julia-repl">julia&gt; collect(AxisIterator(axis, 3, first_pad=1))
+6-element Array{Any,1}:
+ 2:4
+ 5:7
+ 8:10
+ 11:13
+ 14:16
+ 17:19
+
+julia&gt; collect(AxisIterator(axis, 9.0, first_pad=3.0))
+6-element Array{Any,1}:
+ 2:4
+ 5:7
+ 8:10
+ 11:13
+ 14:16
+ 17:19
+</code></pre><p>...and the end.</p><pre><code class="language-julia-repl">julia&gt; collect(AxisIterator(axis, 3, first_pad=1, last_pad=2))
+5-element Array{Any,1}:
+ 2:4
+ 5:7
+ 8:10
+ 11:13
+ 14:16
+
+julia&gt; collect(AxisIterator(axis, 9.0, first_pad=3.0, last_pad=6.0))
+5-element Array{Any,1}:
+ 2:4
+ 5:7
+ 8:10
+ 11:13
+ 14:16
+</code></pre><p>The window can be dilated so that a regular but non-continuous range of elements are indexed.</p><pre><code class="language-julia-repl">julia&gt; collect(AxisIterator(axis, 3, first_pad=1, last_pad=2, dilation=2))
+5-element Array{Any,1}:
+ 2:2:4
+ 5:2:7
+ 8:2:10
+ 11:2:13
+ 14:2:16
+
+julia&gt; collect(AxisIterator(axis, 9.0, first_pad=3.0, last_pad=6.0, dilation=6.0))
+5-element Array{Any,1}:
+ 2:2:4
+ 5:2:7
+ 8:2:10
+ 11:2:13
+ 14:2:16
+</code></pre><p>Regular strides can be placed between each iteration.</p><pre><code class="language-julia-repl">julia&gt; collect(AxisIterator(axis, 3, first_pad=1, last_pad=2, stride=2))
+3-element Array{Any,1}:
+ 2:4
+ 7:9
+ 12:14
+
+julia&gt; collect(AxisIterator(axis, 9.0, first_pad=3.0, last_pad=6.0, stride=6.0))
+3-element Array{Any,1}:
+ 2:4
+ 7:9
+ 12:14
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/iterators.jl#LL2-L120">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.axes_keys-Tuple{Any,Any}" href="#AxisIndices.Interface.axes_keys-Tuple{Any,Any}"><code>AxisIndices.Interface.axes_keys</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">axes_keys(x, i)</code></pre><p>Returns the axis keys corresponding of ith dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; axes_keys(AxisArray(ones(2,2), (2:3, 3:4)), 1)
+2:3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL74-L86">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.axes_keys-Tuple{Any}" href="#AxisIndices.Interface.axes_keys-Tuple{Any}"><code>AxisIndices.Interface.axes_keys</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">axes_keys(x) -&gt; Tuple</code></pre><p>Returns the keys corresponding to all axes of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; axes_keys(AxisArray(ones(2,2), (2:3, 3:4)))
+(2:3, 3:4)
+
+julia&gt; axes_keys(Axis(1:2))
+(1:2,)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL55-L70">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.axis_eltype-Tuple{Any,Any}" href="#AxisIndices.Interface.axis_eltype-Tuple{Any,Any}"><code>AxisIndices.Interface.axis_eltype</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">axis_eltype(x)</code></pre><p>Returns the type corresponds to the type of the ith element returned when slicing along that dimension.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/axes.jl#LL2-L7">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.col_axis-Tuple{Any}" href="#AxisIndices.Interface.col_axis-Tuple{Any}"><code>AxisIndices.Interface.col_axis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">col_axis(x) -&gt; axis</code></pre><p>Returns the axis corresponding to the second dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; col_axis(AxisArray(ones(2,2), [&quot;a&quot;, &quot;b&quot;], [:one, :two]))
+Axis([:one, :two] =&gt; Base.OneTo(2))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/cols.jl#LL2-L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.col_keys-Tuple{Any}" href="#AxisIndices.Interface.col_keys-Tuple{Any}"><code>AxisIndices.Interface.col_keys</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">col_keys(x) -&gt; axis</code></pre><p>Returns the keys corresponding to the second dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; col_keys(AxisArray(ones(2,2), [&quot;a&quot;, &quot;b&quot;], [:one, :two]))
+2-element Array{Symbol,1}:
+ :one
+ :two
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/cols.jl#LL34-L49">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.col_type-Union{Tuple{T}, Tuple{T}} where T" href="#AxisIndices.Interface.col_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.col_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">col_type(x)</code></pre><p>Returns the type of the axis corresponding to the second dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; col_type(AxisArray(ones(2,2), [&quot;a&quot;, &quot;b&quot;], [:one, :two]))
+Axis{Symbol,Int64,Array{Symbol,1},Base.OneTo{Int64}}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/cols.jl#LL18-L30">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.drop_axes-Tuple{AbstractArray,Int64}" href="#AxisIndices.Interface.drop_axes-Tuple{AbstractArray,Int64}"><code>AxisIndices.Interface.drop_axes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">drop_axes(x, dims)</code></pre><p>Returns all axes of <code>x</code> except for those identified by <code>dims</code>. Elements of <code>dims</code> must be unique integers or symbols corresponding to the dimensions or names of dimensions of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; axs = (Axis(1:5), Axis(1:10));
+
+julia&gt; AxisIndices.drop_axes(axs, 1)
+(Axis(1:10 =&gt; Base.OneTo(10)),)
+
+julia&gt; AxisIndices.drop_axes(axs, 2)
+(Axis(1:5 =&gt; Base.OneTo(5)),)
+
+julia&gt; AxisIndices.drop_axes(rand(2, 4), 2)
+(Base.OneTo(2),)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/axes.jl#LL14-L36">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.first_key-Tuple{Any}" href="#AxisIndices.Interface.first_key-Tuple{Any}"><code>AxisIndices.Interface.first_key</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">first_key(x)</code></pre><p>Returns the first key of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; first_key(Axis(2:10))
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL2-L14">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.has_dimnames-Union{Tuple{T}, Tuple{T}} where T" href="#AxisIndices.Interface.has_dimnames-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.has_dimnames</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">has_dimnames(x) -&gt; Bool</code></pre><p>Returns <code>true</code> if <code>x</code> has names for each dimension.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/names.jl#LL33-L37">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.indices-Tuple{AbstractUnitRange}" href="#AxisIndices.Interface.indices-Tuple{AbstractUnitRange}"><code>AxisIndices.Interface.indices</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">indices(x::AbstractUnitRange)</code></pre><p>Returns the indices <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; indices(Axis([&quot;a&quot;], 1:1))
+1:1
+
+julia&gt; indices(CartesianIndex(1,1))
+(1, 1)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/indices.jl#LL31-L47">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.indices-Tuple{Any,Any}" href="#AxisIndices.Interface.indices-Tuple{Any,Any}"><code>AxisIndices.Interface.indices</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">indices(x, i)</code></pre><p>Returns the indices corresponding to the <code>i</code> axis</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; indices(AxisArray(ones(2,2), (2:3, 3:4)), 1)
+Base.OneTo(2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/indices.jl#LL51-L63">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.indices-Tuple{Any}" href="#AxisIndices.Interface.indices-Tuple{Any}"><code>AxisIndices.Interface.indices</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">indices(x) -&gt; Tuple</code></pre><p>Returns the indices corresponding to all axes of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; indices(AxisArray(ones(2,2), (2:3, 3:4)))
+(Base.OneTo(2), Base.OneTo(2))
+
+julia&gt; indices(Axis([&quot;a&quot;], 1:1))
+1:1
+
+julia&gt; indices(CartesianIndex(1,1))
+(1, 1)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/indices.jl#LL66-L85">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.indices_type-Union{Tuple{T}, Tuple{T,Any}} where T" href="#AxisIndices.Interface.indices_type-Union{Tuple{T}, Tuple{T,Any}} where T"><code>AxisIndices.Interface.indices_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">indices_type(x, i)</code></pre><p>Retrieves axis values of the ith dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; indices_type([1], 1)
+Base.OneTo{Int64}
+
+julia&gt; indices_type(typeof([1]), 1)
+Base.OneTo{Int64}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/indices.jl#LL12-L27">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.indices_type-Union{Tuple{T}, Tuple{T}} where T" href="#AxisIndices.Interface.indices_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.indices_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">indices_type(x)</code></pre><p>Retrieves the type of the values of <code>x</code>. This should be functionally equivalent to <code>typeof(values(x))</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt;  indices_type(Axis(1:2))
+Base.OneTo{Int64}
+
+julia&gt; indices_type(typeof(Axis(1:2)))
+Base.OneTo{Int64}
+
+julia&gt; indices_type(typeof(1:2))
+UnitRange{Int64}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/indices.jl#LL89-L108">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.is_indices_axis-Tuple{Any}" href="#AxisIndices.Interface.is_indices_axis-Tuple{Any}"><code>AxisIndices.Interface.is_indices_axis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">is_indices_axis(x) -&gt; Bool</code></pre><p>If <code>true</code> then <code>x</code> is an axis type where the only field parameterizing the axis is a field for the values.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/indices.jl#LL2-L7">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.keys_type-Union{Tuple{T}, Tuple{T,Any}} where T" href="#AxisIndices.Interface.keys_type-Union{Tuple{T}, Tuple{T,Any}} where T"><code>AxisIndices.Interface.keys_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">keys_type(x, i)</code></pre><p>Retrieves axis keys of the ith dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; keys_type(AxisArray([1], [&quot;a&quot;]), 1)
+Array{String,1}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL89-L101">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.keys_type-Union{Tuple{T}, Tuple{T}} where T" href="#AxisIndices.Interface.keys_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.keys_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">keys_type(x)</code></pre><p>Retrieves the type of the keys of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; keys_type(Axis(1:2))
+UnitRange{Int64}
+
+julia&gt; keys_type(typeof(Axis(1:2)))
+UnitRange{Int64}
+
+julia&gt; keys_type(UnitRange{Int})
+Base.OneTo{Int64}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL105-L123">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.last_key-Tuple{Any}" href="#AxisIndices.Interface.last_key-Tuple{Any}"><code>AxisIndices.Interface.last_key</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">last_key(x)</code></pre><p>Returns the last key of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; last_key(Axis(2:10))
+10</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL17-L29">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.named_axes-Union{Tuple{AbstractArray{T,N}}, Tuple{N}, Tuple{T}} where N where T" href="#AxisIndices.Interface.named_axes-Union{Tuple{AbstractArray{T,N}}, Tuple{N}, Tuple{T}} where N where T"><code>AxisIndices.Interface.named_axes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">named_axes(A) -&gt; NamedTuple{names}(axes)</code></pre><p>Returns a <code>NamedTuple</code> where the names are the dimension names and each indice is the corresponding dimensions&#39;s axis. If dimnesion names are not defined for <code>x</code> default names are returned. <code>x</code> should have an <code>axes</code> method.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; A = reshape(1:24, 2,3,4);
+
+julia&gt; named_axes(A)
+(dim_1 = Base.OneTo(2), dim_2 = Base.OneTo(3), dim_3 = Base.OneTo(4))
+
+julia&gt; named_axes(NamedAxisArray{(:a, :b, :c)}(A))
+(a = SimpleAxis(Base.OneTo(2)), b = SimpleAxis(Base.OneTo(3)), c = SimpleAxis(Base.OneTo(4)))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/names.jl#LL61-L79">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.row_axis-Tuple{Any}" href="#AxisIndices.Interface.row_axis-Tuple{Any}"><code>AxisIndices.Interface.row_axis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">row_axis(x) -&gt; axis</code></pre><p>Returns the axis corresponding to the first dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; row_axis(AxisArray(ones(2,2), [&quot;a&quot;, &quot;b&quot;], [:one, :two]))
+Axis([&quot;a&quot;, &quot;b&quot;] =&gt; Base.OneTo(2))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/rows.jl#LL2-L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.row_keys-Tuple{Any}" href="#AxisIndices.Interface.row_keys-Tuple{Any}"><code>AxisIndices.Interface.row_keys</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">row_keys(x) -&gt; axis</code></pre><p>Returns the keys corresponding to the first dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; row_keys(AxisArray(ones(2,2), [&quot;a&quot;, &quot;b&quot;], [:one, :two]))
+2-element Array{String,1}:
+ &quot;a&quot;
+ &quot;b&quot;
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/rows.jl#LL18-L33">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.row_type-Union{Tuple{T}, Tuple{T}} where T" href="#AxisIndices.Interface.row_type-Union{Tuple{T}, Tuple{T}} where T"><code>AxisIndices.Interface.row_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">row_type(x)</code></pre><p>Returns the type of the axis corresponding to the first dimension of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; row_type(AxisArray(ones(2,2), [&quot;a&quot;, &quot;b&quot;], [:one, :two]))
+Axis{String,Int64,Array{String,1},Base.OneTo{Int64}}</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/rows.jl#LL36-L48">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.step_key-Tuple{AbstractArray{T,1} where T}" href="#AxisIndices.Interface.step_key-Tuple{AbstractArray{T,1} where T}"><code>AxisIndices.Interface.step_key</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">step_key(x)</code></pre><p>Returns the step size of the keys of <code>x</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; AxisIndices.step_key(Axis(1:2:10))
+2
+
+julia&gt; AxisIndices.step_key(rand(2))
+1
+
+julia&gt; AxisIndices.step_key([1])  # LinearIndices are treate like unit ranges
+1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/keys.jl#LL32-L50">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.to_index-Tuple{Any}" href="#AxisIndices.Interface.to_index-Tuple{Any}"><code>AxisIndices.Interface.to_index</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">to_index(axis, arg) -&gt; to_index(AxisIndicesStyle(axis, arg), axis, arg)</code></pre><p>Unique implementation of <code>to_index</code> for the <code>AxisIndices</code> package that specializes based on each axis and indexing argument (as opposed to the array and indexing argument).</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/to_index.jl#LL4-L9">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.to_keys-Tuple{Any,Any,Any}" href="#AxisIndices.Interface.to_keys-Tuple{Any,Any,Any}"><code>AxisIndices.Interface.to_keys</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">to_keys([::AxisIndicesStyle,] axis, arg, index)</code></pre><p>This method is the reverse of <code>AxisIndices.to_index</code>. <code>arg</code> refers to an argument originally passed to <code>AxisIndices.to_index</code> and <code>index</code> refers to the index produced by that same call to <code>AxisIndices.to_index</code>.</p><p>This method assumes to all arguments have passed through <code>AxisIndices.to_index</code> and have been checked to be in bounds. Therefore, this is unsafe and intended only for internal use.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/to_keys.jl#LL2-L12">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractArray,AbstractArray,Tuple}" href="#AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractArray,AbstractArray,Tuple}"><code>AxisIndices.Interface.unsafe_reconstruct</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">unsafe_reconstruct(A::AbstractArray, new_parent, new_axes)</code></pre><p>Reconstructs an <code>AbstractArray</code> of the same type as <code>A</code> but with the parent array <code>parent</code> and axes <code>axes</code>. This method depends on an underlying call to <code>similar_types</code>. It is considered unsafe because it bypasses safety checks to ensure the keys of each axis are unique and match the length of each dimension of <code>parent</code>. Therefore, this is not intended for interactive use and should only be used when it is clear all arguments are composed correctly.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/constructors.jl#LL31-L40">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractUnitRange,Any,Any}" href="#AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractUnitRange,Any,Any}"><code>AxisIndices.Interface.unsafe_reconstruct</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">unsafe_reconstruct(axis, keys, indices)</code></pre><p>Reconstructs an <code>AbstractAxis</code> of the same type as <code>axis</code> but with keys of type <code>Ks</code> and indices of type <code>Vs</code>. This method is considered unsafe because it bypasses checks  to ensure that <code>keys</code> and <code>values</code> have the same length and the all <code>keys</code> are unique.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/constructors.jl#LL2-L9">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractUnitRange,Any}" href="#AxisIndices.Interface.unsafe_reconstruct-Tuple{AbstractUnitRange,Any}"><code>AxisIndices.Interface.unsafe_reconstruct</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">unsafe_reconstruct(axis, indices)</code></pre><p>Reconstructs an axis of the same type as <code>axis</code> using indices.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/constructors.jl#LL18-L22">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Interface.@defdim" href="#AxisIndices.Interface.@defdim"><code>AxisIndices.Interface.@defdim</code></a> — <span class="docstring-category">Macro</span></header><section><div><pre><code class="language-julia">@defdim name condition</code></pre><p>Produces a series of methods for conveniently manipulating dimensions with specific names. <code>condition</code> is a method that returns <code>true</code> or <code>false</code> when given a name of a  dimension. For example, the following would produce methods for manipulating and accessing dimensions with the name <code>:time</code>.</p><pre><code class="language-julia">julia&gt; is_time(x::Symbol) = x === :time
+
+julia&gt; @defdim time is_time
+</code></pre><p><code>name</code> is used to complete the following method names</p><ul><li><code>name_dim(x)</code>: returns the dimension number of dimension</li><li><code>nname(x)</code>: returns the number of elements stored along the dimension</li><li><code>has_name_dim(x)</code>: returns <code>true</code> or <code>false</code>, indicating if the dimension is present</li><li><code>name_axis(x)</code>: returns the axis corresponding to the dimension.</li><li><code>name_indices(x)</code>: returns the indices corresponding to the dimension.</li><li><code>name_keys(x)</code>: returns the keys corresponding to the dimension</li><li><code>name_axis_type(x)</code>: returns the type of the axis corresponding to the dimension</li><li><code>select_name_dim(x, i)</code>: equivalent to <code>selectdim(x, name_dim(x), i)</code></li><li><code>each_name(x)</code>: equivalent to <code>eachslice(x, name_dim(x))</code></li></ul><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p><code>@defdim</code> should be considered experimental and subject to change</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Interface/names.jl#LL202-L232">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.AbstractAxis" href="#AxisIndices.Axes.AbstractAxis"><code>AxisIndices.Axes.AbstractAxis</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">AbstractAxis</code></pre><p>An <code>AbstractVector</code> subtype optimized for indexing.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/AbstractAxis.jl#LL5-L9">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.Axis" href="#AxisIndices.Axes.Axis"><code>AxisIndices.Axes.Axis</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">Axis(k[, v=OneTo(length(k))])</code></pre><p>Subtypes of <code>AbstractAxis</code> that maps keys to values. The first argument specifies the keys and the second specifies the values. If only one argument is specified then the values span from 1 to the length of <code>k</code>.</p><p><strong>Examples</strong></p><p>The value for all of these is the same.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; x = Axis(2.0:11.0, 1:10)
+Axis(2.0:1.0:11.0 =&gt; 1:10)
+
+julia&gt; y = Axis(2.0:11.0)  # when only one argument is specified assume it&#39;s the keys
+Axis(2.0:1.0:11.0 =&gt; Base.OneTo(10))
+
+julia&gt; z = Axis(1:10)
+Axis(1:10 =&gt; Base.OneTo(10))</code></pre><p>Standard indexing returns the same values</p><pre><code class="language-julia-repl">julia&gt; x[2]
+2
+
+julia&gt; x[2] == y[2] == z[2]
+true
+
+julia&gt; x[1:2]
+Axis(2.0:1.0:3.0 =&gt; 1:2)
+
+julia&gt; y[1:2]
+Axis(2.0:1.0:3.0 =&gt; 1:2)
+
+julia&gt; z[1:2]
+Axis(1:2 =&gt; 1:2)
+
+julia&gt; x[1:2] == y[1:2] == z[1:2]
+true</code></pre><p>Functions that return <code>true</code> or <code>false</code> may be used to search the keys for their corresponding index. The following is equivalent to the previous example.</p><pre><code class="language-julia-repl">julia&gt; x[==(3.0)]
+2
+
+julia&gt; x[==(3.0)] ==       # 3.0 is the 2nd key of x
+       y[isequal(3.0)] ==  # 3.0 is the 2nd key of y
+       z[==(2)]            # 2 is the 2nd key of z
+true
+
+julia&gt; x[&lt;(4.0)]  # all keys less than 4.0 are 2.0:3.0 which correspond to values 1:2
+Axis(2.0:1.0:3.0 =&gt; 1:2)
+
+julia&gt; y[&lt;=(3.0)]  # all keys less than or equal to 3.0 are 2.0:3.0 which correspond to values 1:2
+Axis(2.0:1.0:3.0 =&gt; 1:2)
+
+julia&gt; z[&lt;(3)]  # all keys less than or equal to 3 are 1:2 which correspond to values 1:2
+Axis(1:2 =&gt; 1:2)
+
+julia&gt; x[&lt;(4.0)] == y[&lt;=(3.0)] == z[&lt;(3)]
+true</code></pre><p>Notice that <code>==</code> returns a single value instead of a collection of all elements where the key was found to be true. This is because all keys must be unique so there can only ever be one element returned.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/Axis.jl#LL2-L72">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.CartesianAxes" href="#AxisIndices.Axes.CartesianAxes"><code>AxisIndices.Axes.CartesianAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">CartesianAxes</code></pre><p>Alias for LinearIndices where indices are subtypes of <code>AbstractAxis</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; cartaxes = CartesianAxes((Axis(2.0:5.0), Axis(1:4)));
+
+julia&gt; cartinds = CartesianIndices((1:4, 1:4));
+
+julia&gt; cartaxes[2, 2]
+CartesianIndex(2, 2)
+
+julia&gt; cartinds[2, 2]
+CartesianIndex(2, 2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL141-L160">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.LinearAxes" href="#AxisIndices.Axes.LinearAxes"><code>AxisIndices.Axes.LinearAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">LinearAxes</code></pre><p>Alias for LinearIndices where indices are subtypes of <code>AbstractAxis</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; linaxes = LinearAxes((Axis(2.0:5.0), Axis(1:4)));
+
+julia&gt; lininds = LinearIndices((1:4, 1:4));
+
+julia&gt; linaxes[2, 2]
+6
+
+julia&gt; lininds[2, 2]
+6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL207-L226">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.MetaAxis" href="#AxisIndices.Axes.MetaAxis"><code>AxisIndices.Axes.MetaAxis</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">MetaAxis</code></pre><p>An axis type that allows storage of arbitraty metadata.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/MetaAxis.jl#LL2-L6">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.MetaCartesianAxes" href="#AxisIndices.Axes.MetaCartesianAxes"><code>AxisIndices.Axes.MetaCartesianAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">MetaCartesianAxes</code></pre><p>Conveniently construct a <code>CartesianAxes</code> that has metadata.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; MetaCartesianAxes(([:a, :b], [&quot;one&quot;, &quot;two&quot;]); metadata=&quot;some metadata&quot;)
+2×2 MetaCartesianAxes{CartesianIndex{2},2}
+ • dim_1 - [:a, :b]
+ • dim_2 - [&quot;one&quot;, &quot;two&quot;]
+metadata: String
+ • some metadata
+                       one                    two
+  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
+  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL246-L267">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.MetaLinearAxes" href="#AxisIndices.Axes.MetaLinearAxes"><code>AxisIndices.Axes.MetaLinearAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">MetaLinearAxes</code></pre><p>Conveniently construct a <code>LinearAxes</code> that has metadata.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; MetaLinearAxes(([:a, :b], [&quot;one&quot;, &quot;two&quot;]); metadata=&quot;some metadata&quot;)
+2×2 MetaLinearAxes{Int64,2}
+ • dim_1 - [:a, :b]
+ • dim_2 - [&quot;one&quot;, &quot;two&quot;]
+metadata: String
+ • some metadata
+      one   two
+  a     1     3
+  b     2     4
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL274-L295">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.NamedCartesianAxes" href="#AxisIndices.Axes.NamedCartesianAxes"><code>AxisIndices.Axes.NamedCartesianAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">NamedCartesianAxes</code></pre><p>Conveniently construct a <code>CartesianAxes</code> where each dimension has a name.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; x = NamedCartesianAxes{(:dimx, :dimy)}(([:a, :b], [&quot;one&quot;, &quot;two&quot;]))
+2×2 NamedCartesianAxes{CartesianIndex{2},2}
+ • dimx - [:a, :b]
+ • dimy - [&quot;one&quot;, &quot;two&quot;]
+                       one                    two
+  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
+  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
+
+julia&gt; x == NamedCartesianAxes((dimx = [:a, :b], dimy = [&quot;one&quot;, &quot;two&quot;]))
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL302-L324">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.NamedLinearAxes" href="#AxisIndices.Axes.NamedLinearAxes"><code>AxisIndices.Axes.NamedLinearAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">NamedLinearAxes</code></pre><p>Provides <code>LinearAxes</code> where each dimension has a name.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; x = NamedLinearAxes{(:dimx,:dimy)}(([:a, :b], [&quot;one&quot;, &quot;two&quot;]))
+2×2 NamedLinearAxes{Int64,2}
+ • dimx - [:a, :b]
+ • dimy - [&quot;one&quot;, &quot;two&quot;]
+      one   two
+  a     1     3
+  b     2     4
+
+julia&gt; x == NamedLinearAxes((dimx = [:a, :b], dimy = [&quot;one&quot;, &quot;two&quot;]))
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL337-L359">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.NamedMetaCartesianAxes" href="#AxisIndices.Axes.NamedMetaCartesianAxes"><code>AxisIndices.Axes.NamedMetaCartesianAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">NamedMetaCartesianAxes</code></pre><p>Conveniently construct a <code>CartesianAxes</code> that has metadata and each dimension has a name.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; x = NamedMetaCartesianAxes{(:dimx,:dimy)}(([:a, :b], [&quot;one&quot;, &quot;two&quot;]); metadata=&quot;some metadata&quot;)
+2×2 NamedMetaCartesianAxes{CartesianIndex{2},2}
+ • dimx - [:a, :b]
+ • dimy - [&quot;one&quot;, &quot;two&quot;]
+metadata: String
+ • some metadata
+                       one                    two
+  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
+  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
+
+julia&gt; x == NamedMetaCartesianAxes((dimx = [:a, :b], dimy = [&quot;one&quot;, &quot;two&quot;]); metadata=&quot;some metadata&quot;)
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL372-L396">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.NamedMetaLinearAxes" href="#AxisIndices.Axes.NamedMetaLinearAxes"><code>AxisIndices.Axes.NamedMetaLinearAxes</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">NamedMetaLinearAxes</code></pre><p>Conveniently construct a <code>LinearAxes</code> that has metadata and each dimension has a name.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; x = NamedMetaLinearAxes{(:dimx,:dimy)}(([:a, :b], [&quot;one&quot;, &quot;two&quot;]); metadata=&quot;some metadata&quot;)
+2×2 NamedMetaLinearAxes{Int64,2}
+ • dimx - [:a, :b]
+ • dimy - [&quot;one&quot;, &quot;two&quot;]
+metadata: String
+ • some metadata
+      one   two
+  a     1     3
+  b     2     4
+
+julia&gt; x == NamedMetaLinearAxes((dimx = [:a, :b], dimy = [&quot;one&quot;, &quot;two&quot;]); metadata=&quot;some metadata&quot;)
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/indexing.jl#LL415-L439">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.SimpleAxis" href="#AxisIndices.Axes.SimpleAxis"><code>AxisIndices.Axes.SimpleAxis</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">SimpleAxis(v)</code></pre><p>Povides an <code>AbstractAxis</code> interface for any <code>AbstractUnitRange</code>, <code>v</code>. <code>v</code> will be considered both the <code>values</code> and <code>keys</code> of the return instance. </p><p><strong>Examples</strong></p><p>A <code>SimpleAxis</code> is useful for giving a standard set of indices the ability to use the filtering syntax for indexing.</p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, StaticRanges
+
+julia&gt; x = SimpleAxis(2:10)
+SimpleAxis(2:10)
+
+julia&gt; x[2]
+2
+
+julia&gt; x[==(2)]
+2
+
+julia&gt; x[2] == x[==(2)]  # keys and values are same
+true
+
+julia&gt; x[&gt;(2)]
+SimpleAxis(3:10)
+
+julia&gt; x[&gt;(2)]
+SimpleAxis(3:10)
+
+julia&gt; x[1]
+ERROR: BoundsError: attempt to access 9-element SimpleAxis(2:10 =&gt; 2:10) at index [1]
+[...]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/SimpleAxis.jl#LL2-L37">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.SimpleAxis-Tuple{Integer,Integer}" href="#AxisIndices.Axes.SimpleAxis-Tuple{Integer,Integer}"><code>AxisIndices.Axes.SimpleAxis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">SimpleAxis(start::Integer, stop::Integer) -&gt; SimpleAxis{UnitRange{Integer}}</code></pre><p>Passes <code>start</code> and <code>stop</code> arguments to <code>UnitRange</code> to construct the values of <code>SimpleAxis</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; SimpleAxis(1, 10)
+SimpleAxis(1:10)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/SimpleAxis.jl#LL71-L83">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.SimpleAxis-Tuple{Integer}" href="#AxisIndices.Axes.SimpleAxis-Tuple{Integer}"><code>AxisIndices.Axes.SimpleAxis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">SimpleAxis(stop::Integer) -&gt; SimpleAxis{Base.OneTo{Integer}}</code></pre><p>Passes <code>stop</code> <code>Base.OneTo</code> to construct the values of <code>SimpleAxis</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; SimpleAxis(10)
+SimpleAxis(Base.OneTo(10))</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/SimpleAxis.jl#LL86-L98">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.StructAxis" href="#AxisIndices.Axes.StructAxis"><code>AxisIndices.Axes.StructAxis</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">StructAxis{T}</code></pre><p>An axis that uses a structure <code>T</code> to form its keys. the field names of</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/StructAxis.jl#LL5-L9">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.permute_axes-Tuple{AbstractArray{T,1} where T}" href="#AxisIndices.Axes.permute_axes-Tuple{AbstractArray{T,1} where T}"><code>AxisIndices.Axes.permute_axes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">permute_axes(x::AbstractVector)</code></pre><p>Returns the permuted axes of <code>x</code> as axes of size 1 × length(x)</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices, StaticRanges
+
+julia&gt; length.(AxisIndices.permute_axes(rand(4))) == (1, 4)
+true
+
+julia&gt; AxisIndices.permute_axes((Axis(1:4),))
+(SimpleAxis(Base.OneTo(1)), Axis(1:4 =&gt; Base.OneTo(4)))
+
+julia&gt; AxisIndices.permute_axes((Axis(mrange(1, 4)),))
+(SimpleAxis(OneToMRange(1)), Axis(UnitMRange(1:4) =&gt; OneToMRange(4)))
+
+julia&gt; AxisIndices.permute_axes((Axis(srange(1, 4)),))
+(SimpleAxis(OneToSRange(1)), Axis(UnitSRange(1:4) =&gt; OneToSRange(4)))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/permute_axes.jl#LL27-L49">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.permute_axes-Tuple{AbstractArray{T,2} where T}" href="#AxisIndices.Axes.permute_axes-Tuple{AbstractArray{T,2} where T}"><code>AxisIndices.Axes.permute_axes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">permute_axes(m::AbstractMatrix) -&gt; NTuple{2}</code></pre><p>Permute the axes of the matrix <code>m</code>, by flipping the elements across the diagonal of the matrix. Differs from LinearAlgebra&#39;s transpose in that the operation is not recursive.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; AxisIndices.permute_axes(rand(4, 2))
+(Base.OneTo(2), Base.OneTo(4))
+
+julia&gt; AxisIndices.permute_axes((Axis(1:4), Axis(1:2)))
+(Axis(1:2 =&gt; Base.OneTo(2)), Axis(1:4 =&gt; Base.OneTo(4)))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/permute_axes.jl#LL62-L80">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.permute_axes-Union{Tuple{N}, Tuple{T}, Tuple{AbstractArray{T,N},Any}} where N where T" href="#AxisIndices.Axes.permute_axes-Union{Tuple{N}, Tuple{T}, Tuple{AbstractArray{T,N},Any}} where N where T"><code>AxisIndices.Axes.permute_axes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">permute_axes(x::AbstractArray, perms::Tuple) = permute_axes(axes(x), p)
+permute_axes(x::NTuple{N}, perms::NTuple{N}) -&gt; NTuple{N}</code></pre><p>Returns axes of <code>x</code> in the order of <code>p</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; AxisIndices.permute_axes(rand(2, 4, 6), (1, 3, 2))
+(Base.OneTo(2), Base.OneTo(6), Base.OneTo(4))
+
+julia&gt; AxisIndices.permute_axes((Axis(1:2), Axis(1:4), Axis(1:6)), (1, 3, 2))
+(Axis(1:2 =&gt; Base.OneTo(2)), Axis(1:6 =&gt; Base.OneTo(6)), Axis(1:4 =&gt; Base.OneTo(4)))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/permute_axes.jl#LL2-L20">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="AxisIndices.Axes.structview-Tuple{Any}" href="#AxisIndices.Axes.structview-Tuple{Any}"><code>AxisIndices.Axes.structview</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">structview(A)</code></pre><p>Creates a <code>MappedArray</code> using the <code>StructAxis</code> of <code>A</code> to identify the dimension that needs to be collapsed into a series of <code>SubArray</code>s as views that composed the <code>MappedArray</code></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/StructAxis.jl#LL88-L94">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.similar" href="#Base.similar"><code>Base.similar</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">similar(axis::AbstractAxis, new_keys::AbstractVector, new_indices::AbstractUnitRange{Integer} [, check_length::Bool=true] ) -&gt; AbstractAxis</code></pre><p>Create a new instance of an axis of the same type as <code>axis</code> but with the keys <code>new_keys</code> and indices <code>new_indices</code>. If <code>check_length</code> is <code>true</code> then the lengths of <code>new_keys</code> and <code>new_indices</code> are checked to ensure they have the same length before construction.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; similar(Axis(1.0:10.0, 1:10), [:one, :two], UInt(1):UInt(2))
+Axis([:one, :two] =&gt; 0x0000000000000001:0x0000000000000002)
+
+julia&gt; similar(Axis(1.0:10.0, 1:10), [:one, :two], UInt(1):UInt(3))
+ERROR: DimensionMismatch(&quot;keys and indices must have same length, got length(keys) = 2 and length(indices) = 3.&quot;)
+[...]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/AbstractAxis.jl#LL209-L227">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.similar-Tuple{AbstractAxis,AbstractArray{T,1} where T}" href="#Base.similar-Tuple{AbstractAxis,AbstractArray{T,1} where T}"><code>Base.similar</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">similar(axis::AbstractAxis, new_keys::AbstractVector) -&gt; AbstractAxis</code></pre><p>Create a new instance of an axis of the same type as <code>axis</code> but with the keys <code>new_keys</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; similar(Axis(1.0:10.0, 1:10), [:one, :two])
+Axis([:one, :two] =&gt; 1:2)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/AbstractAxis.jl#LL146-L158">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.similar-Tuple{AbstractAxis,AbstractUnitRange{#s47} where #s47&lt;:Integer}" href="#Base.similar-Tuple{AbstractAxis,AbstractUnitRange{#s47} where #s47&lt;:Integer}"><code>Base.similar</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">similar(axis::AbstractAxis, new_indices::AbstractUnitRange)</code></pre><p>Create a new instance of an axis of the same type as <code>axis</code> but with the keys <code>new_keys</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using AxisIndices
+
+julia&gt; similar(SimpleAxis(1:10), 1:3)
+SimpleAxis(1:3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Tokazma/AxisIndices.jl/blob/6c7ff990fcfb391d090d4c2f082ee79325358f51/src/Axes/AbstractAxis.jl#LL245-L257">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quick_start/">« Quick Start</a><a class="docs-footer-nextpage" href="../arrays/">Array Interface »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 29 July 2020 15:56">Wednesday 29 July 2020</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
