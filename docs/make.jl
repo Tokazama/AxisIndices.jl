@@ -12,6 +12,7 @@ makedocs(;
             "Array Interface" => "arrays.md",
             "OffsetAxes" => "offset_axes.md",
             "Metadata" => "metadata.md",
+            "Named Axes" => "named_axes.md"
             "Tabular Interface" => "table.md",
             "Observations" => "observations.md",
             "Internals of Indexing" => "internals_of_indexing.md",

@@ -49,7 +49,7 @@ using AxisIndices.Interface: check_index
 using AxisIndices.Axes
 using AxisIndices.Arrays
 using AxisIndices.Tabular
-using AxisIndices: matmul_axes # from MappedArrays
+using AxisIndices: matmul_axes
 using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes

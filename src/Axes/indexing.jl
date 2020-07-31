@@ -203,7 +203,6 @@ CartesianIndices{N,NTuple{N,<:AbstractAxis}} where N
 =#
 
 
-
 """
     LinearAxes
 
@@ -242,74 +241,3 @@ end
 end
 
 Base.getindex(A::LinearAxes, ::Ellipsis) = A
-
-"""
-    NamedCartesianAxes
-
-Conveniently construct a `CartesianAxes` where each dimension has a name.
-
-## Examples
-
-```jldoctest
-julia> using AxisIndices
-
-julia> x = NamedCartesianAxes{(:dimx, :dimy)}(([:a, :b], ["one", "two"]))
-2×2 NamedCartesianAxes{CartesianIndex{2},2}
- • dimx - [:a, :b]
- • dimy - ["one", "two"]
-                       one                    two
-  a   CartesianIndex(1, 1)   CartesianIndex(1, 2)
-  b   CartesianIndex(2, 1)   CartesianIndex(2, 2)
-
-julia> x == NamedCartesianAxes((dimx = [:a, :b], dimy = ["one", "two"]))
-true
-
-```
-"""
-const NamedCartesianAxes{L,N,Axs} = NamedDimsArray{L,CartesianIndex{N},N,CartesianAxes{N,Axs}}
-
-NamedCartesianAxes{L}(axs::Tuple) where {L} = NamedDimsArray{L}(CartesianAxes(axs))
-
-function NamedCartesianAxes{L}(axs::Union{AbstractVector,Integer}...) where {L}
-    return NamedDimsArray{L}(CartesianAxes(axs))
-end
-
-NamedCartesianAxes(axs::NamedTuple{L}) where {L} = NamedDimsArray{L}(CartesianAxes(values(axs)))
-
-NamedCartesianAxes(A::AbstractArray) = NamedCartesianAxes(named_axes(A))
-
-"""
-    NamedLinearAxes
-
-Provides `LinearAxes` where each dimension has a name.
-
-## Examples
-
-```jldoctest
-julia> using AxisIndices
-
-julia> x = NamedLinearAxes{(:dimx,:dimy)}(([:a, :b], ["one", "two"]))
-2×2 NamedLinearAxes{Int64,2}
- • dimx - [:a, :b]
- • dimy - ["one", "two"]
-      one   two
-  a     1     3
-  b     2     4
-
-julia> x == NamedLinearAxes((dimx = [:a, :b], dimy = ["one", "two"]))
-true
-
-```
-"""
-const NamedLinearAxes{L,N,Axs} = NamedDimsArray{L,Int,N,LinearAxes{N,Axs}}
-
-NamedLinearAxes{L}(axs::Tuple) where {L} = NamedDimsArray{L}(LinearAxes(axs))
-
-function NamedLinearAxes{L}(axs::Union{AbstractVector,Integer}...) where {L}
-    return NamedDimsArray{L}(LinearAxes(axs))
-end
-
-NamedLinearAxes(axs::NamedTuple{L}) where {L} = NamedDimsArray{L}(LinearAxes(values(axs)))
-
-NamedLinearAxes(A::AbstractArray) = NamedLinearAxes(named_axes(A))
-

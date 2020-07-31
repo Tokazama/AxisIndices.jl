@@ -5,6 +5,7 @@ using AxisIndices.Interface
 using AxisIndices.Axes
 using AxisIndices.Arrays
 using AxisIndices.Metadata
+using AxisIndices.NamedAxes
 
 
 using PrettyTables
@@ -55,7 +56,7 @@ function show_array(
     io::IO,
     A::AbstractArray{T,N};
     axes::Tuple=axes(A),
-    dimnames::Tuple=Interface.default_names(Val(N)),
+    dimnames::Tuple=NamedAxes.default_names(Val(N)),
     metadata=metadata(A),
     kwargs...
 ) where {T,N}

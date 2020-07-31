@@ -21,7 +21,6 @@ julia> CenteredArray(ones(3,3))
 """
 const CenteredArray{T,N,P,A<:Tuple{Vararg{<:CenteredAxis}}} = AxisArray{T,N,P,A}
 
-
 CenteredArray(A::AbstractArray{T,N}) where {T,N} = CenteredArray{T,N}(A)
 
 CenteredArray(A::AbstractArray{T,0}) where {T} = AxisArray(A)

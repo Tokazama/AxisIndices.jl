@@ -26,9 +26,7 @@ struct AxisArray{T,N,P<:AbstractArray{T,N},AI<:AbstractAxes{N}} <: AbstractAxisA
     "The axes for each dimension of the parent array."
     axes::AI
 
-    function AxisArray{T,N,P,A}(p::P, axs::A) where {T,N,P,A}
-       return new{T,N,P,A}(p, axs)
-    end
+    AxisArray{T,N,P,A}(p::P, axs::A) where {T,N,P,A} = new{T,N,P,A}(p, axs)
 end
 
 Base.parent(x::AxisArray) = getfield(x, :parent)

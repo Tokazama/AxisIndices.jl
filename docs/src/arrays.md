@@ -25,7 +25,7 @@ Axis(["a", "b"] => Base.OneTo(2))
 
 ```
 
-An `AxisArray` may also be initiliazed using similar syntax as `Array{T}(undef, dims)`.
+An `AxisArray` may also be initialized using similar syntax as `Array{T}(undef, dims)`.
 ```jldoctest arrays_interface
 julia> A_axis = AxisArray{Int}(undef, ["a", "b"], [:one, :two]);
 

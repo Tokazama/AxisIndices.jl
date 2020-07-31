@@ -42,7 +42,7 @@ NamedMetaAxisArray{L}(A::MetaAxisArray) where {L} = NamedDimsArray{L}(A)
 
 # NamedMetaAxisArray
 function NamedMetaAxisArray(A::AbstractArray{T,N}; metadata=nothing, kwargs...) where {T,N}
-    return NamedMetaAxisArray{Interface.default_names(Val(N))}(A; metadata=metadata, kwargs...)
+    return NamedMetaAxisArray{NamedAxes.default_names(Val(N))}(A; metadata=metadata, kwargs...)
 end
 
 function NamedMetaAxisArray(A::AbstractArray, args::AbstractVector...; metadata=nothing, kwargs...)
@@ -50,7 +50,7 @@ function NamedMetaAxisArray(A::AbstractArray, args::AbstractVector...; metadata=
 end
 
 function NamedMetaAxisArray(A::AbstractArray{T,N}, axs::Tuple; metadata=nothing, kwargs...) where {T,N}
-    return NamedMetaAxisArray{Interface.default_names(Val(N))}(A, axs; metadata=metadata, kwargs...)
+    return NamedMetaAxisArray{NamedAxes.default_names(Val(N))}(A, axs; metadata=metadata, kwargs...)
 end
 
 function NamedMetaAxisArray(A::AbstractArray, axs::NamedTuple{L}; metadata=nothing, kwargs...) where {L}
@@ -85,3 +85,4 @@ for f in (:getindex, :view, :dotview)
 end
 
 Base.getindex(A::NamedMetaAxisArray, ::Ellipsis) = A
+

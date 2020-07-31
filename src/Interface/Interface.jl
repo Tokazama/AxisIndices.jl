@@ -17,7 +17,6 @@ using Base: @propagate_inbounds, OneTo, Fix2, tail, front
 export
     AxisIterator,
     AxesIterator,
-    @defdim,
     # methods
     axes_keys,
     axis_eltype,
@@ -26,8 +25,6 @@ export
     col_keys,
     col_type,
     drop_axes,
-    has_dimnames,
-    named_axes,
     parent_type,
     indices,
     indices_type,
@@ -38,11 +35,7 @@ export
     row_type,
     select_axes,
     step_key,
-    unsafe_reconstruct,
-    # NamedDims API
-    dim,
-    dimnames
-
+    unsafe_reconstruct
 
 @static if !isdefined(Base, :IdentityUnitRange)
     const IdentityUnitRange = Base.Slice
@@ -55,7 +48,6 @@ const AbstractIndices{T<:Integer} = AbstractUnitRange{T}
 include("utils.jl")
 include("indices.jl")
 include("keys.jl")
-include("names.jl")
 include("axes.jl")
 include("rows.jl")
 include("cols.jl")

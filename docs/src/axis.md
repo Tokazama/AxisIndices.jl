@@ -2,6 +2,18 @@
 
 The following describes the components necessary to construct and manipulate existing and new subtypes of `AbstractAxis`.
 
+
+| `AbstractAxis` Type | Usage                                                                               |
+|--------------------:|:------------------------------------------------------------------------------------|
+| [`Axis`](@ref)              | Attach keys to indices                                                      |
+| [`SimpleAxis`](@ref)        | Give standard indices access AxisIndices's syntax                           |
+| [`CenteredAxis`](@ref)      | Enforce indexing that is centered around zero                               |
+| [`OffsetAxis`](@ref)        | Enforce indexing with where the first index is offset from 1                |
+| [`IdentityAxis`](@ref)      | Preserve indices after indexing                                             |
+| [`MetaAxis`](@ref)          | Attach arbitrary metadata to an axis                                        |
+| [`StructAxis`](@ref)        | Map a type's field names and field types to each element along an axis.     |
+
+
 ## Introduction 
 
 The supertype to all axis types herein is the `AbstractAxis`, which is a subtype of `AbstractUnitRange{<:Integer}`.
@@ -232,17 +244,6 @@ true
 
 ```
 
-## Quick Look at `AbstractAxis` Types
-
-| `AbstractAxis` Type | Usage                                                                               |
-|--------------------:|:------------------------------------------------------------------------------------|
-| `Axis`              | Attach keys to indices                                                              |
-| `SimpleAxis`        | Give standard indices access AxisIndices's syntax                                   |
-| `CenteredAxis`      | Enforce indexing that is centered around zero                                       |
-| `OffsetAxis`        | Enforce indexing with where the first index is offset from 1                        |
-| `MetaAxis`          | Attach arbitrary metadata to an axis                                                |
-| `StructAxis`        | Map a type's field names and field types to each element along an axis.             |
-
 ## Performance
 
 Indexing `CartesianAxes` is comparable to that of `CartesianIndices`.
@@ -310,17 +311,3 @@ Indexing `linaxes` is much faster now that it can be optimized inside of a funct
 However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
-
-## Reference
-
-```@index
-Pages   = ["axis.md"]
-Modules = [AxisIndices.Interface, AxisIndices.Axes]
-Order   = [:function, :type]
-```
-```@autodocs
-Modules = [AxisIndices.Interface]
-```
-```@autodocs
-Modules = [AxisIndices.Axes]
-```

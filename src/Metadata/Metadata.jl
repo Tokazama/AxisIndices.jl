@@ -13,6 +13,7 @@ using ArrayInterface: parent_type
 using AxisIndices.Interface
 using AxisIndices.Axes
 using AxisIndices.Arrays
+using AxisIndices.NamedAxes
 
 using AxisIndices.Arrays: ArrayInitializer
 

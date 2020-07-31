@@ -40,11 +40,7 @@ export
     AbstractAxisVector,
     AxisArray,
     AxisVector,
-    NamedAxisArray,
     permuteddimsview
-
-# TODO these shouldn't be exported
-export matmul_axes, get_factorization
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
@@ -52,13 +48,11 @@ const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
 include("AbstractAxisArray.jl")
 include("AxisArray.jl")
-include("NamedAxisArray.jl")
 include("broadcast.jl")
 include("permutedims.jl")
 include("map.jl")
 include("factorizations.jl")
 include("vectors.jl")
 include("matrices.jl")
-include("reinterpret.jl")
 
 end

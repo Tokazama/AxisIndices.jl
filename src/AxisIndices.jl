@@ -51,6 +51,10 @@ using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axi
 
 include("./Arrays/Arrays.jl")
 @reexport using .Arrays
+using .Arrays: matmul_axes, get_factorization
+
+include("./NamedAxes/NamedAxes.jl")
+@reexport using .NamedAxes
 
 include("./Metadata/Metadata.jl")
 @reexport using .Metadata
