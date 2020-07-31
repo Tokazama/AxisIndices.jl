@@ -1,3 +1,4 @@
+
 #=
     get_factorization(F::Factorization, A::AbstractArray, d::Symbol)
 
@@ -48,7 +49,7 @@ function LinearAlgebra.lu!(A::AbstractAxisArray, args...; kwargs...)
         unsafe_reconstruct(A, getfield(inner_lu, :factors), axes(A)),
         getfield(inner_lu, :ipiv),
         getfield(inner_lu, :info)
-       )
+    )
 end
 
 function Base.parent(F::LU{T,<:AxisArray}) where {T}

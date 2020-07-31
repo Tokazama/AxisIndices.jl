@@ -1,35 +1,5 @@
 
 """
-    first_key(x)
-
-Returns the first key of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> first_key(Axis(2:10))
-2
-```
-"""
-first_key(x) = first(keys(x))
-
-"""
-    last_key(x)
-
-Returns the last key of `x`.
-
-## Examples
-```jldoctest
-julia> using AxisIndices
-
-julia> last_key(Axis(2:10))
-10
-```
-"""
-last_key(x) = last(keys(x))
-
-"""
     step_key(x)
 
 Returns the step size of the keys of `x`.

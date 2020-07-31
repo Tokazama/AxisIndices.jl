@@ -2,6 +2,10 @@
 module PrettyArrays
 
 using AxisIndices.Interface
+using AxisIndices.Axes
+using AxisIndices.Arrays
+using AxisIndices.Metadata
+
 
 using PrettyTables
 using Base: tail
@@ -69,13 +73,19 @@ function show_array(
     return nothing
 end
 
-function PrettyArrays.show_array(io::IO, A::NamedDimsArray; kwargs...)
-    return PrettyArrays.show_array(io, parent(A); dimnames=dimnames(A), kwargs...)
+function show_array(io::IO, A::NamedDimsArray; kwargs...)
+    return show_array(io, parent(A); dimnames=dimnames(A), kwargs...)
 end
 
-function PrettyArrays.show_array(io::IO, A::MetadataArray; kwargs...)
-    return PrettyArrays.show_array(io, parent(A); metadata=metadata(A), kwargs...)
+function show_array(io::IO, A::MetadataArray; kwargs...)
+    return show_array(io, parent(A); metadata=metadata(A), kwargs...)
 end
+
+function show_array(io::IO, A::AbstractAxisArray; kwargs...)
+    return show_array(io, parent(A); axes=axes(A), kwargs...)
+end
+
+
 
 macro assign_show(T)
     print_name = QuoteNode(T)

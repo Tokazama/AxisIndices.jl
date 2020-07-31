@@ -304,7 +304,7 @@ function Base.iterate(itr::AxesIterator)
     if newitr === nothing
         return nothing
     else
-        return first(newitr), newitr
+        return Iterators.ProductIterator(first(newitr)), newitr
     end
 end
 
@@ -316,13 +316,16 @@ function Base.iterate(itr::AxesIterator, state)
         if newitrs === nothing
             return nothing
         else
-            return (first(newitrs), newitrs)
+            return (Iterators.ProductIterator(first(newitrs)), newitrs)
         end
     end
 end
 
-Base.first(itr::AxesIterator) = map(first, getfield(itr, :iterators))
-Base.last(itr::AxesIterator) = map(last, getfield(itr, :iterators))
+_first(itr) = map(first, getfield(itr, :iterators))
+_last(itr) = map(last, getfield(itr, :iterators))
+
+Base.first(itr::AxesIterator) = Iterators.ProductIterator(_first(itr))
+Base.last(itr::AxesIterator) = Iterators.ProductIterator(_last(itr))
 
 function Base.show(io::IO, ::MIME"text/plain", itr::AxesIterator)
     print(io, "AxesIterator:\n")
@@ -336,4 +339,5 @@ function Base.show(io::IO, ::MIME"text/plain", itr::AxesIterator)
         end
     end
 end
+
 

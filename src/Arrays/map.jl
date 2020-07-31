@@ -39,6 +39,7 @@ for f in (:map, :map!)
         end
     end
 end
+
 function Base.map(f::F, a::StaticArray, b::AbstractAxisArray, cs::AbstractArray...) where {F}
     return unsafe_reconstruct(
         b,

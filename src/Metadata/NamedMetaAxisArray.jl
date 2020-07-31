@@ -57,17 +57,6 @@ function NamedMetaAxisArray(A::AbstractArray, axs::NamedTuple{L}; metadata=nothi
     return NamedMetaAxisArray{L}(A, values(axs); metadata=metadata, kwargs...)
 end
 
-Base.show(io::IO, A::NamedMetaAxisArray; kwargs...) = show(io, MIME"text/plain"(), A; kwargs...)
-function Base.show(io::IO, m::MIME"text/plain", A::NamedMetaAxisArray{T,N}; kwargs...) where {T,N}
-    if N == 1
-        print(io, "$(length(A))-element")
-    else
-        print(io, join(size(A), "×"))
-    end
-    print(io, " MetaAxisArray{$T,$N}\n")
-    return show_array(io, A; kwargs...)
-end
-
 Base.getproperty(A::NamedMetaAxisArray, k::Symbol) = metaproperty(A, k)
 
 Base.setproperty!(A::NamedMetaAxisArray, k::Symbol, val) = metaproperty!(A, k, val)

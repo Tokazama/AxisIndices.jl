@@ -115,20 +115,6 @@ function Base.reverse(x::AbstractAxisArray{T,N}; dims::Integer) where {T,N}
     return unsafe_reconstruct(x, p, axs)
 end
 
-function Base.show(io::IO, A::AbstractAxisArray; kwargs...)
-    PrettyArrays.print_array_summary(io, A)
-    return show(io, MIME"text/plain"(), A, kwargs...)
-end
-
-function Base.show(io::IO, m::MIME"text/plain", A::AbstractAxisArray{T,N}; kwargs...) where {T,N}
-    PrettyArrays.print_array_summary(io, A)
-    return show_array(io, A; kwargs...)
-end
-
-function PrettyArrays.show_array(io::IO, A::AbstractAxisArray; kwargs...)
-    return PrettyArrays.show_array(io, parent(A); axes=axes(A), kwargs...)
-end
-
 Base.has_offset_axes(A::AbstractAxisArray) = Base.has_offset_axes(parent(A))
 
 function Base.dropdims(a::AbstractAxisArray; dims)
@@ -170,7 +156,6 @@ for f in (:sum!, :prod!, :maximum!, :minimum!)
         end
     end
 end
-
 
 for f in (:cumsum, :cumprod)
     @eval function Base.$f(a::AbstractAxisArray; dims, kwargs...)
@@ -307,9 +292,10 @@ function Base.empty!(a::AbstractAxisArray)
     return a
 end
 
-for (tf, T, sf, S) in ((parent, :AbstractAxisVecOrMat, parent, :AbstractAxisVecOrMat),
-                       (parent, :AbstractAxisVecOrMat, identity, :AbstractVecOrMat),
-                       (identity, :AbstractVecOrMat, parent, :AbstractAxisVecOrMat))
+for (tf, T, sf, S) in (
+    (parent, :AbstractAxisVecOrMat, parent, :AbstractAxisVecOrMat),
+    (parent, :AbstractAxisVecOrMat, identity, :AbstractVecOrMat),
+    (identity, :AbstractVecOrMat, parent, :AbstractAxisVecOrMat))
     @eval function Base.vcat(A::$T, B::$S, Cs::AbstractVecOrMat...)
         p = vcat($tf(A), $sf(B))
         axs = Axes.vcat_axes(A, B, p)

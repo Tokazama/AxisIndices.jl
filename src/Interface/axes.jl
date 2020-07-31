@@ -59,7 +59,11 @@ Base.@pure @inline function _dropinds(x::Tuple{Vararg{Any,N}}, dims::NTuple{M,In
     return out::NTuple{N - M, Int}
 end
 
-# TODO document select_axes
+"""
+    select_axes(x, dims)
+
+Returns the axes of `x` specified by `dims`
+"""
 select_axes(x::AbstractArray, d::Tuple) = select_axes(x, dims(dimnames(x), d))
 select_axes(x::AbstractArray, d::Tuple{Vararg{Int}}) = map(i -> axes(x, i), d)
 select_axes(x::Tuple, d::Tuple) = map(i -> getfield(x, i), d)

@@ -39,8 +39,6 @@ ArrayInterface.parent_type(::Type{<:AxisArray{T,N,P,Ax}}) where {T,N,P,Ax} = P
 
 NamedDims.dimnames(::Type{T}) where {T<:AxisArray} = dimnames(parent_type(T))
 
-Metadata.metadata(x::AxisArray) = metadata(parent(x))
-
 function StaticRanges.similar_type(
     ::AxisArray{T,N,P,AI},
     parent_type::Type=P,

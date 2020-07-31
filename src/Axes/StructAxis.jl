@@ -86,21 +86,21 @@ end
 
 # TODO This documentation is confusing...but I'm tired right now.
 """
-    structview(A)
+    struct_view(A)
 
 Creates a `MappedArray` using the `StructAxis` of `A` to identify the dimension
 that needs to be collapsed into a series of `SubArray`s as views that composed
 the `MappedArray`
 """
-@inline structview(A) = _structview(A, structdim(A))
-@inline _structview(A, dim) = _structview(A, dim, axes(A, dim))
-@inline function _structview(A, dim, axis::StructAxis{T}) where {T}
+@inline struct_view(A) = _struct_view(A, structdim(A))
+@inline _struct_view(A, dim) = _struct_view(A, dim, axes(A, dim))
+@inline function _struct_view(A, dim, axis::StructAxis{T}) where {T}
     inds_before = ntuple(d->(:), dim-1)
     inds_after = ntuple(d->(:), ndims(A)-dim)
     return mappedarray(T, (view(A, inds_before..., i, inds_after...) for i in values(axis))...)
 end
 
-@inline function _structview(A, dim, axis::StructAxis{T}) where {T<:NamedTuple}
+@inline function _struct_view(A, dim, axis::StructAxis{T}) where {T<:NamedTuple}
     inds_before = ntuple(d->(:), dim-1)
     inds_after = ntuple(d->(:), ndims(A)-dim)
     return mappedarray((args...) ->T(args) , (view(A, inds_before..., i, inds_after...) for i in values(axis))...)

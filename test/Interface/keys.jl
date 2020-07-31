@@ -7,7 +7,6 @@
     @test haskey(axis, 3)
     @test !haskey(axis, 4)
     @test axes_keys(axis) == (2:3,)
-    @test last_key(axis) == 3
 
     A = AxisArray(ones(3,2), [:one, :two, :three])
 

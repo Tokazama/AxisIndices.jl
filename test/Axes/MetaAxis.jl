@@ -20,12 +20,12 @@
     @test !@inferred(is_indices_axis(typeof(meta_axis)))
 
     meta_axis2 = MetaAxis(1:2, nothing)
-    @test Interface.combine_metadata(meta_axis, meta_axis2) isa Dict
-    @test Interface.combine_metadata(meta_axis2, meta_axis) isa Dict
-    @test Interface.combine_metadata(meta_axis2, meta_axis2) isa Nothing
-    @test Interface.combine_metadata(meta_axis, meta_axis) isa Dict
-    @test Interface.combine_metadata(1, nothing) isa Int
-    @test Interface.combine_metadata(nothing, 1) isa Int
+    @test Metadata.combine_metadata(meta_axis, meta_axis2) isa Dict
+    @test Metadata.combine_metadata(meta_axis2, meta_axis) isa Dict
+    @test Metadata.combine_metadata(meta_axis2, meta_axis2) isa Nothing
+    @test Metadata.combine_metadata(meta_axis, meta_axis) isa Dict
+    @test Metadata.combine_metadata(1, nothing) isa Int
+    @test Metadata.combine_metadata(nothing, 1) isa Int
 
     @test metadata(view(meta_axis2, 1:2)) isa Nothing
 

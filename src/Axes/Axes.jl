@@ -9,17 +9,11 @@ using StaticRanges
 
 using AxisIndices.Styles
 
-using AxisIndices.Metadata
-using AxisIndices.Metadata: _construct_meta
-
 using AxisIndices.Interface
 using AxisIndices.Interface: AbstractIndices
 using AxisIndices.Interface: maybe_tail, unsafe_reconstruct, assign_indices
 using AxisIndices.Interface: check_axis_length, check_axis_unique
 import AxisIndices.Interface: to_axis, to_axes, to_index, to_keys
-
-
-using AxisIndices.PrettyArrays
 
 using StaticRanges
 using StaticRanges: Length, OneToUnion
@@ -28,8 +22,6 @@ using StaticRanges: checkindexlo, checkindexhi
 using StaticRanges: grow_first!, grow_last!
 using StaticRanges: resize_last, resize_last!, resize_first, resize_first!
 using StaticRanges: shrink_last!
-
-import MetadataArrays: MetadataArray
 
 using ArrayInterface
 using ArrayInterface: known_first, known_last, parent_type
@@ -42,22 +34,16 @@ export
     Axis,
     CartesianAxes,
     LinearAxes,
-    MetaAxis,
-    MetaCartesianAxes,
-    MetaLinearAxes,
     NamedCartesianAxes,
     NamedLinearAxes,
-    NamedMetaCartesianAxes,
-    NamedMetaLinearAxes,
     SimpleAxis,
     StructAxis,
-    structview
+    struct_view
 
 include("AbstractAxis.jl")
 include("Axis.jl")
 include("SimpleAxis.jl")
 include("StructAxis.jl")
-include("MetaAxis.jl")
 include("mutate.jl")
 include("promotion.jl")
 include("to_axis.jl")

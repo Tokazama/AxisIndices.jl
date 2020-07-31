@@ -11,7 +11,7 @@
     @test @inferred(offset(2:3)) == -1
 end=#
 
-getoffset(axis::AbstractAxis) = first_key(axis) - first(indices(axis))
+getoffset(axis::AbstractAxis) = first(keys(axis)) - first(indices(axis))
 
 
 @testset "Single-entry arrays in dims 0:5" begin

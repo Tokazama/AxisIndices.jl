@@ -52,7 +52,6 @@ function ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis}
     return known_first(indices_type(T))
 end
 
-Metadata.metadata(axis::AbstractAxis) = metadata(indices(axis))
 
 ###
 ### last

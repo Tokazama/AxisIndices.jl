@@ -2,7 +2,6 @@ module Interface
 
 using EllipsisNotation
 using AxisIndices.Styles
-using AxisIndices.Metadata
 using MappedArrays
 using NamedDims
 using StaticRanges
@@ -13,7 +12,7 @@ import MetadataArrays: MetadataArray
 
 using MappedArrays: ReadonlyMultiMappedArray, MultiMappedArray, ReadonlyMappedArray
 using EllipsisNotation: Ellipsis
-using Base: @propagate_inbounds, OneTo, Fix2, tail, front, Fix2
+using Base: @propagate_inbounds, OneTo, Fix2, tail, front
 
 export
     AxisIterator,
@@ -23,21 +22,11 @@ export
     axes_keys,
     axis_eltype,
     axis_eltypes,
-    axis_meta,
-    axis_metaproperty,
-    axis_metaproperty!,
     col_axis,
     col_keys,
     col_type,
     drop_axes,
-    first_key,
     has_dimnames,
-    has_metadata,
-    last_key,
-    metadata,
-    metadata_type,
-    metaproperty,
-    metaproperty!,
     named_axes,
     parent_type,
     indices,

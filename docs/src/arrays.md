@@ -73,7 +73,7 @@ julia> A_meta_axis == MetaAxisArray(A_axis, metadata = "a life well Steved")
 true
 
 julia> NamedMetaAxisArray{(:xdim, :ydim)}(A_base, ["a", "b"], [:one, :two], metadata = "a life well Steved")
-2×2 MetaAxisArray{(:xdim, :ydim),Int64}
+2×2 NamedMetaAxisArray{Int64,2}
  • xdim - ["a", "b"]
  • ydim - [:one, :two]
 metadata: String
@@ -172,13 +172,13 @@ Indexing notation from the [EllipsisNotation.jl](https://github.com/ChrisRackauc
 ```jldoctest indexing_examples
 julia> A = AxisArray{Int}(undef, 2, 4, 2);
 
-julia> A[..,1] = [2 1 4 5
-                  2 2 3 6];
+julia> A[.., 1] = [2 1 4 5
+                   2 2 3 6];
 
-julia> A[..,2] = [3 2 6 5 3 2 6 6];
+julia> A[.., 2] = [3 2 6 5 3 2 6 6];
 
-julia> A[:,:,1] == [2 1 4 5
-                    2 2 3 6]
+julia> A[:, :, 1] == [2 1 4 5
+                      2 2 3 6]
 true
 
 julia> A = AxisArray(ones(3,3,3,3,3));
@@ -190,15 +190,3 @@ julia> size(A[1:1, .., 1:1])
 
 ## Combining Different Axes TODO
 
-
-## Reference
-
-```@index
-Pages   = ["arrays.md"]
-Modules = [AxisIndices.Arrays]
-Order   = [:function, :type]
-```
-
-```@autodocs
-Modules = [AxisIndices.Arrays]
-```

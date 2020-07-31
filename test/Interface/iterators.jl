@@ -47,37 +47,39 @@ end
     axsitr = AxesIterator(A, (3,3,3), first_pad=(1,1,1), last_pad=(2,2,2), stride=(2,2,2))
 
     @test AxisIndices.Interface.firstinc(axsitr.iterators) == ((2:4, 2:4, 2:4), (1, 1, 1))
-    @test iterate(axsitr) == ((2:4, 2:4, 2:4), ((2:4, 2:4, 2:4), (1, 1, 1)))
-    @test first(axsitr) == (2:4, 2:4, 2:4)
-    @test last(axsitr) == (12:14, 12:14, 12:14)
+    @test iterate(axsitr) == (Iterators.ProductIterator((2:4, 2:4, 2:4)), ((2:4, 2:4, 2:4), (1, 1, 1)))
+    @test first(axsitr) == Iterators.ProductIterator((2:4, 2:4, 2:4))
+    @test last(axsitr) == Iterators.ProductIterator((12:14, 12:14, 12:14))
     @test iterate(axsitr, ((12:14, 12:14, 12:14), (11,11,11))) === nothing
     @test length(axsitr) == 27
 
-    @test collect(axsitr) == [(2:4, 2:4, 2:4),
-                    (7:9, 2:4, 2:4),
-                    (12:14, 2:4, 2:4),
-                    (2:4, 7:9, 2:4),
-                    (7:9, 7:9, 2:4),
-                    (12:14, 7:9, 2:4),
-                    (2:4, 12:14, 2:4),
-                    (7:9, 12:14, 2:4),
-                    (12:14, 12:14, 2:4),
-                    (2:4, 2:4, 7:9),
-                    (7:9, 2:4, 7:9),
-                    (12:14, 2:4, 7:9),
-                    (2:4, 7:9, 7:9),
-                    (7:9, 7:9, 7:9),
-                    (12:14, 7:9, 7:9),
-                    (2:4, 12:14, 7:9),
-                    (7:9, 12:14, 7:9),
-                    (12:14, 12:14, 7:9),
-     (2:4, 2:4, 12:14),
-     (7:9, 2:4, 12:14),
-     (12:14, 2:4, 12:14),
-     (2:4, 7:9, 12:14),
-     (7:9, 7:9, 12:14),
-     (12:14, 7:9, 12:14),
-     (2:4, 12:14, 12:14),
-     (7:9, 12:14, 12:14),
-     (12:14, 12:14, 12:14)]
+    @test collect(axsitr) == [
+        Iterators.ProductIterator((2:4, 2:4, 2:4)),
+        Iterators.ProductIterator((7:9, 2:4, 2:4)),
+        Iterators.ProductIterator((12:14, 2:4, 2:4)),
+        Iterators.ProductIterator((2:4, 7:9, 2:4)),
+        Iterators.ProductIterator((7:9, 7:9, 2:4)),
+        Iterators.ProductIterator((12:14, 7:9, 2:4)),
+        Iterators.ProductIterator((2:4, 12:14, 2:4)),
+        Iterators.ProductIterator((7:9, 12:14, 2:4)),
+        Iterators.ProductIterator((12:14, 12:14, 2:4)),
+        Iterators.ProductIterator((2:4, 2:4, 7:9)),
+        Iterators.ProductIterator((7:9, 2:4, 7:9)),
+        Iterators.ProductIterator((12:14, 2:4, 7:9)),
+        Iterators.ProductIterator((2:4, 7:9, 7:9)),
+        Iterators.ProductIterator((7:9, 7:9, 7:9)),
+        Iterators.ProductIterator((12:14, 7:9, 7:9)),
+        Iterators.ProductIterator((2:4, 12:14, 7:9)),
+        Iterators.ProductIterator((7:9, 12:14, 7:9)),
+        Iterators.ProductIterator((12:14, 12:14, 7:9)),
+        Iterators.ProductIterator((2:4, 2:4, 12:14)),
+        Iterators.ProductIterator((7:9, 2:4, 12:14)),
+        Iterators.ProductIterator((12:14, 2:4, 12:14)),
+        Iterators.ProductIterator((2:4, 7:9, 12:14)),
+        Iterators.ProductIterator((7:9, 7:9, 12:14)),
+        Iterators.ProductIterator((12:14, 7:9, 12:14)),
+        Iterators.ProductIterator((2:4, 12:14, 12:14)),
+        Iterators.ProductIterator((7:9, 12:14, 12:14)),
+        Iterators.ProductIterator((12:14, 12:14, 12:14))
+    ]
 end

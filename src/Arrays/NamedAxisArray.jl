@@ -3,10 +3,7 @@ function StaticRanges.axes_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,
     return StaticRanges.axes_type(A)
 end
 
-StaticRanges.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
-
-Interface.metadata(A::NamedDimsArray) = metadata(parent(A))
-Interface.metadata_type(::Type{A}) where {A<:NamedDimsArray} = metadata_type(parent_type(A))
+ArrayInterface.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 
 """
     NamedAxisArray(parent::AbstractArray; kwargs...) = NamedAxisArray(parent, kwargs)
@@ -101,22 +98,11 @@ function NamedAxisArray{L,T}(init::ArrayInitializer, axs::Tuple) where {L,T}
     return NamedAxisArray{L}(AxisArray{T}(init, axs))
 end
 
-function NamedAxisArray{L,T}(init::ArrayInitializer, args::AbstractVector...) where {L,T,N}
+function NamedAxisArray{L,T}(init::ArrayInitializer, args::AbstractVector...) where {L,T}
     return NamedAxisArray{L,T}(init, args)
 end
 
 NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, kwargs.data)
-
-Base.show(io::IO, A::NamedAxisArray; kwargs...) = show(io, MIME"text/plain"(), A, kwargs...)
-function Base.show(io::IO, m::MIME"text/plain", A::NamedAxisArray{L,T,N}; kwargs...) where {L,T,N}
-    if N == 1
-        print(io, "$(length(A))-element")
-    else
-        print(io, join(size(A), "×"))
-    end
-    print(io, " NamedAxisArray{$T,$N}\n")
-    return show_array(io, A; kwargs...)
-end
 
 for f in (:getindex, :view, :dotview)
     @eval begin

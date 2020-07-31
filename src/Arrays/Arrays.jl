@@ -20,10 +20,6 @@ using StaticRanges: resize_last, resize_last!, grow_last, grow_last!, grow_first
 using StaticRanges: Length, OneToUnion
 
 using AxisIndices.Styles
-
-using AxisIndices.Metadata
-using AxisIndices.Metadata: _construct_meta
-
 using AxisIndices.Interface
 using AxisIndices.Interface: unsafe_reconstruct, check_axis_length, maybe_tail, naxes, check_axis_length
 using AxisIndices.Interface: append_axis!
@@ -33,13 +29,9 @@ using AxisIndices.Axes
 using AxisIndices.Axes: AbstractAxes
 using AxisIndices.Axes: assign_indices, permute_axes, reverse_keys, reduce_axes, reshape_axes, cat_axis
 
-using AxisIndices.PrettyArrays
-
 using Base: @propagate_inbounds, OneTo, tail
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using Base: ReinterpretArray
-
-import MetadataArrays: MetadataArray
 
 export
     AbstractAxisArray,
@@ -48,9 +40,7 @@ export
     AbstractAxisVector,
     AxisArray,
     AxisVector,
-    MetaAxisArray,
     NamedAxisArray,
-    NamedMetaAxisArray,
     permuteddimsview
 
 # TODO these shouldn't be exported
@@ -63,8 +53,6 @@ const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 include("AbstractAxisArray.jl")
 include("AxisArray.jl")
 include("NamedAxisArray.jl")
-include("MetaAxisArray.jl")
-include("NamedMetaAxisArray.jl")
 include("broadcast.jl")
 include("permutedims.jl")
 include("map.jl")

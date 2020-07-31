@@ -37,7 +37,7 @@ function CenteredArray{T,N,P}(A::CenteredArray) where {T,N,P}
 end
 
 
-function CenteredArray{T,N,P}(A::AbstractArray) where {T,N,P<:AbstractArray{T,N},M}
+function CenteredArray{T,N,P}(A::AbstractArray) where {T,N,P<:AbstractArray{T,N}}
     return CenteredArray{T,N,P}(convert(P, A))
 end
 
@@ -46,7 +46,7 @@ function CenteredArray{T,N,P}(A::P) where {T,N,P<:AbstractArray{T,N}}
     return CenteredArray{T,N,P,typeof(axs)}(A, axs)
 end
 
-function CenteredArray{T}(init::ArrayInitializer, sz::Tuple=()) where {T,N}
+function CenteredArray{T}(init::ArrayInitializer, sz::Tuple=()) where {T}
     return CenteredArray{T,length(inds)}(init, sz)
 end
 

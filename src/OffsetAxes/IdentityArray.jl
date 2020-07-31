@@ -35,7 +35,7 @@ function IdentityArray{T,N,P}(A::IdentityArray) where {T,N,P}
     return IdentityArray{T,N,P}(parent(A))
 end
 
-function IdentityArray{T,N,P}(A::AbstractArray) where {T,N,P<:AbstractArray{T,N},M}
+function IdentityArray{T,N,P}(A::AbstractArray) where {T,N,P<:AbstractArray{T,N}}
     return IdentityArray{T,N,P}(convert(P, A))
 end
 
@@ -44,7 +44,7 @@ function IdentityArray{T,N,P}(A::P) where {T,N,P<:AbstractArray{T,N}}
     return IdentityArray{T,N,P,typeof(axs)}(A, axs)
 end
 
-function IdentityArray{T}(init::ArrayInitializer, sz::Tuple=()) where {T,N}
+function IdentityArray{T}(init::ArrayInitializer, sz::Tuple=()) where {T}
     return IdentityArray{T,length(inds)}(init, sz)
 end
 

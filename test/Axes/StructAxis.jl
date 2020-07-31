@@ -9,11 +9,11 @@
 
     axis = StructAxis{NamedTuple{(:a,:b),Tuple{Int,Int}}}()
     x = AxisArray(reshape(1:4, 2, 2), axis);
-    x2 = structview(x);
+    x2 = struct_view(x);
     @test x2[1] isa NamedTuple{(:a,:b),Tuple{Int,Int}}
 
     x = AxisArray(reshape(1:4, 2, 2), StructAxis{Rational}());
-    x2 = structview(x);
+    x2 = struct_view(x);
     @test x2[1] isa Rational
     @test AxisIndices.Axes.structdim(x) == 1
 end

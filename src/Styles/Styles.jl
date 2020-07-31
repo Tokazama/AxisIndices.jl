@@ -306,6 +306,4 @@ force_keys(S::AxisIndicesStyle) = S
 force_keys(S::IndicesCollection) = KeysCollection()
 force_keys(S::IndexElement) = KeyElement()
 
-
-
 end

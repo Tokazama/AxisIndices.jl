@@ -376,3 +376,4 @@ _unify_names(x::Tuple{Any}) = first(x)
 function _unify_names(x::Tuple{Any,Vararg{Any}})
     return NamedDims.unify_names_longest(first(x), _unify_names(tail(x)))
 end
+

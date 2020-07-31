@@ -21,10 +21,8 @@ export
     OneToRange,
     OneToMRange,
     OneToSRange,
-    AbstractStepRangeLen,
     StepMRangeLen,
     StepSRangeLen,
-    AbstractStepRange,
     StepMRange,
     StepSRange,
     UnitMRange,
@@ -32,25 +30,20 @@ export
     # methods
     srange,
     mrange,
-    structview,
+    struct_view,
     and, ⩓, or, ⩔,
-    ..,
     pretty_array
+
+export ..
 
 
 include("./Styles/Styles.jl")
 using .Styles
 
-include("./Metadata/Metadata.jl")
-using .Metadata
-
 include("./Interface/Interface.jl")
 @reexport using .Interface
 using .Interface: step_key, append_axis!, to_axis, to_axes,  to_index, to_keys
 using .Interface: assign_indices
-
-include("./PrettyArrays/PrettyArrays.jl")
-using .PrettyArrays
 
 include("./Axes/Axes.jl")
 @reexport using .Axes
@@ -58,6 +51,12 @@ using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axi
 
 include("./Arrays/Arrays.jl")
 @reexport using .Arrays
+
+include("./Metadata/Metadata.jl")
+@reexport using .Metadata
+
+include("./PrettyArrays/PrettyArrays.jl")
+using .PrettyArrays
 
 include("./OffsetAxes/OffsetAxes.jl")
 @reexport using .OffsetAxes
@@ -70,5 +69,33 @@ using .ObservationDims
 
 include("./Tabular/Tabular.jl")
 @reexport using .Tabular
+
+###
+### Generate show methods
+###
+
+PrettyArrays.@assign_show AxisArray
+
+PrettyArrays.@assign_show NamedAxisArray
+
+PrettyArrays.@assign_show MetaAxisArray
+
+PrettyArrays.@assign_show NamedMetaAxisArray
+
+PrettyArrays.@assign_show CartesianAxes
+
+PrettyArrays.@assign_show LinearAxes
+
+PrettyArrays.@assign_show NamedCartesianAxes
+
+PrettyArrays.@assign_show NamedLinearAxes
+
+PrettyArrays.@assign_show MetaCartesianAxes
+
+PrettyArrays.@assign_show MetaLinearAxes
+
+PrettyArrays.@assign_show NamedMetaCartesianAxes
+
+PrettyArrays.@assign_show NamedMetaLinearAxes
 
 end

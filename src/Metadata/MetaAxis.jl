@@ -16,7 +16,7 @@ struct MetaAxis{K,I,Ks,Inds,P<:AbstractAxis{K,I,Ks,Inds},M} <: AbstractAxis{K,I,
         if A1 <: AbstractAxis
             return MetaAxis(arg1, Dict{Symbol,Any}())
         else
-            return MetaAxis(to_axis(arg1))
+            return MetaAxis(Axes.to_axis(arg1))
         end
     end
 
@@ -25,14 +25,14 @@ struct MetaAxis{K,I,Ks,Inds,P<:AbstractAxis{K,I,Ks,Inds},M} <: AbstractAxis{K,I,
             return MetaAxis{keytype(A1),valtype(A1),keys_type(A1),indices_type(A1),A1,A2}(arg1, arg2)
         else
             if A2 <: AbstractUnitRange
-                return MetaAxis(to_axis(arg1, arg2))
+                return MetaAxis(Axes.to_axis(arg1, arg2))
             else
-                return MetaAxis(to_axis(arg1), arg2)
+                return MetaAxis(Axes.to_axis(arg1), arg2)
             end
         end
     end
 
-    MetaAxis(arg1, arg2, meta) = MetaAxis(to_axis(arg1, arg2), meta)
+    MetaAxis(arg1, arg2, meta) = MetaAxis(Axes.to_axis(arg1, arg2), meta)
 end
 
 Base.parent(axis::MetaAxis) = getfield(axis, :parent)
@@ -41,13 +41,13 @@ Base.values(axis::MetaAxis) = values(parent(axis))
 
 Base.keys(axis::MetaAxis) = keys(parent(axis))
 
-Interface.metadata(axis::MetaAxis) = getfield(axis, :metadata)
+metadata(axis::MetaAxis) = getfield(axis, :metadata)
 
-Interface.has_metadata(::Type{<:MetaAxis}) = true
+has_metadata(::Type{<:MetaAxis}) = true
 
-Interface.metadata_type(::Type{MetaAxis{K,I,Ks,Inds,P,M}}) where {K,I,Ks,Inds,P,M} = M
+metadata_type(::Type{MetaAxis{K,I,Ks,Inds,P,M}}) where {K,I,Ks,Inds,P,M} = M
 
-StaticRanges.parent_type(::Type{MetaAxis{K,I,Ks,Inds,P,M}}) where {K,I,Ks,Inds,P,M} = P
+ArrayInterface.parent_type(::Type{MetaAxis{K,I,Ks,Inds,P,M}}) where {K,I,Ks,Inds,P,M} = P
 
 Interface.is_indices_axis(::Type{A}) where {A<:MetaAxis} = is_indices_axis(parent_type(A))
 
