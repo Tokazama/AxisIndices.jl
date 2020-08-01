@@ -12,7 +12,6 @@ using PrettyTables
 using Base: tail
 
 import NamedDims: NamedDimsArray
-import MetadataArrays: MetadataArray
 
 export
     pretty_array,

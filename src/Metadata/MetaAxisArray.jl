@@ -55,8 +55,4 @@ function MetaAxisArray{T,N}(init::ArrayInitializer, axs::Tuple; metadata=nothing
     return MetaAxisArray(AxisArray{T,N}(init, axs); metadata=metadata, kwargs...)
 end
 
-Base.getproperty(A::MetaAxisArray, k::Symbol) = metaproperty(A, k)
-
-Base.setproperty!(A::MetaAxisArray, k::Symbol, val) = metaproperty!(A, k, val)
-
 Base.parent(A::MetaAxisArray) = getfield(A, :parent)

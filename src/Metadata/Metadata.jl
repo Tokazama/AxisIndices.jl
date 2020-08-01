@@ -22,6 +22,7 @@ using EllipsisNotation: Ellipsis
 using Base: @propagate_inbounds, Fix2
 
 export
+    MetadataArray,
     MetaAxis,
     MetaAxisArray,
     MetaCartesianAxes,
@@ -41,8 +42,8 @@ export
     metaproperty!,
     metadata_type
 
-import MetadataArrays: MetadataArray
 
+include("MetadataArray.jl")
 include("interface.jl")
 include("MetaAxis.jl")
 include("MetaCartesianAxes.jl")
@@ -51,5 +52,15 @@ include("MetaAxisArray.jl")
 include("NamedMetaAxisArray.jl")
 include("NamedMetaCartesianAxes.jl")
 include("NamedMetaLinearAxes.jl")
+
+macro metadata_properties(T)
+    quote
+        @inline Base.getproperty(x::$T, k::Symbol) = Metadata.metaproperty(x, k)
+
+        @inline Base.setproperty!(x::$T, k::Symbol, val) = Metadata.metaproperty!(x, k, val)
+
+        @inline Base.propertynames(x::$T) = Metadata.metanames(x)
+    end
+end
 
 end

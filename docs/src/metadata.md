@@ -2,6 +2,7 @@
 
 
 ```@docs
+Metadata.MetadataArray
 Metadata.MetaAxis
 Metadata.MetaAxisArray
 Metadata.MetaCartesianAxes

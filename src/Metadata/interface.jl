@@ -22,31 +22,37 @@ metadata(x) = nothing
 metadata(x::SubArray) = metadata(parent(x))
 metadata(x::Base.ReshapedArray) = metadata(parent(x))
 # define our own metadata method
-Metadata.metadata(x::MetadataArray) = getfield(x, :metadata)
 metadata(A::NamedDimsArray) = metadata(parent(A))
 metadata(A::AbstractAxisArray) = metadata(parent(A))
 metadata(axis::AbstractAxis) = metadata(indices(axis))
+metadata(A::MetadataArray) = getfield(A, :metadata)
 
 """
     metaproperty(x, meta_key)
 
 Return the metadata of `x` paired to `meta_key`.
 """
-metaproperty(x, meta_key::Symbol) = getindex(metadata(x), meta_key)
+@inline metaproperty(x, meta_key::Symbol) = _metaproperty(metadata(x), meta_key)
+_metaproperty(x::AbstractDict{Symbol}, meta_key::Symbol) = getindex(x, meta_key)
+_metaproperty(x, meta_key::Symbol) = getproperty(x, meta_key)
 
 """
     metadata!(x, meta_key, val)
 
 Set the metadata of `x` paired to `meta_key`.
 """
-metaproperty!(x, meta_key::Symbol, val) = setindex!(metadata(x), val, meta_key)
+@inline metaproperty!(x, meta_key::Symbol, val) = _metaproperty!(metadata(x), meta_key, val)
+_metaproperty!(x::AbstractDict{Symbol}, meta_key::Symbol, val) = setindex!(x, val, meta_key)
+_metaproperty!(x, meta_key::Symbol, val) = setproperty!(x, meta_key, val)
 
 """
     has_metaproperty(x, meta_key) -> Bool
 
 Returns true if `x` has a property in its metadata structure paired to `meta_key`.
 """
-has_metaproperty(x, meta_key::Symbol) = haskey(metadata(x), meta_key)
+@inline has_metaproperty(x, meta_key::Symbol) = _has_metaproperty(metadata(x), meta_key)
+_has_metaproperty(x::AbstractDict{Symbol}, meta_key::Symbol) = haskey(x, meta_key)
+_has_metaproperty(x, meta_key::Symbol) = hasproperty(x, meta_key)
 
 """
     axis_meta(x)
@@ -67,14 +73,14 @@ axis_meta(x::AbstractArray, i) = metadata(axes(x, i))
 
 Return the metadata of `x` paired to `meta_key` at axis `i`.
 """
-axis_metaproperty(x, i, meta_key::Symbol) = getindex(axis_meta(x, i), meta_key)
+axis_metaproperty(x, i, meta_key::Symbol) = _metaproperty(axis_meta(x, i), meta_key)
 
 """
     axis_metaproperty!(x, meta_key, val)
 
 Set the metadata of `x` paired to `meta_key` at axis `i`.
 """
-axis_metaproperty!(x, i, meta_key::Symbol, val) = setindex!(axis_meta(x, i), val, meta_key)
+axis_metaproperty!(x, i, meta_key::Symbol, val) = _metaproperty!(axis_meta(x, i), meta_key, val)
 
 """
     has_axis_metaproperty(x, dim, meta_key)
@@ -82,7 +88,7 @@ axis_metaproperty!(x, i, meta_key::Symbol, val) = setindex!(axis_meta(x, i), val
 Returns true if `x` has a property in its metadata structure paired to `meta_key` stored
 at the axis corresponding to `dim`.
 """
-has_axis_metaproperty(x, i, meta_key::Symbol) = haskey(axis_meta(x, i), meta_key)
+has_axis_metaproperty(x, i, meta_key::Symbol) = _has_metaproperty(axis_meta(x, i), meta_key)
 
 """
     has_metadata(x) -> Bool
@@ -117,6 +123,11 @@ function metadata_type(::Type{A}) where {A<:AbstractArray}
     end
 end
 metadata_type(::Type{<:AbstractAxis{K,I,Ks,Inds}}) where {K,I,Ks,Inds} = metadata_type(Inds)
+
+# This allows dictionaries's keys to be treated like property names
+@inline metanames(x) = _metanames(metadata(x))
+_metanames(m::AbstractDict) = keys(m)
+_metanames(x) = propertynames(x)
 
 # TODO document combine_metadata
 function combine_metadata(x::AbstractUnitRange, y::AbstractUnitRange)

@@ -12,10 +12,9 @@ using TableTraitsUtils
 using MappedArrays
 using Dates
 using Documenter
-import MetadataArrays
 
 #=
-pkgs = (MetadataArrays,Documenter,Dates,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core);
+pkgs = (Documenter,Dates,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core);
 ambs = detect_ambiguities(pkgs...);
 using AxisIndices
 ambs = setdiff(detect_ambiguities(AxisIndices, pkgs...), ambs);

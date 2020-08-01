@@ -102,4 +102,18 @@ PrettyArrays.@assign_show NamedMetaCartesianAxes
 
 PrettyArrays.@assign_show NamedMetaLinearAxes
 
+###
+### Overload property methods for metadata
+###
+
+Metadata.@metadata_properties MetaAxis
+
+Metadata.@metadata_properties MetadataArray
+
+Metadata.@metadata_properties NamedMetaLinearAxes
+
+Metadata.@metadata_properties NamedMetaCartesianAxes
+
+Metadata.@metadata_properties NamedMetaAxisArray
+
 end

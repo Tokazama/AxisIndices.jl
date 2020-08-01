@@ -57,10 +57,6 @@ function NamedMetaAxisArray(A::AbstractArray, axs::NamedTuple{L}; metadata=nothi
     return NamedMetaAxisArray{L}(A, values(axs); metadata=metadata, kwargs...)
 end
 
-Base.getproperty(A::NamedMetaAxisArray, k::Symbol) = metaproperty(A, k)
-
-Base.setproperty!(A::NamedMetaAxisArray, k::Symbol, val) = metaproperty!(A, k, val)
-
 for f in (:getindex, :view, :dotview)
     @eval begin
         @propagate_inbounds function Base.$f(A::NamedMetaAxisArray; named_inds...)
