@@ -188,5 +188,26 @@ julia> size(A[1:1, .., 1:1])
 
 ```
 
-## Combining Different Axes TODO
+## Combining Different Axes
+
+One of benefits of AxisIndices using a unified backend for multiple axis types is that they
+can be arbitrarily mixed together. For example, here's an example the first indices are
+offset by 4 and the last indices are centered.
+
+```jldoctest indexing_examples
+julia> AxisArray(ones(3,3), offset(4), center)
+3×3 AxisArray{Float64,2}
+ • dim_1 - 5:7
+ • dim_2 - -1:1
+       -1     0     1  
+  5   1.0   1.0   1.0  
+  6   1.0   1.0   1.0  
+  7   1.0   1.0   1.0  
+
+```
+
+Although this example isn't particularly useful, being able to arbitrarily mix axes with
+static characteristics, metadata, offset indices, semantic keys, etc. lends itself to easy
+custom designs and algorithms.
+
 

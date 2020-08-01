@@ -49,7 +49,7 @@ end
 end
 
 
-# TODO I still really don't like this solution but the result seems better than Any
+# TODO I still really don't like this solution but the result seems better than any
 # alternative I've seen out there
 #=
 Problem: String, Symbol, Second, etc. don't promote neatly with Int (default key value)

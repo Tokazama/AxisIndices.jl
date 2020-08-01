@@ -14,6 +14,7 @@ Metadata.has_metaproperty
 Metadata.axis_meta
 Metadata.axis_metaproperty
 Metadata.axis_metaproperty!
+Metadata.meta
 Metadata.metadata
 Metadata.metaproperty
 Metadata.metaproperty!

@@ -23,7 +23,6 @@ OffsetArray(A::AbstractArray) = OffsetArray(A, axes(A))
 # OffsetVector constructors
 OffsetVector(A::AbstractVector, arg) = OffsetArray{eltype(A)}(A, arg)
 
-# TODO What if `arg` is an integer?
 function OffsetVector{T}(init::ArrayInitializer, arg) where {T}
     return OffsetVector(Vector{T}(init, length(arg)), arg)
 end

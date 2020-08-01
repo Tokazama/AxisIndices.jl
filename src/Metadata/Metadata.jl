@@ -19,7 +19,7 @@ using AxisIndices.Arrays: ArrayInitializer
 
 using EllipsisNotation: Ellipsis
 
-using Base: @propagate_inbounds
+using Base: @propagate_inbounds, Fix2
 
 export
     MetaAxis,
@@ -35,6 +35,7 @@ export
     axis_meta,
     axis_metaproperty,
     axis_metaproperty!,
+    meta,
     metadata,
     metaproperty,
     metaproperty!,

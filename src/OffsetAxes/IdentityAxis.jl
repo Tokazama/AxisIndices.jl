@@ -1,5 +1,4 @@
 
-# TODO check docs for IdentityAxis
 """
     IdentityAxis(start, stop) -> axis
     IdentityAxis(keys::AbstractUnitRange) -> axis

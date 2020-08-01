@@ -54,7 +54,9 @@ julia> axes_keys(AxisArray(ones(2,2), (2:3, 3:4)), 1)
 2:3
 ```
 """
-axes_keys(x, i) = axes_keys(x)[i]  # FIXME this needs to be changed to support named dimensions
+axes_keys(x, i) = axes_keys(x)[i]
+@inline axes_keys(x, i::Symbol) =  axes_keys(x, dims(x, i)) # TODO test for types stability
+
 
 """
     keys_type(x, i)

@@ -72,8 +72,7 @@ Interface.col_type(::Type{<:AbstractTable{P,RA,CA}}) where {P,RA,CA} = CA
 ###
 Tables.columnaccess(::Type{<:AbstractTable}) = true
 
-# FIXME as soon as PrettyTables.jl updates get rid of Vector
-Tables.columnnames(x::AbstractTable) = Vector(col_keys(x))
+Tables.columnnames(x::AbstractTable) = col_keys(x)
 
 Tables.istable(::Type{<:AbstractTable}) = true
 

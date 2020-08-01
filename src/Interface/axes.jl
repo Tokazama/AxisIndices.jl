@@ -1,9 +1,9 @@
-# FIXME this explanation is confusing.
+
 """
     axis_eltype(x)
 
-Returns the type corresponds to the type of the ith element returned when slicing
-along that dimension.
+Returns the type that corresponds to the type of the ith element returned when slicing
+along that dimension. This is mostly important for methods related to [`StructAxis`](@ref).
 """
 axis_eltype(axis, i) = Any
 

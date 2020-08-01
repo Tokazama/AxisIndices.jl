@@ -162,8 +162,6 @@ function StaticRanges.set_length!(axis::AbstractOffsetAxis, len)
     return axis
 end
 
-# TODO check for existing key first
 push_key!(axis::AbstractOffsetAxis, key) = grow_last!(axis, 1)
-
 pushfirst_key!(axis::AbstractOffsetAxis, key) = grow_last!(axis, 1)
 

@@ -62,3 +62,23 @@ end
 Base.getproperty(axis::MetaAxis, k::Symbol) = metaproperty(axis, k)
 
 Base.setproperty!(axis::MetaAxis, k::Symbol, val) = metaproperty!(axis, k, val)
+
+"""
+    meta(x)
+
+Shortcut for creating [`MetaAxis`](@ref).
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> A = AxisArray(ones(3), meta("a life well, Steved"));
+
+julia> axis_meta(A)
+("a life well, Steved",)
+
+```
+"""
+meta(x::AbstractUnitRange{<:Integer}, m) = MetaAxis(x, m)
+meta(m) = Fix2(meta, m)
+

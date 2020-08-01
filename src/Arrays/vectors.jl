@@ -1,5 +1,4 @@
 
-# TODO: AxisVector documentation
 """
     AxisVector
 
@@ -139,7 +138,7 @@ function Base.push!(A::AbstractAxisVector, item::Pair)
 end
 
 function Base.pushfirst!(A::AbstractAxisVector, item)
-    # TODO check for dynamic vector with appropriate error message
+    is_dynamic(A) || throw(MethodError(pushfirst!, (A, item)))
     Axes.pushfirst_axis!(axes(A, 1))
     pushfirst!(parent(A), item)
     return A

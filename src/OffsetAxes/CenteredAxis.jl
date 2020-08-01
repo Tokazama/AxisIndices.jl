@@ -151,7 +151,6 @@ function _reset_keys!(axis::CenteredAxis{K}) where {K}
     return nothing
 end
 
-# TODO CenteredAxis examples
 """
     center(inds::AbstractUnitRange{<:Integer}) -> CenteredAxis(inds)
 

@@ -85,7 +85,6 @@ julia> indices(CartesianIndex(1,1))
 """
 indices(x) = map(values, axes(x))
 
-# TODO this should be indices_type
 """
     indices_type(x)
 
