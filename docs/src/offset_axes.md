@@ -1,9 +1,5 @@
 # OffsetAxes
 
-```@docs
-AxisIndices.OffsetAxes
-```
-
 # References
 
 ```@autodocs

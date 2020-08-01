@@ -6,7 +6,6 @@ Metadata.MetaAxis
 Metadata.MetaAxisArray
 Metadata.MetaCartesianAxes
 Metadata.MetaLinearAxes
-Metadata.NamedAxisArray
 Metadata.NamedMetaAxisArray
 Metadata.NamedMetaCartesianAxes
 Metadata.NamedMetaLinearAxes

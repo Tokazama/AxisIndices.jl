@@ -1,5 +1,8 @@
 
-using Documenter, AxisIndices, LinearAlgebra, Statistics
+using Documenter
+using AxisIndices
+using LinearAlgebra
+using Statistics
 
 makedocs(;
     modules=[AxisIndices],
@@ -14,6 +17,7 @@ makedocs(;
             "OffsetAxes" => "offset_axes.md",
             "Metadata" => "metadata.md",
             "Named Axes" => "named_axes.md",
+            "Standard Library" => "standard_library.md",
             "Tabular Interface" => "table.md",
             "Observations" => "observations.md",
             "Internals of Indexing" => "internals_of_indexing.md",

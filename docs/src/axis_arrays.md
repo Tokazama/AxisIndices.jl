@@ -15,9 +15,6 @@ AxisIndices.col_axis
 AxisIndices.col_keys
 AxisIndices.col_type
 
-AxisIndices.has_dimnames
-AxisIndices.named_axes
-
 AxisIndices.AbstractAxis
 AxisIndices.Axis
 AxisIndices.SimpleAxis

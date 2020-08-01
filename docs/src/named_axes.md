@@ -2,9 +2,9 @@
 
 
 ```@docs
-AxisIndices.NamedAxisArray
-AxisIndices.NamedCartesianAxes
-AxisIndices.NamedLinearAxes
-AxisIndices.has_dimnames
-AxisIndices.named_axes
+AxisIndices.NamedAxes.NamedAxisArray
+AxisIndices.NamedAxes.NamedCartesianAxes
+AxisIndices.NamedAxes.NamedLinearAxes
+AxisIndices.NamedAxes.has_dimnames
+AxisIndices.NamedAxes.named_axes
 ```
