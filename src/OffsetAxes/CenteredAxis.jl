@@ -153,9 +153,9 @@ end
 
 # TODO CenteredAxis examples
 """
-    center(inds::AbstractUnitRange{<:Integer}) -> CenterAxis(inds)
+    center(inds::AbstractUnitRange{<:Integer}) -> CenteredAxis(inds)
 
-Shortcut for creating [`CenterAxis`](@ref).
+Shortcut for creating [`CenteredAxis`](@ref).
 
 ## Examples
 ```jldoctest
