@@ -135,7 +135,7 @@ julia> @defdim time is_time
 * `name_indices(x)`: returns the indices corresponding to the dimension.
 * `name_keys(x)`: returns the keys corresponding to the dimension
 * `name_axis_type(x)`: returns the type of the axis corresponding to the dimension
-* `select_name_dim(x, i)`: equivalent to `selectdim(x, name_dim(x), i)`
+* `select_name(x, i)`: equivalent to `selectdim(x, name_dim(x), i)`
 * `each_name(x)`: equivalent to `eachslice(x, name_dim(x))`
 
 !!! warning
