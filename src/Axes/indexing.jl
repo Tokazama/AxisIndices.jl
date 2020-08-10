@@ -8,7 +8,9 @@ end
 
 @inline function unsafe_getindex(A, args::Tuple, inds::Tuple)
     p = @inbounds(getindex(parent(A), inds...))
-    if (p isa AbstractVector) && is_dynamic(p)
+    if any(typeof.(inds) .<: AbstractArray{<:Bool})
+        return p
+    elseif (p isa AbstractVector) && is_dynamic(p)
         return unsafe_reconstruct(A, p, to_axes(A, args, inds, (as_dynamic(axes(p, 1)),), false))
     else
         return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false))
@@ -21,6 +23,9 @@ end
 
 function unsafe_view(A, args::Tuple, inds::Tuple)
     p = view(parent(A), inds...)
+    if any(typeof.(inds) .<: AbstractArray{<:Bool})
+        return p
+    end
     return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false))
 end
 
@@ -30,6 +35,9 @@ end
 
 function unsafe_dotview(A, args::Tuple, inds::Tuple)
     p = Base.dotview(parent(A), inds...)
+    if any(typeof.(inds) .<: AbstractArray{<:Bool})
+        return p
+    end
     return unsafe_reconstruct(A, p, to_axes(A, args, inds, axes(p), false))
 end
 

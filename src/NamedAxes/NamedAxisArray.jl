@@ -116,7 +116,7 @@ for f in (:getindex, :view, :dotview)
             data = @inbounds(Base.$f(parent(a), inds...))
             data isa AbstractArray || return data # Case of scalar output
             L = NamedDims.remaining_dimnames_from_indexing(dimnames(a), inds)
-            if L === ()
+            if L === () || any(typeof.(inds) .<: AbstractArray{<:Bool})
                 # Cases that merge dimensions down to vector like `mat[mat .> 0]`,
                 # and also zero-dimensional `view(mat, 1,1)`
                 return data
