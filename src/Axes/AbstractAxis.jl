@@ -399,12 +399,7 @@ reduce_axes(old_axes::Tuple{Vararg{Any,N}}, new_axes::Tuple, dims::Colon) where 
 function reduce_axes(old_axes::Tuple{Vararg{Any,N}}, new_axes::Tuple, dims) where {N}
     ntuple(Val(N)) do i
         if i in dims
-            axis = getfield(old_axes, i)
-            if is_indices_axis(axis)
-                unsafe_reconstruct(axis, getfield(new_axes, i))
-            else
-                unsafe_reconstruct(axis, set_length(keys(axis), 1), getfield(new_axes, i))
-            end
+            StaticRanges.shrink_last(getfield(old_axes, i), getfield(new_axes, i))
         else
             assign_indices(getfield(old_axes, i), getfield(new_axes, i))
         end
