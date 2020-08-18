@@ -20,8 +20,6 @@ Base.lastindex(axis::AbstractOffsetAxis) = last(axis)
 
 Base.eachindex(axis::AbstractOffsetAxis) = keys(axis)
 
-Base.collect(axis::AbstractOffsetAxis) = collect(keys(axis))
-
 Styles.AxisIndicesStyle(::Type{A}, ::Type{T}) where {A<:AbstractOffsetAxis,T} = KeyedStyle(T)
 
 Interface.is_indices_axis(::Type{<:AbstractOffsetAxis}) = true

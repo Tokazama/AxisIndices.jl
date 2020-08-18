@@ -338,7 +338,7 @@ Base.allunique(a::AbstractAxis) = true
 
 Base.in(x::Integer, a::AbstractAxis) = in(x, values(a))
 
-Base.collect(a::AbstractAxis) = collect(values(a))
+Base.collect(a::AbstractAxis) = collect(eachindex(a))
 
 Base.eachindex(a::AbstractAxis) = values(a)
 
