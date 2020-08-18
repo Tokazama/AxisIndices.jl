@@ -54,6 +54,12 @@
     @testset "AxisArray{T,N,P}" begin
         A = AxisArray(reshape(1:4, 2, 2))
         @test typeof(@inferred(convert(AxisArray{Int32,2,Array{Int32,2}}, A))) <: AxisArray{Int32,2,Array{Int32,2}}
+    end
 
+    @testset "collect(::AxisArray)" begin
+        x = AxisArray(reshape(1:10, 2, 5))
+        @test typeof(parent(collect(x))) <: typeof(collect(parent(x)))
+        @test x isa AxisArray
     end
 end
+

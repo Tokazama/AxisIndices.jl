@@ -345,6 +345,11 @@ function Base.axes(A::ReinterpretAxisArray{T,N,S}) where {T,N,S}
     return tuple(resize_last(axis_1, len), tail(paxs)...)
 end
 
+function Base.collect(A::AbstractAxisArray)
+    p = collect(parent(A))
+    return unsafe_reconstruct(A, p, map(assign_indices,  axes(A), axes(p)))
+end
+
 #=
 function size(a::ReinterpretArray{T,N,S} where {N}) where {T,S}
     psize = size(a.parent)
