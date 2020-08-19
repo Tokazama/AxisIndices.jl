@@ -31,7 +31,7 @@ makedocs(;
         "Comparison to Other Packages" => "comparison.md",
         "Acknowledgments" => "acknowledgments.md"
     ],
-    repo="https://github.com/Tokazma/AxisIndices.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/Tokazama/AxisIndices.jl/blob/{commit}{path}#L{line}",
     sitename="AxisIndices.jl",
     authors="Zachary P. Christensen",
 )
