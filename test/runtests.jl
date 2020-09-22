@@ -8,6 +8,8 @@ using LinearAlgebra
 using MappedArrays
 using Dates
 using Documenter
+using ArrayInterface
+using ArrayInterface: indices
 
 #=
 pkgs = (Documenter,Dates,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core);
@@ -37,7 +39,7 @@ if !isempty(ambs)
 
 using DelimitedFiles
 using AxisIndices
-using AxisIndices.CoreIndexing: to_index, is_key, cat_axis, hcat_axes, vcat_axes, to_axes, matmul_axes
+using AxisIndices: to_index, is_key, cat_axis, hcat_axes, vcat_axes, to_axes, matmul_axes
 using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
@@ -55,8 +57,6 @@ include("styles_tests.jl")
 #include("./Interface/Interface.jl")
 include("./Axes/Axes.jl")
 include("./Arrays/Arrays.jl")
-include("./OffsetAxes/OffsetAxes.jl")
-
 include("getindex_tests.jl")
 include("size_tests.jl")
 include("pop_tests.jl")

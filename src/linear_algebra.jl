@@ -2,13 +2,13 @@
 function covcor_axes(old_axes::NTuple{2,Any}, new_indices::NTuple{2,Any}, dim::Int)
     if dim === 1
         return (
-            assign_indices(last(old_axes), first(new_indices)),
+            to_axis(last(old_axes), first(new_indices)),
             StaticRanges.resize_last(last(old_axes), last(new_indices))
         )
     elseif dim === 2
         return (
             StaticRanges.resize_last(first(old_axes), first(new_indices)),
-            assign_indices(first(old_axes), last(new_indices))
+            to_axis(first(old_axes), last(new_indices))
         )
     else
         return (
@@ -62,19 +62,19 @@ matmul_axes(a::Tuple, b::Tuple, p::Tuple) = _matmul_axes(a, b, p)
 matmul_axes(a::Tuple, b::Tuple, p::Tuple{}) = ()
 
 function _matmul_axes(a::Tuple{Any}, b::Tuple{Any,Any}, p::Tuple{Any,Any})
-    return (_matmul_assign_indices(first(a), first(p)), _matmul_assign_indices(last(b), last(p)))
+    return (_matmul_to_axis(first(a), first(p)), _matmul_to_axis(last(b), last(p)))
 end
 
 function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any,Any}, p::Tuple{Any,Any})
-    return (_matmul_assign_indices(first(a), first(p)), _matmul_assign_indices(last(b), last(p)))
+    return (_matmul_to_axis(first(a), first(p)), _matmul_to_axis(last(b), last(p)))
 end
 
 function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any}, p::Tuple{Any})
-    return (_matmul_assign_indices(first(a), first(p)),)
+    return (_matmul_to_axis(first(a), first(p)),)
 end
 
-_matmul_assign_indices(axis::AbstractAxis, inds) = assign_indices(axis, inds)
-_matmul_assign_indices(axis, inds) = SimpleAxis(inds)
+_matmul_to_axis(axis::AbstractAxis, inds) = to_axis(axis, inds)
+_matmul_to_axis(axis, inds) = SimpleAxis(inds)
 
 _matmul(p, axs::Tuple) = AxisArray(p, axs)
 _matmul(p, axs::Tuple{}) = p

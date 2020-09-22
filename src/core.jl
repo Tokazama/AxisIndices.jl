@@ -148,7 +148,7 @@ end
     return Int(idx)
 end
 
-@propagate_inbounds function to_index(S::IndexStyle, axis, arg::CartesianIndex{1})
+@propagate_inbounds function to_index(S::IndexLinear, axis, arg::CartesianIndex{1})
     return to_index(S, axis, first(arg.I))
 end
 
@@ -223,163 +223,6 @@ end
 end
 
 """
-    IndexOffsetStyle
-
-Index style where the user provided index must be offset before passing to internal
-functions that return stored value.
-"""
-abstract type IndexOffsetStyle <: IndexStyle end
-
-struct IndexOffset <: IndexOffsetStyle end
-
-"""
-    IndexCentered
-
-Index style where the indices are centered around zero.
-"""
-struct IndexCentered <: IndexOffsetStyle end
-
-# TODO document IndexIdentity
-struct IndexIdentity <: IndexOffsetStyle end
-
-@propagate_inbounds function to_index(S::IndexOffsetStyle, axis, arg::Integer)
-    return to_index(parentindices(axis), arg - offsets(axis))
-end
-
-@propagate_inbounds function to_index(S::IndexOffsetStyle, axis, arg::AbstractArray{I}) where {I<:Integer}
-    return to_index(parentindices(axis), arg .- offsets(axis))
-end
-
-"""
-    IndexPaddedStyle
-
-Index style that pads a set number of indices on each side of an axis.
-"""
-abstract type IndexPaddedStyle <: IndexOffsetStyle end
-
-"""
-    IndexFillPad{F}(fxn::F)
-
-Index style that pads a set number of indices on each side of an axis.
-`fxn`(eltype(A))` returns the padded value.
-
-"""
-struct IndexFillPad{F} <: IndexPaddedStyle
-    fxn::F
-end
-
-const IndexZeroPad = IndexFillPad(zero)
-
-const IndexOnePad = IndexFillPad(oneunit)
-
-(p::IndexFillPad)(x) = p.fxn(eltype(x))
-
-"""
-    SymmetricPad <: IndexPaddedStyle
-
-The border elements reflect relative to a position between elements. That is, the
-border pixel is omitted when mirroring.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  e\\, d\\, c\\, b  &  a \\, b \\, c \\, d \\, e \\, f & e \\, d \\, c \\, b
-\\end{array}
-}
-```
-"""
-struct SymmetricPad <: IndexPaddedStyle end
-
-to_first_pad(::SymmetricPad, inds, arg) = Int(2first(inds) - arg)
-to_last_pad(::SymmetricPad, inds, arg) = Int(2last(inds) - arg)
-
-"""
-    ReplicatePad
-
-The border elements extend beyond the image boundaries.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  a\\, a\\, a\\, a  &  a \\, b \\, c \\, d \\, e \\, f & f \\, f \\, f \\, f
-\\end{array}
-}
-```
-"""
-struct ReplicatePad <: IndexPaddedStyle end
-
-to_first_pad(::ReplicatePad, inds, arg) = Int(firstindex(inds))
-to_last_pad(::ReplicatePad, inds, arg) = Int(lastindex(inds))
-
-"""
-    CircularPad
-
-The border elements wrap around. For instance, indexing beyond the left border
-returns values starting from the right border.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  c\\, d\\, e\\, f  &  a \\, b \\, c \\, d \\, e \\, f & a \\, b \\, c \\, d
-\\end{array}
-}
-```
-
-"""
-struct CircularPad <: IndexPaddedStyle end
-
-to_first_pad(::CircularPad, inds, arg) = Int(last(inds) - (firstindex(inds) - (arg - 1)))
-to_last_pad(::CircularPad, inds, arg) = Int(first(inds) + (lastindex(inds) - (arg - 1)))
-
-"""
-    ReflectPad
-
-The border elements reflect relative to the edge itself.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  d\\, c\\, b\\, a  &  a \\, b \\, c \\, d \\, e \\, f & f \\, e \\, d \\, c
-\\end{array}
-}
-```
-"""
-struct ReflectPad <: IndexPaddedStyle end
-
-to_first_pad(::ReflectPad, inds, arg) = Int(first(inds) + (last(inds) - (arg - 1)))
-to_last_pad(::ReflectPad, inds, arg) = Int(last(inds) - (first(inds) - (arg - 1)))
-
-@propagate_inbounds function to_index_element(::IndexPaddedStyle, axis, arg::Function)
-    idx = findfirst(arg, axis)
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, first(getargs(drop_marker(arg)))))
-    end
-    return @inbounds(to_index(axis, idx))
-end
-
-@propagate_inbounds function to_index(S::IndexPaddedStyle, axis, arg::AbstractArray{I}) where {I<:Integer}
-    @boundscheck if !checkindex(Bool, axis, arg)
-        throw(BoundsError(axis, arg))
-    end
-    return as_keys(arg)
-end
-
-@propagate_inbounds function to_index(S::IndexPaddedStyle, axis, arg::Integer)
-    @boundscheck if !checkindex(Bool, axis, arg)
-        throw(BoundsError(axis, arg))
-    end
-
-    pinds = parentindices(axis)
-    if first(pinds) > arg
-        return to_first_pad(S, axis, arg)
-    elseif last(pinds) < arg
-        return to_last_pad(S, axis, arg)
-    else
-        return Int(arg)
-    end
-end
-
-"""
     to_axes(A, args, inds)
     to_axes(A, old_axes, args, inds) -> new_axes
 
@@ -403,17 +246,72 @@ to_axes(A, ::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
     end
 end
 
+
+# a lot of the time we need to reconstruct an axis as part of some array reconstruction,
+# in order to ensure the underlying indices are equivalent (we know the size doesn't change).
+# Sometimes this can be avoided if the indices are the same and we know the original axis
+# can't change. If the original axis is immutable and has same values but `inds` has a
+# static size we want to inherit that, so we still reconstruct.
+function same_known_lengths(axis, inds)
+    return !((known_length(inds) === nothing) || known_length(inds) === known_length(axis))
+end
+function same_known_firsts(axis, inds)
+    return !(known_first(axis) === nothing) && (known_first(axis) === known_first(inds))
+end
+
+function unsafe_reconstruct(axis, inds)
+    if !can_change_size(axis) && same_known_lengths(axis, inds) && same_known_firsts(axis, inds) 
+        return axis
+    else
+        return unsafe_reconstruct(IndexStyle(axis), axis, inds)
+    end
+end
+
+function unsafe_reconstruct(axis, arg, inds)
+    if !can_change_size(axis) && same_known_lengths(axis, inds) && same_known_firsts(axis, inds) 
+        return axis
+    else
+        return unsafe_reconstruct(IndexStyle(axis), axis, arg, inds)
+    end
+end
+
+unsafe_reconstruct(::IndexStyle, axs, arg, inds) = typeof(axs)(inds)
+
+function assign_indices(axis, inds)
+    if can_change_size(axis) && !((known_length(inds) === nothing) || known_length(inds) === known_length(axis))
+        return unsafe_reconstruct(axis, inds)
+    else
+        return axis
+    end
+end
+
 """
     to_axis(old_axis, arg, index) -> new_axis
 
 Construct an `new_axis` for a newly constructed array that corresponds to the
 previously executed `to_index(old_axis, arg) -> index`.
 """
-to_axis(axis, arg, inds) = to_axis(IndexStyle(axis), axis, arg, inds)
-to_axis(::IndexStyle, axis, arg, inds) = SimpleAxis(static_length(inds))
-# TODO Do we need a special pass for handling `to_axis(axs::Tuple, arg, inds)` where `axs`
-# are the axes being collapsed?
-to_axis(axs::Tuple, arg, inds) = SimpleAxis(static_length(inds))
+function to_axis(axis, arg, inds::Slice)
+    if can_change_size(axis)
+        return to_axis(IndexStyle(axis), arg, inds)
+    else
+        return axis
+    end
+end
+function to_axis(axis, arg, inds)
+    if !can_change_size(axis) && same_known_lengths(axis, inds) && same_known_firsts(axis, inds) 
+        return axis
+    else
+        return to_axis(IndexStyle(axis), axis, arg, inds)
+    end
+end
+function to_axis(S::IndexStyle, axis, arg, inds)
+    return unsafe_reconstruct(S, axis, arg, OneTo(static_length(inds)))
+end
+# TODO this isn't generic enough with SimpleAxis
+to_axis(axs::Tuple, arg, inds) = SimpleAxis(OneTo(static_length(inds)))
+to_axis(axs::Tuple, arg, inds::Slice) = SimpleAxis(OneTo(static_length(inds)))
+
 
 """
     argdims(::Type{T}) -> Int
@@ -447,7 +345,6 @@ is_element(::IndexStyle, ::Type{T}) where {T<:AbstractString} = true
 is_element(::IndexStyle, ::Type{T}) where {T<:Equal} = true
 is_element(::IndexStyle, ::Type{T}) where {T<:Approx} = true
 is_element(S::IndexStyle, ::Type{T}) where {X,T<:IndexingMarker{X}} = is_element(S, X)
-is_element(::IndexStyle, ::Type{<:IndexPaddedStyle}) = true
 
 can_flatten(::Type{T}) where {T} = false
 can_flatten(::Type{T}) where {I<:CartesianIndex,T<:AbstractArray{I}} = false
@@ -481,7 +378,7 @@ end
     _, axes_tail = Base.IteratorsMD.split(axs, Val(N))
     return (first(args).I..., flatten_args(A, _maybe_tail(axs), tail(args))...)
 end
-@inline function flatten_args(A, axs::Tuple, args::Tuple{Arg,Vararg{Any}}) where {N,Arg<:CartesianIndices{0}}
+@inline function flatten_args(A, axs::Tuple, args::Tuple{Arg,Vararg{Any}}) where {Arg<:CartesianIndices{0}}
     return (first(args), flatten_args(A, tail(axs), tail(args))...)
 end
 @inline function flatten_args(A, axs::Tuple, args::Tuple{Arg,Vararg{Any}}) where {N,Arg<:CartesianIndices{N}}
@@ -527,12 +424,6 @@ const unsafe_element = UnsafeElement()
 struct UnsafeCollection <: UnsafeIndex end
 const unsafe_collection = UnsafeCollection()
 
-struct UnsafePadElement <: UnsafeIndex end
-const unsafe_pad_element = UnsafePadElement()
-
-struct UnsafePadCollection <: UnsafeIndex end
-const unsafe_pad_collection = UnsafePadCollection()
-
 # 1-arg
 UnsafeIndex(x) = UnsafeIndex(typeof(x))
 UnsafeIndex(x::UnsafeIndex) = x
@@ -543,19 +434,6 @@ UnsafeIndex(::Type{T}) where {T<:AbstractArray} = unsafe_collection
 UnsafeIndex(x::UnsafeIndex, y::UnsafeElement) = x
 UnsafeIndex(x::UnsafeElement, y::UnsafeIndex) = y
 UnsafeIndex(x::UnsafeElement, y::UnsafeElement) = x
-UnsafeIndex(x::UnsafePadElement, y::UnsafeIndex) = x
-UnsafeIndex(x::UnsafeIndex, y::UnsafePadElement) = y
-UnsafeIndex(x::UnsafePadElement, y::UnsafePadElement) = x
-UnsafeIndex(x::UnsafePadCollection, y::UnsafePadCollection) = x
-UnsafeIndex(x::UnsafeIndex, y::UnsafePadCollection) = y
-UnsafeIndex(x::UnsafePadCollection, y::UnsafeIndex) = x
-UnsafeIndex(x::UnsafePadElement, y::UnsafePadCollection) = y
-UnsafeIndex(x::UnsafePadCollection, y::UnsafePadElement) = x
-UnsafeIndex(x::UnsafePadElement, y::UnsafeElement) = x
-UnsafeIndex(x::UnsafeElement, y::UnsafePadElement) = y
-UnsafeIndex(x::UnsafePadCollection, y::UnsafeElement) = x
-UnsafeIndex(x::UnsafeElement, y::UnsafePadCollection) = y
-UnsafeIndex(x::UnsafeCollection, y::UnsafeCollection) = x
 
 # tuple
 UnsafeIndex(x::Tuple{I}) where {I} = UnsafeIndex(I)

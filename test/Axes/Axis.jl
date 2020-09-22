@@ -29,9 +29,8 @@
         @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
     end
 
-
+    #= FIXME StructAxis
     @testset "StructAxis" begin
-
         axis = @inferred(StructAxis{NamedTuple{(:one,:two,:three),Tuple{Int64,Int32,Int16}}}())
         @test axis[1:2] == [1, 2]
         @test keys(axis[1:2]) == [:one, :two]
@@ -46,26 +45,24 @@
         x = AxisArray(reshape(1:4, 2, 2), StructAxis{Rational}());
         x2 = struct_view(x);
         @test x2[1] isa Rational
-        @test AxisIndices.Axes.structdim(x) == 1
+        @test AxisIndices.structdim(x) == 1
     end
+    =#
     #@test @inferred(AxisIndices.to_axis(a1)) == a1
 
     @testset "CenteredAxis" begin
         centered_axis = @inferred(CenteredAxis(1:10))
         @test @inferred(keys(centered_axis)) == -5:4
-        @test @inferred(indices(centered_axis)) == 1:10
-        @test typeof(centered_axis)(keys(centered_axis), indices(centered_axis)) isa typeof(centered_axis)
+        @test @inferred(parentindices(centered_axis)) == 1:10
+        @test typeof(centered_axis)(parentindices(centered_axis)) isa typeof(centered_axis)
         centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
-        @test typeof(centered_axis)(keys(centered_axis), indices(centered_axis)) isa typeof(centered_axis)
+        @test typeof(centered_axis)(parentindices(centered_axis)) isa typeof(centered_axis)
         @test keytype(centered_axis) <: Int32
         centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
         @test eltype(centered_axis) <: Int32
         ca2 = centered_axis[-1:1]
         @test @inferred(keys(ca2)) == -1:1
-        @test @inferred(indices(ca2)) == 5:7
-        @test !@inferred(has_metadata(centered_axis))
-        @test !@inferred(has_metadata(typeof(centered_axis)))
-        @test metadata_type(centered_axis) isa Nothing
+        @test @inferred(parentindices(ca2)) == 5:7
         #@test is_indices_axis(typeof(centered_axis))
 
         #=
@@ -216,29 +213,29 @@
         @test @inferred(OffsetAxis(offset, inds)) === OffsetAxis(1:3, Base.OneTo(3))
         @test @inferred(OffsetAxis(OffsetAxis(ks))) === OffsetAxis(1:3, Base.OneTo(3))
 
-        @test @inferred(OffsetAxis{Int16}(ks)) ===
+        @test @inferred(OffsetAxis{Int16}(ks)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
-        @test @inferred(OffsetAxis{Int16}(ks, inds)) ===
+        @test @inferred(OffsetAxis{Int16}(ks, inds)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
-        @test @inferred(OffsetAxis{Int16}(offset, inds)) ===
+        @test @inferred(OffsetAxis{Int16}(offset, inds)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
-        @test @inferred(OffsetAxis{Int16}(OffsetAxis(ks))) ===
+        @test @inferred(OffsetAxis{Int16}(OffsetAxis(ks))) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(3))
 
-        @test @inferred(OffsetAxis{Int16}(ks)) ===
+        @test @inferred(OffsetAxis{Int16}(ks)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
-        @test @inferred(OffsetAxis{Int16}(ks, inds)) ===
+        @test @inferred(OffsetAxis{Int16}(ks, inds)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
-        @test @inferred(OffsetAxis{Int16}(offset, inds)) ===
+        @test @inferred(OffsetAxis{Int16}(offset, inds)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
-        @test @inferred(OffsetAxis{Int16}(OffsetAxis(ks))) ===
+        @test @inferred(OffsetAxis{Int16}(OffsetAxis(ks))) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
 
-        @test @inferred(OffsetAxis{Int16,UnitRange{Int16},Base.OneTo{Int16}}(ks)) ===
+        @test @inferred(OffsetAxis{Int16,Int16,Base.OneTo{Int16}}(ks)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
-        @test @inferred(OffsetAxis{Int16,UnitRange{Int16},Base.OneTo{Int16}}(ks, inds)) ===
+        @test @inferred(OffsetAxis{Int16,Int16,Base.OneTo{Int16}}(ks, inds)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
-        @test @inferred(OffsetAxis{Int16,UnitRange{Int16},Base.OneTo{Int16}}(offset, inds)) ===
+        @test @inferred(OffsetAxis{Int16,Int16,Base.OneTo{Int16}}(offset, inds)) ==
             OffsetAxis(Int16(1):Int16(3), Base.OneTo(Int16(3)))
 
         #=

@@ -156,27 +156,27 @@ end
     V = AxisArray(ones(2), ["a", "b"]);
 
     @testset "linear indexing" begin
-        @test @inferred(CoreIndexing.to_indices(A, (1,))) == (1,)
-        @test @inferred(CoreIndexing.to_indices(A, (1:2,))) == (1:2,)
+        @test @inferred(AxisIndices.to_indices(A, (1,))) == (1,)
+        @test @inferred(AxisIndices.to_indices(A, (1:2,))) == (1:2,)
 
         @testset "Linear indexing doesn't ruin vector indexing" begin
-            @test @inferred(CoreIndexing.to_indices(V, (1:2,))) == (1:2,)
-            @test @inferred(CoreIndexing.to_indices(V, (1,))) == (1,)
-            @test @inferred(CoreIndexing.to_indices(V, ("a",))) == (1,)
+            @test @inferred(AxisIndices.to_indices(V, (1:2,))) == (1:2,)
+            @test @inferred(AxisIndices.to_indices(V, (1,))) == (1,)
+            @test @inferred(AxisIndices.to_indices(V, ("a",))) == (1,)
         end
     end
 
-    @test @inferred(CoreIndexing.to_indices(A, (1, 1))) == (1, 1)
-    @test @inferred(CoreIndexing.to_indices(A, (1, 1:2))) == (1, 1:2)
-    @test @inferred(CoreIndexing.to_indices(A, (1:2, 1))) == (1:2, 1)
-    @test @inferred(CoreIndexing.to_indices(A, (1, :))) == (1, Base.Slice(Axis(1.0:2.0)))
-    @test @inferred(CoreIndexing.to_indices(A, (:, 1))) == (Base.Slice(Axis(1:2)), 1)
-    @test @inferred(CoreIndexing.to_indices(A, ([true, true], :))) == (Base.LogicalIndex(Bool[1, 1]), Base.Slice(Axis(1.0:2.0)))
-    @test @inferred(CoreIndexing.to_indices(A, (CartesianIndices((1,)), 1))) == (Axis(1:1 => 1:1), 1)
-    @test @inferred(CoreIndexing.to_indices(A, (1, 1.0))) == (1,1)
+    @test @inferred(AxisIndices.to_indices(A, (1, 1))) == (1, 1)
+    @test @inferred(AxisIndices.to_indices(A, (1, 1:2))) == (1, 1:2)
+    @test @inferred(AxisIndices.to_indices(A, (1:2, 1))) == (1:2, 1)
+    @test @inferred(AxisIndices.to_indices(A, (1, :))) == (1, Base.Slice(Axis(1.0:2.0)))
+    @test @inferred(AxisIndices.to_indices(A, (:, 1))) == (Base.Slice(Axis(1:2)), 1)
+    @test @inferred(AxisIndices.to_indices(A, ([true, true], :))) == (Base.LogicalIndex(Bool[1, 1]), Base.Slice(Axis(1.0:2.0)))
+    @test @inferred(AxisIndices.to_indices(A, (CartesianIndices((1,)), 1))) == (Axis(1:1 => 1:1), 1)
+    @test @inferred(AxisIndices.to_indices(A, (1, 1.0))) == (1,1)
 
     A = AxisArray(reshape(1:27, 3, 3, 3));
-    @test @inferred CoreIndexing.to_indices(A, ([CartesianIndex(1,1,1), CartesianIndex(1,2,1)],)) == (CartesianIndex{3}[CartesianIndex(1, 1, 1), CartesianIndex(1, 2, 1)],)
+    @test @inferred AxisIndices.to_indices(A, ([CartesianIndex(1,1,1), CartesianIndex(1,2,1)],)) == (CartesianIndex{3}[CartesianIndex(1, 1, 1), CartesianIndex(1, 2, 1)],)
     @test @inferred(A[[CartesianIndex(1,1,1), CartesianIndex(1,2,1)]]) == [1, 4]
 end
 

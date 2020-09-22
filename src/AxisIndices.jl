@@ -8,116 +8,79 @@ end AxisIndices
 
 using Reexport
 
-export AxisArray
 
-include("./CoreIndexing/CoreIndexing.jl")
-@reexport using .CoreIndexing
-
-
-#=
-using Reexport
-using StaticRanges
-using ChainedFixes
 using IntervalSets
+using ArrayInterface
+using ChainedFixes
+using LinearAlgebra
+using MappedArrays
+using SparseArrays
+using StaticRanges
+using Statistics
+using SuiteSparse
+using EllipsisNotation: Ellipsis
+
+using StaticRanges
+using StaticRanges: OneToUnion
+using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
+using StaticRanges: checkindexlo, checkindexhi
+using StaticRanges: grow_first!, grow_last!
+using StaticRanges: resize_last, resize_last!, resize_first, resize_first!
+using StaticRanges: shrink_last!, is_static, is_fixed, similar_type
+
+using Base: @propagate_inbounds, tail, LogicalIndex, Slice, OneTo, Fix2, ReinterpretArray
+using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using ArrayInterface: known_length, known_first, known_step, known_last, can_change_size
+using ArrayInterface: static_length, static_first, static_step, static_last
+using ArrayInterface: indices, offsets, parent_type, StaticInt
 
 export
-    Indices,
-    Keys,
-    LinearAxes,
-    # Reexport types
-    LinMRange,
-    LinSRange,
-    OneToRange,
-    OneToMRange,
-    OneToSRange,
-    StepMRangeLen,
-    StepSRangeLen,
-    StepMRange,
-    StepSRange,
-    UnitMRange,
-    UnitSRange,
-    # methods
-    srange,
-    mrange,
-    struct_view,
-    and, ⩓, or, ⩔,
-    pretty_array
+    AbstractAxis,
+    AxisArray,
+    Axis,
+    AxisArray,
+    CenteredArray,
+    CenteredAxis,
+    IdentityArray,
+    IdentityAxis,
+    OffsetArray,
+    OffsetAxis,
+    SimpleAxis,
+    StructAxis,
+    as_keys,
+    as_indices,
+    struct_view
 
-export ..
+const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
+function check_axis_length(ks, inds)
+    if length(ks) != length(inds)
+        throw(DimensionMismatch(
+            "keys and indices must have same length, got length(keys) = $(length(ks))" *
+            " and length(indices) = $(length(inds)).")
+        )
+    end
+    return nothing
+end
 
-include("./Styles/Styles.jl")
-using .Styles
+function check_axis_unique(ks, inds)
+    allunique(ks) || error("All keys must be unique.")
+    allunique(inds) || error("All indices must be unique.")
+    return nothing
+end
 
-include("./Interface/Interface.jl")
-@reexport using .Interface
-using .Interface: step_key, append_axis!, to_axis, to_axes,  to_index, to_keys
-using .Interface: assign_indices
-
-include("./Axes/Axes.jl")
-@reexport using .Axes
-using .Axes: permute_axes, cat_axis, cat_axes, hcat_axes, vcat_axes, combine_axis
-
-include("./Arrays/Arrays.jl")
-@reexport using .Arrays
-using .Arrays: matmul_axes, get_factorization
-
-include("./NamedAxes/NamedAxes.jl")
-@reexport using .NamedAxes
-
-include("./Meta/Meta.jl")
-@reexport using .Meta
-
-#include("./PrettyArrays/PrettyArrays.jl")
-#using .PrettyArrays
-
-include("./OffsetAxes/OffsetAxes.jl")
-@reexport using .OffsetAxes
-
-#include("./PaddedViews/PaddedViews.jl")
-#using .PaddedViews
-
-###
-### Generate show methods
-###
-
-#=
-PrettyArrays.@assign_show AxisArray
-
-PrettyArrays.@assign_show NamedAxisArray
-
-PrettyArrays.@assign_show MetaAxisArray
-
-PrettyArrays.@assign_show NamedMetaAxisArray
-
-PrettyArrays.@assign_show CartesianAxes
-
-PrettyArrays.@assign_show LinearAxes
-
-PrettyArrays.@assign_show NamedCartesianAxes
-
-PrettyArrays.@assign_show NamedLinearAxes
-
-PrettyArrays.@assign_show MetaCartesianAxes
-
-PrettyArrays.@assign_show MetaLinearAxes
-
-PrettyArrays.@assign_show NamedMetaCartesianAxes
-
-PrettyArrays.@assign_show NamedMetaLinearAxes
-
-###
-### Overload property methods for metadata
-###
-
-Meta.@metadata_properties NamedMetaLinearAxes
-
-Meta.@metadata_properties NamedMetaCartesianAxes
-
-Meta.@metadata_properties NamedMetaAxisArray
-
-=#
-=#
+include("core.jl")
+include("abstract_axis.jl")
+include("axis_interface.jl")
+include("offset_axis.jl")
+include("axis_types.jl")
+include("axes_methods.jl")
+include("combine.jl")
+include("promotion.jl")
+include("arrays.jl")
+include("alias_arrays.jl")
+include("linear_algebra.jl")
+include("struct_axis.jl")
 
 end
 

@@ -6,7 +6,7 @@ function reduce_axes(old_axes::Tuple{Vararg{Any,N}}, new_axes::Tuple, dims) wher
         if i in dims
             StaticRanges.shrink_last(getfield(old_axes, i), getfield(new_axes, i))
         else
-            assign_indices(getfield(old_axes, i), getfield(new_axes, i))
+            to_axis(getfield(old_axes, i), getfield(new_axes, i))
         end
     end
 end
@@ -116,24 +116,24 @@ Permute axes of `old_array` and replace indices with those of `new_array`.
 function permute_axes(old_array::AbstractVector, new_array::AbstractMatrix)
     return (
         SimpleAxis(axes(new_array, 1)),
-        assign_indices(axes(old_array, 1), axes(new_array, 2))
+        to_axis(axes(old_array, 1), axes(new_array, 2))
     )
 end
 
 function permute_axes(old_array::AbstractMatrix, new_array::AbstractMatrix)
     return (
-        assign_indices(axes(old_array, 2), axes(new_array, 1)),
-        assign_indices(axes(old_array, 1), axes(new_array, 2))
+        to_axis(axes(old_array, 2), axes(new_array, 1)),
+        to_axis(axes(old_array, 1), axes(new_array, 2))
     )
 end
 
 function permute_axes(old_array::AbstractMatrix, new_array::AbstractVector)
-    return (assign_indices(axes(old_array, 2), axes(new_array, 1)),)
+    return (to_axis(axes(old_array, 2), axes(new_array, 1)),)
 end
 
 function permute_axes(old_array::AbstractArray{T1,N}, new_array::AbstractArray{T2,N}, perms) where {T1,T2,N}
     ntuple(Val(N)) do i
-        assign_indices(axes(old_array, perms[i]), axes(new_array, i))
+        to_axis(axes(old_array, perms[i]), axes(new_array, i))
     end
 end
 

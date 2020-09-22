@@ -1,21 +1,16 @@
 
-
-_broadcast(axis, inds) = inds
-_broadcast(axis, inds::AbstractUnitRange{<:Integer}) = assign_indices(axis, inds)
-
 for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:+, typeof(+), Real),
                      (:*, typeof(*), Real))
     @eval begin
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            return _broadcast(r, broadcast($f, x, indices(r)))
+            return _maybe_reconstruct_axis(r, broadcast($f, x, indices(r)))
         end
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            return _broadcast(r, broadcast($f, indices(r), x))
+            return _maybe_reconstruct_axis(r, broadcast($f, indices(r), x))
         end
     end
 end
-
 
 function Broadcast.broadcast_shape(
     shape1::Tuple,
@@ -94,32 +89,32 @@ end
 function cat_axis(x::AbstractAxis, y::AbstractAxis, inds=cat_indices(x, y))
     if is_indices_axis(x)
         if is_indices_axis(y)
-            return unsafe_reconstruct(x, inds)
+            return to_axis(x, nothing, inds)
         else
-            return unsafe_reconstruct(y, set_length(keys(y), length(inds)), inds)
+            return to_axis(y, set_length(keys(y), length(inds)), inds)
         end
     else
         if is_indices_axis(y)
-            return unsafe_reconstruct(x, set_length(keys(x), length(inds)), inds)
+            return to_axis(x, set_length(keys(x), length(inds)), inds)
         else
-            return unsafe_reconstruct(y, cat_keys(keys(x), keys(y)), inds)
+            return to_axis(y, cat_keys(keys(x), keys(y)), inds)
         end
     end
 end
 
 function cat_axis(x::AbstractUnitRange, y::AbstractAxis, inds=cat_indices(x, y))
     if is_indices_axis(y)
-        return unsafe_reconstruct(y, inds)
+        return to_axis(y, nothing, inds)
     else
-        return unsafe_reconstruct(y, set_length(keys(y), length(inds)), inds)
+        return to_axis(y, set_length(keys(y), length(inds)), inds)
     end
 end
 
 function cat_axis(x::AbstractAxis, y::AbstractUnitRange, inds=cat_indices(x, y))
     if is_indices_axis(x)
-        return unsafe_reconstruct(x, inds)
+        return to_axis(x, nothing, inds)
     else
-        return unsafe_reconstruct(x, set_length(keys(x), length(inds)), inds)
+        return to_axis(x, set_length(keys(x), length(inds)), inds)
     end
 end
 
@@ -168,32 +163,32 @@ _combine_keys(x::LinearIndices, y::LinearIndices) = first(y.indices)
 @inline function combine_axis(x::AbstractAxis, y::AbstractAxis, inds=combine_indices(x, y))
     if is_indices_axis(x)
         if is_indices_axis(y)
-            return unsafe_reconstruct(x, inds)
+            return to_axis(x, nothing, inds)
         else
-            return unsafe_reconstruct(y, keys(y), inds)
+            return to_axis(y, keys(y), inds)
         end
     else
         if is_indices_axis(y)
-            return unsafe_reconstruct(x, keys(x), inds)
+            return to_axis(x, keys(x), inds)
         else
-            return unsafe_reconstruct(y, combine_keys(x, y), inds)
+            return to_axis(y, combine_keys(x, y), inds)
         end
     end
 end
 
 @inline function combine_axis(x, y::AbstractAxis, inds=combine_indices(x, y))
     if is_indices_axis(y)
-        return unsafe_reconstruct(y, inds)
+        return to_axis(y, nothing, inds)
     else
-        return unsafe_reconstruct(y, keys(y), inds)
+        return to_axis(y, keys(y), inds)
     end
 end
 
 @inline function combine_axis(x::AbstractAxis, y, inds=combine_indices(x, y))
     if is_indices_axis(x)
-        return unsafe_reconstruct(x, inds)
+        return to_axis(x, nothing, inds)
     else
-        return unsafe_reconstruct(x, keys(x), inds)
+        return to_axis(x, keys(x), inds)
     end
 end
 
@@ -213,6 +208,9 @@ function promote_axis_collections(x::LinearIndices{1}, y::Y) where {Y}
 end
 function promote_axis_collections(x::X, y::LinearIndices{1}) where {X}
     return promote_axis_collections(x, y.indices[1])
+end
+function promote_axis_collections(x::LinearIndices{1}, y::LinearIndices{1})
+    return promote_axis_collections(x.indices[1], y.indices[1])
 end
 function promote_axis_collections(x::X, y::Y) where {X,Y}
     if promote_rule(X, Y) <: Union{}

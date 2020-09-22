@@ -343,3 +343,24 @@ function Base.BroadcastStyle(a::NamedDims.NamedDimsStyle{M}, b::AxisArrayStyle{B
     return NamedDims.NamedDimsStyle(M(), b)
 end
 
+#= TODO delete this
+function unsafe_reconstruct(axis::AbstractAxis, arg, inds::AbstractUnitRange{I}) where {I<:Integer}
+    return unsafe_reconstruct(IndexStyle(axis), axis, arg, inds)
+end
+function unsafe_reconstruct(a::Axis, ks::Ks, vs::Vs) where {Ks,Vs}
+    return Axis{eltype(Ks),eltype(Vs),Ks,Vs}(ks, vs)
+end
+
+unsafe_reconstruct(axis::CenteredAxis, inds) = CenteredAxis{eltype(inds)}(inds)
+unsafe_reconstruct(axis::AbstractAxis, arg, inds::Integer) = inds
+unsafe_reconstruct(axis::AbstractAxis, arg, inds::AbstractVector) = inds
+
+unsafe_reconstruct(::IndexOffset, axis, arg, inds) = OffsetAxis(offsets(axis), inds)
+unsafe_reconstruct(::IndexCentered, axis, arg, inds) = CenteredAxis(inds)
+unsafe_reconstruct(::IndexIdentity, axis, arg, inds) = IdentityAxis(inds)
+function unsafe_reconstruct(::IndexAxis, axis, arg, inds)
+    return Axis(@inbounds(getindex(keys(axis), inds)), inds)
+end
+unsafe_reconstruct(::IndexStyle, axis, arg, inds) = SimpleAxis(inds)
+=#
+

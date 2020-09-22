@@ -516,7 +516,7 @@ true
 """
 function Base.rotr90(x::AxisMatrix)
     p = rotr90(parent(x))
-    axs = (assign_indices(axes(x, 2), axes(p, 1)), reverse_keys(axes(x, 1), axes(p, 2)))
+    axs = (to_axis(axes(x, 2), axes(p, 1)), reverse_keys(axes(x, 1), axes(p, 2)))
     return AxisArray{eltype(p),2,typeof(p),typeof(axs)}(p, axs)
 end
 
@@ -543,7 +543,7 @@ true
 """
 function Base.rotl90(x::AxisMatrix)
     p = rotl90(parent(x))
-    axs = (reverse_keys(axes(x, 2), axes(p, 1)), assign_indices(axes(x, 1), axes(p, 2)))
+    axs = (reverse_keys(axes(x, 2), axes(p, 1)), to_axis(axes(x, 1), axes(p, 2)))
     return AxisArray{eltype(p),2,typeof(p),typeof(axs)}(p, axs)
 end
 
@@ -615,13 +615,13 @@ end
 for f in (:sort, :sort!)
     @eval function Base.$f(A::AxisArray; dims, kwargs...)
         p = Base.$f(parent(A); dims=dims, kwargs...)
-        return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        return AxisArray(p, map(to_axis, axes(a), axes(p)))
     end
 
     # Vector case
     @eval function Base.$f(a::AxisArray{T,1}; kwargs...) where {T}
         p = Base.$f(parent(A); kwargs...)
-        return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        return AxisArray(p, map(to_axis, axes(a), axes(p)))
     end
 end
 
@@ -664,7 +664,7 @@ function Base.zeros(::Type{T}, axs::Tuple{Vararg{<:AbstractAxis}}) where {T}
     return AxisArray(p, axs, axes(p), false)
 end
 
-function Base.falses(axs::Tuple{Vararg{<:AbstractAxis}}) where {T}
+function Base.falses(axs::Tuple{Vararg{<:AbstractAxis}})
     p = falses(map(length, axs))
     return AxisArray(p, axs, axes(p), false)
 end
@@ -733,7 +733,7 @@ end
 
 function Base.similar(A::AxisArray, ::Type{T}) where {T}
     p = similar(parent(A), T)
-    return AxisArray(p, map(assign_indices, axes(A), axes(p)))
+    return AxisArray(p, map(to_axis, axes(A), axes(p)))
 end
 
 function Base.similar(A::AxisArray, ::Type{T}, ks::Tuple{OneTo,Vararg{OneTo,N}}) where {T, N}
@@ -772,7 +772,7 @@ function Base.reverse(x::AxisArray{T,N}; dims::Integer) where {T,N}
         if i in dims
             reverse_keys(axes(x, i), axes(p, i))
         else
-            assign_indices(axes(x, i), axes(p, i))
+            to_axis(axes(x, i), axes(p, i))
         end
     end
     return AxisArray(p, axs)
@@ -848,13 +848,13 @@ end
 for f in (:cumsum, :cumprod)
     @eval function Base.$f(a::AxisArray; dims, kwargs...)
         p = Base.$f(parent(a); dims=dims, kwargs...)
-        return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        return AxisArray(p, map(to_axis, axes(a), axes(p)))
     end
 
     # Vector case
     @eval function Base.$f(a::AxisArray{T,1}; kwargs...) where {T}
         p = Base.$f(parent(a); kwargs...)
-        return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        return AxisArray(p, map(to_axis, axes(a), axes(p)))
     end
 end
 
@@ -882,7 +882,7 @@ for f in (:zero, :one)
     @eval begin
         function Base.$f(a::AxisArray)
             p = Base.$f(parent(a))
-            return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+            return AxisArray(p, map(to_axis, axes(a), axes(p)))
         end
     end
 end
@@ -971,7 +971,7 @@ end
 
 function Base.collect(A::AxisArray)
     p = collect(parent(A))
-    return AxisArray(p, map(assign_indices,  axes(A), axes(p)))
+    return AxisArray(p, map(to_axis,  axes(A), axes(p)))
 end
 
 #=
@@ -985,7 +985,7 @@ end
 function Base.permutedims(A::AxisArray{T,N}, perms) where {T,N}
     p = permutedims(parent(A), perms)
     axs = ntuple(Val(N)) do i
-        assign_indices(axes(A, perms[i]), axes(p, i))
+        to_axis(axes(A, perms[i]), axes(p, i))
     end
     return AxisArray(p, axs)
 end
@@ -1044,7 +1044,7 @@ julia> axes_keys(inv(M))
 """
 function Base.inv(A::AxisArray)
     p = inv(parent(A))
-    axs = (assign_indices(axes(A, 2), axes(p, 1)), assign_indices(axes(A, 1), axes(A, 2)))
+    axs = (to_axis(axes(A, 2), axes(p, 1)), to_axis(axes(A, 1), axes(A, 2)))
     return AxisArray(p, axs)
 end
 
