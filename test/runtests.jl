@@ -2,13 +2,9 @@
 using Test
 using Statistics
 using StaticRanges
-import StaticRanges.StaticArrays
 using NamedDims
 using IntervalSets
-using Tables
 using LinearAlgebra
-using TableTraits
-using TableTraitsUtils
 using MappedArrays
 using Dates
 using Documenter
@@ -41,45 +37,22 @@ if !isempty(ambs)
 
 using DelimitedFiles
 using AxisIndices
-using AxisIndices.Styles
-using AxisIndices: to_index, to_keys, cat_axis, hcat_axes, vcat_axes, to_axes
-using AxisIndices.Interface
-using AxisIndices.Interface: check_index
-using AxisIndices.Axes
-using AxisIndices.Arrays
-using AxisIndices.Tabular
-using AxisIndices: matmul_axes
+using AxisIndices.CoreIndexing: to_index, is_key, cat_axis, hcat_axes, vcat_axes, to_axes, matmul_axes
 using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!, has_offset_axes
-using AxisIndices.Interface: IdentityUnitRange
+#using AxisIndices.Interface: IdentityUnitRange
 
 using Base: step_hp, OneTo
 using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
 
-struct Axis2{K,V,Ks,Vs} <: AbstractAxis{K,V,Ks,Vs}
-    keys::Ks
-    values::Vs
-end
-
-Axis2(ks, vs) = Axis2{eltype(ks),eltype(vs),typeof(ks),typeof(vs)}(ks, vs)
-Base.keys(a::Axis2) = getfield(a, :keys)
-Base.values(a::Axis2) = getfield(a, :values)
-function StaticRanges.similar_type(
-    ::Type{A},
-    ks_type::Type=keys_type(A),
-    vs_type::Type=indices_type(A)
-) where {A<:Axis2}
-    return Axis2{eltype(ks_type),eltype(vs_type),ks_type,vs_type}
-end
-
 @test Base.to_shape(SimpleAxis(1)) == 1
 
 include("styles_tests.jl")
 
-include("./Interface/Interface.jl")
+#include("./Interface/Interface.jl")
 include("./Axes/Axes.jl")
 include("./Arrays/Arrays.jl")
 include("./OffsetAxes/OffsetAxes.jl")
@@ -125,32 +98,6 @@ include("offset_tests.jl")
     A = AxisArray(Array{Int,0}(undef, ()))
     @test pretty_array(String, A) == repr(A[1])
 end
-
-@testset "ObservationDims" begin
-    using AxisIndices.ObservationDims
-    nia = NamedAxisArray(reshape(1:6, 2, 3), x = 2:3, observations = 3:5)
-    @test has_obsdim(nia)
-    @test !has_obsdim(parent(nia))
-    @test @inferred(obs_keys(nia)) == 3:5
-    @test @inferred(nobs(nia)) == 3
-    @test @inferred(obs_indices(nia)) == 1:3
-    @test @inferred(obsdim(nia)) == 2
-    @test @inferred(select_obs(nia, 2)) == selectdim(parent(parent(nia)), 2, 2)
-    @test @inferred(obs_axis_type(nia)) <: Integer
-    obs_iter = each_obs(nia)
-    itr, state = iterate(obs_iter)
-    @test itr == [1, 2]
-    itr, state = iterate(obs_iter, state)
-    @test itr == [3, 4]
-    itr, state = iterate(obs_iter, state)
-    @test itr == [5, 6]
-    @test isnothing(iterate(obs_iter, state))
-
-    A = NamedAxisArray(reshape(1:40, 2, 20), x = 2:3, observations = 1:20)
-    @test collect(obs_axis(A, 2)) == [1:2, 3:4, 5:6, 7:8, 9:10, 11:12, 13:14, 15:16, 17:18,19:20]
-end
-
-include("table_tests.jl")
 
 #include("offset_array_tests.jl")
 F = svd(AxisArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))));

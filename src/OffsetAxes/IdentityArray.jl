@@ -97,3 +97,4 @@ julia> IdentityVector{Union{Missing, Int}}(missing, 3)[2:3]
 function IdentityVector{T}(init::ArrayInitializer, arg) where {T}
     return IdentityVector{T}(Vector{T}(init, arg))
 end
+

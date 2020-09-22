@@ -4,12 +4,13 @@ module PrettyArrays
 using AxisIndices.Interface
 using AxisIndices.Axes
 using AxisIndices.Arrays
-using AxisIndices.Metadata
 using AxisIndices.NamedAxes
 
 
 using PrettyTables
 using Base: tail
+
+using Base: print_array
 
 import NamedDims: NamedDimsArray
 
@@ -43,6 +44,7 @@ function print_axes_summary(io::IO, A::AbstractArray{T,N}, axs::Tuple, dnames::T
     end
 end
 
+#=
 print_meta_summary(io::IO, ::Nothing) = nothing
 function print_meta_summary(io::IO, meta)
     print(io, "metadata: $(summary(meta))")
@@ -50,6 +52,7 @@ function print_meta_summary(io::IO, meta)
     print(io, " • $meta")
     print(io, "\n")
 end
+=#
 
 function show_array(
     io::IO,
@@ -62,7 +65,7 @@ function show_array(
 
     io_compact = IOContext(io, :compact => true)
     print_axes_summary(io_compact, A, axes, dimnames)
-    print_meta_summary(io_compact, metadata)
+    #print_meta_summary(io_compact, metadata)
 
     io_has_color = get(io, :color, false)
     buf_io       = IOBuffer()
@@ -75,10 +78,6 @@ end
 
 function show_array(io::IO, A::NamedDimsArray; kwargs...)
     return show_array(io, parent(A); dimnames=dimnames(A), kwargs...)
-end
-
-function show_array(io::IO, A::MetadataArray; kwargs...)
-    return show_array(io, parent(A); metadata=metadata(A), kwargs...)
 end
 
 function show_array(io::IO, A::AbstractAxisArray; kwargs...)

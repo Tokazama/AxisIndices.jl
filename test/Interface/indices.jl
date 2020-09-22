@@ -13,8 +13,5 @@
         A = AxisArray(collect(1:5), 0.1:0.1:0.5)
         @test @inferred(A[0.3]) == 3
     end
-
-    @test is_indices_axis(UnitRange{Int})
-    @test !is_indices_axis(Vector{Int})
 end
 

@@ -3,7 +3,7 @@
     for x in (Axis(UnitMRange(1,10),UnitMRange(1,10)),
               SimpleAxis(UnitMRange(1,10)))
         y = collect(x)
-        @test popfirst(x) == popfirst(y)
+        #@test popfirst(x) == popfirst(y)
         @test popfirst!(x) == popfirst!(y)
         @test x == y
     end

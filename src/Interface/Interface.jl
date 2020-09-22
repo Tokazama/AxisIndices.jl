@@ -6,7 +6,10 @@ using MappedArrays
 using NamedDims
 using StaticRanges
 using StaticRanges: OneToUnion
-using StaticRanges: resize_last
+using StaticRanges: resize_last, similar_type
+
+using ArrayInterface
+using ArrayInterface: indices
 
 using MappedArrays: ReadonlyMultiMappedArray, MultiMappedArray, ReadonlyMappedArray
 using EllipsisNotation: Ellipsis
@@ -25,7 +28,6 @@ export
     drop_axes,
     parent_type,
     indices,
-    indices_type,
     is_indices_axis,
     keys_type,
     row_axis,

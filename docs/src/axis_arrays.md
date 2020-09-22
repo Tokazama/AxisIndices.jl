@@ -4,7 +4,6 @@
 
 ```@docs
 AxisIndices.indices
-AxisIndices.indices_type
 AxisIndices.keys_type
 
 AxisIndices.row_axis

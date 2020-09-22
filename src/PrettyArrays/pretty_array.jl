@@ -1,4 +1,5 @@
 
+#=
 """
     pretty_array([io::IO,] A::AbstractArray[, axs=axes(A)], dimnames=ntuple(i -> Symbol(:dim_, i), N), backend=:text; kwargs...)
 
@@ -23,9 +24,9 @@ julia> pretty_array(ones(Int, 2,2,2), (Axis(2:3), Axis([:one, :two]), Axis(["a",
 
 ```
 """
-function pretty_array(
+function Base.print_array(
     io::IO,
-    A::AbstractArray{T,N},
+    A::AbstractAxisArray{T,N};
     axs::Tuple=axes(A),
     dnames::Tuple=ntuple(i -> Symbol(:dim_, i), N),
     backend::Symbol=:text;
@@ -70,7 +71,7 @@ function pretty_array(
             print(io, "$(dnames[i])[$(keys(keyinds[i])[idxs[i]])], ")
         end
         println(io, "$(dnames[end])[", keys(keyinds[end])[idxs[end]], "]] =")
-        pretty_array(
+        print_array(
             io,
             view(A, :, :, idxs...),
             (axs[1], axs[2]),
@@ -174,3 +175,4 @@ function pretty_array(
     return String(take!(io))
 end
 
+=#

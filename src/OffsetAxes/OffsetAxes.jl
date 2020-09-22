@@ -27,7 +27,7 @@ using ArrayInterface
 using ArrayInterface: known_first, known_last
 
 using StaticRanges
-using StaticRanges: Length, OneToUnion
+using StaticRanges: OneToUnion
 using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
 using StaticRanges: checkindexlo, checkindexhi
 using StaticRanges: grow_first!, grow_last!

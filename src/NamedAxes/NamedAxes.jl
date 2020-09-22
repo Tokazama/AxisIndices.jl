@@ -31,9 +31,6 @@ export
 
 include("dimnames.jl")
 include("defdim.jl")
-include("mappedarrays.jl")
 include("NamedAxisArray.jl")
-include("NamedCartesianAxes.jl")
-include("NamedLinearAxes.jl")
 
 end

@@ -7,6 +7,15 @@ module AxisIndices
 end AxisIndices
 
 using Reexport
+
+export AxisArray
+
+include("./CoreIndexing/CoreIndexing.jl")
+@reexport using .CoreIndexing
+
+
+#=
+using Reexport
 using StaticRanges
 using ChainedFixes
 using IntervalSets
@@ -56,28 +65,23 @@ using .Arrays: matmul_axes, get_factorization
 include("./NamedAxes/NamedAxes.jl")
 @reexport using .NamedAxes
 
-include("./Metadata/Metadata.jl")
-@reexport using .Metadata
+include("./Meta/Meta.jl")
+@reexport using .Meta
 
-include("./PrettyArrays/PrettyArrays.jl")
-using .PrettyArrays
+#include("./PrettyArrays/PrettyArrays.jl")
+#using .PrettyArrays
 
 include("./OffsetAxes/OffsetAxes.jl")
 @reexport using .OffsetAxes
 
-include("./PaddedViews/PaddedViews.jl")
-using .PaddedViews
-
-include("./ObservationDims.jl")
-using .ObservationDims
-
-include("./Tabular/Tabular.jl")
-@reexport using .Tabular
+#include("./PaddedViews/PaddedViews.jl")
+#using .PaddedViews
 
 ###
 ### Generate show methods
 ###
 
+#=
 PrettyArrays.@assign_show AxisArray
 
 PrettyArrays.@assign_show NamedAxisArray
@@ -106,14 +110,14 @@ PrettyArrays.@assign_show NamedMetaLinearAxes
 ### Overload property methods for metadata
 ###
 
-Metadata.@metadata_properties MetaAxis
+Meta.@metadata_properties NamedMetaLinearAxes
 
-Metadata.@metadata_properties MetadataArray
+Meta.@metadata_properties NamedMetaCartesianAxes
 
-Metadata.@metadata_properties NamedMetaLinearAxes
+Meta.@metadata_properties NamedMetaAxisArray
 
-Metadata.@metadata_properties NamedMetaCartesianAxes
-
-Metadata.@metadata_properties NamedMetaAxisArray
+=#
+=#
 
 end
+

@@ -18,8 +18,6 @@ makedocs(;
             "Metadata" => "metadata.md",
             "Named Axes" => "named_axes.md",
             "Standard Library" => "standard_library.md",
-            "Tabular Interface" => "table.md",
-            "Observations" => "observations.md",
             "Internals of Indexing" => "internals_of_indexing.md",
             "Pretty Printing" => "pretty_printing.md",
             "Compatibility" => "compatibility.md",
