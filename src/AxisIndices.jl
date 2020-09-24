@@ -6,9 +6,6 @@ module AxisIndices
     replace(read(path, String), r"^```julia"m => "```jldoctest README")
 end AxisIndices
 
-using Reexport
-
-
 using IntervalSets
 using ArrayInterface
 using ChainedFixes
@@ -37,6 +34,8 @@ using ArrayInterface: indices, offsets, parent_type, StaticInt
 export
     AbstractAxis,
     AxisArray,
+    AxisVector,
+    AxisMatrix,
     Axis,
     AxisArray,
     CenteredArray,
@@ -45,11 +44,13 @@ export
     IdentityAxis,
     OffsetArray,
     OffsetAxis,
+    OffsetVector,
     SimpleAxis,
     StructAxis,
     as_keys,
     as_indices,
     struct_view
+
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
@@ -69,11 +70,14 @@ function check_axis_unique(ks, inds)
     return nothing
 end
 
+include("errors.jl")
 include("core.jl")
 include("abstract_axis.jl")
+include("axis.jl")
+include("axis_array.jl")
 include("axis_interface.jl")
 include("offset_axis.jl")
-include("axis_types.jl")
+include("padded_axis.jl")
 include("axes_methods.jl")
 include("combine.jl")
 include("promotion.jl")
@@ -81,6 +85,7 @@ include("arrays.jl")
 include("alias_arrays.jl")
 include("linear_algebra.jl")
 include("struct_axis.jl")
+include("deprecations.jl")
 
 end
 

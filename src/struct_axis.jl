@@ -88,7 +88,12 @@ end
 
 ArrayInterface.parent_type(::Type{T}) where {Inds,T<:StructAxis{<:Any,<:Any,<:Any,Inds}} = Inds
 Base.parentindices(axis::StructAxis) = getfield(axis, :parent_indices)
-Base.keys(::StructAxis{T,L}) where {T,L} = fieldnames(T)::NTuple{L,Symbol}
+function Base.keys(::StructAxis{T,L}) where {T,L}
+    return AxisArray{Symbol,1,Vector{Symbol},Tuple{OneTo{StaticInt{L}}}}(
+        Vector{Symbol}(fieldnames(T)...),
+        (OneTo{StaticInt{L}}(StaticInt(L)),)
+    )
+end
 function to_axis(::IndexAxis, axis::StructAxis, arg, inds)
     if known_length(inds) === nothing
         # create StructAxis if we don't know length at compile time

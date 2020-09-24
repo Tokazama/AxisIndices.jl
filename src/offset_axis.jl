@@ -305,19 +305,15 @@ known_offsets(::Type{T}) where {F,T<:IdentityAxis{<:Any,StaticInt{F}}} = F
 known_offsets(::Type{T}) where {T<:IdentityAxis{<:Any,<:Any}} = nothing
 @inline function known_offsets(::Type{T}) where {T<:CenteredAxis}
     P = parent_type(T)
-    if known_length(P) === nothing
-        return nothing
-    else
-        return _centered_offsets(known_length(P))
-    end
+    return _centered_offsets(known_first(P), known_last(P))
 end
 
-ArrayInterface.offsets(axis::AbstractAxis) = offsets(parentindices(axis))
-ArrayInterface.offsets(axis::OffsetAxis) = getfield(axis, :offsets)
-ArrayInterface.offsets(axis::IdentityAxis) = getfield(axis, :offsets)
+ArrayInterface.offsets(axis::AbstractAxis) = (offsets(parentindices(axis)),)
+ArrayInterface.offsets(axis::OffsetAxis) = (getfield(axis, :offsets),)
+ArrayInterface.offsets(axis::IdentityAxis) = (getfield(axis, :offsets),)
 function ArrayInterface.offsets(axis::CenteredAxis)
     p = parentindices(axis)
-    return _centered_offsets(first(p), last(p))
+    return (_centered_offsets(first(p), last(p)),)
 end
 
 @inline function ArrayInterface.known_first(::Type{T}) where {T<:AbstractOffsetAxis}
@@ -337,8 +333,8 @@ end
 end
 
 Base.keys(axis::AbstractOffsetAxis) = eachindex(axis)
-Base.last(axis::AbstractOffsetAxis) = last(parentindices(axis)) + offsets(axis)
-Base.first(axis::AbstractOffsetAxis) = first(parentindices(axis)) .+ offsets(axis)
+Base.last(axis::AbstractOffsetAxis) = last(parentindices(axis)) + offsets(axis, 1)
+Base.first(axis::AbstractOffsetAxis) = first(parentindices(axis)) .+ offsets(axis, 1)
 
 function ArrayInterface.known_first(::Type{T}) where {T<:CenteredAxis}
     return _centered_first(known_length(parent_type(T)))
@@ -350,10 +346,6 @@ end
 Base.first(axis::CenteredAxis) = _centered_first(static_length(axis))
 Base.last(axis::CenteredAxis) = _centered_last(static_length(axis))
 
-
-###
-### Axis interface
-###
 """
     IndexOffsetStyle
 
@@ -375,11 +367,13 @@ struct IndexCentered <: IndexOffsetStyle end
 struct IndexIdentity <: IndexOffsetStyle end
 
 @propagate_inbounds function to_index(S::IndexOffsetStyle, axis, arg::Integer)
-    return to_index(parentindices(axis), arg - offsets(axis))
+    return to_index(parentindices(axis), arg - offsets(axis, 1))
 end
 
+@propagate_inbounds to_index(axis, arg::AbstractOffsetAxis) = to_index(axis, eachindex(arg))
+
 @propagate_inbounds function to_index(S::IndexOffsetStyle, axis, arg::AbstractArray{I}) where {I<:Integer}
-    return to_index(parentindices(axis), arg .- offsets(axis))
+    return to_index(parentindices(axis), arg .- offsets(axis, 1))
 end
 
 Base.IndexStyle(::Type{T}) where {T<:OffsetAxis} = IndexOffset()
@@ -394,13 +388,100 @@ ArrayInterface.parent_type(::Type{T}) where {Inds,T<:CenteredAxis{<:Any,Inds}} =
 ArrayInterface.parent_type(::Type{T}) where {Inds,T<:OffsetAxis{<:Any,<:Any,Inds}} = Inds
 ArrayInterface.parent_type(::Type{T}) where {Inds,T<:IdentityAxis{<:Any,<:Any,Inds}} = Inds
 
-function unsafe_reconstruct(S::IndexOffsetStyle, axis, arg, inds)
-    return unsafe_reconstruct(S, axis, inds)
-end
-
-unsafe_reconstruct(::IndexOffset, axis, inds) = OffsetAxis(offsets(axis), inds)
-unsafe_reconstruct(::IndexIdentity, axis, inds) = IdentityAxis(offsets(axis), inds)
+# It doesn't matter what the `arg` is for CenteredAxis b/c it just depends on the length of inds
+unsafe_reconstruct(::IndexCentered, axis, arg, inds) = CenteredAxis(inds)
 unsafe_reconstruct(::IndexCentered, axis, inds) = CenteredAxis(inds)
 
+# With OffsetAxis we just want to preserve the offset from the first index
+unsafe_reconstruct(::IndexOffsetStyle, axis, arg, inds) = OffsetAxis(offsets(axis, 1), inds)
+unsafe_reconstruct(::IndexOffset, axis, inds) = OffsetAxis(offsets(axis, 1), inds)
+
+
+# With IdentityAxis we to preserve indices that `args` was trying to identify so
+# we calculate a new offset
+function unsafe_reconstruct(::IndexIdentity, axis, args, inds)
+    IdentityAxis(static_first(args) - static_first(inds), inds)
+end
+# if we aren't provided `args` we assume that we keep the user facing indices and only change
+# the offset to preserve the original indix
+function unsafe_reconstruct(::IndexIdentity, axis, inds)
+    return IdentityAxis(static_first(axis) - static_first(inds), inds)
+end
+
 Base.eachindex(axis::AbstractOffsetAxis) = static_first(axis):static_last(axis)
+
+
+"""
+    offset(x)
+
+Shortcut for creating `OffsetAxis` where `x` is the first argument to [`OffsetAxis`](@ref).
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisArray(ones(3), offset(2))
+3-element AxisArray{Float64,1}
+ • dim_1 - 3:5
+
+  3   1.0
+  4   1.0
+  5   1.0
+
+```
+"""
+offset(x) = inds -> OffsetAxis(x, inds)
+
+"""
+    idaxis(inds::AbstractUnitRange{<:Integer}) -> IdentityAxis
+
+Shortcut for creating [`IdentityAxis`](@ref).
+
+## Examples
+
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisArray(ones(3), idaxis)[2:3]
+2-element AxisArray{Float64,1}
+ • dim_1 - 2:3
+
+  2   1.0
+  3   1.0
+
+
+```
+"""
+idaxis(inds) = IdentityAxis(inds)
+
+parent_indices_type(::Type{T}) where {Inds,T<:IdentityAxis{<:Any,<:Any,Inds}} = Inds
+
+"""
+    center(inds::AbstractUnitRange{<:Integer}) -> CenteredAxis(inds)
+
+Shortcut for creating [`CenteredAxis`](@ref).
+
+## Examples
+```jldoctest
+julia> using AxisIndices
+
+julia> AxisArray(ones(3), center)
+3-element AxisArray{Float64,1}
+ • dim_1 - -1:1
+
+  -1   1.0
+   0   1.0
+   1   1.0
+
+```
+"""
+center(inds::AbstractUnitRange) = CenteredAxis(inds)
+
+function print_axis(io, axis::AbstractOffsetAxis)
+    if haskey(io, :compact)
+        Interface.print_axis_compactly(io, keys(axis))
+    else
+        print(io, "$(typeof(axis).name)($(keys(axis)) => $(indices(axis)))")
+    end
+end
 

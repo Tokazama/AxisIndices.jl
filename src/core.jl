@@ -117,7 +117,6 @@ to_index(axis, arg::Colon) = indices(axis)
 to_index(axis, arg::CartesianIndices{0}) = arg
 @propagate_inbounds to_index(axis, arg::CartesianIndex{1}) = to_index(axis, first(arg.I))
 
-
 @propagate_inbounds function to_index(::IndexLinear, axis, arg::Integer)
     @boundscheck if !checkindex(Bool, axis, arg)
         throw(BoundsError(axis, arg))
@@ -130,12 +129,19 @@ end
     end
     return @inbounds(axis[arg])
 end
-@propagate_inbounds function to_index(::IndexLinear, axis, arg::AbstractArray)
+@propagate_inbounds function to_index(::IndexLinear, axis, arg::AbstractArray{I}) where {I<:Integer}
     @boundscheck if !checkindex(Bool, axis, arg)
         throw(BoundsError(axis, arg))
     end
-    return arg
+    return AbstractArray{Int}(arg)
 end
+@propagate_inbounds function to_index(::IndexLinear, axis, arg::AbstractUnitRange{I}) where {I<:Integer}
+    @boundscheck if !checkindex(Bool, axis, arg)
+        throw(BoundsError(axis, arg))
+    end
+    return AbstractUnitRange{Int}(arg)
+end
+
 to_index(::IndexLinear, axis, arg::Function) = findall(arg, axis)
 @propagate_inbounds function to_index(S::IndexLinear, axis, arg::IndexingMarker)
     return to_index(S, axis, drop_marker(arg))
@@ -150,76 +156,6 @@ end
 
 @propagate_inbounds function to_index(S::IndexLinear, axis, arg::CartesianIndex{1})
     return to_index(S, axis, first(arg.I))
-end
-
-
-"""
-    IndexAxis
-
-Index style for mapping keys to an array's parent indices.
-"""
-struct IndexAxis <: IndexStyle end
-
-@propagate_inbounds function to_index(S::IndexAxis, axis, arg)
-    if is_key(axis, arg)
-        ks = to_index_keys(axis, drop_marker(arg))
-        return @inbounds(to_index(parentindices(axis), ks))
-    else
-        return to_index(parentindices(axis), arg)
-    end
-end
-
-@propagate_inbounds function to_index_keys(axis, arg::CartesianIndex{1})
-    return to_index_keys(axis, first(arg.I))
-end
-to_index_keys(axis, arg::Function) = findall(arg, keys(axis))
-
-@propagate_inbounds function to_index_keys(axis, arg)
-    if arg isa keytype(axis)
-        idx = findfirst(==(arg), keys(axis))
-    else
-        idx = findfirst(==(keytype(axis)(arg)), keys(axis))
-    end
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, arg))
-    end
-    return Int(idx)
-end
-
-@propagate_inbounds function to_index_keys(axis, arg::Union{<:Equal,Approx})
-    idx = findfirst(arg, keys(axis))
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, arg))
-    end
-    return Int(idx)
-end
-
-@propagate_inbounds function to_index_keys(axis, arg::AbstractVector)
-    return map(arg_i -> to_index_keys(axis, arg_i), arg)
-    #=
-    inds = Vector{Int}(undef, length(arg))
-    ks = keys(axis)
-    i = 1
-    for arg_i in arg
-        idx = to_index_key(axis, arg_i)
-        @inbounds(setindex!(inds, idx, i))
-        i += 1
-    end
-    return inds
-    =#
-end
-
-@propagate_inbounds function to_index_keys(axis, arg::AbstractRange)
-    if eltype(arg) <: keytype(axis)
-        inds = find_all(in(arg), keys(axis))
-    else
-        inds = find_all(in(AbstractRange{keytype(axis)}(arg)), keys(axis))
-    end
-    # if `inds` is same length as `arg` then all of `arg` was found and is inbounds
-    @boundscheck if length(inds) != length(arg)
-        throw(BoundsError(axis, arg))
-    end
-    return inds
 end
 
 """
@@ -246,19 +182,6 @@ to_axes(A, ::Tuple{}, ::Tuple{}, ::Tuple{}) = ()
     end
 end
 
-
-# a lot of the time we need to reconstruct an axis as part of some array reconstruction,
-# in order to ensure the underlying indices are equivalent (we know the size doesn't change).
-# Sometimes this can be avoided if the indices are the same and we know the original axis
-# can't change. If the original axis is immutable and has same values but `inds` has a
-# static size we want to inherit that, so we still reconstruct.
-function same_known_lengths(axis, inds)
-    return !((known_length(inds) === nothing) || known_length(inds) === known_length(axis))
-end
-function same_known_firsts(axis, inds)
-    return !(known_first(axis) === nothing) && (known_first(axis) === known_first(inds))
-end
-
 function unsafe_reconstruct(axis, inds)
     if !can_change_size(axis) && same_known_lengths(axis, inds) && same_known_firsts(axis, inds) 
         return axis
@@ -275,7 +198,8 @@ function unsafe_reconstruct(axis, arg, inds)
     end
 end
 
-unsafe_reconstruct(::IndexStyle, axs, arg, inds) = typeof(axs)(inds)
+unsafe_reconstruct(::IndexLinear, axis::AbstractUnitRange, inds) = typeof(axis)(inds)
+unsafe_reconstruct(::IndexLinear, axis::AbstractUnitRange, arg, inds) = typeof(axis)(inds)
 
 function assign_indices(axis, inds)
     if can_change_size(axis) && !((known_length(inds) === nothing) || known_length(inds) === known_length(axis))

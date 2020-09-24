@@ -156,14 +156,14 @@
         # TODO @test sortperm(r) == r
         # TODO @test r != 2:4
         @test 1:4 == IdentityAxis(1:4) == 1:4
-        @test r+r == OffsetArray(4:2:8, axes(r))
+        @test r+r == AxisArray(4:2:8, axes(r))
         # TODO this can't be done with other AbstractUnitRange types so why here?
         # @test r-r == OffsetArray([0,0,0], axes(r))
         @test (9:2:13)-r == 7:9
-        @test -r == OffsetArray(-2:-1:-4, axes(r))
-        @test reverse(r) == OffsetArray(4:-1:2, axes(r))
-        @test r / 2 == r ./ 2 == OffsetArray(1:0.5:2, axes(r))
-        @test 2 \ r == 2 .\ r == OffsetArray(1:0.5:2, axes(r))
+        @test -r == AxisArray(-2:-1:-4, axes(r))
+        @test reverse(r) == AxisArray(4:-1:2, axes(r))
+        @test r / 2 == r ./ 2 == AxisArray(1:0.5:2, axes(r))
+        @test 2 \ r == 2 .\ r == AxisArray(1:0.5:2, axes(r))
 
         r = IdentityAxis{Int16}(0, 4)
         @test length(r) === 5
@@ -357,17 +357,11 @@ end
     axis = Axis(2:3 => 1:2)
 
     @test keytype(typeof(Axis(1.0:10.0))) <: Float64
-    @test keys_type(axis) == UnitRange{Int}
     @test haskey(axis, 3)
     @test !haskey(axis, 4)
-    @test axes_keys(axis) == (2:3,)
+    @test keys.(axes(axis)) == (2:3,)
 
     A = AxisArray(ones(3,2), [:one, :two, :three])
-
-    KS = keys_type(A, 1)
-    #@test is_fixed(KS)
-    @test eltype(KS) <: Symbol
-
 
     @testset "reverse" begin
         x = [1, 2, 3]
@@ -383,8 +377,8 @@ end
         end
 
         @testset "reverse vectors keys" begin
-            @test axes_keys(revy, 1) == [3, 2, 1]
-            @test axes_keys(revz, 1) == [:three, :two, :one]
+            @test keys(axes(revy, 1)) == [3, 2, 1]
+            @test keys(axes(revz, 1)) == [:three, :two, :one]
         end
 
         @testset "reverse arrays" begin
@@ -393,8 +387,8 @@ end
 
             xrev1 = reverse(x, dims=1)
             xrev2 = reverse(x, dims=2)
-            @test axes_keys(xrev1) == ([:two, :one], ["a", "b"])
-            @test axes_keys(xrev2) == ([:one, :two], ["b", "a"])
+            @test keys.(axes(xrev1)) == ([:two, :one], ["a", "b"])
+            @test keys.(axes(xrev2)) == ([:one, :two], ["b", "a"])
         end
     end
 end

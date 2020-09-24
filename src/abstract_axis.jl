@@ -89,7 +89,7 @@ end
     @boundscheck if !checkindex(Bool, axis, arg)
         throw(BoundsError(axis, arg))
     end
-    return _maybe_reconstruct_axis(axis, to_axis(axis, arg))
+    return _maybe_reconstruct_axis(axis, to_index(axis, arg))
 end
 @propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::StaticRanges.GapRange)
     return _maybe_reconstruct_axis(axis, vcat(axis[arg.first_range], axis[arg.last_range]))
@@ -198,16 +198,18 @@ function _maybe_reconstruct_axis(axis, inds::AbstractArray)
     return AxisArray{eltype(axis),ndims(inds),typeof(inds),typeof(axs)}(inds, axs)
 end
 
-Base.:-(axis::AbstractAxis) = _maybe_reconstruct_axis(axis, -axis)
+Base.:-(axis::AbstractAxis) = _maybe_reconstruct_axis(axis, -eachindex(axis))
 
 function Base.:+(r::AbstractAxis, s::AbstractAxis)
     indsr = axes(r, 1)
     indsr == axes(s, 1) || throw(DimensionMismatch("axes $indsr and $(axes(s, 1)) do not match"))
-    return AxisArray(convert(UnitRange, r)+convert(UnitRange, s), indsr)
+    return _maybe_reconstruct_axis(indsr, eachindex(r) + eachindex(s))
 end
 function Base.:-(r::AbstractAxis, s::AbstractAxis)
     indsr = axes(r, 1)
     indsr == axes(s, 1) || throw(DimensionMismatch("axes $indsr and $(axes(s, 1)) do not match"))
-    AxisArray(fill(first(r)-first(s), length(r)), indsr)
+    return _maybe_reconstruct_axis(indsr, eachindex(r) - eachindex(s))
 end
+
+ArrayInterface.offsets(axis::AbstractAxis, i) = offsets(axis)[i]
 
