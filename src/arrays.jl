@@ -1,34 +1,5 @@
 
-_unsafe_reconstruct(arg::AbstractAxis) = arg
-_unsafe_reconstruct(arg::Integer) = SimpleAxis(arg)
-_unsafe_reconstruct(arg::AbstractUnitRange{T}) where {T<:Integer} = SimpleAxis(arg)
-_unsafe_reconstruct(arg::AbstractVector, inds::AbstractUnitRange) = Axis(arg, inds)
-function _unsafe_reconstruct(arg::AbstractUnitRange{T}, inds::AbstractUnitRange) where {T<:Integer}
-    if (known_first(arg) !== nothing) && (known_first(arg) === known_first(inds))
-        check_axis_length(arg, inds)
-        if known_last(arg) === nothing
-            return SimpleAxis(static_first(arg), static_last(inds))
-        else
-            return SimpleAxis(static_first(arg), static_last(arg))
-        end
-    else
-        return OffsetAxis(arg, inds)
-    end
-end
-_unsafe_reconstruct(arg::Function, inds::AbstractUnitRange) = arg(inds)
-
-
-
-_to_axes(::Tuple{}, ::Tuple{}) = ()
-_to_axes(::Tuple, ::Tuple{}) = ()
-@inline _to_axes(::Tuple{}, inds::Tuple) = map(i -> _unsafe_reconstruct(i), inds)
-@inline function _to_axes(args::Tuple, inds::Tuple)
-    return (_unsafe_reconstruct(first(args), first(inds)), _to_axes(tail(args), tail(inds))...)
-end
-
-###
-### Vectors
-###
+Base.strides(A::AxisArray) = strides(parent(A))
 
 """
     AxisVector
@@ -65,8 +36,23 @@ function AxisVector{T}() where {T}
     )
 end
 
-function Base.append!(A::AxisVector{T}, collection) where {T}
-    append_axis!(axes(A, 1), collection)
+@inline function append_axis!(x::Axis{K,I,Ks,Inds}, y) where {K,I,Ks,Inds}
+    if Ks <: AbstractRange
+        set_length!(values(x), length(x) + length(y))
+    else
+        if any(in(keys(x)), keys(y))
+            error("Cannot append axis keys that are not unique from each other.")
+        else
+            append!(keys(x), keys(y))
+        end
+    end
+end
+function Base.append!(A::AxisVector{T,V,Ax}, collection) where {T,V,Ax}
+    if Ax <: Axis
+        append_axis!(axes(A, 1), axes(collection, 1))
+    else
+        set_length!(axes(A, 1), length(A) + length(collection))
+    end
     append!(parent(A), collection)
     return A
 end
@@ -76,15 +62,14 @@ function Base.pop!(A::AxisVector)
     return pop!(parent(A))
 end
 
-
 function Base.popfirst!(A::AxisVector)
-    Axes.popfirst_axis!(axes(A, 1))
+    popfirst_axis!(axes(A, 1))
     return popfirst!(parent(A))
 end
 
 function Base.reverse(x::AxisVector)
     p = reverse(parent(x))
-    return AxisArray(p, (reverse_keys(axes(x, 1), axes(p, 1)),))
+    return AxisArray(p, (reverse_keys(axes(x, 1), axes(p, 1)),); checks=NoChecks)
 end
 
 """
@@ -100,26 +85,26 @@ julia> using AxisIndices
 
 julia> x = AxisArray([1, 2, 3, 4]);
 
-julia> axes_keys(deleteat!(x, 3))
+julia> keys.(axes(deleteat!(x, 3)))
 (OneToMRange(3),)
 
 julia> x = AxisArray([1, 2, 3, 4], ["a", "b", "c", "d"]);
 
-julia> axes_keys(deleteat!(x, "c"))
+julia> keys.(axes(deleteat!(x, "c")))
 (["a", "b", "d"],)
 
 ```
 """
 function Base.deleteat!(A::AxisVector{T,P,Ax}, arg) where {T,P,Ax}
-    if is_indices_axis(Ax)
+    if Ax<:Axis
         inds = to_index(axes(A, 1), arg)
-        shrink_last!(axes(A, 1), length(inds))
+        deleteat!(keys.(axes(A, 1), inds))
+        shrink_last!(indices(A, 1), length(inds))
         deleteat!(parent(A), inds)
         return A
     else
         inds = to_index(axes(A, 1), arg)
-        deleteat!(axes_keys(A, 1), inds)
-        shrink_last!(indices(A, 1), length(inds))
+        shrink_last!(axes(A, 1), length(inds))
         deleteat!(parent(A), inds)
         return A
     end
@@ -152,36 +137,6 @@ function Base.resize!(x::AxisVector, n::Integer)
     return x
 end
 
-function Base.push!(A::AxisVector, item)
-    StaticRanges.can_set_last(axes(A, 1)) || throw(MethodError(push!, (A, item)))
-    push!(parent(A), item)
-    grow_last!(axes(A, 1), 1)
-    return A
-end
-
-function Base.push!(A::AxisVector, item::Pair)
-    axis = axes(A, 1)
-    StaticRanges.can_set_last(axis) || throw(MethodError(push!, (A, item)))
-    push!(parent(A), last(item))
-    Axes.push_key!(axis, first(item))
-    return A
-end
-
-function Base.pushfirst!(A::AxisVector, item)
-    can_change_size(A) || throw(MethodError(pushfirst!, (A, item)))
-    Axes.pushfirst_axis!(axes(A, 1))
-    pushfirst!(parent(A), item)
-    return A
-end
-
-function Base.pushfirst!(A::AxisVector, item::Pair)
-    axis = axes(A, 1)
-    StaticRanges.can_set_first(axis) || throw(MethodError(pushfirst!, (A, item)))
-    pushfirst!(parent(A), last(item))
-    Axes.pushfirst_axis!(axis, first(item))
-    return A
-end
-
 ###
 ### Matrix methods
 ###
@@ -200,12 +155,12 @@ julia> a = AxisArray([1 2; 3 4], ["a", "b"], ["one", "two"]);
 
 julia> b = rot180(a);
 
-julia> axes_keys(b)
+julia> keys.(axes(b))
 (["b", "a"], ["two", "one"])
 
 julia> c = rotr90(rotr90(a));
 
-julia> axes_keys(c)
+julia> keys.(axes(c))
 (["b", "a"], ["two", "one"])
 
 julia> a["a", "one"] == b["a", "one"] == c["a", "one"]
@@ -231,7 +186,7 @@ julia> a = AxisArray([1 2; 3 4], ["a", "b"], ["one", "two"]);
 
 julia> b = rotr90(a);
 
-julia> axes_keys(b)
+julia> keys.(axes(b))
 (["one", "two"], ["b", "a"])
 
 julia> a["a", "one"] == b["one", "a"]
@@ -257,7 +212,7 @@ julia> a = AxisArray([1 2; 3 4], ["a", "b"], ["one", "two"]);
 
 julia> b = rotl90(a);
 
-julia> axes_keys(b)
+julia> keys.(axes(b))
 (["two", "one"], ["a", "b"])
 
 julia> a["a", "one"] == b["one", "a"]
@@ -283,10 +238,6 @@ function reconstruct_reduction(old_array, new_array, dims)
     return AxisArray(new_array, reduce_axes(axes(old_array), axes(new_array), dims))
 end
 reconstruct_reduction(old_array, new_array, dims::Colon) = new_array
-
-function Base.mapslices(f, a::AxisArray; dims, kwargs...)
-    return reconstruct_reduction(a, Base.mapslices(f, parent(a); dims=dims, kwargs...), dims)
-end
 
 function Base.mapreduce(f1, f2, a::AxisArray; dims=:, kwargs...)
     return reconstruct_reduction(a, Base.mapreduce(f1, f2, parent(a); dims=dims, kwargs...), dims)
@@ -339,13 +290,13 @@ end
 for f in (:sort, :sort!)
     @eval function Base.$f(A::AxisArray; dims, kwargs...)
         p = Base.$f(parent(A); dims=dims, kwargs...)
-        return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        return AxisArray(p, map(assign_indices, axes(A), axes(p)))
     end
 
     # Vector case
-    @eval function Base.$f(a::AxisArray{T,1}; kwargs...) where {T}
+    @eval function Base.$f(A::AxisArray{T,1}; kwargs...) where {T}
         p = Base.$f(parent(A); kwargs...)
-        return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        return AxisArray(p, map(assign_indices, axes(A), axes(p)))
     end
 end
 
@@ -407,78 +358,6 @@ end
 #StaticRanges.axes_type(::Type{<:AxisArray{T,N,P,AI}}) where {T,N,P,AI} = AI
 #StaticRanges.axes_type(::Type{<:AxisArray{T,N,P,AI}}, i::Int) where {T,N,P,AI} = AI.parameters[i]
 
-###
-### similar
-###
-@inline function Base.similar(A::AxisArray{T}, dims::Tuple{Vararg{Int}}) where {T}
-    return similar(A, T, dims)
-end
-
-function Base.similar(A::AxisArray, ::Type{T}, dims::Tuple{Vararg{Union{Integer,OneTo}}}) where {T}
-    p = similar(parent(A), T, dims)
-    return AxisArray(p, to_axes(axes(A), ks, axes(p), false))
-end
-
-function Base.similar(a::AxisArray, ::Type{T}, dims::Tuple{Union{Integer, Base.OneTo},Vararg{Union{Integer, Base.OneTo}}}) where {T}
-    p = similar(parent(A), T, dims)
-    return AxisArray(p, to_axes(axes(A), ks, axes(p), false))
-end
-
-function Base.similar(A::AxisArray, ::Type{T}, dims::Tuple{Vararg{Int}}) where {T}
-    p = similar(parent(A), T, dims)
-    return AxisArray(p, to_axes(axes(A), ks, axes(p), false))
-end
-
-  #=
-function Base.similar(
-    A::AxisArray,
-    ::Type{T},
-    ks::Tuple{Union{Base.IdentityUnitRange, OneTo, UnitRange,Integer},
-              Vararg{Union{Base.IdentityUnitRange, OneTo, UnitRange,Integer},N}}
-) where {T, N}
-
-    p = similar(parent(A), T, map(length, ks))
-    return AxisArray(p, to_axes(axes(A), ks, axes(p), false))
-end
-@inline function Base.similar(A::AxisArray{T}, ks::Tuple{Vararg{<:AbstractVector}}) where {T}
-    return similar(A, T, ks)
-end
-
-@inline function Base.similar(A::AxisArray, ::Type{T}, ks::Tuple{Vararg{<:AbstractVector,N}}) where {T,N}
-    p = similar(parent(A), T, map(length, ks))
-    return AxisArray(p, to_axes(axes(A), ks, axes(p), false))
-end
-
-# Necessary to avoid ambiguities with OffsetArrays
-@inline function Base.similar(A::AxisArray, ::Type{T}, dims::NTuple{N,Int}) where {T,N}
-    p = similar(parent(A), T, dims)
-    return AxisArray(p, to_axes(axes(A), (), axes(p), false))
-end
-
-function Base.similar(A::AxisArray, ::Type{T}) where {T}
-    p = similar(parent(A), T)
-    return AxisArray(p, map(unsafe_reconstruct, axes(A), axes(p)))
-end
-
-function Base.similar(A::AxisArray, ::Type{T}, ks::Tuple{OneTo,Vararg{OneTo,N}}) where {T, N}
-    p = similar(parent(A), T, map(length, ks))
-    return AxisArray(p, to_axes(axes(A), ks, axes(p), false))
-end
-
-function Base.similar(::Type{T}, ks::Tuple{Vararg{<:AbstractAxis,N}}) where {T<:AbstractArray, N}
-    p = similar(T, map(length, ks))
-    axs = to_axes((), ks, axes(p), false)
-    return AxisArray{eltype(T),N,typeof(p),typeof(axs)}(p, axs)
-end
-
-# Necessary to avoid ambiguities with OffsetArrays
-@inline function Base.similar(A::AxisArray, ::Type{T}, dims::Tuple{Vararg{<:Integer,N}}) where {T,N}
-    p = similar(parent(A), T, dims)
-    return AxisArray(p, to_axes(axes(A), (), axes(p), false))
-end
-
-=#
-
 # FIXME
 # When I use Val(N) on the tuple the it spits out many lines of extra code.
 # But without it it loses inferrence
@@ -504,51 +383,43 @@ end
 
 Base.has_offset_axes(A::AxisArray) = Base.has_offset_axes(parent(A))
 
-function Base.dropdims(a::AxisArray; dims)
-    return AxisArray(dropdims(parent(a); dims=dims), drop_axes(a, dims))
-end
-
 ###
 ### Indexing
 ###
-function unsafe_view(A, args::Tuple, inds::Tuple{Vararg{<:Integer}})
-    return @inbounds(Base.view(parent(A), inds...))
+function unsafe_view(A, inds::Tuple{Vararg{<:Integer}})
+    return @inbounds(Base.view(parent(A), apply_offsets(A, inds)...))
 end
 
-function unsafe_view(A, args::Tuple, inds::Tuple)
-    p = view(parent(A), inds...)
-    return AxisArray(p, to_axes(A, args, axes(p)))
+function unsafe_view(A, inds::Tuple)
+    p = @inbounds(Base.view(parent(A), apply_offsets(A, inds)...))
+    return unsafe_reconstruct(A, p; axes=to_axes(A, inds))
 end
 
-function unsafe_dotview(A, args::Tuple, inds::Tuple{Vararg{<:Integer}})
-    return @inbounds(Base.dotview(parent(A), inds...))
+function unsafe_dotview(A, inds::Tuple{Vararg{<:Integer}})
+    return @inbounds(Base.dotview(parent(A), apply_offset(A, inds)...))
 end
 
-function unsafe_dotview(A, args::Tuple, inds::Tuple)
-    p = Base.dotview(parent(A), inds...)
-    return AxisArray(p, to_axes(A, args, inds))
+function unsafe_dotview(A, inds::Tuple)
+    p = @inbounds(Base.dotview(parent(A), apply_offset(A, inds)...))
+    return AxisArray(p, to_axes(A, axes(p)))
 end
 
-@propagate_inbounds function Base.getindex(A::AxisArray, gr::StaticRanges.GapRange)
-    return unsafe_getindex(A, (gr,), to_indices(A, (gr,)))
+@propagate_inbounds function Base.getindex(A::AxisArray, args...)
+    return ArrayInterface.getindex(A, args...)
 end
 
 Base.getindex(A::AxisArray, ::Ellipsis) = A
 
-unsafe_setindex!(a::AxisArray, value, args, inds) = setindex!(parent(a), value, inds)
+@propagate_inbounds function Base.setindex!(A::AxisArray, val, args...)
+    return ArrayInterface.setindex!(A, val, args...)
+end
 
-for (unsafe_f, f) in ((:unsafe_getindex, :getindex),
-                      (:unsafe_view, :view),
+for (unsafe_f, f) in ((:unsafe_view, :view),
                       (:unsafe_dotview, :dotview),
-                      (:unsafe_setindex!, :setindex!)
                      )
     @eval begin
         @propagate_inbounds function Base.$f(A::AxisArray, args...)
-            if should_flatten(args)
-                return $f(A, flatten_args(A, args)...)
-            else
-                return $unsafe_f(A, args, to_indices(A, args))
-            end
+            return unsafe_view(A, to_indices(A, args))
         end
     end
 end
@@ -582,39 +453,6 @@ for f in (:cumsum, :cumprod)
     end
 end
 
-Base.isapprox(a::AxisArray, b::AxisArray; kw...) = isapprox(parent(a), parent(b); kw...)
-Base.isapprox(a::AxisArray, b::AbstractArray; kw...) = isapprox(parent(a), b; kw...)
-Base.isapprox(a::AbstractArray, b::AxisArray; kw...) = isapprox(a, parent(b); kw...)
-
-Base.:(==)(a::AxisArray, b::AxisArray) = ==(parent(a), parent(b))
-Base.:(==)(a::AxisArray, b::AbstractArray) = ==(parent(a), b)
-Base.:(==)(a::AbstractArray, b::AxisArray) = ==(a, parent(b))
-Base.:(==)(a::AxisArray, b::AbstractAxis) = ==(parent(a), b)
-Base.:(==)(a::AbstractAxis, b::AxisArray) = ==(a, parent(b))
-Base.:(==)(a::AxisArray, b::GapRange) = ==(parent(a), b)
-Base.:(==)(a::GapRange, b::AxisArray) = ==(a, parent(b))
-
-Base.:isequal(a::AxisArray, b::AxisArray) = isequal(parent(a), parent(b))
-Base.:isequal(a::AxisArray, b::AbstractArray) = isequal(parent(a), b)
-Base.:isequal(a::AbstractArray, b::AxisArray) = isequal(a, parent(b))
-Base.:isequal(a::AxisArray, b::AbstractAxis) = isequal(parent(a), b)
-Base.:isequal(a::AbstractAxis, b::AxisArray) = isequal(a, parent(b))
-
-Base.copy(A::AxisArray) = AxisArray(copy(parent), map(copy, axes(A)))
-
-for f in (:zero, :one)
-    @eval begin
-        function Base.$f(a::AxisArray)
-            p = Base.$f(parent(a))
-            return AxisArray(p, map(assign_indices, axes(a), axes(p)))
-        end
-    end
-end
-
-###
-### I/O
-###
-
 function Base.unsafe_convert(::Type{Ptr{T}}, x::AxisArray{T}) where {T}
     return Base.unsafe_convert(Ptr{T}, parent(x))
 end
@@ -627,52 +465,18 @@ end
 Base.write(io::IO, a::AxisArray) = write(io, parent(a))
 
 function Base.empty!(a::AxisArray)
-    for ax_i in axes(a)
-        if !can_set_length(ax_i)
+    for axis in axes(a)
+        if !can_set_length(axis)
             error("Cannot perform `empty!` on AxisArray that has an axis with a fixed size.")
         end
     end
 
-    for ax_i in axes(a)
-        empty!(ax_i)
+    for axis in axes(a)
+        empty!(axis)
     end
     empty!(parent(a))
     return a
 end
-
-for (tf, T, sf, S) in (
-    (parent, :AxisVecOrMat, parent, :AxisVecOrMat),
-    (parent, :AxisVecOrMat, identity, :VecOrMat),
-    (identity, :VecOrMat, parent, :AxisVecOrMat))
-    @eval function Base.vcat(A::$T, B::$S, Cs::AbstractVecOrMat...)
-        p = vcat($tf(A), $sf(B))
-        axs = Axes.vcat_axes(A, B, p)
-        return vcat(AxisArray(p, axs), Cs...)
-    end
-
-    @eval function Base.hcat(A::$T, B::$S, Cs::AbstractVecOrMat...)
-        p = hcat($tf(A), $sf(B))
-        axs = Axes.hcat_axes(A, B, p)
-        return hcat(AxisArray(p, axs), Cs...)
-    end
-
-    @eval function Base.cat(A::$T, B::$S, Cs::AbstractVecOrMat...; dims)
-        p = cat($tf(A), $sf(B); dims=dims)
-        return cat(AxisArray(p, Axes.cat_axes(A, B, p, dims)), Cs..., dims=dims)
-    end
-end
-
-function Base.hcat(A::AxisArray{T,N}) where {T,N}
-    if N === 1
-        return AxisArray(hcat(parent(A)), (axes(A, 1), axes(A, 2)))
-    else
-        return A
-    end
-end
-
-Base.vcat(A::AxisArray{T,N}) where {T,N} = A
-
-Base.cat(A::AxisArray{T,N}; dims) where {T,N} = A
 
 function Base.convert(::Type{T}, A::AbstractArray) where {T<:AxisArray}
     if A isa T
@@ -739,10 +543,10 @@ julia> using AxisIndices, LinearAlgebra
 
 julia> A = AxisArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
 
-julia> axes_keys(diag(A))
+julia> keys.(axes(diag(A)))
 (["a", "b", "c"],)
 
-julia> axes_keys(diag(A, 1; dim=Val(2)))
+julia> keys.(axes(diag(A, 1; dim=Val(2))))
 ([:one, :two],)
 
 ```
@@ -761,7 +565,7 @@ julia> using AxisIndices, LinearAlgebra
 
 julia> M = AxisArray([2 5; 1 3], ["a", "b"], [:one, :two]);
 
-julia> axes_keys(inv(M))
+julia> keys.(axes(inv(M)))
 ([:one, :two], ["a", "b"])
 
 ```
@@ -854,7 +658,7 @@ Base.map(f, A::AxisArray) = AxisArray(map(f, parent(A)), axes(A))
 # any other array type will miss these specific methods.
 
 function MappedArrays.mappedarray(f, data::AxisArray)
-    return AxisArray(data, mappedarray(f, parent(data)), axes(data))
+    return AxisArray(mappedarray(f, parent(data)), axes(data))
 end
 
 function MappedArrays.mappedarray(::Type{T}, data::AxisArray) where T
@@ -961,62 +765,69 @@ function Broadcast.copy(bc::Broadcasted{AxisArrayStyle{S}}) where S
     return AxisArray(copy(unwrap_broadcasted(bc)), Broadcast.combine_axes(bc.args...))
 end
 
-function Base.copyto!(
-    dest::AxisArray,
-    ds::Integer,
-    src::AxisArray,
-    ss::Integer,
-    n::Integer
-)
-    return copyto!(
-        parent(dest),
-        to_index(eachindex(dest), ds),
-        parent(src),
-        to_index(eachindex(src), ss),
-        n
-    )
-end
-function Base.copyto!(
-    dest::AbstractArray,
-    ds::Integer,
-    src::AxisArray,
-    ss::Integer,
-    n::Integer
-)
-
-    copyto!(dest, ds, parent(src), to_index(eachindex(src), ss), n)
+for f in (:zero, :one)
+    @eval begin
+        function Base.$f(a::AxisArray)
+            p = Base.$f(parent(a))
+            return AxisArray(p, map(assign_indices, axes(a), axes(p)))
+        end
+    end
 end
 
-function Base.copyto!(
-    dest::AxisArray,
-    ds::Integer,
-    src::AbstractArray,
-    ss::Integer,
-    n::Integer
-)
+drop_axes(x::AbstractArray, d::Int) = drop_axes(x, (d,))
+drop_axes(x::AbstractArray, d::Tuple) = drop_axes(x, dim(dimnames(x), d))
+drop_axes(x::AbstractArray, d::Tuple{Vararg{Int}}) = drop_axes(axes(x), d)
+drop_axes(x::Tuple{Vararg{<:Any}}, d::Int) = drop_axes(x, (d,))
+drop_axes(x::Tuple{Vararg{<:Any}}, d::Tuple) = _drop_axes(x, d)
+_drop_axes(x, y) = select_axes(x, dropinds(x, y))
 
-    return copyto!(parent(dest), to_index(eachindex(dest), ds), src, ss, n)
+select_axes(x::AbstractArray, d::Tuple) = select_axes(x, dims(dimnames(x), d))
+select_axes(x::AbstractArray, d::Tuple{Vararg{Int}}) = map(i -> axes(x, i), d)
+select_axes(x::Tuple, d::Tuple) = map(i -> getfield(x, i), d)
+
+dropinds(x, y) = _dropinds(x, y)
+Base.@pure @inline function _dropinds(x::Tuple{Vararg{Any,N}}, dims::NTuple{M,Int}) where {N,M}
+    out = ()
+    for i in 1:N
+        cnd = true
+        for j in dims
+            if i === j
+                cnd = false
+                break
+            end
+        end
+        if cnd
+            out = (out..., i)
+        end
+    end
+    return out::NTuple{N - M, Int}
 end
 
-function Base.copyto!(dest::AxisArray, dstart::Integer, src::AbstractArray)
-    return copyto!(parent(dest), to_index(eachindex(dest), dstart), src)
+function Base.dropdims(a::AxisArray; dims)
+    return AxisArray(dropdims(parent(a); dims=dims), drop_axes(a, dims))
 end
 
-function Base.copyto!(dest::AxisArray, dstart::Integer, src::AxisArray)
-    return copyto!(parent(dest), to_index(eachindex(dest), dstart), parent(src))
+for (X,Y) in (
+    (:(Base.Indices),:(Tuple{Vararg{<:AbstractAxis}})),
+    (:(Tuple{Vararg{<:AbstractAxis}}),:(Base.Indices)),
+    (:(Tuple{Vararg{<:AbstractAxis}}),:(Tuple{Vararg{<:AbstractAxis}})))
+    @eval begin
+        function Base.promote_shape(a::$X, b::$Y)
+            if length(a) < length(b)
+                return Base.promote_shape(b, a)
+            end
+            for i=1:length(b)
+                if length(a[i]) != length(b[i])
+                    throw(DimensionMismatch("dimensions must match: a has dims $a, b has dims $b, mismatch at $i"))
+                end
+            end
+            for i=length(b)+1:length(a)
+                if length(a[i]) != 1
+                    throw(DimensionMismatch("dimensions must match: a has dims $a, must have singleton at dim $i"))
+                end
+            end
+            return a
+        end
+    end
 end
 
-function Base.copyto!(dest::AbstractArray, dstart::Integer, src::AxisArray)
-    return copyto!(dest, dstart, parent(src))
-end
-
-function Base.copyto!(dest::AxisArray{T,2}, src::SparseArrays.AbstractSparseMatrixCSC) where {T}
-    return copyto!(parent(dest), src)
-end
-
-Base.copyto!(dest::AxisArray, src::AxisArray) = copyto!(parent(dest), parent(src))
-Base.copyto!(dest::AbstractArray, src::AxisArray) = copyto!(dest, parent(src))
-Base.copyto!(dest::AxisArray, src::AbstractArray) = copyto!(parent(dest), src)
-Base.copyto!(dest::SparseVector, src::AxisArray{T,1}) where {T} = copyto!(dest, parent(src))
-Base.copyto!(dest::PermutedDimsArray, src::AxisArray) = copyto!(dest, parent(src))
-Base.copyto!(dest::AxisArray, src::SuiteSparse.CHOLMOD.Dense) = copyto!(parent(dest), src)

@@ -70,18 +70,17 @@ Notice that `==` returns a single value instead of a collection of all elements
 where the key was found to be true. This is because all keys must be unique so
 there can only ever be one element returned.
 """
-struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I}
+struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
     keys::Ks
-    parent_indices::Inds
+    parent::Inds
 
     function Axis{K,I,Ks,Inds}(
         ks::Ks,
-        inds::Inds,
-        check_unique::Bool=true,
-        check_length::Bool=true
+        inds::Inds;
+        checks=AxisArrayChecks()
     ) where {K,I,Ks<:AbstractVector{K},Inds<:AbstractUnitRange{I}}
-        check_unique && check_axis_unique(ks, inds)
-        check_length && check_axis_length(ks, inds)
+        check_axis_length(ks, inds, checks)
+        check_unique_keys(ks, checks)
         return new{K,I,Ks,Inds}(ks, inds)
     end
 
@@ -101,13 +100,12 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I}
         end
     end
 
-    # Axis{K,I}
-    function Axis{K,I}() where {K,I}
-        return new{K,I,Vector{K},OneToMRange{I}}(Vector{K}(),OneToMRange{I}(0))
+    function Axis{K,I,Ks,Inds}(axis::SimpleAxis) where {K,I,Ks,Inds}
+        return new{K,I,Ks,Inds}(axis, axis)
     end
 
     function Axis{K,I,Ks,Inds}(axis::AbstractAxis) where {K,I,Ks,Inds}
-        return Axis{K,I,Ks,Inds}(Ks(keys(axis)), Inds(parentindices(axis)), false, false)
+        return new{K,I,Ks,Inds}(Ks(keys(axis)), Inds(parent(axis)))
     end
 
     function Axis{K,I,Ks,Inds}(axis::Axis{K,I,Ks,Inds}) where {K,I,Ks,Inds}
@@ -118,6 +116,37 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I}
         end
     end
 
+    # Axis{K,I}
+    function Axis{K,I}() where {K,I}
+        ks = Vector{K}()
+        inds = SimpleAxis()
+        return new{K,I,typeof(ks),typeof(inds)}()
+    end
+
+    function Axis{K,I}(ks::AbstractVector; checks=AxisArrayChecks, kwargs...) where {K,I}
+        c = checked_axis_lengths(checks)
+        if can_change_size(ks)
+            return Axis{K,I}(ks, SimpleAxis(OneToMRange{I}(length(ks))); checks=c, kwargs...)
+        else
+            return Axis{K,I}(ks, SimpleAxis(indices(ks)); checks=c, kwargs...)
+        end
+    end
+    function Axis{K,I}(ks::AbstractVector, inds::AbstractAxis; kwargs...) where {K,I}
+        if eltype(ks) <: K
+            if eltype(inds) <: I
+                return Axis{K,I,typeof(ks),typeof(inds)}(ks, inds; kwargs...)
+            else
+                return Axis{K,I}(ks, AbstractUnitRange{I}(inds); kwargs...)
+            end
+        else
+            return Axis{K,I}(AbstractVector{K}(ks), inds; kwargs...)
+        end
+    end
+    function Axis{K,I}(ks::AbstractVector, inds::AbstractUnitRange; kwargs...) where {K,I}
+        return Axis{K,I}(ks, SimpleAxis(inds); kwargs...)
+    end
+
+    # Axis
     function Axis(axis::AbstractAxis)
         if can_change_size(axis)
             return axis
@@ -132,116 +161,182 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{K,I}
 
     Axis(x::Pair) = Axis(x.first, x.second)
 
-    function Axis(ks, inds, check_unique::Bool=true, check_length::Bool=true)
-        return Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}(ks, inds, check_unique, check_length)
+    function Axis(ks::AbstractVector, inds::AbstractAxis; kwargs...)
+        return Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}(ks, inds; kwargs...)
     end
 
-    function Axis(ks, check_unique::Bool=true)
+    function Axis(ks::AbstractVector, inds::AbstractUnitRange; kwargs...)
+        return Axis(ks, SimpleAxis(inds); kwargs...)
+    end
+
+    function Axis(ks::AbstractVector; checks=AxisArrayChecks(), kwargs...)
+        c = checked_axis_lengths(checks)
         if can_change_size(ks)
-            return Axis(ks, OneToMRange(length(ks)), check_unique, false)
+            return Axis(ks, SimpleAxis(OneToMRange(length(ks))); checks=c)
         else
-            len = known_length(ks)
-            if len isa Nothing
-                return return Axis(ks, OneTo(length(ks)), check_unique, false)
-            else
-                return Axis(ks, OneToSRange(len), false)
-            end
+            return Axis(ks, SimpleAxis(static_first(eachindex(ks)):static_length(ks)); checks=c)
         end
     end
 end
 
-
+## interface
 Base.keys(axis::Axis) = getfield(axis, :keys)
 
-ArrayInterface.parent_type(::Type{T}) where {Inds,T<:Axis{<:Any,<:Any,<:Any,Inds}} = Inds
-
-Base.parentindices(axis::Axis) = getfield(axis, :parent_indices)
-
-"""
-    IndexAxis
-
-Index style for mapping keys to an array's parent indices.
-"""
-struct IndexAxis <: IndexStyle end
-
-@propagate_inbounds function to_index(S::IndexAxis, axis, arg)
-    if is_key(axis, arg)
-        ks = to_index_keys(axis, drop_marker(arg))
-        return @inbounds(to_index(parentindices(axis), ks))
+function ArrayInterface.unsafe_reconstruct(axis::Axis, inds; keys=nothing, kwargs...)
+    if keys === nothing
+        return Axis(Base.keys(axis)[inds], unsafe_reconstruct(parent(axis), inds); kwargs...)
     else
-        return to_index(parentindices(axis), arg)
+        return Axis(keys, unsafe_reconstruct(parent(axis), inds; kwargs...))
     end
 end
 
-@propagate_inbounds function to_index_keys(axis, arg::CartesianIndex{1})
-    return to_index_keys(axis, first(arg.I))
+## other stuff
+function StaticRanges.set_last!(axis::Axis, val)
+    can_set_last(axis) || throw(MethodError(set_last!, (axis, val)))
+    set_last!(parent(axis), val)
+    resize_last!(keys(axis), length(parent(axis)))
+    return axis
 end
-to_index_keys(axis, arg::Function) = findall(arg, keys(axis))
 
-@propagate_inbounds function to_index_keys(axis, arg)
-    if arg isa keytype(axis)
-        idx = findfirst(==(arg), keys(axis))
+function StaticRanges.set_last(axis::Axis, val)
+    vs = set_last(parent(axis), val)
+    return unsafe_reconstruct(axis, resize_last(keys(axis), length(vs)); keys=vs)
+end
+
+function StaticRanges.set_first(axis::Axis, val)
+    vs = set_first(parent(axis), val)
+    return unsafe_reconstruct(axis, vs; keys=resize_first(keys(axis), length(vs)))
+end
+
+function StaticRanges.set_first!(axis::Axis, val)
+    can_set_first(axis) || throw(MethodError(set_first!, (axis, val)))
+    set_first!(parent(axis), val)
+    resize_first!(keys(axis), length(parent(axis)))
+    return axis
+end
+
+function maybe_unsafe_reconstruct(axis::Axis, inds::AbstractUnitRange{I}; keys=nothing) where {I<:Integer}
+    if keys === nothing
+        return unsafe_reconstruct(axis, inds; keys=@inbounds(Base.keys(axis)[inds]))
     else
-        idx = findfirst(==(keytype(axis)(arg)), keys(axis))
+        return unsafe_reconstruct(axis, inds; keys=keys)
     end
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, arg))
+end
+function maybe_unsafe_reconstruct(axis::Axis, inds::AbstractArray)
+    if keys === nothing
+        axs = (unsafe_reconstruct(axis, eachindex(inds)),)
+    elseif allunique(inds)
+        axs = (unsafe_reconstruct(axis, eachindex(inds); keys=@inbounds(keys(axis)[inds])),)
+    else  # not all indices are unique so will result in non-unique keys
+        axs = (SimpleAxis(eachindex(inds)),)
     end
-    return Int(idx)
+    return AxisArray{eltype(axis),ndims(inds),typeof(inds),typeof(axs)}(inds, axs)
 end
 
-@propagate_inbounds function to_index_keys(axis, arg::Union{<:Equal,Approx})
-    idx = findfirst(arg, keys(axis))
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, arg))
-    end
-    return Int(idx)
-end
-
-@propagate_inbounds function to_index_keys(axis, arg::AbstractVector)
-    return map(arg_i -> to_index_keys(axis, arg_i), arg)
-    #=
-    inds = Vector{Int}(undef, length(arg))
-    ks = keys(axis)
-    i = 1
-    for arg_i in arg
-        idx = to_index_key(axis, arg_i)
-        @inbounds(setindex!(inds, idx, i))
-        i += 1
-    end
-    return inds
-    =#
-end
-
-@propagate_inbounds function to_index_keys(axis, arg::AbstractRange)
-    if eltype(arg) <: keytype(axis)
-        inds = find_all(in(arg), keys(axis))
+@inline function Base.length(axis::Axis{K,I,Ks,Inds}) where {K,I,Ks,Inds}
+    if known_length(Ks) === nothing
+        return length(parent(axis))
     else
-        inds = find_all(in(AbstractRange{keytype(axis)}(arg)), keys(axis))
+        return known_length(Ks)
     end
-    # if `inds` is same length as `arg` then all of `arg` was found and is inbounds
-    @boundscheck if length(inds) != length(arg)
-        throw(BoundsError(axis, arg))
-    end
-    return inds
 end
 
-Base.IndexStyle(::Type{T}) where {T<:Axis} = IndexAxis()
-function unsafe_reconstruct(::IndexAxis, axis, arg, inds)
-    if is_key(axis, arg) && (arg isa AbstractVector)
-        ks = arg
-    else
-        ks = @inbounds(getindex(keys(axis), inds))
-    end
-    return Axis(ks, unsafe_reconstruct(parentindices(axis), arg, inds), false, false)
+function StaticRanges.set_length!(axis::Axis, len)
+    can_set_length(axis) || error("Cannot use set_length! for instances of typeof $(typeof(axis)).")
+    set_length!(parent(axis), len)
+    set_length!(keys(axis), len)
+    return axis
 end
 
-function unsafe_reconstruct(::IndexAxis, axis, inds)
-    return Axis(
-        @inbounds(getindex(keys(axis), inds)),
-        unsafe_reconstruct(parentindices(axis), arg, inds),
-        false,
-        false
+function StaticRanges.set_length(axis::Axis, len)
+    return unsafe_reconstruct(
+        axis,
+        set_length(parent(axis), len);
+        keys=set_length(keys(axis), len)
     )
+end
+
+for f in (:grow_last!, :grow_first!, :shrink_last!, :shrink_first!)
+    @eval begin
+        function StaticRanges.$f(axis::Axis, n::Integer)
+            can_set_length(axis) ||  throw(MethodError($f, (axis, n)))
+            StaticRanges.$f(keys(axis), n)
+            StaticRanges.$f(parent(axis), n)
+            return axis
+        end
+    end
+end
+
+for f in (:grow_last, :grow_first, :shrink_last, :shrink_first, :resize_first, :resize_last)
+    @eval begin
+        @inline function StaticRanges.$f(axis::Axis, n::Integer)
+            return unsafe_reconstruct(
+                axis,
+                StaticRanges.$f(parent(axis), n);
+                keys = StaticRanges.$f(keys(axis), n)
+            )
+        end
+
+    end
+end
+
+@inline function StaticRanges.shrink_last(axis::Axis, n::AbstractUnitRange{<:Integer})
+    return unsafe_reconstruct(axis, n; keys=shrink_last(keys(axis), length(axis) - length(n)))
+end
+@inline function StaticRanges.shrink_first(axis::Axis, n::AbstractUnitRange{<:Integer})
+    return unsafe_reconstruct(axis, n; keys=shrink_first(keys(axis), length(axis) - length(n)))
+end
+function StaticRanges.grow_last(axis::Axis, n::AbstractUnitRange{<:Integer})
+    return unsafe_reconstruct(axis, n; keys=grow_last(keys(axis), length(n) - length(axis)),)
+end
+function StaticRanges.grow_first(axis::Axis, n::AbstractUnitRange{<:Integer})
+    return unsafe_reconstruct(axis, n;keys=grow_first(keys(axis), length(n) - length(axis)))
+end
+function StaticRanges.resize_last(axis::Axis, n::AbstractUnitRange{<:Integer})
+    return unsafe_reconstruct(axis, n; keys=resize_last(keys(axis), length(n)))
+end
+function StaticRanges.resize_first(axis::Axis, n::AbstractUnitRange{<:Integer})
+    return unsafe_reconstruct(axis, n; keys=resize_first(keys(axis), length(n)))
+end
+
+function Base.pop!(axis::Axis)
+    can_set_last(axis) || throw(MethodError(pop!, axis))
+    pop!(keys(axis))
+    return pop!(parent(axis))
+end
+
+function Base.popfirst!(axis::Axis)
+    can_set_last(axis) || throw(MethodError(pop!, axis))
+    popfirst!(keys(axis))
+    return popfirst!(parent(axis))
+end
+
+function push_key!(axis::Axis, key)
+    push!(keys(axis), key)
+    grow_last!(parent(axis), 1)
+    return nothing
+end
+
+function popfirst_axis!(axis::Axis)
+    if StaticRanges.can_set_first(axis)
+        StaticRanges.shrink_first!(keys(axis), 1)
+    else
+        shrink_last!(keys(axis), 1)
+    end
+    shrink_last!(parent(axis), 1)
+    return nothing
+end
+
+_keys_type(::Type{T}) where {Ks,T<:Axis{<:Any,<:Any,Ks,<:Any}} = Ks
+
+Base.keytype(::Type{T}) where {K,I,T<:Axis{K,I}} = K
+function StaticRanges.can_set_length(::Type{T}) where {K,I,Ks,Inds,T<:Axis{K,I,Ks,Inds}}
+    return can_set_length(Ks) & can_set_length(Inds)
+end
+function StaticRanges.can_set_last(::Type{T}) where {K,I,Ks,Inds,T<:Axis{K,I,Ks,Inds}}
+    return can_set_last(Ks) & can_set_last(Inds)
+end
+function StaticRanges.can_set_first(::Type{T}) where {K,I,Ks,Inds,T<:Axis{K,I,Ks,Inds}}
+    return can_set_first(Ks) & can_set_first(Inds)
 end
 

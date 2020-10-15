@@ -1,18 +1,15 @@
-
-# TODO figure out how to place type inference of each field into indexing
-@generated _fieldcount(::Type{T}) where {T} = fieldcount(T)
-
+ 
 """
     StructAxis{T}
 
 An axis that uses a structure `T` to form its keys. the field names of
 """
-struct StructAxis{T,L,V,Inds} <: AbstractAxis{Symbol,V}
-    parent_indices::Inds
+struct StructAxis{T,L,I,Inds} <: AbstractAxis{I,Inds}
+    parent::Inds
 
-    function StructAxis{T,L,V,Vs}(inds::Vs) where {T,L,V,Vs}
+    function StructAxis{T,L,I,Inds}(inds::Inds) where {T,L,I,Inds}
         # FIXME should unwrap_unionall be performed earlier?
-        return new{T,L,V,Vs}(inds)
+        return new{T,L,I,Inds}(inds)
     end
 
     StructAxis{T}() where {T} = StructAxis{T,_fieldcount(T)}()
@@ -30,11 +27,27 @@ struct StructAxis{T,L,V,Inds} <: AbstractAxis{Symbol,V}
     end
 end
 
-Base.IndexStyle(::Type{T}) where {T<:StructAxis} = IndexAxis()
+function Base.keys(::StructAxis{T,L}) where {T,L}
+    return AxisArray{Symbol,1,Vector{Symbol},Tuple{OneTo{StaticInt{L}}}}(
+        Vector{Symbol}(fieldnames(T)...),
+        (OneTo{StaticInt{L}}(StaticInt(L)),)
+    )
+end
 
-function unsafe_reconstruct(::IndexAxis, axis::StructAxis, args, inds) end
+function ArrayInterface.to_axis(::IndexAxis, axis::StructAxis, inds)
+    if known_length(inds) === nothing
+        # create StructAxis if we don't know length at compile time
+        return Axis()
+    else
+        return _reconstruct_struct_axis(axis, arg, inds)
+    end
+end
+# TODO ArrayInterface.unsafe_reconstruct(axis::StructAxis
+function ArrayInterface.unsafe_reconstruct(args::StructAxis, inds) end
 
-function unsafe_reconstruct(::IndexAxis, axis::StructAxis, inds) end
+# TODO figure out how to place type inference of each field into indexing
+@generated _fieldcount(::Type{T}) where {T} = fieldcount(T)
+
 
 @inline function structdim(A::AxisArray{<:Any,<:Any,<:Any,Axs}) where {Axs}
     d = _structdim(Axs)
@@ -81,35 +94,4 @@ end
     inds_after = ntuple(d->(:), ndims(A)-dim)
     return mappedarray((args...) ->T(args) , (view(A, inds_before..., i, inds_after...) for i in values(axis))...)
 end
-
-###
-### AbstractAxis Interface
-###
-
-ArrayInterface.parent_type(::Type{T}) where {Inds,T<:StructAxis{<:Any,<:Any,<:Any,Inds}} = Inds
-Base.parentindices(axis::StructAxis) = getfield(axis, :parent_indices)
-function Base.keys(::StructAxis{T,L}) where {T,L}
-    return AxisArray{Symbol,1,Vector{Symbol},Tuple{OneTo{StaticInt{L}}}}(
-        Vector{Symbol}(fieldnames(T)...),
-        (OneTo{StaticInt{L}}(StaticInt(L)),)
-    )
-end
-function to_axis(::IndexAxis, axis::StructAxis, arg, inds)
-    if known_length(inds) === nothing
-        # create StructAxis if we don't know length at compile time
-        return Axis()
-    else
-        return _reconstruct_struct_axis(axis, arg, inds)
-    end
-end
-#= TODO StructAxis reconstruction is tricky to make type stable
-function _reconstruct_struct_axis(axis, arg, inds)
-            StructAxis{}
-        return StructAxis{NamedTuple{Tuple(ks),axis_eltypes(axis, ks)}}(vs)
-    check_length && check_axis_length(ks, vs)
-    return StructAxis{T}(vs)
-end
-=#
-axis_eltype(::StructAxis{T}, i) where {T} = fieldtype(T, i)
-# `ks` should always be a `<:AbstractVector{Symbol}`
 

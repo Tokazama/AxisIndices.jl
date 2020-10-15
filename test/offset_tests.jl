@@ -1,3 +1,5 @@
+
+using Base: IdentityUnitRange
 # differences from OffsetArrays
 # * indexing preserves the offset so things like:
 #!!! note this is different than what OffsetArryas does because offset arrays produced 0:1
@@ -91,8 +93,8 @@ end
 
 @testset "Traits" begin
     A0 = [1 3; 2 4]
-    A = OffsetArray(A0, (-1,2))                   # IndexLinear
-    S = OffsetArray(view(A0, 1:2, 1:2), (-1,2))   # IndexCartesian
+    A = OffsetArray(A0, (-1, 2))                   # IndexLinear
+    S = OffsetArray(view(A0, 1:2, 1:2), (-1, 2))   # IndexCartesian
     @test axes(A) == axes(S) == (0:1, 3:4)
     @test size(A) == size(A0)
     @test size(A, 1) == size(A0, 1)

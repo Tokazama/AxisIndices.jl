@@ -53,16 +53,16 @@
     @testset "CenteredAxis" begin
         centered_axis = @inferred(CenteredAxis(1:10))
         @test @inferred(keys(centered_axis)) == -5:4
-        @test @inferred(parentindices(centered_axis)) == 1:10
-        @test typeof(centered_axis)(parentindices(centered_axis)) isa typeof(centered_axis)
+        @test @inferred(parent(centered_axis)) == 1:10
+        @test typeof(centered_axis)(parent(centered_axis)) isa typeof(centered_axis)
         centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
-        @test typeof(centered_axis)(parentindices(centered_axis)) isa typeof(centered_axis)
+        @test typeof(centered_axis)(parent(centered_axis)) isa typeof(centered_axis)
         @test keytype(centered_axis) <: Int32
         centered_axis = @inferred(CenteredAxis{Int32}(UnitSRange(1, 10)))
         @test eltype(centered_axis) <: Int32
         ca2 = centered_axis[-1:1]
         @test @inferred(keys(ca2)) == -1:1
-        @test @inferred(parentindices(ca2)) == 5:7
+        @test @inferred(parent(ca2)) == 5:7
         #@test is_indices_axis(typeof(centered_axis))
 
         #=

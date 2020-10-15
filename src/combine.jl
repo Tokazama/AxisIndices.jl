@@ -4,19 +4,33 @@ for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:*, typeof(*), Real))
     @eval begin
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            return _maybe_reconstruct_axis(r, broadcast($f, x, indices(r)))
+            return maybe_unsafe_reconstruct(r, broadcast($f, x, parent(r)); keys=keys(r))
         end
         function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            return _maybe_reconstruct_axis(r, broadcast($f, indices(r), x))
+            return maybe_unsafe_reconstruct(r, broadcast($f, parent(r), x); keys=keys(r))
         end
     end
 end
+
+#=
+for (f, FT, arg) in ((:+, typeof(+), Real),)
+    @eval begin
+        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
+            return unsafe_reconstruct(r, broadcast($f, x, eachindex(r)))
+        end
+        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
+            return unsafe_reconstruct(r, broadcast($f, eachindex(r), x))
+        end
+    end
+end
+=#
 
 function Broadcast.broadcast_shape(
     shape1::Tuple,
     shape2::Tuple{Vararg{<:AbstractAxis}},
     shapes::Tuple...
-   )
+)
+
     return Broadcast.broadcast_shape(_bcs(shape1, shape2), shapes...)
 end
 
@@ -24,14 +38,16 @@ function Broadcast.broadcast_shape(
     shape1::Tuple{Vararg{<:AbstractAxis}},
     shape2::Tuple,
     shapes::Tuple...
-   )
+)
+
     return Broadcast.broadcast_shape(_bcs(shape1, shape2), shapes...)
 end
 function Broadcast.broadcast_shape(
     shape1::Tuple{Vararg{<:AbstractAxis}},
     shape2::Tuple{Vararg{<:AbstractAxis}},
     shapes::Tuple...
-   )
+)
+
     return Broadcast.broadcast_shape(_bcs(shape1, shape2), shapes...)
 end
 
@@ -40,27 +56,10 @@ _bcs(::Tuple{}, ::Tuple{}) = ()
 _bcs(::Tuple{}, newshape::Tuple) = (newshape[1], _bcs((), tail(newshape))...)
 _bcs(shape::Tuple, ::Tuple{}) = (shape[1], _bcs(tail(shape), ())...)
 function _bcs(shape::Tuple, newshape::Tuple)
-    return (_bcs1(first(shape), first(newshape)), _bcs(tail(shape), tail(newshape))...)
+    return (combine_axis(first(shape), first(newshape)), _bcs(tail(shape), tail(newshape))...)
 end
 
-function _bcs1(a, b)
-    if _bcsm(a, b)
-        return combine_axis(a, b)
-    else
-        if _bcsm(b, a)
-            return combine_axis(b, a)
-        else
-            throw(DimensionMismatch("arrays could not be broadcast to a common size;" *
-                                    " got a dimension with lengths $(length(a)) and $(length(b))"))
-        end
-    end
-end
-
-# _bcsm tests whether the second index is consistent with the first
-_bcsm(a, b) = length(a) == length(b) || length(b) == 1
-
-keys_or_nothing(x::AbstractAxis) = keys(x)
-keys_or_nothing(x) = nothing
+_parent_if_axis(x::AbstractAxis) = parent(x)
 
 ###
 ### cat
@@ -86,35 +85,23 @@ function cat_keys!(x::AbstractVector{T}, y::AbstractVector{T}) where {T}
     return vcat(x, y)
 end
 
-function cat_axis(x::AbstractAxis, y::AbstractAxis, inds=cat_indices(x, y))
-    if is_indices_axis(x)
-        if is_indices_axis(y)
-            return to_axis(x, nothing, inds)
-        else
-            return to_axis(y, set_length(keys(y), length(inds)), inds)
-        end
-    else
-        if is_indices_axis(y)
-            return to_axis(x, set_length(keys(x), length(inds)), inds)
-        else
-            return to_axis(y, cat_keys(keys(x), keys(y)), inds)
-        end
-    end
+function cat_axis(x::Axis, y::AbstractUnitRange, inds=cat_indices(x, y))
+    return maybe_unsafe_reconstruct(x, inds; keys=cat_keys(keys(x), keys(y)))
 end
 
-function cat_axis(x::AbstractUnitRange, y::AbstractAxis, inds=cat_indices(x, y))
-    if is_indices_axis(y)
-        return to_axis(y, nothing, inds)
-    else
-        return to_axis(y, set_length(keys(y), length(inds)), inds)
-    end
+function cat_axis(x::Axis, y::Axis, inds=cat_indices(x, y))
+    return maybe_unsafe_reconstruct(x, inds; keys=cat_keys(keys(x), keys(y)))
 end
 
-function cat_axis(x::AbstractAxis, y::AbstractUnitRange, inds=cat_indices(x, y))
-    if is_indices_axis(x)
-        return to_axis(x, nothing, inds)
+function cat_axis(x::AbstractUnitRange, y::Axis, inds=cat_indices(x, y))
+    return maybe_unsafe_reconstruct(y, inds; keys=cat_keys(keys(x), keys(y)))
+end
+
+function cat_axis(x::AbstractUnitRange, y::AbstractUnitRange, inds=cat_indices(x, y))
+    if x isa AbstractAxis
+        return unsafe_reconstruct(x, inds)
     else
-        return to_axis(x, set_length(keys(x), length(inds)), inds)
+        return unsafe_reconstruct(y, inds)
     end
 end
 
@@ -134,7 +121,6 @@ are derived from from `xy`.
         end
     end
 end
-
 # TODO do these work?
 vcat_axes(x::AbstractArray, y::AbstractArray, xy::AbstractArray) = cat_axes(x, y, xy, 1)
 
@@ -143,14 +129,6 @@ hcat_axes(x::AbstractArray, y::AbstractArray, xy::AbstractArray) = cat_axes(x, y
 ###
 ### combine
 ###
-# TODO document combine_indices
-#=
-    combine_indices(x, y)
-
-=#
-combine_indices(x, y) = _combine_indices(indices(x), indices(y))
-_combine_indices(x::X, y::Y) where {X,Y} = promote_type(X, Y)(x)
-
 # LinearIndices indicates that keys are not formally defined so the collection
 # that isn't LinearIndices is used. If both are LinearIndices then take the underlying
 # OneTo as the new keys.
@@ -159,39 +137,6 @@ _combine_keys(x, y) = promote_axis_collections(x, y)
 _combine_keys(x,                y::LinearIndices) = x
 _combine_keys(x::LinearIndices, y               ) = y
 _combine_keys(x::LinearIndices, y::LinearIndices) = first(y.indices)
-
-@inline function combine_axis(x::AbstractAxis, y::AbstractAxis, inds=combine_indices(x, y))
-    if is_indices_axis(x)
-        if is_indices_axis(y)
-            return to_axis(x, nothing, inds)
-        else
-            return to_axis(y, keys(y), inds)
-        end
-    else
-        if is_indices_axis(y)
-            return to_axis(x, keys(x), inds)
-        else
-            return to_axis(y, combine_keys(x, y), inds)
-        end
-    end
-end
-
-@inline function combine_axis(x, y::AbstractAxis, inds=combine_indices(x, y))
-    if is_indices_axis(y)
-        return to_axis(y, nothing, inds)
-    else
-        return to_axis(y, keys(y), inds)
-    end
-end
-
-@inline function combine_axis(x::AbstractAxis, y, inds=combine_indices(x, y))
-    if is_indices_axis(x)
-        return to_axis(x, nothing, inds)
-    else
-        return to_axis(x, keys(x), inds)
-    end
-end
-
 
 # TODO I still really don't like this solution but the result seems better than any
 # alternative I've seen out there
@@ -218,7 +163,6 @@ function promote_axis_collections(x::X, y::Y) where {X,Y}
     else
         Z = promote_rule(X, Y)
     end
-
     if Z <: Union{}
         Tx = eltype(X)
         Ty = eltype(Y)
@@ -246,6 +190,53 @@ function promote_axis_collections(x::X, y::Y) where {X,Y}
         end
     else
         return Z(x)
+    end
+end
+
+###
+### combine_axis
+###
+combine_axis(x, y) = combine_axis(x, y, _combine_indices(x, y))
+combine_axis(x, y, inds) = SimpleAxis(inds)
+combine_axis(x, y::AbstractAxis, inds) = combine_axis(y, x, inds)
+combine_axis(x::AbstractAxis, y, inds) = unsafe_reconstruct(x, inds)
+function combine_axis(x::AbstractAxis, y::AbstractAxis, inds)
+    return unsafe_reconstruct(x, unsafe_reconstruct(y, inds))
+end
+
+combine_axis(x::SimpleAxis, y::AbstractAxis, inds) = combine_axis(parent(x), y, inds)
+combine_axis(x::AbstractAxis, y::SimpleAxis, inds) = combine_axis(x, parent(y), inds)
+combine_axis(x::SimpleAxis, y::SimpleAxis, inds) = combine_axis(parent(x), parent(y), inds)
+
+# Axis
+combine_axis(x::Axis, y, inds) = resize_last(x, inds)
+combine_axis(x::Axis, y::SimpleAxis, inds) = combine_axis(x, parent(y), inds)
+function combine_axis(x::Axis, y::AbstractAxis, inds)
+    return resize_last(x, combine_axis(parent(x), y, inds))
+end
+# TODO check this stuff
+function combine_axis(x::Axis, y::Axis, inds)
+    return Axis(
+        combine_keys(x, y),
+        combine_axis(parent(x), parent(y), inds);
+        checks=NoChecks
+    )
+end
+
+_combine_indices(x, y) = One():_combine_length(static_length(x), static_length(y))
+function _combine_length(::StaticInt{X}, ::StaticInt{Y}) where {X,Y}
+    return StaticInt(_combine_length(X, Y))
+end
+_combine_length(::StaticInt{X}, y) where {X} = _combine_length(X, y)
+_combine_length(x, ::StaticInt{Y}) where {Y} = _combine_length(x, Y)
+function _combine_length(x, y)
+    if x == y || y == 1
+        return x
+    elseif x == 1
+        return y
+    else
+        throw(DimensionMismatch("arrays could not be broadcast to a common size;" *
+                                " got a dimension with lengths $(x) and $(y)"))
     end
 end
 

@@ -16,7 +16,6 @@ function covcor_axes(old_axes::NTuple{2,Any}, new_indices::NTuple{2,Any}, dim::I
             StaticRanges.resize_last(last(old_axes), last(new_indices))
         )
     end
-   
 end
 
 for fun in (:cor, :cov)
@@ -44,7 +43,7 @@ for fun in (:cor, :cov)
         @doc $fun_doc
         function Statistics.$fun(x::AxisArray{T,2}; dims=1, kwargs...) where {T}
             p = Statistics.$fun(parent(x); dims=dims, kwargs...)
-            return AxisArray(p, covcor_axes(axes(x), axes(p), dims))
+            return AxisArray(p, covcor_axes(axes(x), axes(p), dims); checks=NoChecks)
         end
     end
 end
@@ -62,18 +61,24 @@ matmul_axes(a::Tuple, b::Tuple, p::Tuple) = _matmul_axes(a, b, p)
 matmul_axes(a::Tuple, b::Tuple, p::Tuple{}) = ()
 
 function _matmul_axes(a::Tuple{Any}, b::Tuple{Any,Any}, p::Tuple{Any,Any})
-    return (_matmul_unsafe_reconstruct(first(a), first(p)), _matmul_unsafe_reconstruct(last(b), last(p)))
+    return (
+        _matmul_unsafe_reconstruct(first(a), first(p)),
+        _matmul_unsafe_reconstruct(last(b), last(p))
+    )
 end
 
 function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any,Any}, p::Tuple{Any,Any})
-    return (_matmul_unsafe_reconstruct(first(a), first(p)), _matmul_unsafe_reconstruct(last(b), last(p)))
+    return (
+        _matmul_unsafe_reconstruct(first(a), first(p)),
+        _matmul_unsafe_reconstruct(last(b), last(p))
+    )
 end
 
 function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any}, p::Tuple{Any})
     return (_matmul_unsafe_reconstruct(first(a), first(p)),)
 end
 
-_matmul_unsafe_reconstruct(axis::AbstractAxis, inds) = unsafe_reconstruct(axis, inds)
+_matmul_unsafe_reconstruct(axis::AbstractAxis, inds) = unsafe_reconstruct(axis, inds; keys=keys(axis))
 _matmul_unsafe_reconstruct(axis, inds) = SimpleAxis(inds)
 
 _matmul(p, axs::Tuple) = AxisArray(p, axs)
@@ -102,7 +107,7 @@ macro declare_axis_array_matmul_left(X, Y)
     esc(quote
         function Base.:*(x::$X, y::$Y)
             p = *(parent(x), y)
-            return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+            return _matmul(p, matmul_axes(axes(x), axes(y), axes(p)))
         end
     end)
 end
@@ -111,7 +116,7 @@ macro declare_axis_array_matmul_right(X, Y)
     esc(quote
         function Base.:*(x::$X, y::$Y)
             p = *(x, parent(y))
-            return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+            return _matmul(p, matmul_axes(axes(x), axes(y), axes(p)))
         end
     end)
 end
@@ -240,7 +245,7 @@ julia> keys.(axes(F.L * F.U))
 function LinearAlgebra.lu!(A::AxisArray, args...; kwargs...)
     inner_lu = lu!(parent(A), args...; kwargs...)
     return LU(
-        unsafe_reconstruct(A, getfield(inner_lu, :factors), axes(A)),
+        unsafe_reconstruct(A, getfield(inner_lu, :factors); axes=axes(A)),
         getfield(inner_lu, :ipiv),
         getfield(inner_lu, :info)
     )
@@ -257,13 +262,18 @@ end
 function get_factorization(F::LU, A::AbstractArray, d::Symbol)
     inner = getproperty(F, d)
     if d === :L
-        return unsafe_reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return unsafe_reconstruct(A, inner, axes=(axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :U
-        return unsafe_reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
+        return unsafe_reconstruct(A, inner, axes=(SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     elseif d === :P
-        return unsafe_reconstruct(A, inner, (axes(A, 1), axes(A, 1)))
+        return unsafe_reconstruct(A, inner, axes=(axes(A, 1), axes(A, 1)))
     elseif d === :p
-        return unsafe_reconstruct(A, inner, (axes(A, 1),))
+        axis = axes(A, 1)
+        if known_offset(axis) === nothing || known_offset(axis) !== 1
+            return inner .+ offsets(axis, 1)
+        else
+            return inner
+        end
     else
         return inner
     end
@@ -296,7 +306,7 @@ LinearAlgebra.lq(A::AxisArray, args...; kws...) = lq!(copy(A), args...; kws...)
 function LinearAlgebra.lq!(A::AxisArray, args...; kwargs...)
     F = lq!(parent(A), args...; kwargs...)
     inner = getfield(F, :factors)
-    return LQ(unsafe_reconstruct(A, inner, axes(A)), getfield(F, :τ))
+    return LQ(unsafe_reconstruct(A, inner, axes=axes(A)), getfield(F, :τ))
 end
 function Base.parent(F::LQ{T,<:AxisArray}) where {T}
     return LQ(parent(getfield(F, :factors)), getfield(F, :τ))
@@ -309,9 +319,9 @@ end
 function get_factorization(F::LQ, A::AbstractArray, d::Symbol)
     inner = getproperty(F, d)
     if d === :L
-        return unsafe_reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return unsafe_reconstruct(A, inner, axes=(axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :Q
-        return unsafe_reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
+        return unsafe_reconstruct(A, inner, axes=(SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     else
         return inner
     end
@@ -366,7 +376,7 @@ function LinearAlgebra.qr!(a::AxisArray, args...; kwargs...)
 end
 
 function _qr(a::AxisArray, F::QR, axs::Tuple)
-    return QR(unsafe_reconstruct(a, getfield(F, :factors), axs), F.τ)
+    return QR(unsafe_reconstruct(a, getfield(F, :factors); axes=axs), F.τ)
 end
 function Base.parent(F::QR{<:Any,<:AxisArray})
     return QR(parent(getfield(F, :factors)), getfield(F, :τ))
@@ -374,7 +384,7 @@ end
 
 function _qr(a::AxisArray, F::LinearAlgebra.QRCompactWY, axs::Tuple)
     return LinearAlgebra.QRCompactWY(
-        unsafe_reconstruct(a, getfield(F, :factors), axs),
+        unsafe_reconstruct(a, getfield(F, :factors); axes=axs),
         F.T
     )
 end
@@ -384,7 +394,7 @@ end
 
 function _qr(a::AxisArray, F::QRPivoted, axs::Tuple)
     return QRPivoted(
-        unsafe_reconstruct(a, getfield(F, :factors), axs),
+        unsafe_reconstruct(a, getfield(F, :factors), axes=axs),
         getfield(F, :τ),
         getfield(F, :jpvt)
     )
@@ -400,13 +410,18 @@ end
 function get_factorization(F::Q, A::AbstractArray, d::Symbol) where {Q<:Union{LinearAlgebra.QRCompactWY,QRPivoted,QR}}
     inner = getproperty(F, d)
     if d === :Q
-        return unsafe_reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return unsafe_reconstruct(A, inner; axes=(axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :R
-        return unsafe_reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
+        return unsafe_reconstruct(A, inner; axes=(SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     elseif F isa QRPivoted && d === :P
-        return unsafe_reconstruct(A, inner, (axes(A, 1), axes(A, 1)))
+        return unsafe_reconstruct(A, inner; axes=(axes(A, 1), axes(A, 1)))
     elseif F isa QRPivoted && d === :p
-        return unsafe_reconstruct(A, inner, (axes(A, 1),))
+        axis = axes(A, 1)
+        if known_offset(axis) === nothing || known_offset(axis) !== 1
+            return inner .+ offsets(axis, 1)
+        else
+            return inner
+        end
     else
         return inner
     end
@@ -489,26 +504,23 @@ end
 function get_factorization(F::SVD, A::AbstractArray, d::Symbol)
     inner = getproperty(F, d)
     if d === :U
-        return unsafe_reconstruct(A, inner, (axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
+        return unsafe_reconstruct(A, inner, axes=(axes(A, 1), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :V
-        return unsafe_reconstruct(A, inner, (axes(A, 2), SimpleAxis(OneTo(size(inner, 2)))))
+        return unsafe_reconstruct(A, inner, axes=(axes(A, 2), SimpleAxis(OneTo(size(inner, 2)))))
     elseif d === :Vt
-        return unsafe_reconstruct(A, inner, (SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
+        return unsafe_reconstruct(A, inner, axes=(SimpleAxis(OneTo(size(inner, 1))), axes(A, 2)))
     else  # d === :S
         return inner
     end
 end
 
-if VERSION <= v"1.2"
-    function LinearAlgebra.eigen(A::AxisArray{T,N,P,AI}; kwargs...) where {T,N,P,AI}
-        vals, vecs = LinearAlgebra.eigen(parent(A); kwargs...)
-        return Eigen(vals, unsafe_reconstruct(A, vecs, axes(A)))
-    end
+function LinearAlgebra.eigen(A::AxisArray{T,N,P,AI}; kwargs...) where {T,N,P,AI}
+    vals, vecs = LinearAlgebra.eigen(parent(A); kwargs...)
+    return Eigen(vals, unsafe_reconstruct(A, vecs; axes=axes(A)))
+end
 
-    function LinearAlgebra.eigvals(A::AxisArray; kwargs...)
-        return LinearAlgebra.eigvals(parent(A); kwargs...)
-    end
-
+function LinearAlgebra.eigvals(A::AxisArray; kwargs...)
+    return LinearAlgebra.eigvals(parent(A); kwargs...)
 end
 
 function LinearAlgebra.eigen!(A::AxisArray{T,N,P,AI}; kwargs...) where {T,N,P,AI}
@@ -521,3 +533,4 @@ function LinearAlgebra.eigvals!(A::AxisArray; kwargs...)
 end
  
 #TODO eigen!(::AbstractArray, ::AbstractArray)
+

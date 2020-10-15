@@ -311,3 +311,16 @@ Indexing `linaxes` is much faster now that it can be optimized inside of a funct
 However, it's still a little over twice as slow as normal indexing.
 That's largely because of the cost of searching `1.0:4.0` (which is a `StepRangeLen` type in this case).
 The second benchmark demonstrates how close we really are to standard indexing given similar range types.
+
+## Interface
+
+* Required
+  * `Base.first`
+  * `Base.last`
+  * `ArrayInterface.known_first`
+  * `ArrayInterface.known_last`
+  * `ArrayInterface.unsafe_reconstruct`
+* Recommended
+  * `ArrayInterface.parent_type`
+
+
