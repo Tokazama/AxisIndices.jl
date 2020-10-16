@@ -93,8 +93,7 @@ include("identity_axis.jl")
 include("padded_axis.jl")
 include("struct_axis.jl")
 
-#include("core.jl")
-
+# TODO assign_indices tests
 function assign_indices(axis, inds)
     if can_change_size(axis) && !((known_length(inds) === nothing) || known_length(inds) === known_length(axis))
         return unsafe_reconstruct(axis, inds)
@@ -126,6 +125,9 @@ include("abstractarray.jl")
 include("promotion.jl")
 include("named.jl")
 include("show.jl")
+
+# TODO move this to ArrayInterface
+ArrayInterface._multi_check_index(axs::Tuple, arg::LogicalIndex{<:Any,<:AxisArray}) = axs == axes(arg.mask)
 
 end
 

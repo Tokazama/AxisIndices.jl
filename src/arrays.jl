@@ -335,24 +335,21 @@ end
 Base.dataids(A::AxisArray) = Base.dataids(parent(A))
 
 function Base.zeros(::Type{T}, axs::Tuple{Vararg{<:AbstractAxis}}) where {T}
-    p = zeros(T, map(length, axs))
-    return AxisArray(p, axs, axes(p), false)
+    return AxisArray(zeros(T, map(length, axs)), axs; NoChecks)
 end
 
 function Base.falses(axs::Tuple{Vararg{<:AbstractAxis}})
-    p = falses(map(length, axs))
-    return AxisArray(p, axs, axes(p), false)
+    return AxisArray(falses(map(length, axs)), axs; NoChecks)
 end
 
 function Base.fill(x, axs::Tuple{Vararg{<:AbstractAxis}})
-    p = fill(x, map(length, axs))
-    return AxisArray(p, axs, axes(p), false)
+    return AxisArray(fill(x, map(length, axs)), axs; NoChecks)
 end
 
 function Base.reshape(A::AbstractArray, shp::Tuple{<:AbstractAxis,Vararg{<:AbstractAxis}})
     p = reshape(parent(A), map(length, shp))
     axs = reshape_axes(naxes(shp, Val(length(shp))), axes(p))
-    return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs)
+    return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs; checks=NoChecks)
 end
 
 #StaticRanges.axes_type(::Type{<:AxisArray{T,N,P,AI}}) where {T,N,P,AI} = AI
@@ -486,8 +483,6 @@ function Base.convert(::Type{T}, A::AbstractArray) where {T<:AxisArray}
     end
 end
 
-Base.LogicalIndex(A::AxisArray) = Base.LogicalIndex(parent(A))
-
 const ReinterpretAxisArray{T,N,S,A<:AxisArray{S,N}} = ReinterpretArray{T,N,S,A}
 
 function Base.axes(A::ReinterpretAxisArray{T,N,S}) where {T,N,S}
@@ -589,20 +584,31 @@ for f in (
     end
 end
 
-function Base.sortslices(A::AxisArray; dims, kwargs...)
-    return _sortslices(A, Val{dims}(); kwargs...)
-end
+#=
 
-function _sortslices(A, d::Val{dims}; kws...) where dims
-    itspace = Base.compute_itspace(parent(A), d)
+axs = Base.Iterators.ProductIterator{Tuple{Base.OneTo{Int64},Tuple{Colon}}}((Base.OneTo(4), (Colon(),)))
+
+axs = Base.Iterators.ProductIterator{Tuple{Base.OneTo{Int64},Tuple{Colon}}}((Base.OneTo(4), (Colon(),)))
+collect(Base.Iterators.ProductIterator(axes(A)))
+
+function Base.sortslices(A::AxisArray; dims, kwargs...)
+    itspace = Base.compute_itspace(parent(A), ifelse(dims isa Val, dims, Val(dims)))
     vecs = map(its->view(parent(A), its...), itspace)
-    p = sortperm(vecs; kws...)
+    p = sortperm(vecs; kwargs...)
     B = similar(A)
     for (x, its) in zip(p, itspace)
-        B[map(Indices, its)...] = vecs[x]
+        B[its...] = vecs[x]
     end
     return B
 end
+
+function compute_itspace(A, ::Val{dims}) where {dims}
+    N = ndims(A)
+    negdims = filter(i-> !(i in dims), 1:N)
+    axs = Iterators.product(ntuple(DimSelector{dims}(A), N)...)
+    vec(permutedims(collect(axs), (dims..., negdims...)))
+end
+=#
 
 """
     permuteddimsview(A, perm)

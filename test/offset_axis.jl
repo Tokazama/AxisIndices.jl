@@ -144,5 +144,26 @@
         @test @inferred(AxisIndices.k2v(Axis(1:10, 1:10), 1:2)) == 1:2
     end
     =#
+
+    @testset "changing sizes" begin
+        # push!
+        o = OffsetVector(Int[], -1)
+        @test push!(o) === o
+        @test axes(o, 1) == 0:-1
+        @test push!(o, 1) === o
+        @test axes(o, 1) == 0:0
+        @test o[end] == 1
+        @test push!(o, 2, 3) === o
+        @test axes(o, 1) == 0:2
+        @test o[end-1:end] == [2, 3]
+        # pop!
+        o = OffsetVector([1, 2, 3], -1)
+        @test pop!(o) == 3
+        @test axes(o, 1) == 0:1
+        # empty!
+        o = OffsetVector([1, 2, 3], -1)
+        @test empty!(o) === o
+        @test axes(o, 1) == 0:-1
+    end
 end
 

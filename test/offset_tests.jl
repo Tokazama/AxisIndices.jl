@@ -184,8 +184,7 @@ end
 @testset "logical indexing" begin
     A0 = [1 3; 2 4]
     A = OffsetArray(A0, (-1, 2))
-
-    @test A[A .> 2] == [3,4]
+    @test A[A .> 2] == [3, 4]
 end
 
 @testset "view" begin
@@ -205,20 +204,19 @@ end
     @test_throws BoundsError S[1]
     @test axes(S) == (IdentityUnitRange(3:4),)
 
-    # NOTE: These differs from OffsetArrays in that offset axes are preserved
+    # NOTE: These differ from OffsetArrays in that offset axes are preserved
     @testset "preserve offset axes" begin
         S = view(A, 0:0, 4)
         @test S == [3]
         @test S[0] == 3
         @test_throws BoundsError S[1]
-        @test axes(S) === (OffsetAxis(0:0, Base.OneTo(1)),)
+        @test axes(S) == (OffsetAxis(0:0, Base.OneTo(1)),)
         S = view(A, 1, 3:4)
         @test S == [2,4]
         @test S[3] == 2
         @test S[4] == 4
         @test_throws BoundsError S[1]
-        @test axes(S) === (OffsetAxis(3:4, Base.OneTo(2)),)
-
+        @test axes(S) == (OffsetAxis(3:4, Base.OneTo(2)),)
     end
 
     S = view(A, :, :)
@@ -228,7 +226,7 @@ end
     @test S[0,4] == S[3] == 3
     @test S[1,4] == S[4] == 4
     @test_throws BoundsError S[1,1]
-    @test axes(S) === (OffsetAxis(0:1, Base.OneTo(2)), OffsetAxis(3:4, Base.OneTo(2)))  # OffsetArrays uses == IdentityUnitRange.((0:1, 3:4))
+    @test axes(S) == (OffsetAxis(0:1, Base.OneTo(2)), OffsetAxis(3:4, Base.OneTo(2)))  # OffsetArrays uses == IdentityUnitRange.((0:1, 3:4))
     S = view(A, axes(A)...)
     @test S == A
     @test S[0,3] == S[1] == 1
@@ -236,21 +234,21 @@ end
     @test S[0,4] == S[3] == 3
     @test S[1,4] == S[4] == 4
     @test_throws BoundsError S[1,1]
-    @test axes(S) === (OffsetAxis(0:1, Base.OneTo(2)), OffsetAxis(3:4, Base.OneTo(2)))
+    @test axes(S) == (OffsetAxis(0:1, Base.OneTo(2)), OffsetAxis(3:4, Base.OneTo(2)))
     # issue 100
     S = view(A, axes(A, 1), 3)
     @test S == A[:, 3]
     @test S[0] == 1
     @test S[1] == 2
     @test_throws BoundsError S[length(S)]
-    @test axes(S) === (OffsetAxis(0:1, Base.OneTo(2)),)
+    @test axes(S) == (OffsetAxis(0:1, Base.OneTo(2)),)
     # issue 100
     S = view(A, 1, axes(A, 2))
     @test S == A[1, :]
     @test S[3] == 2
     @test S[4] == 4
     @test_throws BoundsError S[1]
-    @test axes(S) === (OffsetAxis(3:4, Base.OneTo(2)),)
+    @test axes(S) == (OffsetAxis(3:4, Base.OneTo(2)),)
 
     # this bit also differs from OffsetArrays
     A0 = collect(reshape(1:24, 2, 3, 4))
@@ -260,7 +258,7 @@ end
     @test S[0, 3, 2] == A[0, 3, 2]
     @test S[0, 4, 2] == A[0, 4, 2]
     @test S[1, 3, 2] == A[1, 3, 2]
-    @test axes(S) === (OffsetAxis(0:1, Base.OneTo(2)), OffsetAxis(3:4, Base.OneTo(2)), OffsetAxis(2:5, Base.OneTo(4)))
+    @test axes(S) == (OffsetAxis(0:1, Base.OneTo(2)), OffsetAxis(3:4, Base.OneTo(2)), OffsetAxis(2:5, Base.OneTo(4)))
 end
 
 @testset "iteration" begin
@@ -341,27 +339,6 @@ end
     @test eltype(O1) ≡ eltype(O2)
     O2[1, 1] = x + 1            # just a sanity check
     @test A[2, 2] == x + 1
-end
-
-@testset "mutating functions for OffsetVector" begin
-    # push!
-    o = OffsetVector(Int[], -1)
-    @test push!(o) === o
-    @test axes(o, 1) == 0:-1
-    @test push!(o, 1) === o
-    @test axes(o, 1) == 0:0
-    @test o[end] == 1
-    @test push!(o, 2, 3) === o
-    @test axes(o, 1) == 0:2
-    @test o[end-1:end] == [2, 3]
-    # pop!
-    o = OffsetVector([1, 2, 3], -1)
-    @test pop!(o) == 3
-    @test axes(o, 1) == 0:1
-    # empty!
-    o = OffsetVector([1, 2, 3], -1)
-    @test empty!(o) === o
-    @test axes(o, 1) == 0:-1
 end
 
 if VERSION > v"1.4"

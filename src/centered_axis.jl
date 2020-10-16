@@ -28,72 +28,86 @@ julia> AxisIndices.to_index(axis, -5)
 ```
 """
 struct CenteredAxis{I,Inds,F} <: AbstractOffsetAxis{I,Inds,F}
+    origin::F
     parent::Inds
-    offset::F
 
-    function CenteredAxis{I,Inds,F}(inds::AbstractAxis, f::Integer) where {I,Inds,F}
-        if inds isa Inds && f isa F
-            return new{I,Inds,F}(inds, f)
+    function CenteredAxis{I,Inds,F}(origin::Integer, inds::AbstractAxis) where {I,Inds,F}
+        if inds isa Inds && origin isa F
+            return new{I,Inds,F}(origin, inds)
         else
-            return CenteredAxis(convert(Inds, inds); origin=f)
+            return CenteredAxis(origin, convert(Inds, inds))
         end
     end
-
-    function CenteredAxis{I,Inds,F}(inds::AbstractUnitRange) where {I,Inds,F}
-        return CenteredAxis{I,Inds}(inds; origin=Zero())
+    function CenteredAxis{I,Inds,F}(inds::AbstractRange) where {I,Inds,F<:StaticInt}
+        return new{I,Inds,F}(F(), inds)
+    end
+    function CenteredAxis{I,Inds,F}(inds::AbstractRange) where {I,Inds,F}
+        return new{I,Inds,F}(F(0), inds)
     end
 
-    function CenteredAxis{I,Inds}(inds::AbstractUnitRange; origin=Zero()) where {I,Inds}
-        return CenteredAxis{I,Inds}(SimpleAxis(inds); origin=origin)
+    function CenteredAxis{I,Inds,F}(origin::Integer, inds::AbstractRange) where {I,Inds,F}
+        return CenteredAxis{I,Inds}(origin, inds)
     end
 
-    function CenteredAxis{I,Inds}(inds::AbstractAxis; origin=Zero()) where {I,Inds}
+    function CenteredAxis{I,Inds}(inds::AbstractRange) where {I,Inds}
+        return CenteredAxis{I,Inds}(Zero(), inds)
+    end
+    function CenteredAxis{I,Inds}(origin::Integer, inds::AbstractRange) where {I,Inds}
+        return CenteredAxis{I,Inds}(origin, SimpleAxis(inds))
+    end
+    function CenteredAxis{I,Inds}(origin::Integer, inds::AbstractAxis) where {I,Inds}
         if inds isa Inds
-            start = static_first(inds)
-            f = (origin - div(static_length(inds), 2one(start))) - start
-            return CenteredAxis{I,Inds, typeof(f)}(inds, f)
+            return CenteredAxis{I,Inds,typeof(origin)}(origin, inds)
         else
-            return CenteredAxis{I}(convert(Inds, inds); origin=origin)
+            return CenteredAxis{I}(origin, convert(Inds, inds))
         end
     end
 
-    function CenteredAxis{I}(inds::AbstractUnitRange; origin=Zero()) where {I}
-        return CenteredAxis{I}(SimpleAxis(inds); origin=origin)
+    function CenteredAxis{I}(origin::Integer, inds::AbstractUnitRange) where {I}
+        return CenteredAxis{I}(origin, SimpleAxis(inds))
     end
-
-    function CenteredAxis{I}(inds::AbstractAxis; origin=Zero()) where {I}
+    function CenteredAxis{I}(origin::Integer, inds::AbstractAxis) where {I}
         if eltype(inds) <: I
-            return CenteredAxis{I,typeof(inds)}(inds; origin=origin)
+            return CenteredAxis{I,typeof(inds)}(origin, inds)
         else
-            return CenteredAxis{I}(convert(AbstractUnitRange{I}, inds); origin=origin)
+            return CenteredAxis{I}(origin, convert(AbstractUnitRange{I}, inds))
         end
     end
+    CenteredAxis{I}(inds::AbstractRange) where {I} = CenteredAxis{I}(Zero(), inds)
 
-    function CenteredAxis(inds::AbstractOffsetAxis; origin=Zero())
-        return CenteredAxis(parent(inds); origin=origin)
+    CenteredAxis(inds::AbstractRange) = CenteredAxis(Zero(), inds)
+    function CenteredAxis(origin::Integer, inds::AbstractOffsetAxis)
+        return CenteredAxis(origin, parent(inds))
     end
-    function CenteredAxis(inds::AbstractUnitRange; origin=Zero())
-        return CenteredAxis(SimpleAxis(inds); origin=origin)
+    function CenteredAxis(origin::Integer, inds::AbstractRange)
+        return CenteredAxis(origin, SimpleAxis(inds))
     end
-    function CenteredAxis(inds::AbstractAxis; origin=Zero())
-        return CenteredAxis{eltype(inds)}(inds; origin=origin)
+    function CenteredAxis(origin::Integer, inds::AbstractAxis)
+        return CenteredAxis{eltype(inds)}(origin, inds)
     end
 end
 
 function ArrayInterface.unsafe_reconstruct(axis::CenteredAxis, inds; kwargs...)
-    if inds isa AbstractOffsetAxis
-        # drop other offset axes b/c they will all be centered anyway
-        return unsafe_reconstruct(axis, parent(inds); kwargs...)
+    return CenteredAxis(origin(axis), unsafe_reconstruct(parent(axis), inds; kwargs...))
+end
+
+_origin_to_offset(start, len, origin) = (origin - div(len, 2one(start))) - start
+@inline function known_offset(::Type{T}) where {Inds,O,T<:CenteredAxis{<:Any,Inds,StaticInt{O}}}
+    if known_length(Inds) === nothing
+        return nothing
     else
-        p = parent(axis)
-        len = static_length(axis)
-        origin = static_first(p) + offsets(axis, 1) + div(len, 2one(len))
-        return CenteredAxis(unsafe_reconstruct(p, inds; kwargs...); origin=origin)
+        return _origin_to_offset(known_start(Inds), known_length(Inds), origin)
     end
 end
 
+origin(axis::CenteredAxis) = getfield(axis, :origin)
+@inline function ArrayInterface.offsets(axis::CenteredAxis)
+    inds = parent(axis)
+    return (_origin_to_offset(static_first(inds), static_length(inds), origin(axis)),)
+end
+
 """
-    center(inds::AbstractUnitRange{<:Integer}) -> CenteredAxis(inds)
+    center(origin) = inds -> CenteredAxis(orgin, inds)
 
 Shortcut for creating [`CenteredAxis`](@ref).
 
@@ -101,7 +115,7 @@ Shortcut for creating [`CenteredAxis`](@ref).
 ```jldoctest
 julia> using AxisIndices
 
-julia> AxisArray(ones(3), center)
+julia> AxisArray(ones(3), center(0))
 3-element AxisArray{Float64,1}
  • dim_1 - -1:1
 
@@ -111,7 +125,7 @@ julia> AxisArray(ones(3), center)
 
 ```
 """
-center(inds::AbstractUnitRange) = CenteredAxis(inds)
+center(origin) = inds -> CenteredAxis(orign, inds)
 
 """
     CenteredArray(A::AbstractArray)

@@ -224,3 +224,20 @@ function Base.BroadcastStyle(a::NamedDims.NamedDimsStyle{M}, b::AxisArrayStyle{B
     return NamedDims.NamedDimsStyle(M(), b)
 end
 
+function Base.summary(io::IO, a::NamedAxisArray)
+    print(io, Base.dims2string(length.(axes(a))), " ")
+    print(io, "NamedAxisArray(")
+    Base.showarg(io, parent(parent(a)), false)
+    print(io, ")")
+    print(io, "\n")
+    compact_io = IOContext(io, :compact => true)
+    lft_pad =lpad(' ', 5)
+    print(io, lpad("$(lpad(Char(0x2022), 3)) axes:", 0))
+    for i in OneTo(ndims(a))
+        println(compact_io)
+        print(compact_io, lft_pad)
+        print(compact_io, "$(dimnames(a, i)): ")
+        print(compact_io, axes(a, i))
+    end
+end
+
