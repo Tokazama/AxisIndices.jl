@@ -1,10 +1,12 @@
 
 """
-    OffsetAxis(keys::AbstractUnitRange{<:Integer}, indices::AbstractUnitRange{<:Integer}[, check_length::Bool=true])
-    OffsetAxis(offset::Integer, indices::AbstractUnitRange{<:Integer})
+    OffsetAxis(keys::AbstractUnitRange{<:Integer}, parent::AbstractUnitRange{<:Integer}[, check_length::Bool=true])
+    OffsetAxis(offset::Integer, parent::AbstractUnitRange{<:Integer})
 
 An axis that has the indexing behavior of an [`AbstractOffsetAxis`](@ref) and retains an
-offset from its underlying indices in its keys.
+offset from its underlying indices in its keys. Note that `offset` is only the offset from
+the parent indices. If `OffsetAxis` is part of an `AxisArray`, the number returned by
+`ArrayInterface.offsets` refers to the offset from zero, not the offset found in this axis.
 
 ## Examples
 
@@ -13,7 +15,8 @@ Users may construct an `OffsetAxis` by providing an from a set of indices.
 julia> using AxisIndices
 
 julia> axis = OffsetAxis(-2, 1:3)
-OffsetAxis(-1:1 => 1:3)
+OffsetAxis(offset=-2, parent=SimpleAxis(1:3)))
+
 ```
 
 In this instance the first index of the wrapped indices is 1 (`firstindex(indices(axis))`)
@@ -40,14 +43,14 @@ This means that traditional one based indexing no longer applies and may result 
 errors.
 ```jldoctest offset_axis_examples
 julia> axis[3]
-ERROR: BoundsError: attempt to access 3-element OffsetAxis(-1:1 => 1:3) at index [3]
+ERROR: BoundsError: attempt to access OffsetAxis(offset=-2, parent=SimpleAxis(1:3))) at index [3]
 [...]
 ```
 
 When an `OffsetAxis` is reconstructed the offset from indices are presserved.
 ```jldoctest offset_axis_examples
 julia> axis[0:1]  # offset of -2 still applies
-OffsetAxis(0:1 => 2:3)
+OffsetAxis(offset=-2, parent=SimpleAxis(2:3)))
 
 ```
 """
@@ -76,12 +79,10 @@ struct OffsetAxis{I,Inds<:AbstractAxis,F} <: AbstractOffsetAxis{I,Inds,F}
             return OffsetAxis{I,Inds}(f, Inds(inds))
         end
     end
-
     @inline function OffsetAxis{I,Inds}(ks::AbstractUnitRange, inds::AbstractUnitRange; checks=AxisArrayChecks()) where {I,Inds}
         check_axis_length(ks, inds, checks)
         return OffsetAxis{I,Inds}(static_first(ks) - static_first(inds), inds)
     end
-
     @inline function OffsetAxis{I,Inds}(ks::AbstractUnitRange; kwargs...) where {I,Inds}
         f = static_first(ks)
         return OffsetAxis{I}(f - one(f), Inds(OneTo(static_length(ks))))
@@ -91,34 +92,74 @@ struct OffsetAxis{I,Inds<:AbstractAxis,F} <: AbstractOffsetAxis{I,Inds,F}
     function OffsetAxis{I}(f::Integer, inds::AbstractAxis; kwargs...) where {I}
         return OffsetAxis{I,typeof(inds)}(f, inds)
     end
-    function OffsetAxis{I}(f::Integer, inds::AbstractRange; kwargs...) where {I}
-        return OffsetAxis{I}(f, SimpleAxis(inds))
+    function OffsetAxis{I}(f::Integer, inds::AbstractArray; kwargs...) where {I}
+        return OffsetAxis{I}(f, compose_axis(inds); kwargs...)
     end
-    @inline function OffsetAxis{I}(ks::AbstractUnitRange, inds::AbstractUnitRange; checks=AxisArrayChecks()) where {I}
+    function OffsetAxis{I}(f::AbstractUnitRange, inds::AbstractArray; kwargs...) where {I}
+        return OffsetAxis{I}(f, compose_axis(inds); kwargs...)
+    end 
+    function OffsetAxis{I}(ks::AbstractUnitRange, inds::AbstractAxis; checks=AxisArrayChecks(), kwargs...) where {I}
         check_axis_length(ks, inds, checks)
-        return OffsetAxis{I}(static_first(ks) - static_first(inds), inds)
+        return OffsetAxis{I}(static_first(ks) - static_first(inds), inds; kwargs...)
     end
-    @inline function OffsetAxis{I}(ks::AbstractUnitRange; kwargs...) where {I}
+    function OffsetAxis{I}(ks::AbstractUnitRange; kwargs...) where {I}
         f = static_first(ks)
         return OffsetAxis{I}(f - one(f), SimpleAxis(One():static_length(ks)))
     end
+    function OffsetAxis{I}(ks::AbstractUnitRange, inds::AbstractOffsetAxis; checks=AxisArrayChecks(), kwargs...) where {I}
+        check_axis_length(ks, inds, checks)
+        p = parent(inds)
+        return OffsetAxis{I}(static_first(ks) + static_first(inds) - static_first(p), p; kwargs...)
+    end
     function OffsetAxis{I}(f::Integer, inds::AbstractOffsetAxis) where {I}
-        return OffsetAxis(f + offsets(inds, 1), parent(inds))
+        p = parent(inds)
+        return OffsetAxis{I}(f + static_first(inds) - static_first(p), parent(inds))
     end
  
     # OffsetAxis
-    OffsetAxis(f::Integer, inds::AbstractRange; kwargs...) = OffsetAxis{eltype(inds)}(f, inds)
-    function OffsetAxis(ks::AbstractUnitRange, inds::AbstractUnitRange; checks=AxisArrayChecks())
-        check_axis_length(ks, inds, checks)
-        return OffsetAxis(static_first(ks) - static_first(inds), inds)
+    function OffsetAxis(f::Integer, inds::AbstractAxis; kwargs...)
+        return OffsetAxis{eltype(inds)}(f, inds; kwargs...)
+    end
+    function OffsetAxis(f::AbstractUnitRange, inds::AbstractAxis; kwargs...)
+        return OffsetAxis{eltype(inds)}(f, inds; kwargs...)
+    end
+    function OffsetAxis(f::Integer, inds::AbstractArray; kwargs...)
+        return OffsetAxis(f, compose_axis(inds); kwargs...)
+    end
+    function OffsetAxis(ks::AbstractUnitRange, inds::AbstractArray; kwargs...)
+        return OffsetAxis(ks, compose_axis(inds); kwargs...)
     end
     function OffsetAxis(ks::Ks; kwargs...) where {Ks}
         fst = static_first(ks)
-        return OffsetAxis(fst - one(fst), SimpleAxis(One():static_length(ks)))
+        if can_change_size(ks)
+            return OffsetAxis(fst - one(fst), SimpleAxis(OneToMRange(length(ks))))
+        else
+            return OffsetAxis(fst - one(fst), SimpleAxis(One():static_length(ks)))
+        end
     end
 
     OffsetAxis(axis::OffsetAxis; kwargs...) = axis
 end
+
+ArrayInterface.known_first(::Type{T}) where {T<:OffsetAxis{<:Any,<:Any,<:Any}} = nothing
+function ArrayInterface.known_first(::Type{T}) where {Inds,F,T<:OffsetAxis{<:Any,Inds,StaticInt{F}}}
+    if known_first(Inds) === nothing
+        return nothing
+    else
+        return known_first(Inds) + F
+    end
+end
+Base.first(axis::OffsetAxis) = first(parent(axis)) + getfield(axis, :offset)
+
+ArrayInterface.known_last(::Type{T}) where {T<:OffsetAxis{<:Any,<:Any,<:Any}} = nothing
+function ArrayInterface.known_last(::Type{T}) where {Inds,F,T<:OffsetAxis{<:Any,Inds,StaticInt{F}}}
+    if known_last(Inds) === nothing
+        return nothing
+    else
+        return known_last(Inds) + F
+    end
+end
+Base.last(axis::OffsetAxis) = last(parent(axis)) + getfield(axis, :offset)
 
 function ArrayInterface.unsafe_reconstruct(axis::OffsetAxis, inds; kwargs...)
     if inds isa AbstractOffsetAxis
@@ -130,7 +171,7 @@ function ArrayInterface.unsafe_reconstruct(axis::OffsetAxis, inds; kwargs...)
             return OffsetAxis(f_axis + f_inds, unsafe_reconstruct(parent(axis), parent(inds); kwargs...))
         end
     else
-        return OffsetAxis(offsets(axis, 1), unsafe_reconstruct(parent(axis), inds; kwargs...))
+        return OffsetAxis(getfield(axis, :offset), unsafe_reconstruct(parent(axis), inds; kwargs...))
     end
 end
 
@@ -144,12 +185,14 @@ Shortcut for creating `OffsetAxis` where `x` is the first argument to [`OffsetAx
 julia> using AxisIndices
 
 julia> AxisArray(ones(3), offset(2))
-3-element AxisArray{Float64,1}
- • dim_1 - 3:5
-
-  3   1.0
-  4   1.0
-  5   1.0
+3-element AxisArray(::Array{Float64,1}
+  • axes:
+     1 = 3:5
+)
+     1
+  3  1.0
+  4  1.0
+  5  1.0
 
 ```
 """
@@ -210,7 +253,7 @@ function OffsetArray{T,N,P}(A::OffsetArray) where {T,N,P}
     return AxisArray{T,N,P,typeof(axs)}(p, axes(A); checks=NoChecks)
 end
 
-function OffsetArray{T,N,P}(A::P, inds::Tuple{Vararg{<:Any,N}}; checks=AxisArrayChecks()) where {T,N,P<:AbstractArray{T,N},M}
+function OffsetArray{T,N,P}(A::P, inds::Tuple{Vararg{<:Any,N}}; checks=AxisArrayChecks()) where {T,N,P<:AbstractArray{T,N}}
     if N === 1
         if can_change_size(P)
             axs = (OffsetAxis(first(inds), SimpleAxis(OneToMRange(axes(A, 1))); checks=checks),)

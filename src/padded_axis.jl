@@ -105,6 +105,7 @@ struct PaddedAxis{P,FP,LP,I,Inds} <: AbstractAxis{I,Inds}
     parent::Inds
 end
 
+# FIXME
 @inline function apply_offset(axis::PaddedAxis, i::Integer)
     pinds = parent(axis)
     if first(pinds) > i

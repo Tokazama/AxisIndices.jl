@@ -12,14 +12,11 @@ The value for all of these is the same.
 ```jldoctest axis_examples
 julia> using AxisIndices
 
-julia> x = Axis(2.0:11.0, 1:10)
-Axis(2.0:1.0:11.0 => 1:10)
+julia> x = Axis(2.0:11.0)  # when only one argument is specified assume it's the keys
+Axis(2.0:1.0:11.0 => SimpleAxis(1:10))
 
-julia> y = Axis(2.0:11.0)  # when only one argument is specified assume it's the keys
-Axis(2.0:1.0:11.0 => Base.OneTo(10))
-
-julia> z = Axis(1:10)
-Axis(1:10 => Base.OneTo(10))
+julia> y = Axis(1:10)
+Axis(1:10 => SimpleAxis(1:10))
 ```
 
 Standard indexing returns the same values
@@ -27,41 +24,37 @@ Standard indexing returns the same values
 julia> x[2]
 2
 
-julia> x[2] == y[2] == z[2]
+julia> x[2] == y[2]
 true
 
 julia> x[1:2]
-Axis(2.0:1.0:3.0 => 1:2)
+Axis(2.0:1.0:3.0 => SimpleAxis(1:2))
 
 julia> y[1:2]
-Axis(2.0:1.0:3.0 => 1:2)
+Axis(1:2 => SimpleAxis(1:2))
 
-julia> z[1:2]
-Axis(1:2 => 1:2)
-
-julia> x[1:2] == y[1:2] == z[1:2]
+julia> x[1:2] == y[1:2]
 true
 ```
 
 Functions that return `true` or `false` may be used to search the keys for their
 corresponding index. The following is equivalent to the previous example.
-```jldoctest axis_examples
+```julia
 julia> x[==(3.0)]
 2
 
-julia> x[==(3.0)] ==       # 3.0 is the 2nd key of x
-       y[isequal(3.0)] ==  # 3.0 is the 2nd key of y
-       z[==(2)]            # 2 is the 2nd key of z
+julia> x[3.0] ==  # 3.0 is the 2nd key of x
+       y[==(2)]   # 2 is the 2nd key of z
 true
 
 julia> x[<(4.0)]  # all keys less than 4.0 are 2.0:3.0 which correspond to values 1:2
-Axis(2.0:1.0:3.0 => 1:2)
+Axis(2.0:1.0:3.0 => SimpleAxis(1:2))
 
 julia> y[<=(3.0)]  # all keys less than or equal to 3.0 are 2.0:3.0 which correspond to values 1:2
-Axis(2.0:1.0:3.0 => 1:2)
+Axis(2.0:1.0:3.0 => SimpleAxis(1:2))
 
 julia> z[<(3)]  # all keys less than or equal to 3 are 1:2 which correspond to values 1:2
-Axis(1:2 => 1:2)
+Axis(1:2 => SimpleAxis(1:2))
 
 julia> x[<(4.0)] == y[<=(3.0)] == z[<(3)]
 true
@@ -128,7 +121,7 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
         if can_change_size(ks)
             return Axis{K,I}(ks, SimpleAxis(OneToMRange{I}(length(ks))); checks=c, kwargs...)
         else
-            return Axis{K,I}(ks, SimpleAxis(indices(ks)); checks=c, kwargs...)
+            return Axis{K,I}(ks, compose_axis(indices(ks), NoChecks); checks=c, kwargs...)
         end
     end
     function Axis{K,I}(ks::AbstractVector, inds::AbstractAxis; kwargs...) where {K,I}
@@ -143,7 +136,7 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
         end
     end
     function Axis{K,I}(ks::AbstractVector, inds::AbstractUnitRange; kwargs...) where {K,I}
-        return Axis{K,I}(ks, SimpleAxis(inds); kwargs...)
+        return Axis{K,I}(ks, compose_axis(inds, NoChecks); kwargs...)
     end
 
     # Axis
@@ -166,7 +159,7 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
     end
 
     function Axis(ks::AbstractVector, inds::AbstractUnitRange; kwargs...)
-        return Axis(ks, SimpleAxis(inds); kwargs...)
+        return Axis(ks, compose_axis(inds, NoChecks); kwargs...)
     end
 
     function Axis(ks::AbstractVector; checks=AxisArrayChecks(), kwargs...)
@@ -174,7 +167,7 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
         if can_change_size(ks)
             return Axis(ks, SimpleAxis(OneToMRange(length(ks))); checks=c)
         else
-            return Axis(ks, SimpleAxis(static_first(eachindex(ks)):static_length(ks)); checks=c)
+            return Axis(ks, compose_axis(static_first(eachindex(ks)):static_length(ks), NoChecks); checks=c)
         end
     end
 end
@@ -182,11 +175,29 @@ end
 ## interface
 Base.keys(axis::Axis) = getfield(axis, :keys)
 
-function ArrayInterface.unsafe_reconstruct(axis::Axis, inds; keys=nothing, kwargs...)
+function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=nothing, kwargs...) where {K,I,Ks,Inds}
     if keys === nothing
-        return Axis(Base.keys(axis)[inds], unsafe_reconstruct(parent(axis), inds); kwargs...)
+        ks = Base.keys(axis)
+        p = parent(axis)
+        kindex = firstindex(ks)
+        pindex = first(p)
+        if kindex === pindex
+            return Axis(
+                @inbounds(ks[inds]),
+               inds;
+               checks=NoChecks
+            )
+        else
+            return Axis(@inbounds(ks[inds .+ (pindex - kindex)]), inds; checks=NoChecks)
+            #=
+        else
+            f = (offsets(parent(axis), 1) - offsets(ks, 1))
+            ks = ks[(first(inds) - f):(last(inds) - f)]
+            return Axis(ks, unsafe_reconstruct(parent(axis), inds); checks=NoChecks)
+            =#
+        end
     else
-        return Axis(keys, unsafe_reconstruct(parent(axis), inds; kwargs...))
+        return Axis(keys, inds; checks=NoChecks)
     end
 end
 
@@ -217,16 +228,16 @@ end
 
 function maybe_unsafe_reconstruct(axis::Axis, inds::AbstractUnitRange{I}; keys=nothing) where {I<:Integer}
     if keys === nothing
-        return unsafe_reconstruct(axis, inds; keys=@inbounds(Base.keys(axis)[inds]))
+        return unsafe_reconstruct(axis, SimpleAxis(inds); keys=@inbounds(Base.keys(axis)[inds]))
     else
-        return unsafe_reconstruct(axis, inds; keys=keys)
+        return unsafe_reconstruct(axis, SimpleAxis(inds); keys=keys)
     end
 end
 function maybe_unsafe_reconstruct(axis::Axis, inds::AbstractArray)
     if keys === nothing
-        axs = (unsafe_reconstruct(axis, eachindex(inds)),)
+        axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds))),)
     elseif allunique(inds)
-        axs = (unsafe_reconstruct(axis, eachindex(inds); keys=@inbounds(keys(axis)[inds])),)
+        axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds)); keys=@inbounds(keys(axis)[inds])),)
     else  # not all indices are unique so will result in non-unique keys
         axs = (SimpleAxis(eachindex(inds)),)
     end
@@ -340,3 +351,23 @@ function StaticRanges.can_set_first(::Type{T}) where {K,I,Ks,Inds,T<:Axis{K,I,Ks
     return can_set_first(Ks) & can_set_first(Inds)
 end
 
+@propagate_inbounds function Base.getindex(axis::Axis, arg::AbstractUnitRange{I}) where {I<:Integer}
+    @boundscheck checkbounds(axis, arg)
+    ks = Base.keys(axis)
+    p = parent(axis)
+    kindex = firstindex(ks)
+    pindex = first(p)
+    if kindex === pindex
+        return Axis(
+            @inbounds(ks[arg]),
+            @inbounds(getindex(p, arg));
+            checks=NoChecks
+        )
+    else
+        return Axis(
+            @inbounds(ks[arg .+ (kindex - pindex)]),
+            @inbounds(getindex(p, arg));
+            checks=NoChecks
+        )
+    end
+end

@@ -18,22 +18,40 @@ Axes can indicate what kind of array you want (static/fixed size) and/or can map
 ```julia
 julia> using AxisIndices
 
-julia> x = AxisArray{Int}(undef, OneToSRange(2), OneToSRange(2));
+julia> using ArrayInterface
 
-julia> x[1:4] .= 1;
+julia> import ArrayInterface: StaticInt
 
-julia> parent(x)
-2×2 StaticArrays.MArray{Tuple{2,2},Int64,2,4} with indices SOneTo(2)×SOneTo(2):
- 1  1
- 1  1
+julia> x = AxisArray{Int}(
+          undef,                      # initialize empty array
+          StaticInt(1):StaticInt(2),  # first  axis with known size of two
+          StaticInt(1):StaticInt(2)   # second axis with known size of two
+       );
+
+julia> ArrayInterface.known_length(x) # size is known at compile time
+4
+
+julia> x[1:4] .= 1;  # underlying type is mutable `Array`, so we can assign new values
+
+julia> x
+2×2 AxisArray(::Array{Int64,2}
+  • axes:
+     1 = 1:2
+     2 = 1:2
+)
+     1  2
+  1  1  1
+  2  1  1  
 
 julia> A = AxisArray(reshape(1:4, 2, 2), [:a, :b], ["one", "two"])
-2×2 AxisArray{Int64,2}
- • dim_1 - [:a, :b]
- • dim_2 - ["one", "two"]
-      one   two
-  a     1     3
-  b     2     4
+2×2 AxisArray(reshape(::UnitRange{Int64}, 2, 2)
+  • axes:
+     1 = [:a, :b]
+     2 = ["one", "two"]
+)
+      "one"   "two" 
+  :a  1       3
+  :b  2       4  
 
 julia> A[:a, "one"]
 1

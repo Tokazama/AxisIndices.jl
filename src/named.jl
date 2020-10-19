@@ -1,5 +1,4 @@
 
-using NamedDims
 
 ###
 ### mappedarray
@@ -62,7 +61,7 @@ end
 NamedDims.dimnames(::Type{ReadonlyMappedArray{T,N,A,F}}) where {T,N,A,F} = dimnames(A)
 NamedDims.dimnames(::Type{MappedArray{T,N,A,F,Finv}}) where {T,N,A,F,Finv} = dimnames(A)
 function NamedDims.dimnames(::Type{ReadonlyMultiMappedArray{T,N,AAs,F}}) where {T,N,AAs,F}
-    return _multi_array_dimnames(AAs)
+    return _multi_array_dimnames(AAs, ntuple(_ -> :_, Val(N)))
 end
 function NamedDims.dimnames(::Type{MultiMappedArray{T,N,AAs,F,Finv}}) where {T,N,AAs,F,Finv}
     return _multi_array_dimnames(AAs, ntuple(_ -> :_, Val(N)))
@@ -84,6 +83,19 @@ end
 
 ArrayInterface.parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 
+has_dimnames(x) = has_dimnames(typeof(x))
+has_dimnames(::Type{T}) where {T<:NamedDimsArray} = true
+function has_dimnames(::Type{T}) where {T}
+    if parent_type(T) <: T
+        return false
+    else
+        return has_dimnames(parent_type(T))
+    end
+end
+function Metadata.attach_metadata(data::NamedDimsArray, m::Metadata.METADATA_TYPES)
+    return NamedDimsArray{dimnames(data)}(attach_metadata(parent(data), m))
+end
+
 """
     NamedAxisArray(parent::AbstractArray; kwargs...) = NamedAxisArray(parent, kwargs)
     NamedAxisArray(parent::AbstractArray, axes::NamedTuple{L,AbstractAxes})
@@ -99,53 +111,53 @@ assigned value is sent to the corresponding axis when constructing the underlyin
 julia> using AxisIndices
 
 julia> A = NamedAxisArray{(:x, :y, :z)}(reshape(1:24, 2, 3, 4), ["a", "b"], ["one", "two", "three"], 2:5)
-2×3×4 NamedAxisArray{Int64,3}
- • x - ["a", "b"]
- • y - ["one", "two", "three"]
- • z - 2:5
-[x, y, z[2]] =
-      one   two   three
-  a     1     3       5
-  b     2     4       6
+2×3×4 NamedDimsArray(AxisArray(reshape(::UnitRange{Int64}, 2, 3, 4)
+  • axes:
+     x = ["a", "b"]
+     y = ["one", "two", "three"]
+     z = 2:5
+))
+[:, :, 2] =
+       "one"   "two"   "three"
+  "a"  1       3       5
+  "b"  2       4       6
 
-[x, y, z[3]] =
-      one   two   three
-  a     7     9      11
-  b     8    10      12
+[:, :, 3] =
+       "one"   "two"    "three"
+  "a"  7        9       11
+  "b"  8       10       12
 
-[x, y, z[4]] =
-      one   two   three
-  a    13    15      17
-  b    14    16      18
+[:, :, 4] =
+       "one"    "two"    "three"
+  "a"  13       15       17
+  "b"  14       16       18
 
-[x, y, z[5]] =
-      one   two   three
-  a    19    21      23
-  b    20    22      24
-
-julia> dimnames(A)
-(:x, :y, :z)
-
-julia> axes_keys(A)
-(["a", "b"], ["one", "two", "three"], 2:5)
+[:, :, 5] =
+       "one"    "two"    "three"
+  "a"  19       21       23
+  "b"  20       22       24
 
 julia> B = A["a", :, :]
-3×4 NamedAxisArray{Int64,2}
- • y - ["one", "two", "three"]
- • z - 2:5
-          2    3    4    5
-    one   1    7   13   19
-    two   3    9   15   21
-  three   5   11   17   23
+3×4 NamedDimsArray(AxisArray(::Array{Int64,2}
+  • axes:
+     y = ["one", "two", "three"]
+     z = 2:5
+))
+           2  3   4   5
+  "one"    1   7  13  19
+  "two"    3   9  15  21
+  "three"  5  11  17  23
 
 julia> C = B["one",:]
-4-element NamedAxisArray{Int64,1}
- • z - 2:5
-
-  2    1
-  3    7
-  4   13
-  5   19
+4-element NamedDimsArray(AxisArray(::Array{Int64,1}
+  • axes:
+     z = 2:5
+))
+     1
+  2   1
+  3   7
+  4  13
+  5  19
 
 ```
 """
@@ -224,20 +236,80 @@ function Base.BroadcastStyle(a::NamedDims.NamedDimsStyle{M}, b::AxisArrayStyle{B
     return NamedDims.NamedDimsStyle(M(), b)
 end
 
-function Base.summary(io::IO, a::NamedAxisArray)
-    print(io, Base.dims2string(length.(axes(a))), " ")
-    print(io, "NamedAxisArray(")
-    Base.showarg(io, parent(parent(a)), false)
-    print(io, ")")
-    print(io, "\n")
-    compact_io = IOContext(io, :compact => true)
-    lft_pad =lpad(' ', 5)
-    print(io, lpad("$(lpad(Char(0x2022), 3)) axes:", 0))
-    for i in OneTo(ndims(a))
-        println(compact_io)
-        print(compact_io, lft_pad)
-        print(compact_io, "$(dimnames(a, i)): ")
-        print(compact_io, axes(a, i))
+function Base.show(io::IO, ::MIME"text/plain", X::NamedDimsArray{<:Any,<:Any,<:Any,<:Union{<:AxisArray,Metadata.MetaArray}})
+    if isempty(X) && (get(io, :compact, false) || X isa Vector)
+        return show(io, X)
     end
+    # 0) show summary before setting :compact
+    summary(io, X)
+    isempty(X) && return
+    Base.show_circular(io, X) && return
+
+    # 1) compute new IOContext
+    if !haskey(io, :compact) && length(axes(X, 2)) > 1
+        io = IOContext(io, :compact => true)
+    end
+    if get(io, :limit, false) && eltype(X) === Method
+        # override usual show method for Vector{Method}: don't abbreviate long lists
+        io = IOContext(io, :limit => false)
+    end
+
+    if get(io, :limit, false) && displaysize(io)[1]-4 <= 0
+        return print(io, " …")
+    else
+        println(io)
+    end
+
+    # 2) update typeinfo
+    #
+    # it must come after printing the summary, which can exploit :typeinfo itself
+    # (e.g. views)
+    # we assume this function is always called from top-level, i.e. that it's not nested
+    # within another "show" method; hence we always print the summary, without
+    # checking for current :typeinfo (this could be changed in the future)
+    io = IOContext(io, :typeinfo => eltype(X))
+
+    # 2) show actual content
+    recur_io = IOContext(io, :SHOWN_SET => X)
+    Base.print_array(recur_io, parent(X))
+end
+function Base.summary(io::IO, x::NamedDimsArray{<:Any,<:Any,<:Any,<:Union{<:AxisArray,Metadata.MetaArray}})
+    return Base.showarg(io, x, true)
+end
+
+function Base.showarg(io::IO, x::NamedDimsArray{<:Any,<:Any,<:Any,<:AxisArray}, toplevel)
+    if toplevel
+        print(io, Base.dims2string(length.(axes(x))), " ")
+    end
+
+    print(io, "NamedDimsArray(")
+    print(io, "AxisArray(")
+    Base.showarg(io, parent(parent(x)), false)
+    print(io, "\n")
+    print_axes_summary(io, NamedTuple{dimnames(x)}(axes(x)))
+    print(io, "\n))")
+end
+
+function Base.showarg(io::IO, x::NamedDimsArray{<:Any,<:Any,<:Any,<:Metadata.MetaArray}, toplevel)
+    if toplevel
+        print(io, Base.dims2string(length.(axes(x))), " ")
+    end
+    print(io, "NamedDimsArray(")
+    print(io, "attach_metadata(")
+
+    if parent_type(parent_type(x)) <: AxisArray
+        print(io, "AxisArray(")
+        Base.showarg(io, parent(parent(parent(x))), false)
+        print(io, "\n")
+        print_axes_summary(io, NamedTuple{dimnames(x)}(axes(x)))
+        print(io, "\n)")
+    else
+        Base.showarg(io, parent(x), false)
+    end
+    print(io, ", ", Metadata.showarg_metadata(x))
+    println(io)
+    Metadata.metadata_summary(io, x)
+    print(io, "\n)") # closing bracket on attach_metadata
+    print(io, ")")   # closing bracket on NamedDimsArray
 end
 

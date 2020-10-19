@@ -31,10 +31,10 @@ for fun in (:cor, :cov)
 
     julia> A = AxisArray([1 2 3; 4 5 6; 7 8 9], ["a", "b", "c"], [:one, :two, :three]);
 
-    julia> axes_keys($fun(A, dims = 2))
+    julia> keys.(axes($fun(A, dims = 2)))
     (["a", "b", "c"], ["a", "b", "c"])
 
-    julia> axes_keys($fun(A, dims = 1))
+    julia> keys.(axes($fun(A, dims = 1)))
     ([:one, :two, :three], [:one, :two, :three])
 
     ```
@@ -218,27 +218,30 @@ Compute the LU factorization of an `AxisArray` `A`.
 ```jldoctest
 julia> using AxisIndices, LinearAlgebra
 
-julia> m = AxisArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 
 julia> F = lu(m);
 
-julia> keys.(axes(F.L))
-(2:3, Base.OneTo(2))
+julia> axes(F.L)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), SimpleAxis(1:2))
 
-julia> keys.(axes(F.U))
-(Base.OneTo(2), 3:4)
+julia> axes(F.U)
+(SimpleAxis(1:2), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.p))
-(2:3,)
+julia> F.p
+2-element Array{Int64,1}:
+ 3
+ 2
 
-julia> keys.(axes(F.P))
-(2:3, 2:3)
+julia> axes(F.P)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=1, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.P * m))
-(2:3, 3:4)
+julia> axes(F.P * m)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.L * F.U))
-(2:3, 3:4)
+julia> axes(F.L * F.U)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
+
 ```
 """ lu
 
@@ -268,12 +271,14 @@ function get_factorization(F::LU, A::AbstractArray, d::Symbol)
     elseif d === :P
         return unsafe_reconstruct(A, inner, axes=(axes(A, 1), axes(A, 1)))
     elseif d === :p
-        axis = axes(A, 1)
-        if known_offset(axis) === nothing || known_offset(axis) !== 1
+        return _add_offset(axes(A, 1), inner)
+        #=
+        if is_offset_axis(axis)
             return inner .+ offsets(axis, 1)
         else
             return inner
         end
+        =#
     else
         return inner
     end
@@ -288,18 +293,19 @@ Compute the LQ factorization of an `AxisArray` `A`.
 ```jldoctest
 julia> using AxisIndices, LinearAlgebra
 
-julia> m = AxisArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 
 julia> F = lq(m);
 
-julia> keys.(axes(F.L))
-(2:3, Base.OneTo(2))
+julia> axes(F.L)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), SimpleAxis(1:2))
 
-julia> keys.(axes(F.Q))
-(Base.OneTo(2), 3:4)
+julia> axes(F.Q)
+(SimpleAxis(1:2), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.L * F.Q))
-(2:3, 3:4)
+julia> axes(F.L * F.Q)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
+
 ```
 """
 LinearAlgebra.lq(A::AxisArray, args...; kws...) = lq!(copy(A), args...; kws...)
@@ -340,27 +346,28 @@ Compute the QR factorization of an `AxisArray` `A`.
 ```jldoctest
 julia> using AxisIndices, LinearAlgebra
 
-julia> m = AxisArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 
 julia> F = qr(m, Val(true));
 
-julia> keys.(axes(F.Q))
-(2:3, Base.OneTo(2))
+julia> axes(F.Q)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), SimpleAxis(1:2))
 
-julia> keys.(axes(F.R))
-(Base.OneTo(2), 3:4)
+julia> axes(F.R)
+(SimpleAxis(1:2), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.Q * F.R))
-(2:3, 3:4)
+julia> axes(F.Q * F.R)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.p))
-(2:3,)
+julia> axes(F.p)
+(Base.OneTo(2),)
 
-julia> keys.(axes(F.P))
-(2:3, 2:3)
+julia> axes(F.P)
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=1, parent=SimpleAxis(1:2))))
 
-julia> keys.(axes(F.P * AxisArray([1.0 2; 3 4], (2:3, 3:4))))
-(2:3, 3:4)
+julia> axes(F.P * AxisArray([1.0 2; 3 4], (2:3, 3:4)))
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
+
 ```
 
 """
@@ -416,12 +423,15 @@ function get_factorization(F::Q, A::AbstractArray, d::Symbol) where {Q<:Union{Li
     elseif F isa QRPivoted && d === :P
         return unsafe_reconstruct(A, inner; axes=(axes(A, 1), axes(A, 1)))
     elseif F isa QRPivoted && d === :p
-        axis = axes(A, 1)
+        return _add_offset(axes(A, 1), inner)
+        #=
+        axis = 
         if known_offset(axis) === nothing || known_offset(axis) !== 1
             return inner .+ offsets(axis, 1)
         else
             return inner
         end
+        =#
     else
         return inner
     end
@@ -441,21 +451,21 @@ Compute the singular value decomposition (SVD) of an `AxisArray` `A`.
 ```jldoctest
 julia> using AxisIndices, LinearAlgebra
 
-julia> m = AxisArray([1.0 2; 3 4], (Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2))));
+julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 
 julia> F = svd(m);
 
 julia> axes(F.U)
-(Axis(2:3 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), SimpleAxis(1:2))
 
 julia> axes(F.V)
-(Axis(3:4 => Base.OneTo(2)), SimpleAxis(Base.OneTo(2)))
+(OffsetAxis(offset=2, parent=SimpleAxis(1:2))), SimpleAxis(1:2))
 
 julia> axes(F.Vt)
-(SimpleAxis(Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+(SimpleAxis(1:2), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
 julia> axes(F.U * Diagonal(F.S) * F.Vt)
-(Axis(2:3 => Base.OneTo(2)), Axis(3:4 => Base.OneTo(2)))
+(OffsetAxis(offset=1, parent=SimpleAxis(1:2))), OffsetAxis(offset=2, parent=SimpleAxis(1:2))))
 
 ```
 """
@@ -523,9 +533,10 @@ function LinearAlgebra.eigvals(A::AxisArray; kwargs...)
     return LinearAlgebra.eigvals(parent(A); kwargs...)
 end
 
+# TODO test this
 function LinearAlgebra.eigen!(A::AxisArray{T,N,P,AI}; kwargs...) where {T,N,P,AI}
     vals, vecs = LinearAlgebra.eigen!(parent(A); kwargs...)
-    return Eigen(vals, unsafe_reconstruct(A, vecs, axes(A)))
+    return Eigen(vals, unsafe_reconstruct(A, vecs; axes=axes(A)))
 end
 
 function LinearAlgebra.eigvals!(A::AxisArray; kwargs...)

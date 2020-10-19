@@ -31,17 +31,22 @@ compose_axes(::Tuple{}, ::Tuple{}, checks) = ()
 compose_axes(::Tuple{}, inds::Tuple, checks) = map(i -> compose_axis(i, checks), inds)
 compose_axes(axs::Tuple, ::Tuple{}, checks) = map(axis -> compose_axis(axis, checks), axs)
 
-compose_axis(x::Integer, checks) = SimpleAxis(x)
-compose_axis(x, checks) = Axis(x; checks=checks)
-compose_axis(x::AbstractAxis, checks) = x
-function compose_axis(x::AbstractUnitRange{I}, checks) where {I<:Integer}
-    if known_first(x) === 1
+###
+### compose_axis
+###
+compose_axis(x::Integer, checks=AxisArrayChecks()) = SimpleAxis(x)
+compose_axis(x, checks=AxisArrayChecks()) = Axis(x; checks=checks)
+compose_axis(x::AbstractAxis, checks=AxisArrayChecks()) = x
+function compose_axis(x::AbstractUnitRange{I}, checks=AxisArrayChecks()) where {I<:Integer}
+    if known_first(x) === one(eltype(x))
         return SimpleAxis(x)
     else
         return OffsetAxis(x)
     end
 end
-compose_axis(x::IdentityUnitRange, checks) = compose_axis(x.indices, checks)
+compose_axis(x::IdentityUnitRange, checks=AxisArrayChecks()) = compose_axis(x.indices, checks)
+
+# 3-args
 compose_axis(::Nothing, inds, checks) = compose_axis(inds, checks)
 compose_axis(ks::Function, inds, checks) = ks(inds)
 function compose_axis(ks::Integer, inds, checks)
@@ -148,8 +153,29 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     (2, 2)
 
     """
-    function AxisArray{T,N}(A::AbstractArray{T2,N}, ks::Tuple; kwargs...) where {T,T2,N}
-        return AxisArray{T,N}(AbstractArray{T}(A), ks; kwargs...)
+    function AxisArray{T,N}(A::AbstractArray, ks::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N}
+        if eltype(A) <: T
+            axs = compose_axes(ks, A, checks)
+            return new{T,N,typeof(A),typeof(axs)}(p, axs)
+        else
+            p = AbstractArray{T}(A)
+            axs = compose_axes(ks, p, checks)
+            return new{T,N,typeof(p),typeof(axs)}(p, axs)
+        end
+    end
+    function AxisArray{T,N}(x::AbstractArray{T,N}, axs::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N}
+        axs = compose_axes(axs, x, checks)
+        return new{T,N,typeof(x),typeof(axs)}(x, axs)
+    end
+    function AxisArray{T,N}(A::AxisArray, ks::Tuple; checks=AxisArray(), kwargs...) where {T,T2,N}
+        if eltype(A) <: T
+            axs = compose_axes(ks, A, checks)
+            return new{T,N,parent_type(A),typeof(axs)}(p, axs)
+        else
+            p = AbstractArray{T}(parent(A))
+            axs = compose_axes(ks, A, checks)
+            return new{T,N,typeof(p),typeof(axs)}(p, axs)
+        end
     end
     function AxisArray{T,N}(init::ArrayInitializer, args...; kwargs...) where {T,N}
         return AxisArray{T,N}(init, args; kwargs...)
@@ -162,10 +188,6 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
         axs = map(axis -> compose_axis(axis, c), ks)
         p = init_array(T, init, axs)
         return new{T,N,typeof(p),typeof(axs)}(p, axs)
-    end
-    function AxisArray{T,N}(x::AbstractArray{T,N}, axs::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N}
-        axs = compose_axes(axs, x, checks)
-        return new{T,N,typeof(x),typeof(axs)}(x, axs)
     end
 
     ### AxisArray{T}
@@ -210,20 +232,24 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     julia> using AxisIndices
 
     julia> AxisArray(ones(2,2), (SimpleAxis(2), SimpleAxis(2)))
-    2×2 AxisArray{Float64,2}
-     • dim_1 - 1:2
-     • dim_2 - 1:2
-            1     2
-      1   1.0   1.0
-      2   1.0   1.0
+    2×2 AxisArray(::Array{Float64,2}
+      • axes:
+         1 = 1:2
+         2 = 1:2
+    )
+         1    2
+      1  1.0  1.0
+      2  1.0  1.0
 
     julia> AxisArray(ones(2,2), (["a", "b"], ["one", "two"]))
-    2×2 AxisArray{Float64,2}
-     • dim_1 - ["a", "b"]
-     • dim_2 - ["one", "two"]
-          one   two
-      a   1.0   1.0
-      b   1.0   1.0
+    2×2 AxisArray(::Array{Float64,2}
+      • axes:
+         1 = ["a", "b"]
+         2 = ["one", "two"]
+    )
+           "one"   "two"
+      "a"  1.0     1.0
+      "b"  1.0     1.0
 
     ```
     """
@@ -322,6 +348,14 @@ end
 Base.parentindices(x::AxisArray) = parentindices(parent(x))
 
 Base.length(x::AxisArray) = prod(size(x))
+@generated function ArrayInterface.known_length(::Type{T}) where {Axs,T<:AxisArray{<:Any,<:Any,<:Any,Axs}}
+    out = 1
+    for axis in Axs.parameters
+        known_length(axis) === nothing && return nothing
+        out = out * known_length(axis)
+    end
+    return out
+end
 
 Base.size(x::AxisArray) = map(static_length, axes(x))
 
@@ -402,7 +436,7 @@ end
 #   padded regions
 @inline function apply_offsets(A::AxisArray, inds::Tuple)
     if length(inds) === 1 && ndims(A) > 1 # linear indexing
-        return (apply_offset(eachindex(A), first(inds)),)
+        return (_sub_offset(eachindex(A), first(inds)),)
     else
         return apply_offsets(axes(A), inds)
     end
@@ -414,16 +448,6 @@ end
         return _filter_pad(new_inds)
     end
     =#
-end
-
-apply_offsets(::Tuple{}, ::Tuple{}) = ()
-apply_offsets(::Tuple{}, ::Tuple) = ()
-apply_offsets(::Tuple, ::Tuple{}) = ()
-@inline function apply_offsets(axs::Tuple{A}, inds::Tuple{<:Integer}) where {A}
-    return (apply_offset(first(axs), first(inds)),)
-end
-@inline function apply_offsets(axs::Tuple, inds::Tuple)
-    return (apply_offset(first(axs), first(inds)), apply_offsets(tail(axs), tail(inds))...)
 end
 
 _filter_pad(inds::Tuple{I,Vararg}) where {I<:Function} = first(inds)

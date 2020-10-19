@@ -11,7 +11,8 @@ using ChainedFixes
 using IntervalSets
 using LinearAlgebra
 using MappedArrays
-using PrettyTables
+using Metadata
+using NamedDims
 using SparseArrays
 using StaticRanges
 using Statistics
@@ -48,18 +49,24 @@ export
     AxisArray,
     CartesianAxes,
     CenteredArray,
+    CenteredVector,
     CenteredAxis,
     IdentityArray,
+    IdentityVector,
     IdentityAxis,
+    idaxis,
     LinearAxes,
     NamedAxisArray,
     OffsetArray,
     OffsetAxis,
     OffsetVector,
     SimpleAxis,
+    center,
+    offset,
     permuteddimsview,
     StructAxis,
     struct_view
+
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
@@ -115,6 +122,11 @@ is_key(::IndexStyle, ::Type{T}) where {T<:Integer} = false
 is_key(S::IndexStyle, ::Type{T}) where {T<:AbstractArray} = is_key(S, eltype(T))
 is_key(::IndexStyle, ::Type{T}) where {T} = true
 
+const MetaAxisArray{T,N,P,Axs,M} = Metadata.MetaArray{T,N,AxisArray{T,N,P,Axs},M}
+
+const NamedMetaAxisArray{L,T,N,P,M,Axs} = NamedDimsArray{L,T,N,MetaAxisArray{T,N,P,Axs,M}}
+
+include("indexing.jl")
 include("axes_methods.jl")
 include("combine.jl")
 include("arrays.jl")
@@ -128,6 +140,79 @@ include("show.jl")
 
 # TODO move this to ArrayInterface
 ArrayInterface._multi_check_index(axs::Tuple, arg::LogicalIndex{<:Any,<:AxisArray}) = axs == axes(arg.mask)
+
+###
+### offsets
+###
+@inline function apply_offset(axis, arg)
+    if arg isa Integer
+        return Int(arg)
+    else
+        return arg
+    end
+end
+apply_offset(axis::OffsetAxis, arg) = _apply_offset(getfield(axis, :offset), arg)
+apply_offset(axis::IdentityAxis, arg) = _apply_offset(getfield(axis, :offset), arg)
+function apply_offset(axis::CenteredAxis, arg)
+    p = parent(axis)
+    return _apply_offset(_origin_to_offset(first(p), length(p), origin(axis)), arg)
+end
+_apply_offset(f, arg::Integer) = arg - f
+_apply_offset(f, arg::AbstractArray) = arg .- f
+function _apply_offset(f, arg::AbstractRange)
+    if known_step(arg) === 1
+        return (first(arg) - f):(last(arg) - f)
+    else
+        return (first(arg) - f):step(arg):(last(arg) - f)
+    end
+end
+
+# add offsets
+_add_offset(axis, x) = x
+_add_offset(axis::OffsetAxis, arg) = __add_offset(getfield(axis, :offset), arg)
+_add_offset(axis::IdentityAxis, arg) = __add_offset(getfield(axis, :offset), arg)
+function _add_offset(axis::CenteredAxis, arg)
+    p = parent(axis)
+    return __add_offset(_origin_to_offset(first(p), length(p), origin(axis)), arg)
+end
+__add_offset(f, arg::Integer) = arg + f
+__add_offset(f, arg::AbstractArray) = arg .+ f
+function __add_offset(f, arg::AbstractRange)
+    if known_step(arg) === 1
+        return (first(arg) + f):(last(arg) + f)
+    else
+        return (first(arg) + f):step(arg):(last(arg) + f)
+    end
+end
+
+# subtract offsets
+apply_offsets(::Tuple{}, ::Tuple{}) = ()
+apply_offsets(::Tuple{}, ::Tuple) = ()
+apply_offsets(::Tuple, ::Tuple{}) = ()
+@inline function apply_offsets(axs::Tuple{A}, inds::Tuple{<:Integer}) where {A}
+    return (_sub_offset(first(axs), first(inds)),)
+end
+@inline function apply_offsets(axs::Tuple, inds::Tuple)
+    return (_sub_offset(first(axs), first(inds)), apply_offsets(tail(axs), tail(inds))...)
+end
+_sub_offset(axis, x) = x
+_sub_offset(axis::OffsetAxis, arg) = __sub_offset(getfield(axis, :offset), arg)
+_sub_offset(axis::IdentityAxis, arg) = __sub_offset(getfield(axis, :offset), arg)
+function _sub_offset(axis::CenteredAxis, arg)
+    p = parent(axis)
+    return __sub_offset(_origin_to_offset(first(p), length(p), origin(axis)), arg)
+end
+__sub_offset(f, arg::Integer) = arg - f
+__sub_offset(f, arg::AbstractArray) = arg .- f
+function __sub_offset(f, arg::AbstractRange)
+    if known_step(arg) === 1
+        return (first(arg) - f):(last(arg) - f)
+    else
+        return (first(arg) - f):step(arg):(last(arg) - f)
+    end
+end
+
+export ..
 
 end
 

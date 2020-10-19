@@ -26,7 +26,7 @@ function StaticRanges.has_offset_axes(::Type{T}) where {T<:AbstractAxis}
     return !(known_first(T) === oneunit(valtype(T)))
 end
 
-"""
+#=
 
     permute_axes(x::AbstractArray, perms::Tuple) = permute_axes(axes(x), p)
     permute_axes(x::NTuple{N}, perms::NTuple{N}) -> NTuple{N}
@@ -44,14 +44,14 @@ julia> AxisIndices.permute_axes((Axis(1:2), Axis(1:4), Axis(1:6)), (1, 3, 2))
 (Axis(1:2 => Base.OneTo(2)), Axis(1:6 => Base.OneTo(6)), Axis(1:4 => Base.OneTo(4)))
 
 ```
-"""
+=#
 permute_axes(x::AbstractArray{T,N}, perms) where {T,N} = permute_axes(axes(x), perms)
 function permute_axes(x::NTuple{N,Any}, perms::AbstractVector{<:Integer}) where {N}
     return Tuple(map(i -> getindex(x, i), perms))
 end
 permute_axes(x::NTuple{N,Any}, p::NTuple{N,<:Integer}) where {N} = map(i -> getfield(x, i), p)
 
-"""
+#=
     permute_axes(x::AbstractVector)
 
 Returns the permuted axes of `x` as axes of size 1 × length(x)
@@ -73,7 +73,7 @@ julia> AxisIndices.permute_axes((Axis(srange(1, 4)),))
 (SimpleAxis(OneToSRange(1)), Axis(UnitSRange(1:4) => OneToSRange(4)))
 
 ```
-"""
+=#
 permute_axes(x::AbstractVector) = permute_axes(axes(x))
 function permute_axes(x::Tuple{Ax}) where {Ax<:AbstractUnitRange}
     if is_static(Ax)
@@ -86,7 +86,7 @@ function permute_axes(x::Tuple{Ax}) where {Ax<:AbstractUnitRange}
 end
 
 
-"""
+#=
     permute_axes(m::AbstractMatrix) -> NTuple{2}
 
 Permute the axes of the matrix `m`, by flipping the elements across the diagonal
@@ -104,7 +104,7 @@ julia> AxisIndices.permute_axes((Axis(1:4), Axis(1:2)))
 (Axis(1:2 => Base.OneTo(2)), Axis(1:4 => Base.OneTo(4)))
 
 ```
-"""
+=#
 permute_axes(x::AbstractMatrix) = permute_axes(axes(x))
 permute_axes(x::NTuple{2,Any}) = (last(x), first(x))
 

@@ -20,6 +20,9 @@ and [`IdentityAxis`](@ref) for more details and examples.
 """
 abstract type AbstractOffsetAxis{I,Inds,F} <: AbstractAxis{I,Inds} end
 
+# for getting the offset from an offset axis
+function get_offset end
+
 """
     IndexAxis
 
@@ -96,7 +99,7 @@ function Base.:+(r::AbstractAxis, s::AbstractAxis)
     indsr = axes(r, 1)
     if indsr == axes(s, 1)
         data = eachindex(r) + eachindex(s)
-        axs = (unsafe_reconstruct(r, eachindex(data); keys=keys(data)),)
+        axs = (unsafe_reconstruct(r, eachindex(data)),)
         return  AxisArray{eltype(data),ndims(data),typeof(data),typeof(axs)}(data, axs)
     else
         throw(DimensionMismatch("axes $indsr and $(axes(s, 1)) do not match"))
@@ -143,112 +146,23 @@ end
 
 Base.lastindex(a::AbstractAxis) = last(a)
 Base.last(axis::AbstractAxis) = last(parent(axis))
-Base.last(axis::AbstractOffsetAxis) = last(parent(axis)) + static_offset(axis)
 
 ArrayInterface.known_last(::Type{T}) where {T<:AbstractAxis} = known_last(parent_type(T))
-@inline function ArrayInterface.known_last(::Type{T}) where {T<:AbstractOffsetAxis}
-    if known_last(parent_type(T)) === nothing || known_offset(T) === nothing
-        return nothing
-    else
-        return known_last(parent_type(T)) + known_offset(T)
-    end
-end
 
 ###
 ### first
 ###
 Base.firstindex(axis::AbstractAxis) = first(axis)
 Base.first(axis::AbstractAxis) = first(parent(axis))
-Base.first(axis::AbstractOffsetAxis) = first(parent(axis)) + static_offset(axis)
 
 ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis} = known_first(parent_type(T))
-@inline function ArrayInterface.known_first(::Type{T}) where {T<:AbstractOffsetAxis}
-    if known_first(parent_type(T)) === nothing || known_offset(T) === nothing
-        return nothing
-    else
-        return known_first(parent_type(T)) + known_offset(T)
-    end
-end
 
 # This is different than how most of Julia does a summary, but it also makes errors
 # infinitely easier to read when wrapping things at multiple levels or using Unitful keys
-function Base.summary(io::IO, a::AbstractAxis)
-    return print(io, "$(length(a))-element $(typeof(a).name)($(keys(a)) => $(values(a)))")
-end
+Base.summary(io::IO, axis::AbstractAxis) = show(io, axis)
 
 function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
     return Axis(reverse(keys(axis)), newinds; checks=NoChecks)
-end
-
-###
-### to_index
-###
-@propagate_inbounds ArrayInterface.to_index(::IndexAxis, axis, arg) = _to_index(axis, arg)
-@propagate_inbounds function ArrayInterface.to_index(::IndexAxis, axis, arg::Integer)
-    @boundscheck checkbounds(axis, arg)
-    return Int(arg)
-end
-@propagate_inbounds function ArrayInterface.to_index(::IndexAxis, axis, arg::AbstractArray{Bool})
-    return to_index(eachindex(axis), arg)
-end
-@propagate_inbounds function ArrayInterface.to_index(::IndexAxis, axis, arg::AbstractArray{I}) where {I<:Integer}
-    return to_index(eachindex(axis), arg)
-end
-ArrayInterface.to_index(::IndexAxis, axis, ::Colon) = indices(axis)
-@propagate_inbounds function ArrayInterface.to_index(
-    ::IndexAxis,
-    axis,
-    arg::AbstractUnitRange{I}
-) where I<:Integer
-
-    @boundscheck if !checkindex(Bool, axis, arg)
-        throw(BoundsError(axis, arg))
-    end
-    return AbstractUnitRange{Int}(arg)
-end
-@propagate_inbounds function _to_index(axis, arg::CartesianIndex)
-    @boundscheck checkbounds(axis, arg)
-    return arg
-end
-@propagate_inbounds function _to_index(axis, arg)
-    if arg isa keytype(axis)
-        idx = find_first(==(arg), keys(axis))
-    else
-        idx = find_first(==(keytype(axis)(arg)), keys(axis))
-    end
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, arg))
-    end
-    return Int(@inbounds(indices(axis)[idx]))
-end
-
-@propagate_inbounds function _to_index(axis, arg::Fix2)
-    return @inbounds(eachindex(axis)[find_all(arg, keys(axis))])
-end
-
-@propagate_inbounds function _to_index(axis, arg::Union{<:Equal,Approx})
-    idx = findfirst(arg, keys(axis))
-    @boundscheck if idx isa Nothing
-        throw(BoundsError(axis, arg))
-    end
-    return Int(@inbounds(eachindex(axis)[idx]))
-end
-
-@propagate_inbounds function _to_index(axis, arg::AbstractArray)
-    return map(arg_i -> _to_index(axis, arg_i), arg)
-end
-
-@propagate_inbounds function _to_index(axis, arg::AbstractRange)
-    if eltype(arg) <: keytype(axis)
-        inds = find_all(in(arg), keys(axis))
-    else
-        inds = find_all(in(AbstractRange{keytype(axis)}(arg)), keys(axis))
-    end
-    # if `inds` is same length as `arg` then all of `arg` was found and is inbounds
-    @boundscheck if length(inds) != length(arg)
-        throw(BoundsError(axis, arg))
-    end
-    return @inbounds(eachindex(axis)[idx])
 end
 
 ###
@@ -257,14 +171,16 @@ end
 maybe_unsafe_reconstruct(axis, inds::Integer; kwargs...) = eltype(axis)(inds)
 function maybe_unsafe_reconstruct(axis, inds::AbstractArray; keys=nothing)
     if known_step(inds) === 1 && eltype(inds) <: Integer
-        return unsafe_reconstruct(axis, inds; keys=keys)
+        return unsafe_reconstruct(axis, SimpleAxis(inds); keys=keys)
     else
-        axs = (unsafe_reconstruct(axis, eachindex(inds)),)
+        axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds))),)
         return AxisArray{eltype(inds),ndims(inds),typeof(inds),typeof(axs)}(inds, axs)
     end
 end
-function maybe_unsafe_reconstruct(axis::AbstractOffsetAxis, inds::AbstractArray; keys=nothing) where {I<:Integer}
+function maybe_unsafe_reconstruct(axis::AbstractOffsetAxis, inds::AbstractArray; keys=nothing)
     if known_step(inds) === 1 && eltype(inds) <: Integer
+        return unsafe_reconstruct(axis, SimpleAxis(inds); keys=keys)
+        #=
         f = offsets(axis, 1)
         new_inds = (static_first(inds) - f):(static_last(inds) - f)
         if keys === nothing
@@ -272,78 +188,11 @@ function maybe_unsafe_reconstruct(axis::AbstractOffsetAxis, inds::AbstractArray;
         else
             return unsafe_reconstruct(axis, new_inds; keys=keys)
         end
+        =#
     else
-        axs = (unsafe_reconstruct(axis, eachindex(inds)),)
+        axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds))),)
         return AxisArray{eltype(inds),ndims(inds),typeof(inds),typeof(axs)}(inds, axs)
     end
-end
-
-###
-### getindex
-###
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::Integer)
-    @boundscheck checkbounds(axis, arg)
-    return eltype(axis)(arg)
-end
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::AbstractUnitRange{I}) where {I<:Integer}
-    @boundscheck checkbounds(axis, arg)
-    return unsafe_reconstruct(axis, apply_offset(axis, arg); keys=arg)
-end
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::StepRange{I}) where {I<:Integer}
-    @boundscheck checkbounds(axis, arg)
-    return maybe_unsafe_reconstruct(axis, StepRange{eltype(axis),eltype(axis)}(arg))
-end
-
-Base.getindex(axis::AbstractAxis, ::Colon) = copy(axis)
-Base.getindex(axis::AbstractAxis, ::Ellipsis) = copy(axis)
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg)
-    return maybe_unsafe_reconstruct(axis, _to_index(axis, arg))
-end
-
-###
-### checkindex
-###
-function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg)
-    if is_key(axis, arg)
-        return arg in keys(axis)
-    else
-        return arg in eachindex(axis)
-    end
-end
-Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::Interval) = true
-Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::Colon) = true
-Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::Slice) = true
-function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::AbstractArray) 
-    if is_key(axis, arg)
-        return length(find_all_in(arg, keys(axis))) == length(arg)
-    else
-        return checkindex(Bool, eachindex(axis), arg)
-    end
-end
-Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::AbstractArray{Bool}) = false
-function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::AbstractVector{Bool})
-    return checkindex(Bool, eachindex(axis), arg)
-end
-function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::Real)
-    if is_key(axis, arg)
-        return in(arg, keys(axis))
-    else
-        return in(arg, eachindex(axis))
-    end
-end
-function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::Union{<:Equal,<:Approx})
-    return !(find_first(arg, keys(axis)) === nothing)
-end
-function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::AbstractRange{T}) where {T}
-    if is_key(axis, arg)
-        return length(find_all_in(arg, keys(axis))) == length(axis)
-    else
-        return checkindex(Bool, eachindex(axis), arg)
-    end
-end
-Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::Fix2) = true
-@inline function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::LogicalIndex)
-    return (axis,) == axes(arg.mask)
 end
 
 ###
@@ -365,46 +214,13 @@ function append_keys!(x, y)
     end
 end
 
-known_offset(x) = known_offset(typeof(x))
-function known_offset(::Type{T}) where {T<:AbstractUnitRange}
-    if known_first(T) === nothing
-        return nothing
-    else
-        f = known_first(T)
-        return  f - one(f)
-    end
-end
-known_offset(::Type{T}) where {F,T<:AbstractOffsetAxis{<:Any,<:Any,StaticInt{F}}} = F
-known_offset(::Type{T}) where {T<:AbstractOffsetAxis} = nothing
+@inline ArrayInterface.offsets(axis::AbstractAxis) = (first(axis),)
 
-@inline static_offset(x) = ArrayInterface.maybe_static(known_offset, i -> offsets(i, 1), x)
-
-@inline ArrayInterface.offsets(axis::AbstractAxis, i) = offsets(axis)[i]
-ArrayInterface.offsets(axis::AbstractAxis) = (offsets(parent(axis)),)
-
-ArrayInterface.offsets(axis::AbstractOffsetAxis) = (getfield(axis, :offset),)
-
-###
-### offsets
-###
-# known_offset
-
-@inline apply_offset(axis::AbstractUnitRange, i::Integer) = Int(i)
-@inline apply_offset(axis::AbstractAxis, i::Integer) = apply_offset(parent(axis), i)
-@inline apply_offset(axis::AbstractOffsetAxis, i::Integer) = Int(i - offsets(axis, 1))
-# when this happens it means that we had eachindex(A) for linear indexing but it has a
-# IndexCartesian
-@inline apply_offset(axis::CartesianIndices, i::Integer) = Int(i)
-
-apply_offset(axis::AbstractUnitRange, i) = i
-apply_offset(axis::AbstractAxis, i) = i
-@inline apply_offset(axis::AbstractOffsetAxis, i) = i .- offsets(axis, 1)
-@inline function apply_offset(axis::AbstractOffsetAxis, i::AbstractRange)
-    f = offsets(axis, 1)
-    if known_step(i) === 1
-        return (static_first(i) - f):(static_last(i) - f)
-    else
-        return i .- f
-    end
-end
-
+#= TODO delete?
+is_offset_axis(x) = is_offset_axis(typeof(x))
+is_offset_axis(::Type{T}) where {T} = false
+is_offset_axis(::Type{T}) where {T<:AbstractAxis} = is_offset_axis(parent_type(T))
+is_offset_axis(::Type{T}) where {T<:CenteredAxis} = true
+is_offset_axis(::Type{T}) where {T<:OffsetAxis} = true
+is_offset_axis(::Type{T}) where {T<:IdentityAxis} = true
+=#

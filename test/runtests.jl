@@ -53,6 +53,21 @@ bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
 @test Base.to_shape(SimpleAxis(1)) == 1
 
+include("simple_axis.jl")
+include("axis.jl")
+include("abstract_axis.jl")
+include("centered_axis.jl")
+include("identity_axis.jl")
+include("offset_axis.jl")
+include("arrays.jl")
+include("getindex_tests.jl")
+include("append_tests.jl")
+include("similar_tests.jl")
+include("broadcasting_tests.jl")
+include("linear_algebra.jl")
+include("first_tests.jl")
+include("last_tests.jl")
+include("length_tests.jl")
 include("copyto_tests.jl")
 
 @testset "keys" begin
@@ -105,7 +120,7 @@ end
         @test axs == inds
     end
 
-    @test collect(cartaxes) == cartaxes[1:4,1:4]
+    @test collect(cartaxes) == cartaxes[1:4, 1:4]
 end
 
 @testset "LinearAxes" begin
@@ -122,30 +137,11 @@ end
     @test collect(linaxes) == linaxes[1:4,1:4]
 end
 
-include("simple_axis.jl")
-include("axis.jl")
-include("abstract_axis.jl")
-include("centered_axis.jl")
-include("identity_axis.jl")
-include("offset_axis.jl")
-include("arrays.jl")
-include("getindex_tests.jl")
-include("append_tests.jl")
-include("similar_tests.jl")
-include("arrays.jl")
-include("broadcasting_tests.jl")
-include("linear_algebra.jl")
-include("first_tests.jl")
-include("last_tests.jl")
-include("length_tests.jl")
-
 @test first(axes(@inferred(filter(isodd, AxisArray(1:7, (2:8,)))), 1)) == 2
 @test axes(filter(isodd, AxisArray([11 12; 21 22], (2:3, 3:4))), 1) isa AbstractAxis
 include("mapped_arrays.jl")
 #include("offset_array_tests.jl")
-
 include("resize_tests.jl")
-include("offset_tests.jl")
 
 @testset "docs" begin
     doctest(AxisIndices)

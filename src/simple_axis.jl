@@ -10,7 +10,7 @@ be considered both the `values` and `keys` of the return instance.
 A `SimpleAxis` is useful for giving a standard set of indices the ability to use
 the filtering syntax for indexing.
 ```jldoctest
-julia> using SimpleAxisSimpleAxis, StaticRanges
+julia> using AxisIndices, StaticRanges
 
 julia> x = SimpleAxis(2:10)
 SimpleAxis(2:10)
@@ -31,7 +31,7 @@ julia> x[>(2)]
 SimpleAxis(3:10)
 
 julia> x[1]
-ERROR: BoundsError: attempt to access 9-element SimpleAxis(2:10 => 2:10) at index [1]
+ERROR: BoundsError: attempt to access SimpleAxis(2:10) at index [1]
 [...]
 ```
 """
@@ -48,7 +48,16 @@ struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
 
     SimpleAxis{I}(inds::AbstractUnitRange{I}) where {I} = SimpleAxis{I,typeof(inds)}(inds)
     SimpleAxis{I}(inds::AbstractUnitRange) where {I} = SimpleAxis{I}(AbstractUnitRange{I}(inds))
+    function SimpleAxis{I}(inds::SimpleAxis) where {I}
+        if eltype(inds) <: I
+            return inds
+        else
+            return SimpleAxis{I}(parent(inds))
+        end
+    end
 
+
+    SimpleAxis(inds::SimpleAxis) = inds
     SimpleAxis(inds::AbstractUnitRange{I}) where {I} = SimpleAxis{I}(inds)
     SimpleAxis(inds::IdentityUnitRange) = SimpleAxis(inds.indices)
     SimpleAxis() = new{Int,OneToMRange{Int}}(OneToMRange(0))
@@ -60,7 +69,7 @@ struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
 
     ## Examples
     ```jldoctest
-    julia> using SimpleAxisSimpleAxis
+    julia> using AxisIndices
 
     julia> SimpleAxis(1, 10)
     SimpleAxis(1:10)
@@ -75,7 +84,7 @@ struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
 
     ## Examples
     ```jldoctest
-    julia> using SimpleAxisSimpleAxis
+    julia> using AxisIndices
 
     julia> SimpleAxis(10)
     SimpleAxis(Base.OneTo(10))
@@ -86,3 +95,8 @@ end
 
 ArrayInterface.unsafe_reconstruct(axis::SimpleAxis, inds; kwargs...) = SimpleAxis(inds)
 
+# FIXME this should be deleted once https://github.com/SciML/ArrayInterface.jl/issues/79 is resolved
+@propagate_inbounds function Base.getindex(axis::SimpleAxis, arg::StepRange{I}) where {I<:Integer}
+    @boundscheck checkbounds(axis, arg)
+    return maybe_unsafe_reconstruct(axis, arg)
+end

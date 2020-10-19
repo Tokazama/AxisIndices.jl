@@ -319,7 +319,7 @@ end
 
     # TODO test warnings for immutable axes
     @testset "push!, pop!, etc" begin
-        v = AxisArray([10, 20, 30], (Axis(UnitMRange(2, 4),UnitMRange(1, 3)),))
+        v = AxisArray([10, 20, 30], (Axis(UnitMRange(2, 4)),))
 
         @test length(push!(v, 40)) == 4
         @test keys.(axes(pushfirst!(v, 0))) == (1:5,)
@@ -722,36 +722,6 @@ end
     @test axes(A) == (Axis([:a, :b, :c, :d] => Base.OneTo(4)), SimpleAxis(Base.OneTo(2)))
 
     @test axes(@inferred(reshape(A, 2, :))) == (Axis([:a, :b] => Base.OneTo(2)), SimpleAxis(Base.OneTo(4)))
-end
-
-@testset "pop" begin
-    for x in (Axis(UnitMRange(1,10),UnitMRange(1,10)),
-              SimpleAxis(UnitMRange(1,10)))
-        y = collect(x)
-        #@test pop(x) == pop(y)
-        @test pop!(x) == pop!(y)
-        @test x == y
-    end
-
-    r = UnitMRange(1, 1)
-    y = collect(r)
-    @test pop!(r) == pop!(y)
-    @test isempty(r) == true
-end
-
-# FIXME popfirst
-@testset "popfirst" begin
-    for x in (Axis(UnitMRange(1,10),UnitMRange(1,10)),
-              SimpleAxis(UnitMRange(1,10)))
-        y = collect(x)
-        #@test popfirst(x) == popfirst(y)
-        @test popfirst!(x) == popfirst!(y)
-        @test x == y
-    end
-    r = UnitMRange(1, 1)
-    y = collect(r)
-    @test popfirst!(r) == popfirst!(y)
-    @test isempty(r) == true
 end
 
 #= TODO

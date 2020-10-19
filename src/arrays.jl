@@ -11,11 +11,13 @@ A vector whose indices have keys.
 julia> using AxisIndices
 
 julia> AxisVector([1, 2], [:a, :b])
-2-element AxisArray{Int64,1}
- • dim_1 - [:a, :b]
-
-  a   1
-  b   2
+2-element AxisArray(::Array{Int64,1}
+  • axes:
+     1 = [:a, :b]
+)
+      1
+  :a  1
+  :b  2  
 
 ```
 """
@@ -85,8 +87,15 @@ julia> using AxisIndices
 
 julia> x = AxisArray([1, 2, 3, 4]);
 
-julia> keys.(axes(deleteat!(x, 3)))
-(OneToMRange(3),)
+julia> deleteat!(x, 3)
+3-element AxisArray(::Array{Int64,1}
+  • axes:
+     1 = 1:3
+)
+     1
+  1  1
+  2  2
+  3  4  
 
 julia> x = AxisArray([1, 2, 3, 4], ["a", "b", "c", "d"]);
 
@@ -98,8 +107,8 @@ julia> keys.(axes(deleteat!(x, "c")))
 function Base.deleteat!(A::AxisVector{T,P,Ax}, arg) where {T,P,Ax}
     if Ax<:Axis
         inds = to_index(axes(A, 1), arg)
-        deleteat!(keys.(axes(A, 1), inds))
-        shrink_last!(indices(A, 1), length(inds))
+        deleteat!(keys(axes(A, 1)), inds)
+        shrink_last!(parent(axes(A, 1)), length(inds))
         deleteat!(parent(A), inds)
         return A
     else
@@ -271,10 +280,11 @@ julia> using AxisIndices
 julia> A = reshape(AxisArray(Vector(1:8), [:a, :b, :c, :d, :e, :f, :g, :h]), 4, 2);
 
 julia> axes(A)
-(Axis([:a, :b, :c, :d] => Base.OneTo(4)), SimpleAxis(Base.OneTo(2)))
+(Axis([:a, :b, :c, :d] => SimpleAxis(1:4)), SimpleAxis(1:2))
 
 julia> axes(reshape(A, 2, :))
-(Axis([:a, :b] => Base.OneTo(2)), SimpleAxis(Base.OneTo(4)))
+(Axis([:a, :b] => SimpleAxis(1:2)), SimpleAxis(1:4))
+
 ```
 """
 function Base.reshape(A::AxisArray, shp::NTuple{N,Int}) where {N}
@@ -307,6 +317,7 @@ end
 _length(x::Integer) = x
 _length(x) = length(x)
 
+#= TODO replace this with what's in VectorizationBase.jl
 function init_array(::Type{T}, init::ArrayInitializer, axs::NTuple{N,Any}) where {T,N}
     create_static_array = true
     for i in 1:N
@@ -314,6 +325,11 @@ function init_array(::Type{T}, init::ArrayInitializer, axs::NTuple{N,Any}) where
     end
     return MArray{Tuple{map(_length, axs)...},T,N}(init)
 end
+=#
+function init_array(::Type{T}, init::ArrayInitializer, axs::NTuple{N,Any}) where {T,N}
+    return Array{T,N}(init, map(_length, axs))
+end
+
 
 #=
 function static_init_array(::Type{T}, init::ArrayInitializer, sz::NTuple{N,Any}) where {T,N}
@@ -393,11 +409,11 @@ function unsafe_view(A, inds::Tuple)
 end
 
 function unsafe_dotview(A, inds::Tuple{Vararg{<:Integer}})
-    return @inbounds(Base.dotview(parent(A), apply_offset(A, inds)...))
+    return @inbounds(Base.dotview(parent(A), _sub_offset(A, inds)...))
 end
 
 function unsafe_dotview(A, inds::Tuple)
-    p = @inbounds(Base.dotview(parent(A), apply_offset(A, inds)...))
+    p = @inbounds(Base.dotview(parent(A), _sub_offset(A, inds)...))
     return AxisArray(p, to_axes(A, axes(p)))
 end
 

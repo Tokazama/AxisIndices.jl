@@ -11,10 +11,10 @@ julia> A = AxisArray(reshape(1:9, 3,3),
 
 Most code should work just the same for an `AxisArray`...
 ```jldoctest quick_start_example
-julia> A[1, 1]
+julia> A[2, 1]
 1
 
-julia> A[1:2, 1:2] == parent(A)[1:2, 1:2]
+julia> A[2:4, 1:2] == parent(A)[1:3, 1:2]
 true
 
 julia> sum(A) == sum(parent(A))

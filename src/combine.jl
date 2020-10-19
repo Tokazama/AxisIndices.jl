@@ -3,11 +3,11 @@ for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:+, typeof(+), Real),
                      (:*, typeof(*), Real))
     @eval begin
-        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
-            return maybe_unsafe_reconstruct(r, broadcast($f, x, parent(r)); keys=keys(r))
+        function Base.broadcasted(b::DefaultArrayStyle{1}, ::$FT, x::$arg, r::AbstractAxis)
+            return maybe_unsafe_reconstruct(r, Base.broadcasted(b, $f, x, parent(r)); keys=keys(r))
         end
-        function Base.broadcasted(::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
-            return maybe_unsafe_reconstruct(r, broadcast($f, parent(r), x); keys=keys(r))
+        function Base.broadcasted(b::DefaultArrayStyle{1}, ::$FT, r::AbstractAxis, x::$arg)
+            return maybe_unsafe_reconstruct(r, Base.broadcasted(b, $f, parent(r), x); keys=keys(r))
         end
     end
 end
@@ -201,7 +201,11 @@ combine_axis(x, y, inds) = SimpleAxis(inds)
 combine_axis(x, y::AbstractAxis, inds) = combine_axis(y, x, inds)
 combine_axis(x::AbstractAxis, y, inds) = unsafe_reconstruct(x, inds)
 function combine_axis(x::AbstractAxis, y::AbstractAxis, inds)
-    return unsafe_reconstruct(x, unsafe_reconstruct(y, inds))
+    if y isa AbstractOffsetAxis
+        return unsafe_reconstruct(x, unsafe_reconstruct(parent(y), inds))
+    else
+        return unsafe_reconstruct(x, unsafe_reconstruct(y, inds))
+    end
 end
 
 combine_axis(x::SimpleAxis, y::AbstractAxis, inds) = combine_axis(parent(x), y, inds)
