@@ -147,5 +147,5 @@ include("resize_tests.jl")
     doctest(AxisIndices)
 end
 
-include("NamedMetaAxisArray_tests.jl")
+#include("NamedMetaAxisArray_tests.jl")
 
