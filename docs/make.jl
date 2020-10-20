@@ -12,14 +12,14 @@ makedocs(;
         "Introduction" => "index.md",
         "Quick Start" => "quick_start.md",
         "Manual" => [
-            "Axis Interface" => "axis.md",
-            #"Array Interface" => "arrays.md",
+            "Array Interface" => "arrays.md",
             "AxisArrays" => "axis_arrays.md",
             "OffsetAxes" => "offset_axes.md",
             #"Named Axes" => "named_axes.md",
             "Standard Library" => "standard_library.md",
             "Internals of Indexing" => "internals_of_indexing.md",
             "Compatibility" => "compatibility.md",
+            "Performance" => "performance.md"
         ],
         #=
         "Examples" => [

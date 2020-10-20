@@ -126,6 +126,7 @@ const MetaAxisArray{T,N,P,Axs,M} = Metadata.MetaArray{T,N,AxisArray{T,N,P,Axs},M
 
 const NamedMetaAxisArray{L,T,N,P,M,Axs} = NamedDimsArray{L,T,N,MetaAxisArray{T,N,P,Axs,M}}
 
+
 include("indexing.jl")
 include("axes_methods.jl")
 include("combine.jl")
