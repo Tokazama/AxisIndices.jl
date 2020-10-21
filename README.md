@@ -10,7 +10,7 @@ Here are some reasons you should try AxisIndices
 * **Works with Julia's standard library** (in progress). The end goal of AxisIndices is to fully integrate with the standard library wherever possible. If you can find a relevant method that isn't supported in `Base`or  `Statistics` then it's likely an oversight, so make an issue. `LinearAlgebra`, `MappedArrays`, `OffsetArrays`, and `NamedDims` also have some form of support.
 
 
-## A Simple `AxisArrray`
+## A Simple `AxisArray`
 
 The simplest form of an `AxisArray` just wraps a standard array.
 
