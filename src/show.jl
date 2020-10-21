@@ -15,6 +15,8 @@ function _get_key(axis, i)
     end
 end
 _get_key(axis::Axis, i) = keys(axis)[findfirst(==(i), eachindex(axis))]
+_get_key(axis::StructAxis, i) = keys(axis)[findfirst(==(i), eachindex(axis))]
+
 # this makes it so we don't print StaticInt
 
 function Base.alignment(

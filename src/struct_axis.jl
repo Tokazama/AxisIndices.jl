@@ -176,4 +176,3 @@ function print_axis(io, axis::StructAxis{T}) where {T}
         print(io, "StructAxis($(T) => $(parent(axis)))")
     end
 end
-
