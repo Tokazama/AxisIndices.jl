@@ -10,7 +10,7 @@ using Dates
 using Documenter
 using StaticArrays
 using ArrayInterface
-using ArrayInterface: indices, known_length
+using ArrayInterface: indices, known_length, StaticInt
 
 #=
 pkgs = (Documenter,Dates,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core);
@@ -59,6 +59,7 @@ include("abstract_axis.jl")
 include("centered_axis.jl")
 include("identity_axis.jl")
 include("offset_axis.jl")
+include("struct_axis.jl")
 include("arrays.jl")
 include("getindex_tests.jl")
 include("append_tests.jl")

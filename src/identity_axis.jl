@@ -104,6 +104,8 @@ struct IdentityAxis{I,Inds<:AbstractAxis,F} <: AbstractOffsetAxis{I,Inds,F}
     end
 end
 
+@inline Base.getproperty(axis::IdentityAxis, k::Symbol) = getproperty(parent(axis), k)
+
 ArrayInterface.known_first(::Type{T}) where {T<:IdentityAxis{<:Any,<:Any,<:Any}} = nothing
 function ArrayInterface.known_first(::Type{T}) where {Inds,F,T<:IdentityAxis{<:Any,Inds,StaticInt{F}}}
     if known_first(Inds) === nothing

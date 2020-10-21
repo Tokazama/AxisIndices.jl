@@ -9,10 +9,8 @@ makedocs(;
     modules=[AxisIndices],
     format=Documenter.HTML(),
     pages=[
-        "Introduction" => "index.md",
-        "Quick Start" => "quick_start.md",
+        "AxisIndices" => "index.md",
         "Manual" => [
-            "Array Interface" => "arrays.md",
             "AxisArrays" => "axis_arrays.md",
             "OffsetAxes" => "offset_axes.md",
             #"Named Axes" => "named_axes.md",

@@ -215,12 +215,3 @@ function append_keys!(x, y)
 end
 
 @inline ArrayInterface.offsets(axis::AbstractAxis) = (first(axis),)
-
-#= TODO delete?
-is_offset_axis(x) = is_offset_axis(typeof(x))
-is_offset_axis(::Type{T}) where {T} = false
-is_offset_axis(::Type{T}) where {T<:AbstractAxis} = is_offset_axis(parent_type(T))
-is_offset_axis(::Type{T}) where {T<:CenteredAxis} = true
-is_offset_axis(::Type{T}) where {T<:OffsetAxis} = true
-is_offset_axis(::Type{T}) where {T<:IdentityAxis} = true
-=#

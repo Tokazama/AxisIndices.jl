@@ -141,6 +141,8 @@ struct OffsetAxis{I,Inds<:AbstractAxis,F} <: AbstractOffsetAxis{I,Inds,F}
     OffsetAxis(axis::OffsetAxis; kwargs...) = axis
 end
 
+@inline Base.getproperty(axis::OffsetAxis, k::Symbol) = getproperty(parent(axis), k)
+
 ArrayInterface.known_first(::Type{T}) where {T<:OffsetAxis{<:Any,<:Any,<:Any}} = nothing
 function ArrayInterface.known_first(::Type{T}) where {Inds,F,T<:OffsetAxis{<:Any,Inds,StaticInt{F}}}
     if known_first(Inds) === nothing

@@ -93,6 +93,8 @@ struct SimpleAxis{I,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
     SimpleAxis(stop::Integer) = SimpleAxis(StaticInt(1):stop)
 end
 
+@inline Base.getproperty(axis::SimpleAxis, k::Symbol) = getproperty(parent(axis), k)
+
 ArrayInterface.unsafe_reconstruct(axis::SimpleAxis, inds; kwargs...) = SimpleAxis(inds)
 
 # FIXME this should be deleted once https://github.com/SciML/ArrayInterface.jl/issues/79 is resolved

@@ -5,7 +5,6 @@ Base.deleteat!
 Base.rotr90
 Base.rotl90
 Base.rot180
-Base.similar
 Base.reshape
 Base.inv
 LinearAlgebra.diag

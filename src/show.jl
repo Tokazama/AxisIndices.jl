@@ -262,53 +262,6 @@ function print_axes_summary(io::IO, axs::Tuple)
     end
 end
 
-###
-### axis printing
-###
-Base.show(io::IO, axis::AbstractAxis) = print_axis(io, axis)
-Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = print_axis(io, axis)
-
-function print_axis(io, axis::Axis)
-    if haskey(io, :compact)
-        show(io, keys(axis))
-    else
-        print(io, "Axis($(keys(axis)) => $(parent(axis)))")
-    end
-end
-
-function print_axis(io::IO, axis::OffsetAxis)
-    if haskey(io, :compact)
-        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
-    else
-        print(io, "OffsetAxis(offset=$(getfield(axis, :offset)), parent=$(parent(axis))))")
-    end
-end
-function print_axis(io::IO, axis::CenteredAxis)
-    if haskey(io, :compact)
-        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
-    else
-        print(io, "CenteredAxis(origin=$(Int(origin(axis))), parent=$(parent(axis)))")
-    end
-end
-
-function print_axis(io::IO, axis::IdentityAxis)
-    if haskey(io, :compact)
-        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
-    else
-        print(io, "IdentityAxis(identity=$(Int(first(axis))):$(Int(last(axis)))," *
-              " parent=$(parent(axis)))")
-    end
-end
-
-function print_axis(io::IO, axis::SimpleAxis)
-    inds = Int(first(axis)):Int(last(axis))
-    if haskey(io, :compact)
-        show(io, inds)
-    else
-        print(io, "SimpleAxis($(inds))")
-    end
-end
-
 function Base.show_nd(io::IO, a::AxisArray, print_matrix::Function, label_slices::Bool)
     limit::Bool = get(io, :limit, false)
     if isempty(a)
@@ -408,4 +361,51 @@ function Base.showarg(io::IO, x::AxisArray, toplevel)
 end
 
 Base.summary(io::IO, x::AxisArray) = Base.showarg(io, x, true)
+
+###
+### axis printing
+###
+Base.show(io::IO, axis::AbstractAxis) = print_axis(io, axis)
+Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = print_axis(io, axis)
+
+function print_axis(io, axis::Axis)
+    if haskey(io, :compact)
+        show(io, keys(axis))
+    else
+        print(io, "Axis($(keys(axis)) => $(parent(axis)))")
+    end
+end
+
+function print_axis(io::IO, axis::OffsetAxis)
+    if haskey(io, :compact)
+        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
+    else
+        print(io, "OffsetAxis(offset=$(getfield(axis, :offset)), parent=$(parent(axis))))")
+    end
+end
+function print_axis(io::IO, axis::CenteredAxis)
+    if haskey(io, :compact)
+        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
+    else
+        print(io, "CenteredAxis(origin=$(Int(origin(axis))), parent=$(parent(axis)))")
+    end
+end
+
+function print_axis(io::IO, axis::IdentityAxis)
+    if haskey(io, :compact)
+        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
+    else
+        print(io, "IdentityAxis(identity=$(Int(first(axis))):$(Int(last(axis)))," *
+              " parent=$(parent(axis)))")
+    end
+end
+
+function print_axis(io::IO, axis::SimpleAxis)
+    inds = Int(first(axis)):Int(last(axis))
+    if haskey(io, :compact)
+        show(io, inds)
+    else
+        print(io, "SimpleAxis($(inds))")
+    end
+end
 

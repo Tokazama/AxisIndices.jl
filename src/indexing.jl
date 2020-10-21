@@ -245,4 +245,3 @@ Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::Fix2) = true
 function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::LogicalIndex)
     return (axis,) == axes(arg.mask)
 end
-

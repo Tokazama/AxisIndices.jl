@@ -363,15 +363,16 @@ Base.size(x::AxisArray) = map(static_length, axes(x))
     if i < 1
         error("BoundsError: attempt to access $(typeof(x)) at dimension $i")
     else
-        return unsafe_axes(x, i)
+        return unsafe_axes(axes(x), i)
     end
 end
 
-function unsafe_axes(x, i)
-    if i > ndims(x)
+@inline unsafe_axes(axs::Tuple, ::StaticInt{I}) where {I} = unsafe_axes(axs, I)
+@inline function unsafe_axes(axs::Tuple, i)
+    if i > length(axs)
         return SimpleAxis(1)
     else
-        return getfield(axes(x), i)
+        return getfield(axs, i)
     end
 end
 

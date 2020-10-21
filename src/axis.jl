@@ -174,6 +174,7 @@ end
 
 ## interface
 Base.keys(axis::Axis) = getfield(axis, :keys)
+@inline Base.getproperty(axis::Axis, k::Symbol) = getproperty(parent(axis), k)
 
 function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=nothing, kwargs...) where {K,I,Ks,Inds}
     if keys === nothing

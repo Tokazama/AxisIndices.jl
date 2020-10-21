@@ -87,6 +87,8 @@ struct CenteredAxis{I,Inds,F} <: AbstractOffsetAxis{I,Inds,F}
     end
 end
 
+@inline Base.getproperty(axis::CenteredAxis, k::Symbol) = getproperty(parent(axis), k)
+
 function ArrayInterface.unsafe_reconstruct(axis::CenteredAxis, inds; kwargs...)
     return CenteredAxis(origin(axis), unsafe_reconstruct(parent(axis), inds; kwargs...))
 end

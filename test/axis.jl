@@ -27,26 +27,8 @@
     @test Axis{Int,Int,UnitRange{Int},SimpleAxis{Int,Base.OneTo{Int}}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},SimpleAxis{Int,Base.OneTo{Int}}}
     @test Axis{Int,Int,UnitRange{Int},SimpleAxis{Int,Base.OneTo{Int}}}(1:2) isa Axis{Int,Int,UnitRange{Int},SimpleAxis{Int,Base.OneTo{Int}}}
 end
-    #= FIXME StructAxis
-    @testset "StructAxis" begin
-        axis = @inferred(StructAxis{NamedTuple{(:one,:two,:three),Tuple{Int64,Int32,Int16}}}())
-        @test axis[1:2] == [1, 2]
-        @test keys(axis[1:2]) == [:one, :two]
-        #@test AxisIndices.AxisCore.to_types(axis, :one) <: Int
-        #@test AxisIndices.AxisCore.to_types(axis, [:one, :two]) <: Tuple{Int,Int32}
 
-        axis = StructAxis{NamedTuple{(:a,:b),Tuple{Int,Int}}}()
-        x = AxisArray(reshape(1:4, 2, 2), axis);
-        x2 = struct_view(x);
-        @test x2[1] isa NamedTuple{(:a,:b),Tuple{Int,Int}}
-
-        x = AxisArray(reshape(1:4, 2, 2), StructAxis{Rational}());
-        x2 = struct_view(x);
-        @test x2[1] isa Rational
-        @test AxisIndices.structdim(x) == 1
-    end
-    =#
-    #@test @inferred(AxisIndices.to_axis(a1)) == a1
+   #@test @inferred(AxisIndices.to_axis(a1)) == a1
 
         #= TODO problems with `==` due to == on axes
         @testset "View axes" begin

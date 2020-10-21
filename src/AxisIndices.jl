@@ -31,6 +31,7 @@ using StaticRanges: is_static, is_fixed, similar_type
 using Base: @propagate_inbounds, tail, LogicalIndex, Slice, OneTo, Fix2, ReinterpretArray
 using Base: IdentityUnitRange, setindex
 using Base.Broadcast: Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using ArrayInterface: OptionallyStaticUnitRange
 using ArrayInterface: known_length, known_first, known_step, known_last, can_change_size
 using ArrayInterface: static_length, static_first, static_step, static_last, StaticInt, Zero, One
 using ArrayInterface: indices, offsets, to_index, to_axis, to_axes, unsafe_reconstruct, parent_type
