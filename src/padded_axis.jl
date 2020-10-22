@@ -207,4 +207,3 @@ function print_axis(io::IO, axis::PaddedAxis)
         print(io, "|$(Int(last_pad(axis)))→$(stop))")
     end
 end
-

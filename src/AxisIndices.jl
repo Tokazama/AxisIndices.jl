@@ -6,6 +6,7 @@ module AxisIndices
     replace(read(path, String), r"^```julia"m => "```jldoctest README")
 end AxisIndices
 
+using AbstractFFTs
 using ArrayInterface
 using ChainedFixes
 using IntervalSets
@@ -145,6 +146,7 @@ include("abstractarray.jl")
 include("promotion.jl")
 include("named.jl")
 include("show.jl")
+include("fft.jl")
 
 # TODO move this to ArrayInterface
 ArrayInterface._multi_check_index(axs::Tuple, arg::LogicalIndex{<:Any,<:AxisArray}) = axs == axes(arg.mask)
@@ -232,4 +234,3 @@ export ..
 end
 
 end
-
