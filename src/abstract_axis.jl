@@ -215,3 +215,7 @@ function append_keys!(x, y)
 end
 
 @inline ArrayInterface.offsets(axis::AbstractAxis) = (first(axis),)
+
+Base.show(io::IO, axis::AbstractAxis) = print_axis(io, axis)
+Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = print_axis(io, axis)
+

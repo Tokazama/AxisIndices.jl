@@ -372,3 +372,11 @@ end
         )
     end
 end
+
+function print_axis(io, axis::Axis)
+    if haskey(io, :compact)
+        show(io, keys(axis))
+    else
+        print(io, "Axis($(keys(axis)) => $(parent(axis)))")
+    end
+end

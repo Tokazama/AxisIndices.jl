@@ -268,3 +268,10 @@ function OffsetArray{T,N,P}(A::P, inds::Tuple{Vararg{<:Any,N}}; checks=AxisArray
     return AxisArray{T,N,typeof(A),typeof(axs)}(A, axs; checks=NoChecks)
 end
 
+function print_axis(io::IO, axis::OffsetAxis)
+    if haskey(io, :compact)
+        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
+    else
+        print(io, "OffsetAxis(offset=$(getfield(axis, :offset)), parent=$(parent(axis))))")
+    end
+end

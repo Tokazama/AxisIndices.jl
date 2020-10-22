@@ -102,3 +102,12 @@ ArrayInterface.unsafe_reconstruct(axis::SimpleAxis, inds; kwargs...) = SimpleAxi
     @boundscheck checkbounds(axis, arg)
     return maybe_unsafe_reconstruct(axis, arg)
 end
+
+function print_axis(io::IO, axis::SimpleAxis)
+    inds = Int(first(axis)):Int(last(axis))
+    if haskey(io, :compact)
+        show(io, inds)
+    else
+        print(io, "SimpleAxis($(inds))")
+    end
+end

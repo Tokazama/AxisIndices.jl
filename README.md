@@ -299,3 +299,57 @@ julia> axview[:b]
 3.0 + 4.0im
 
 ```
+
+## Attaching Metadata
+
+Using the `Metadata` package, metadata can be added to an `AxisArray`.
+```julia
+julia> using Metadata
+
+julia> mx = attach_metadata(AxisArray(x))
+2×4 attach_metadata(AxisArray(reshape(::UnitRange{Int64}, 2, 4)
+  • axes:
+     1 = 1:2
+     2 = 1:4
+), ::Dict{Symbol,Any}
+  • metadata:
+)
+     1  2  3  4
+  1  1  3  5  7
+  2  2  4  6  8
+
+julia> mx.m1 = 1;
+
+julia> mx.m1
+1
+
+```
+
+Metadata can also be attached to an axis.
+```julia
+julia> m = (a = 1, b = 2);
+
+julia> ax = AxisArray(x, nothing, attach_metadata(m));
+
+julia> metadata(ax, dim=2)
+(a = 1, b = 2)
+
+```
+
+## Named Axes
+
+Names can be attached to each dimension/axis using `NamedAxisArray`.
+```julia
+julia> nax = NamedAxisArray(reshape(1:4, 2, 2), x = [:a, :b], y = ["c", "d"])
+2×2 NamedDimsArray(AxisArray(reshape(::UnitRange{Int64}, 2, 2)
+  • axes:
+     x = [:a, :b]
+     y = ["c", "d"]
+))
+      "c"   "d" 
+  :a  1     3
+  :b  2     4  
+
+```
+
+

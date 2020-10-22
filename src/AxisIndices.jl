@@ -66,7 +66,13 @@ export
     offset,
     permuteddimsview,
     StructAxis,
-    struct_view
+    struct_view,
+    zero_pad,
+    one_pad,
+    symmetric_pad,
+    reflect_pad,
+    circular_pad,
+    replicate_pad
 
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
@@ -215,6 +221,15 @@ function __sub_offset(f, arg::AbstractRange)
 end
 
 export ..
+
+# Metadata stuff
+@inline function Metadata.metadata(x::AxisArray; dim=nothing, kwargs...)
+    if dim === nothing
+        return metadata(parent(x); kwargs...)
+    else
+        return metadata(axes(x, dim); kwargs...)
+    end
+end
 
 end
 

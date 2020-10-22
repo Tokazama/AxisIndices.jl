@@ -256,3 +256,10 @@ function CenteredVector{T}(init::ArrayInitializer, arg) where {T}
     return CenteredVector{T}(Vector{T}(init, arg))
 end
 
+function print_axis(io::IO, axis::CenteredAxis)
+    if haskey(io, :compact)
+        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
+    else
+        print(io, "CenteredAxis(origin=$(Int(origin(axis))), parent=$(parent(axis)))")
+    end
+end

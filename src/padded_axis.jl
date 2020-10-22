@@ -1,29 +1,100 @@
 
-# TODO doc AbstractPad
 """
-    AbstractPad
+    PadStyle
+
+Abstract type for padding styles.
 """
-abstract type AbstractPad end
+abstract type PadStyle end
+
+# TODO PaddedAxis
+struct PaddedAxis{S,FP<:Integer,LP<:Integer,I,Inds} <: AbstractAxis{I,Inds}
+    pad_style::S
+    first_pad::FP
+    last_pad::LP
+    parent::Inds
+
+    function PaddedAxis(
+        style::S,
+        first_pad::Integer,
+        last_pad::Integer,
+        inds::AbstractAxis
+    ) where {S}
+        return new{S,typeof(first_pad),typeof(last_pad),eltype(inds),typeof(inds)}(
+            style,
+            first_pad,
+            last_pad,
+            inds
+        )
+    end
+
+    function PaddedAxis(style::S, first_pad::Integer, last_pad::Integer, inds) where {S}
+        return PaddedAxis(style, first_pad, last_pad, compose_axis(inds))
+    end
+end
+
+Base.first(axis::PaddedAxis) = first(parent(axis)) - first_pad(axis)
+Base.last(axis::PaddedAxis) = last(parent(axis)) + last_pad(axis)
+
+function ArrayInterface.known_first(::Type{T}) where {F,T<:PaddedAxis{<:Any,StaticInt{F}}}
+    if known_first(parent_type(T)) === nothing
+        return nothing
+    else
+        return known_first(parent_type(T)) - F
+    end
+end
+ArrayInterface.known_first(::Type{T}) where {T<:PaddedAxis{<:Any,<:Any}} = nothing
+
+function ArrayInterface.known_last(::Type{T}) where {L,T<:PaddedAxis{<:Any,<:Any,StaticInt{L}}}
+    if known_last(parent_type(T)) === nothing
+        return nothing
+    else
+        return known_last(parent_type(T)) + L
+    end
+end
+ArrayInterface.known_last(::Type{T}) where {T<:PaddedAxis{<:Any,<:Any,<:Any}} = nothing
+
+function ArrayInterface.known_length(::Type{T}) where {T<:PaddedAxis}
+    return _length_padded_axis(known_first(T), known_last(T))
+end
+
+pad_style(axis::PaddedAxis) = getfield(axis, :pad_style)
+
+first_pad(axis::PaddedAxis) = getfield(axis, :first_pad)
+
+last_pad(axis::PaddedAxis) = getfield(axis, :last_pad)
+
+
+@inline function Base.length(axis::PaddedAxis)
+    return _length_padded_axis(static_first(axis), static_last(axis))
+end
+
+_length_padded_axis(start::Integer, stop::Integer) = (stop - start) - one(start)
+_length_padded_axis(::Nothing, ::Integer) = nothing
+_length_padded_axis(::Integer, ::Nothing) = nothing
+_length_padded_axis(::Nothing, ::Nothing) = nothing
 
 """
-    IndexFillPad{F}(fxn::F)
+    FillPad{F}(fxn::F)
 
 Index style that pads a set number of indices on each side of an axis.
 `fxn`(eltype(A))` returns the padded value.
 
 """
-struct IndexFillPad{F} <: AbstractPad
+struct FillPad{F} <: PadStyle
     fxn::F
 end
 
-const IndexZeroPad = IndexFillPad(zero)
+const ZeroPad = FillPad(zero)
 
-const IndexOnePad = IndexFillPad(oneunit)
+const OnePad = FillPad(oneunit)
 
-(p::IndexFillPad)(x) = p.fxn(eltype(x))
+(p::FillPad)(x) = p.fxn(eltype(x))
+
+to_start_pad(s::FillPad, p, start, stop, i) = p
+to_last_pad(s::FillPad, p, start, stop, i) = p
 
 """
-    SymmetricPad <: AbstractPad
+    SymmetricPad <: PadStyle
 
 The border elements reflect relative to a position between elements. That is, the
 border pixel is omitted when mirroring.
@@ -36,10 +107,10 @@ border pixel is omitted when mirroring.
 }
 ```
 """
-struct SymmetricPad <: AbstractPad end
+struct SymmetricPad <: PadStyle end
 
-to_first_pad(::SymmetricPad, inds, arg) = Int(2first(inds) - arg)
-to_last_pad(::SymmetricPad, inds, arg) = Int(2last(inds) - arg)
+to_first_pad(::SymmetricPad, p, start, stop, i) = 2start - i
+to_last_pad(::SymmetricPad, p, start, stop, i) = 2stop - i
 
 """
     ReplicatePad
@@ -54,10 +125,10 @@ The border elements extend beyond the image boundaries.
 }
 ```
 """
-struct ReplicatePad <: AbstractPad end
+struct ReplicatePad <: PadStyle end
 
-to_first_pad(::ReplicatePad, inds, arg) = Int(firstindex(inds))
-to_last_pad(::ReplicatePad, inds, arg) = Int(lastindex(inds))
+to_first_pad(::ReplicatePad, p, start, stop, i) = start
+to_last_pad(::ReplicatePad, p, start, stop, i) = stop
 
 """
     CircularPad
@@ -74,10 +145,10 @@ returns values starting from the right border.
 ```
 
 """
-struct CircularPad <: AbstractPad end
+struct CircularPad <: PadStyle end
 
-to_first_pad(::CircularPad, inds, arg) = Int(last(inds) - (firstindex(inds) - (arg - 1)))
-to_last_pad(::CircularPad, inds, arg) = Int(first(inds) + (lastindex(inds) - (arg - 1)))
+to_first_pad(::CircularPad, p, start, stop, i) = stop - (start - (i - 1))
+to_last_pad(::CircularPad, p, start, stop, i) = start + (stop - (i - 1))
 
 """
     ReflectPad
@@ -92,28 +163,48 @@ The border elements reflect relative to the edge itself.
 }
 ```
 """
-struct ReflectPad <: AbstractPad end
+struct ReflectPad <: PadStyle end
 
-to_first_pad(::ReflectPad, inds, arg) = Int(first(inds) + (last(inds) - (arg - 1)))
-to_last_pad(::ReflectPad, inds, arg) = Int(last(inds) - (first(inds) - (arg - 1)))
+to_first_pad(::ReflectPad, p, start, stop, i) = start + (stop - (i - 1))
+to_last_pad(::ReflectPad, p, start, stop, i) = stop - (start - (i - 1))
 
-# TODO PaddedAxis
-struct PaddedAxis{P,FP,LP,I,Inds} <: AbstractAxis{I,Inds}
-    pad::P
-    first_pad::FP
-    last_pad::LP
-    parent::Inds
+for (f, P) in (
+    (:zero_pad, ZeroPad),
+    (:one_pad, OnePad),
+    (:replicate_pad, ReplicatePad),
+    (:symmetric_pad, SymmetricPad),
+    (:reflect_pad, ReflectPad),
+    (:circular_pad, CircularPad)
+   )
+    @eval begin
+        function $f(; first_pad=Zero(), last_pad=Zero())
+            inds -> PaddedAxis($P(), first_pad, last_pad, inds)
+        end
+    end
 end
 
-# FIXME
-@inline function apply_offset(axis::PaddedAxis, i::Integer)
+@inline function apply_offset(axis::PaddedAxis{S}, i::Integer) where {S}
     pinds = parent(axis)
     if first(pinds) > i
-        return to_first_pad(S, axis, i)
+        return to_first_pad(pad_style(axis), first_pad(axis), static_first(axis), static_last(axis), i)
     elseif last(pinds) < i
-        return to_last_pad(S, axis, i)
+        return to_last_pad(pad_style(axis), last_pad(axis), static_first(axis), static_last(axis), i)
     else
         return Int(i)
+    end
+end
+
+function print_axis(io::IO, axis::PaddedAxis)
+    start = Int(first(axis))
+    stop = Int(last(axis))
+    if haskey(io, :compact)
+        print(io, start:stop)
+    else
+        p = parent(axis)
+        print(io, "PaddedAxis($(pad_style(axis)), ")
+        print(io, "$(start)←$(Int(first_pad(axis)))|")
+        print(io, "$(Int(first(p))):$(Int(last(p)))")
+        print(io, "|$(Int(last_pad(axis)))→$(stop))")
     end
 end
 

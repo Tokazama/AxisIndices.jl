@@ -288,3 +288,12 @@ end
     return unsafe_reconstruct(axis, StaticInt(1):static_length(inds); keys=inds)
 end
 
+function print_axis(io::IO, axis::IdentityAxis)
+    if haskey(io, :compact)
+        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
+    else
+        print(io, "IdentityAxis(identity=$(Int(first(axis))):$(Int(last(axis)))," *
+              " parent=$(parent(axis)))")
+    end
+end
+

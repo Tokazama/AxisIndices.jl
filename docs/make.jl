@@ -9,22 +9,8 @@ makedocs(;
     modules=[AxisIndices],
     format=Documenter.HTML(),
     pages=[
-        "AxisIndices" => "index.md",
-        "Manual" => [
-            "AxisArrays" => "axis_arrays.md",
-            "OffsetAxes" => "offset_axes.md",
-            #"Named Axes" => "named_axes.md",
-            "Standard Library" => "standard_library.md",
-            "Internals of Indexing" => "internals_of_indexing.md",
-            "Compatibility" => "compatibility.md",
-            "Performance" => "performance.md"
-        ],
-        #=
-        "Examples" => [
-            "CoefTable" => "coeftable.md",
-            "TimeAxis Guide" => "time.md",
-        ],
-        =#
+        "index.md",
+        "references.md"
         "Comparison to Other Packages" => "comparison.md",
         "Acknowledgments" => "acknowledgments.md"
     ],
