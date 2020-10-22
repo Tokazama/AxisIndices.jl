@@ -149,6 +149,7 @@ julia> ax[:, <(0.3s)]
 This also allows us to use keys as indexing arguments...
 ```julia
 julia> ax[1, 0.1s]
+1
 ```
 ...or as intervals.
 ```julia
