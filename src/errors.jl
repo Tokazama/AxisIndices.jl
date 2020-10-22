@@ -40,4 +40,3 @@ function check_offsets(ks, inds, ::AxisArrayChecks{T}) where {T}
 end
 
 const NoChecks = AxisArrayChecks{Union{CheckedAxisLengths,CheckedUniqueKeys,CheckedOffsets}}()
-

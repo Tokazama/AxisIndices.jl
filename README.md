@@ -9,6 +9,8 @@ Here are some reasons you should try AxisIndices
 * **It's fast**. [StaticRanges](https://github.com/Tokazama/StaticRanges.jl) are used to speed up indexing ranges. If something is slow, please create a detailed issue.
 * **Works with Julia's standard library** (in progress). The end goal of AxisIndices is to fully integrate with the standard library wherever possible. If you can find a relevant method that isn't supported in `Base`or  `Statistics` then it's likely an oversight, so make an issue. `LinearAlgebra`, `MappedArrays`, `OffsetArrays`, and `NamedDims` also have some form of support.
 
+Note that in the Julia REPL an `AxisArray` prints as follows, which may not be apparent in the online documentation.
+![REPL AxisArray](./docs/src/assets/show_array.png)
 
 ## A Simple `AxisArray`
 
@@ -148,7 +150,6 @@ This also allows us to use keys as indexing arguments...
 ```julia
 julia> ax[1, 0.1s]
 1
-
 ```
 ...or as intervals.
 ```julia
@@ -351,5 +352,3 @@ julia> nax = NamedAxisArray(reshape(1:4, 2, 2), x = [:a, :b], y = ["c", "d"])
   :b  2     4  
 
 ```
-
-

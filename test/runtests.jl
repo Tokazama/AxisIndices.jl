@@ -1,9 +1,11 @@
 
+using AbstractFFTs
 using Test
 using Statistics
 using StaticRanges
 using NamedDims
 using IntervalSets
+using FFTW
 using LinearAlgebra
 using MappedArrays
 using Dates
@@ -143,6 +145,7 @@ end
 include("mapped_arrays.jl")
 #include("offset_array_tests.jl")
 include("resize_tests.jl")
+include("fft.jl")
 
 @testset "docs" begin
     doctest(AxisIndices)
