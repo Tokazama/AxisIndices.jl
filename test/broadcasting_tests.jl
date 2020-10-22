@@ -2,12 +2,12 @@
 @testset "BroadcastStyle" begin
     A = typeof(AxisArray(ones(2,2)))
     B = typeof(ones(2,2))
-    @test Base.BroadcastStyle(A) isa AxisIndices.Arrays.AxisArrayStyle
+    @test Base.BroadcastStyle(A) isa AxisIndices.AxisArrayStyle
     SA = Base.BroadcastStyle(A)
     SB = Base.BroadcastStyle(B)
-    @test Base.BroadcastStyle(SA, SA) isa AxisIndices.Arrays.AxisArrayStyle
-    @test Base.BroadcastStyle(SA, SB) isa AxisIndices.Arrays.AxisArrayStyle
-    @test Base.BroadcastStyle(SB, SA) isa AxisIndices.Arrays.AxisArrayStyle
+    @test Base.BroadcastStyle(SA, SA) isa AxisIndices.AxisArrayStyle
+    @test Base.BroadcastStyle(SA, SB) isa AxisIndices.AxisArrayStyle
+    @test Base.BroadcastStyle(SB, SA) isa AxisIndices.AxisArrayStyle
 end
 
 @testset "combine" begin

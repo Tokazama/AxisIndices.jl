@@ -23,3 +23,8 @@ Use `..` when indexing an array for all indices before or after it's use (see [A
 ## Tables.jl
 
 The Table.jl API is supported through the `Table` type (see [Tabular Interface](@ref))
+
+## Metadata
+
+Metadata is supported through the [Metadata.jl](https://github.com/Tokazama/Metadata.jl) package.
+

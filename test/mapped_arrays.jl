@@ -6,7 +6,6 @@ using FixedPointNumbers, ColorTypes
     s = NamedAxisArray{(:_, :_)}(view(a', 1:1, [1,2,4]), 1:1, ["one", "two", "three"])
 
     b = @inferred(mappedarray(sqrt, a))
-    @test @inferred(has_dimnames(b))
     @test @inferred(dimnames(b)) == (:x,)
     @test parent(parent(parent(b))) === parent(parent(a))
     @test eltype(b) == Float64
@@ -76,7 +75,6 @@ end
 
 @testset "No zero(::T)" begin
     astr = @inferred(mappedarray(length, NamedAxisArray{(:x,)}(["abc", "onetwothree"])))
-    @test @inferred(has_dimnames(astr))
     @test @inferred(dimnames(astr)) == (:x,)
     @test eltype(astr) == Int
     @test astr == [3, 11]
@@ -93,7 +91,6 @@ end
     a = NamedAxisArray{(:x, :y)}(reshape(1:6, 2, 3), ["a", "b"], ["one", "two", "three"])
     b = NamedAxisArray{(:_, :_)}(fill(10.0f0, 2, 3), ["a", "b"], ["one", "two", "three"])
     M = @inferred(mappedarray(+, a, b))
-    @test @inferred(has_dimnames(M))
     @test @inferred(dimnames(M)) == (:x, :y)
     @test @inferred(eltype(M)) == Float32
     @test @inferred(IndexStyle(M)) == IndexLinear()
@@ -120,13 +117,12 @@ end
         c = NamedAxisArray{(:_, :_)}([0 1; 0 1], ["a", "b"], ["one", "two"]);
         f = RGB{N0f8}
         M = @inferred(mappedarray(f, a, b, c))
-        @test @inferred(has_dimnames(M))
         @test @inferred(dimnames(M)) == (:x, :y)
         @test @inferred(eltype(M)) == RGB{N0f8}
         @test @inferred(IndexStyle(M)) == IndexLinear()
         @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
         @test @inferred(size(M)) === size(a)
-        @test @inferred(axes(M)) === axes(a)
+        @test keys.(@inferred(axes(M))) == keys.(axes(a))
         @test M[1,1] === RGB{N0f8}(0.1, 0.6, 0)
         @test M[2,1] === RGB{N0f8}(0.3, 0.4, 0)
         @test M[1,2] === RGB{N0f8}(0.2, 0.5, 1)
@@ -143,13 +139,12 @@ end
     f = RGB{N0f8}
     finv = c->(red(c), green(c), blue(c))
     M = @inferred(mappedarray(f, finv, a, b, c))
-    @test @inferred(has_dimnames(M))
     @test @inferred(dimnames(M)) == (:x, :y)
     @test @inferred(eltype(M)) == RGB{N0f8}
     @test @inferred(IndexStyle(M)) == IndexLinear()
     @test @inferred(IndexStyle(typeof(M))) == IndexLinear()
     @test @inferred(size(M)) === size(a)
-    @test @inferred(axes(M)) === axes(a)
+    @test @inferred(axes(M)) == axes(a)
     @test M[1,1] === RGB{N0f8}(0.1, 0.6, 0)
     @test M[2,1] === RGB{N0f8}(0.3, 0.4, 0)
     @test M[1,2] === RGB{N0f8}(0.2, 0.5, 1)

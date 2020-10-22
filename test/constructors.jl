@@ -1,48 +1,5 @@
 
-@testset "Axis Constructors" begin
-    a1 = Axis(2:3 => 1:2)
-    axis = Axis(1:10)
-
-    @testset "Axis" begin
-        @test UnitRange(a1) == 1:2
-
-        @test @inferred(Axis(a1)) isa typeof(a1)
-
-        @test @inferred(Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:10)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
-
-        @test @inferred(Axis{Int,Int,UnitRange{Int},UnitMRange{Int}}(1:10)) isa Axis{Int,Int,UnitRange{Int},UnitMRange{Int}}
-
-        @test @inferred(Axis{Int,Int,UnitMRange{Int},UnitRange{Int}}(1:10)) isa Axis{Int,Int,UnitMRange{Int},UnitRange{Int}}
-
-        @test @inferred(Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}(1:10)) isa Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}
-
-        @test @inferred(AxisIndices.to_axis(a1)) == a1
-
-        @test @inferred(Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(1:2)) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
-        @test @inferred(Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}(UnitRange(UInt(1), UInt(2)))) isa Axis{UInt,Int,UnitRange{UInt},UnitRange{Int}}
-
-        @test Axis{String,Int,Vector{String},Base.OneTo{Int}}(Axis(["a", "b"])) isa Axis{String,Int,Vector{String},Base.OneTo{Int}}
-
-        @test @inferred(keys(similar(axis, 2:3))) == 2:3
-        @test @inferred(keys(similar(axis, ["a", "b"]))) == ["a", "b"]
-
-        @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
-        @test Axis{Int,Int,UnitRange{Int},UnitRange{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},UnitRange{Int}}
-        @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(Base.OneTo(2)) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
-        @test Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}(1:2) isa Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}
-    end
-
-    @testset "SimpleAxis" begin
-        @test @inferred(similar(SimpleAxis(10), 2:3)) == 2:3
-        @test @inferred(SimpleAxis(Axis(1:2))) isa SimpleAxis
-        @test SimpleAxis{Int,UnitRange{Int}}(SimpleAxis(Base.OneTo(10))) isa SimpleAxis{Int,UnitRange{Int}}
-        @test StaticRanges.similar_type(SimpleAxis(1:10)) <: SimpleAxis{Int64,UnitRange{Int64}}
-        @test SimpleAxis{Int,UnitMRange{Int}}(Base.OneTo(10)) isa SimpleAxis{Int,UnitMRange{Int}}
-        @test SimpleAxis{Int,UnitMRange{Int}}(1:2) isa SimpleAxis{Int,UnitMRange{Int}}
-        @test SimpleAxis{Int,UnitRange{Int}}(Base.OneTo(2)) isa SimpleAxis{Int,UnitRange{Int}}
-    end
-end
-
+#= TODO move these col/row methods somewhere
 @testset "column methods" begin
     A = AxisArray(ones(2,2), ["a", "b"], [:one, :two])
     @test @inferred(col_axis(A)) isa Axis{Symbol,Int64,<:AbstractVector{Symbol},Base.OneTo{Int64}}
@@ -56,6 +13,7 @@ end
     @test @inferred(row_keys(A)) == ["a", "b"]
     @test @inferred(row_type(A)) <: Axis{String,Int64,<:AbstractVector{String},Base.OneTo{Int64}}
 end
+=#
 
 #=
 @testset "to_axis-dynamic" begin

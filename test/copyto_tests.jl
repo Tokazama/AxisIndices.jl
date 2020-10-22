@@ -3,16 +3,16 @@
     a = AxisArray{Int}(undef, (-3:-1,))
     fill!(a, -1)
     copyto!(a, (1,2))   # non-array iterables
-    @test a[==(-3)] == 1
+    @test a[-3] == 1
     @test a[==(-2)] == 2
     @test a[==(-1)] == -1
     fill!(a, -1)
-    copyto!(a, 2, (1, 2))
+    copyto!(a, -2, (1, 2))
     @test a[==(-3)] == -1
     @test a[==(-2)] == 1
     @test a[==(-1)] == 2
     fill!(a, -1)
-    copyto!(a, 2, (1,2,3), 2)
+    copyto!(a, -2, (1,2,3), 2)
     @test a[==(-3)] == -1
     @test a[==(-2)] == 2
     @test a[==(-1)] == 3
@@ -22,19 +22,20 @@
     bo = AxisArray(1:2, (-3:-2,))
     fill!(a, -1)
     copyto!(a, bo)
-    @test a[3] == -1
-    @test a[1] == 1
-    @test a[2] == 2
+    @test a[-3] == 1
+    @test a[-2] == 2
+    @test a[-1] == -1
 
     fill!(a, -1)
-    copyto!(a, 2, bo)
+    copyto!(a, -2, bo)
     @test a[==(-3)] == -1
     @test a[==(-2)] == 1
     @test a[==(-1)] == 2
     fill!(a, -1)
-    copyto!(a, 1, b, 2)
-    @test a[1] == 2
-    @test a[2] == a[3] == -1
+    copyto!(a, -1, b, 2)
+    @test a[-1] == 2
+    @test a[-2] == a[-3] == -1
+    # FIXME
     am = AxisArray{Int}(undef, (1:1, 7:9))  # for testing linear indexing
     fill!(am, -1)
     copyto!(am, b)
