@@ -1,7 +1,6 @@
 # AxisIndices
 
-
-# Introduction
+## Introduction
 
 The goals of this package are:
 1. Facilitate multidimensional indexing (e.g., `instance_of_an_array[indices]`) that supports semantic user facing indices (e.g., `indices = Second(1)`).
@@ -58,7 +57,7 @@ This is because all keys must be unique so there can only be one value that retu
 The last call uses operators that can produce any number of `true` values and the resulting output is an array.
 This is the same as indexing an array by any vector (i.e., returns another array).
 
-# The Axis Interface
+## The Axis Interface
 
 The supertype to all axis types herein is the `AbstractAxis`, which is a subtype of `AbstractUnitRange{<:Integer}`.
 
@@ -142,7 +141,7 @@ Note in the last example that a vector was returned instead of an `AbstractAxis`
 An `AbstractAxis` is a subtype of `AbstractUnitRange` and therefore cannot be reformed after any operation that does not guarantee the return of another unit range.
 This is similar to the behavior of `UnitRange` in base.
 
-## Indexing an Axis
+### Indexing an Axis
 
 Setup for running axis examples.
 ```jldoctest indexing_examples
@@ -284,9 +283,9 @@ true
 
 ```
 
-# The Array Interface
+## The Array Interface
 
-## Construction
+### Construction
 
 Take a standard array and attach custom keys along the indices of each dimension.
 ```jldoctest arrays_interface
@@ -365,7 +364,7 @@ julia> attach_metadata(NamedAxisArray{(:xdim, :ydim)}(A_base, ["a", "b"], [:one,
 
 ```
 
-## Combining Different Axes
+### Combining Different Axes
 
 One of benefits of AxisIndices using a unified backend for multiple axis types is that they
 can be arbitrarily mixed together. For example, here's an example the first indices are

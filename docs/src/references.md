@@ -11,6 +11,7 @@ AxisIndices.CartesianAxes
 AxisIndices.LinearAxes
 
 AxisIndices.AxisArray
+AxisIndices.NamedAxisArray
 ```
 
 ## Offset Axes
