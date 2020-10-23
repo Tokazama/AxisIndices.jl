@@ -20,6 +20,14 @@ and [`IdentityAxis`](@ref) for more details and examples.
 """
 abstract type AbstractOffsetAxis{I,Inds,F} <: AbstractAxis{I,Inds} end
 
+
+"""
+    AxisInitializer <: Function
+
+Supertype for functions that assist in initialization of `AbstractAxis` subtypes.
+"""
+abstract type AxisInitializer <: Function end
+
 """
     IndexAxis
 

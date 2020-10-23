@@ -223,7 +223,7 @@ julia> ax = AxisArray(x, center, center)
 
 The default origin of each centered axis is zero, but we can choose any origin.
 ```julia
-julia> ax = AxisArray(reshape(1:9, 3, 3), center(10), center(10))
+julia> ax = AxisArray(reshape(1:9, 3, 3), center(origin=10), center(origin=10))
 3×3 AxisArray(reshape(::UnitRange{Int64}, 3, 3)
   • axes:
      1 = 9:11

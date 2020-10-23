@@ -125,8 +125,11 @@ origin(axis::CenteredAxis) = getfield(axis, :origin)
     return (_origin_to_offset(static_first(inds), static_length(inds), origin(axis)),)
 end
 
+struct Center <: AxisInitializer end
+
 """
-    center(origin) = inds -> CenteredAxis(orgin, inds)
+    center(x; origin=0)
+    center(; origin=0) = x -> center(x; origin)
 
 Shortcut for creating [`CenteredAxis`](@ref).
 
@@ -134,7 +137,7 @@ Shortcut for creating [`CenteredAxis`](@ref).
 ```jldoctest
 julia> using AxisIndices
 
-julia> AxisArray(ones(3), center(0))
+julia> AxisArray(ones(3), center(origin=0))
 3-element AxisArray(::Array{Float64,1}
   • axes:
      1 = -1:1
@@ -146,8 +149,15 @@ julia> AxisArray(ones(3), center(0))
 
 ```
 """
-center(origin::Integer=Zero()) = inds -> CenteredAxis(origin, inds)
-center(x::AbstractRange) = CenteredAxis(x)
+const center = Center()
+center(; origin=Zero()) = x -> center(x; origin=origin)
+function center(x::AbstractArray; origin=Zero())
+    if known_step(x) === 1
+        return CenteredAxis(origin, x)
+    else
+        return AxisArray(x, ntuple(center(origin), Val(ndims(x))))
+    end
+end
 
 """
     CenteredArray(A::AbstractArray)
