@@ -18,8 +18,8 @@ function compose_axes(ks::Tuple{Vararg{<:Any,N}}, x::AbstractArray{<:Any,N}, che
     end
 end
 function compose_axes(ks::Tuple, x::AbstractArray{<:Any,N}, checks) where {N}
-    throw(DimensionMismatch("Number of axis arguments provided $(length(ks)) does" *
-                            "not match number of parent axes $N."))
+    throw(DimensionMismatch("Number of axis arguments provided ($(length(ks))) does " *
+                            "not match number of parent axes ($N)."))
 end
 @inline function compose_axes(ks::Tuple{Vararg{<:Any,N}}, inds::Tuple{Vararg{<:Any,N}}, checks) where {N}
     return (
