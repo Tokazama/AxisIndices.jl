@@ -206,7 +206,7 @@ function offset(x::AbstractArray, f)
     if known_step(x) === 1
         return OffsetAxis(f, x)
     else
-        return AxisArray(x, ntuple(offset(f), Val(ndims(x))))
+        return AxisArray(x, ntuple(_ -> offset(f), Val(ndims(x))))
     end
 end
 

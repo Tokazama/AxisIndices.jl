@@ -339,6 +339,7 @@ julia> metadata(ax, dim=2)
 
 ## Padded Axes
 
+We can also pad axes in various ways.
 ```julia
 julia> x = [:a, :b, :c, :d];
 
@@ -401,6 +402,32 @@ julia> AxisArray(x, reflect_pad(first_pad=2, last_pad=2))
   4    :d
   5    :d
   6    :c  
+
+julia> AxisArray(3:4, zero_pad(sym_pad=2))
+6-element AxisArray(::UnitRange{Int64}
+  • axes:
+     1 = -1:4
+)
+      1
+  -1  0
+  0   0
+  1   3
+  2   4
+  3   0
+  4   0  
+
+julia> AxisArray(3:4, one_pad(sym_pad=2))
+6-element AxisArray(::UnitRange{Int64}
+  • axes:
+     1 = -1:4
+)
+      1
+  -1  1
+  0   1
+  1   3
+  2   4
+  3   1
+  4   1  
 
 ```
 

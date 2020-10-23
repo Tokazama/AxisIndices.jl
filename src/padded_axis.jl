@@ -6,7 +6,7 @@ Abstract type for padding styles.
 """
 abstract type PaddedInitializer <: AxisInitializer end
 
-function check_pad end
+check_pad(::PaddedInitializer, ::Any, ::Any, ::Any, ::Any) = nothing
 
 struct PaddedAxis{P,FP<:Integer,LP<:Integer,I,Inds} <: AbstractAxis{I,Inds}
     pad::P
@@ -178,8 +178,6 @@ function pad_index(::ReplicatePad, start, stop, i)
     end
 end
 
-check_pad(::ReplicatePad, first_pad, last_pad, start, stop) = nothing
-
 struct CircularPad <: PaddedInitializer end
 
 """
@@ -268,7 +266,7 @@ function (p::PaddedInitializer)(x::AbstractArray; first_pad=Zero(), last_pad=Zer
             return PaddedAxis(p, sym_pad, sym_pad, x)
         end
     else
-        axs = ntuple(p(; first_pad=first_pad, last_pad=last_pad, sym_pad=sym_pad), Val(ndims(x)))
+        axs = ntuple(_ -> p(; first_pad=first_pad, last_pad=last_pad, sym_pad=sym_pad), Val(ndims(x)))
         return AxisArray(x, axs)
     end
 end
@@ -324,4 +322,12 @@ is_dense_wrapper(::Type{T}) where {T<:PaddedAxis} = false
 
 function ArrayInterface.unsafe_reconstruct(axis::PaddedAxis, data; kwargs...)
     return OffsetAxis(first_pad(axis) - static_first(parent(axis)), data)
+end
+
+@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(oneunit)}}
+    return oneunit(eltype(A))
+end
+
+@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(zero)}}
+    return zero(eltype(A))
 end

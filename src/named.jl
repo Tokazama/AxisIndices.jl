@@ -100,8 +100,7 @@ end
     NamedAxisArray(parent::AbstractArray; kwargs...) = NamedAxisArray(parent, kwargs)
     NamedAxisArray(parent::AbstractArray, axes::NamedTuple{L,AbstractAxes})
 
-Type alias for `NamedDimsArray` whose parent array is a subtype of `AxisArray`.
-An abbreviated alias and constructor for [`NamedAxisArray`](@ref). If key word
+Type alias for `NamedDimsArray` whose parent array is an `AxisArray`. If key word
 arguments are provided then each key word becomes the name of a dimension and its
 assigned value is sent to the corresponding axis when constructing the underlying
 `AxisArray`.

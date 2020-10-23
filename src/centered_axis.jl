@@ -1,6 +1,6 @@
 
 """
-    CenteredAxis(indices; origin=0)
+    CenteredAxis(origin=0, indices)
 
 A `CenteredAxis` takes `indices` and provides a user facing set of keys centered around zero.
 The `CenteredAxis` is a subtype of `AbstractOffsetAxis` and its keys are treated as the predominant indexing style.
@@ -155,7 +155,7 @@ function center(x::AbstractArray; origin=Zero())
     if known_step(x) === 1
         return CenteredAxis(origin, x)
     else
-        return AxisArray(x, ntuple(center(origin), Val(ndims(x))))
+        return AxisArray(x, ntuple(_ -> center(;origin=origin), Val(ndims(x))))
     end
 end
 
@@ -168,7 +168,7 @@ Provides centered axes for indexing `A`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> CenteredArray(ones(3,3))
+julia> AxisIndices.CenteredArray(ones(3,3))
 3×3 AxisArray(::Array{Float64,2}
   • axes:
      1 = -1:1
@@ -224,7 +224,7 @@ Provides a centered axis for indexing `v`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> CenteredVector(ones(3))
+julia> AxisIndices.CenteredVector(ones(3))
 3-element AxisArray(::Array{Float64,1}
   • axes:
      1 = -1:1
@@ -250,7 +250,7 @@ Creates a vector with elements of type `T` of size `sz` and a centered axis.
 ```jldoctest
 julia> using AxisIndices
 
-julia> CenteredVector{Union{Missing, Int}}(missing, 3)
+julia> AxisIndices.CenteredVector{Union{Missing, Int}}(missing, 3)
 3-element AxisArray(::Array{Union{Missing, Int64},1}
   • axes:
      1 = -1:1
