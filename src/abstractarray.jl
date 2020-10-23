@@ -50,19 +50,64 @@ function Base.mapslices(f, a::AxisArray; dims, kwargs...)
     return reconstruct_reduction(a, Base.mapslices(f, parent(a); dims=dims, kwargs...), dims)
 end
 
-Base.:(==)(a::AxisArray, b::AxisArray) = ==(parent(a), parent(b))
-Base.:(==)(a::AxisArray, b::AbstractArray) = ==(parent(a), b)
-Base.:(==)(a::AbstractArray, b::AxisArray) = ==(a, parent(b))
-Base.:(==)(a::AxisArray, b::AbstractAxis) = ==(parent(a), b)
-Base.:(==)(a::AbstractAxis, b::AxisArray) = ==(a, parent(b))
-Base.:(==)(a::AxisArray, b::GapRange) = ==(parent(a), b)
-Base.:(==)(a::GapRange, b::AxisArray) = ==(a, parent(b))
+macro def_equals(f, X,Y)
+    if X === :AxisArray
+        if Y === :AxisArray
+            esc(quote
+                function Base.$f(x::$X, y::$Y)
+                    if is_dense_wrapper(x) && is_dense_wrapper(y)
+                        return Base.$f(parent(x), parent(y))
+                    else
+                        for (x_i,y_i) in zip(x,y)
+                            Base.$f(x_i, y_i) || return false
+                        end
+                        return true
+                    end
+                end
+            end)
+        else
+            esc(quote
+                function Base.$f(x::$X, y::$Y)
+                    if is_dense_wrapper(x)
+                        return Base.$f(parent(x), y)
+                    else
+                        for (x_i,y_i) in zip(x,y)
+                            Base.$f(x_i, y_i) || return false
+                        end
+                        return true
+                    end
+                end
+            end)
+        end
+    else
+        esc(quote
+            function Base.$f(x::$X, y::$Y)
+                if is_dense_wrapper(y)
+                    return Base.$f(x, parent(y))
+                else
+                    for (x_i,y_i) in zip(x,y)
+                        Base.$f(x_i, y_i) || return false
+                    end
+                    return true
+                end
+            end
+        end)
+    end
+end
 
-Base.:isequal(a::AxisArray, b::AxisArray) = isequal(parent(a), parent(b))
-Base.:isequal(a::AxisArray, b::AbstractArray) = isequal(parent(a), b)
-Base.:isequal(a::AbstractArray, b::AxisArray) = isequal(a, parent(b))
-Base.:isequal(a::AxisArray, b::AbstractAxis) = isequal(parent(a), b)
-Base.:isequal(a::AbstractAxis, b::AxisArray) = isequal(a, parent(b))
+@def_equals(==, AxisArray, AxisArray)
+@def_equals(==, AbstractArray, AxisArray)
+@def_equals(==, AxisArray, AbstractArray)
+@def_equals(==, AxisArray, AbstractAxis)
+@def_equals(==, AbstractAxis, AxisArray)
+@def_equals(==, AxisArray, GapRange)
+@def_equals(==, GapRange, AxisArray)
+
+@def_equals(isequal, AxisArray, AxisArray)
+@def_equals(isequal, AbstractArray, AxisArray)
+@def_equals(isequal, AxisArray, AbstractArray)
+@def_equals(isequal, AxisArray, AbstractAxis)
+@def_equals(isequal, AbstractAxis, AxisArray)
 
 Base.isapprox(a::AxisArray, b::AxisArray; kw...) = isapprox(parent(a), parent(b); kw...)
 Base.isapprox(a::AxisArray, b::AbstractArray; kw...) = isapprox(parent(a), b; kw...)

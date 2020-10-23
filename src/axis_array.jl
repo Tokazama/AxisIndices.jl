@@ -326,8 +326,6 @@ Base.axes(x::AxisArray) = getfield(x, :axes)
 
 Base.parent(x::AxisArray) = getfield(x, :data)
 
-Base.IndexStyle(::Type{A}) where {A<:AxisArray} = IndexStyle(parent_type(A))
-
 ArrayInterface.parent_type(::Type{T}) where {P,T<:AxisArray{<:Any,<:Any,P}} = P
 @inline function ArrayInterface.can_change_size(::Type{T}) where {D,Axs,T<:AxisArray{<:Any,<:Any,D,Axs}}
     if can_change_size(D)
@@ -480,3 +478,25 @@ end
     end
 end
 
+"""
+    is_dense_wrapper(::Type{T}) where {T} -> Bool
+
+Do all the indices of `T` map to a unique indice of the parent data that is wrapped?
+This is not true for padded axes.
+"""
+is_dense_wrapper(x) = is_dense_wrapper(typeof(x))
+is_dense_wrapper(::Type{T}) where {T} = true
+@generated function is_dense_wrapper(::Type{T}) where {Axs,T<:AxisArray{<:Any,<:Any,<:Any,Axs}}
+    for i in Axs.parameters
+        is_dense_wrapper(i) || return false
+    end
+    return true
+end
+
+@inline function Base.IndexStyle(::Type{A}) where {A<:AxisArray}
+    if is_dense_wrapper(A)
+        return IndexStyle(parent_type(A))
+    else
+        return IndexCartesian()
+    end
+end

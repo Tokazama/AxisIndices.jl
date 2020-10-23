@@ -31,7 +31,6 @@
 
 
 
-    include("src/CoreIndexing.jl")
     using .CoreIndexing
     @testset "Array" begin
         x = AxisArray([1 2 3; 4 5 6])

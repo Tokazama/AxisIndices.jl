@@ -6,7 +6,8 @@ Abstract type for padding styles.
 """
 abstract type PadStyle end
 
-# TODO PaddedAxis
+function check_pad end
+
 struct PaddedAxis{S,FP<:Integer,LP<:Integer,I,Inds} <: AbstractAxis{I,Inds}
     pad_style::S
     first_pad::FP
@@ -19,6 +20,8 @@ struct PaddedAxis{S,FP<:Integer,LP<:Integer,I,Inds} <: AbstractAxis{I,Inds}
         last_pad::Integer,
         inds::AbstractAxis
     ) where {S}
+
+        check_pad(style, first_pad, last_pad, first(inds), last(inds))
         return new{S,typeof(first_pad),typeof(last_pad),eltype(inds),typeof(inds)}(
             style,
             first_pad,
@@ -68,7 +71,7 @@ last_pad(axis::PaddedAxis) = getfield(axis, :last_pad)
     return _length_padded_axis(static_first(axis), static_last(axis))
 end
 
-_length_padded_axis(start::Integer, stop::Integer) = (stop - start) - one(start)
+_length_padded_axis(start::Integer, stop::Integer) = (stop - start) + one(start)
 _length_padded_axis(::Nothing, ::Integer) = nothing
 _length_padded_axis(::Integer, ::Nothing) = nothing
 _length_padded_axis(::Nothing, ::Nothing) = nothing
@@ -90,8 +93,15 @@ const OnePad = FillPad(oneunit)
 
 (p::FillPad)(x) = p.fxn(eltype(x))
 
-to_start_pad(s::FillPad, p, start, stop, i) = p
-to_last_pad(s::FillPad, p, start, stop, i) = p
+@inline function pad_index(s::FillPad, pstart, pstop, start, stop, i)
+    if start > i
+        return s
+    elseif stop < i
+        return s
+    else
+        return Int(i)
+    end
+end
 
 """
     SymmetricPad <: PadStyle
@@ -109,8 +119,28 @@ border pixel is omitted when mirroring.
 """
 struct SymmetricPad <: PadStyle end
 
-to_first_pad(::SymmetricPad, p, start, stop, i) = 2start - i
-to_last_pad(::SymmetricPad, p, start, stop, i) = 2stop - i
+function pad_index(::SymmetricPad, start, stop, i)
+    if start > i
+        return 2start - i
+    elseif stop < i
+        return 2stop - i
+    else
+        return Int(i)
+    end
+end
+
+function check_pad(::SymmetricPad, first_pad, last_pad, start, stop)
+    len = stop - start
+    if first_pad > len
+        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPad, " *
+            "first pad is $first_pad and indices are of length $len"))
+    elseif last_pad > len
+        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPad, " *
+            "first pad is $last_pad and indices are of length $len"))
+    else
+        return nothing
+    end
+end
 
 """
     ReplicatePad
@@ -127,8 +157,17 @@ The border elements extend beyond the image boundaries.
 """
 struct ReplicatePad <: PadStyle end
 
-to_first_pad(::ReplicatePad, p, start, stop, i) = start
-to_last_pad(::ReplicatePad, p, start, stop, i) = stop
+function pad_index(::ReplicatePad, start, stop, i)
+    if start > i
+        return start
+    elseif stop < i
+        return stop
+    else
+        return Int(i)
+    end
+end
+
+check_pad(::ReplicatePad, first_pad, last_pad, start, stop) = nothing
 
 """
     CircularPad
@@ -143,12 +182,29 @@ returns values starting from the right border.
 \\end{array}
 }
 ```
-
 """
 struct CircularPad <: PadStyle end
 
-to_first_pad(::CircularPad, p, start, stop, i) = stop - (start - (i - 1))
-to_last_pad(::CircularPad, p, start, stop, i) = start + (stop - (i - 1))
+function pad_index(::CircularPad, start, stop, i)
+    if start > i
+        return stop - start + i + one(start)
+    elseif stop < i
+        return start + i - stop - one(stop)
+    else
+        return Int(i)
+    end
+end
+
+function check_pad(::CircularPad, first_pad, last_pad, start, stop)
+    len = stop - start + 1
+    if first_pad > len
+        throw(ArgumentError("cannot have pad of size $first_pad and indices of length $len for CircularPad"))
+    elseif last_pad > len
+        throw(ArgumentError("cannot have pad of size $last_pad and indices of length $len for CircularPad"))
+    else
+        return nothing
+    end
+end
 
 """
     ReflectPad
@@ -165,8 +221,27 @@ The border elements reflect relative to the edge itself.
 """
 struct ReflectPad <: PadStyle end
 
-to_first_pad(::ReflectPad, p, start, stop, i) = start + (stop - (i - 1))
-to_last_pad(::ReflectPad, p, start, stop, i) = stop - (start - (i - 1))
+function pad_index(::ReflectPad, start, stop, i)
+    if start > i
+        return 2start - i - one(start)
+    elseif stop < i
+        return 2stop - i + one(stop)
+    else
+        return Int(i)
+    end
+end
+
+
+function check_pad(::ReflectPad, first_pad, last_pad, start, stop)
+    len = stop - start + 1
+    if first_pad > len
+        throw(ArgumentError("cannot have pad of size $first_pad and indices of length $len for ReflectPad"))
+    elseif last_pad > len 
+        throw(ArgumentError("cannot have pad of size $last_pad and indices of length $len for ReflectPad"))
+    else
+        return nothing
+    end
+end
 
 for (f, P) in (
     (:zero_pad, ZeroPad),
@@ -176,23 +251,25 @@ for (f, P) in (
     (:reflect_pad, ReflectPad),
     (:circular_pad, CircularPad)
    )
+    pad_doc = """
+        $f(; first_pad=ArrayInterface.Zero(), last_pad=ArrayInterface.Zero())
+
+    Create a function that produces a `PaddedAxis` when provided a set of indices.        
+    Behavior in the padded region uses the [`$P`](@ref) pad style.
+    """
     @eval begin
+        @doc $pad_doc
         function $f(; first_pad=Zero(), last_pad=Zero())
             inds -> PaddedAxis($P(), first_pad, last_pad, inds)
         end
     end
 end
 
-@inline function apply_offset(axis::PaddedAxis{S}, i::Integer) where {S}
-    pinds = parent(axis)
-    if first(pinds) > i
-        return to_first_pad(pad_style(axis), first_pad(axis), static_first(axis), static_last(axis), i)
-    elseif last(pinds) < i
-        return to_last_pad(pad_style(axis), last_pad(axis), static_first(axis), static_last(axis), i)
-    else
-        return Int(i)
-    end
+@inline function _sub_offset(axis::PaddedAxis, i::Integer)
+    p = parent(axis)
+    return pad_index(pad_style(axis), static_first(p), static_last(p), i)
 end
+
 
 function print_axis(io::IO, axis::PaddedAxis)
     start = Int(first(axis))
@@ -202,9 +279,38 @@ function print_axis(io::IO, axis::PaddedAxis)
     else
         p = parent(axis)
         print(io, "PaddedAxis($(pad_style(axis)), ")
-        print(io, "$(start)←$(Int(first_pad(axis)))|")
+        fp = first_pad(axis)
+        if fp != 0
+            print(io, "($(start))[$(Int(first_pad(axis)))]")
+        end
         print(io, "$(Int(first(p))):$(Int(last(p)))")
-        print(io, "|$(Int(last_pad(axis)))→$(stop))")
+        lp = last_pad(axis)
+        if lp != 0
+            print(io, "[$(Int(last_pad(axis)))]($(stop)))")
+        end
     end
 end
 
+@inline function _check_index_real(axis::PaddedAxis, arg)
+    if first(axis) > arg
+        return false
+    elseif last(axis) < arg
+        return false
+    else
+        return true
+    end
+end
+_check_index_range(axis::PaddedAxis, arg) = checkindex(Bool, eachindex(axis), arg)
+
+check_axis_length(ks::PaddedAxis, inds, ::AxisArrayChecks{T}) where {T >: CheckedAxisLengths} = nothing
+function check_axis_length(ks::PaddedAxis, inds, ::AxisArrayChecks{T}) where {T}
+    if length(parent(ks)) != length(inds)
+        throw(DimensionMismatch(
+            "keys and indices must have same length, got length(keys) = $(length(ks))" *
+            " and length(indices) = $(length(inds)).")
+        )
+    end
+    return nothing
+end
+
+is_dense_wrapper(::Type{T}) where {T<:PaddedAxis} = false

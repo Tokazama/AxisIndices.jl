@@ -62,6 +62,7 @@ include("centered_axis.jl")
 include("identity_axis.jl")
 include("offset_axis.jl")
 include("struct_axis.jl")
+include("padded_axis.jl")
 include("arrays.jl")
 include("getindex_tests.jl")
 include("append_tests.jl")
@@ -152,4 +153,3 @@ include("fft.jl")
 end
 
 #include("NamedMetaAxisArray_tests.jl")
-

@@ -337,6 +337,73 @@ julia> metadata(ax, dim=2)
 
 ```
 
+## Padded Axes
+
+```julia
+julia> x = [:a, :b, :c, :d];
+
+julia> AxisArray(x, circular_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :c
+  0    :d
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :a
+  6    :b  
+
+julia> AxisArray(x, replicate_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :a
+  0    :a
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :d
+  6    :d  
+
+julia> AxisArray(x, symmetric_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :c
+  0    :b
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :c
+  6    :b  
+
+julia> AxisArray(x, reflect_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :b
+  0    :a
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :d
+  6    :c  
+
+```
+
 ## Named Axes
 
 Names can be attached to each dimension/axis using `NamedAxisArray`.
