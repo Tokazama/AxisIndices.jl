@@ -20,8 +20,13 @@ and [`IdentityAxis`](@ref) for more details and examples.
 """
 abstract type AbstractOffsetAxis{I,Inds,F} <: AbstractAxis{I,Inds} end
 
-# for getting the offset from an offset axis
-function get_offset end
+
+"""
+    AxisInitializer <: Function
+
+Supertype for functions that assist in initialization of `AbstractAxis` subtypes.
+"""
+abstract type AxisInitializer <: Function end
 
 """
     IndexAxis
@@ -218,4 +223,3 @@ end
 
 Base.show(io::IO, axis::AbstractAxis) = print_axis(io, axis)
 Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = print_axis(io, axis)
-

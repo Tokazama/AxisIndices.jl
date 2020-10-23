@@ -50,18 +50,12 @@ export
     Axis,
     AxisArray,
     CartesianAxes,
-    CenteredArray,
-    CenteredVector,
     CenteredAxis,
-    IdentityArray,
-    IdentityVector,
     IdentityAxis,
     idaxis,
     LinearAxes,
     NamedAxisArray,
-    OffsetArray,
     OffsetAxis,
-    OffsetVector,
     SimpleAxis,
     center,
     offset,
@@ -222,7 +216,6 @@ function __sub_offset(f, arg::AbstractRange)
     end
 end
 
-export ..
 
 # Metadata stuff
 @inline function Metadata.metadata(x::AxisArray; dim=nothing, kwargs...)
@@ -232,6 +225,8 @@ export ..
         return metadata(axes(x, dim); kwargs...)
     end
 end
+
+export ..
 
 end
 

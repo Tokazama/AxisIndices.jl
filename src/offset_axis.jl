@@ -177,6 +177,8 @@ function ArrayInterface.unsafe_reconstruct(axis::OffsetAxis, inds; kwargs...)
     end
 end
 
+struct Offset <: AxisInitializer end
+
 """
     offset(x)
 
@@ -198,7 +200,15 @@ julia> AxisArray(ones(3), offset(2))
 
 ```
 """
-offset(x) = inds -> OffsetAxis(x, inds)
+const offset = Offset()
+offset(f) = x -> offset(x, f)
+function offset(x::AbstractArray, f)
+    if known_step(x) === 1
+        return OffsetAxis(f, x)
+    else
+        return AxisArray(x, ntuple(_ -> offset(f), Val(ndims(x))))
+    end
+end
 
 """
     OffsetArray

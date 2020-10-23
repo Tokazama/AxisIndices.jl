@@ -6,8 +6,6 @@
 
 `AbstractAxis` subtype that preserves indices after indexing.
 
-See also: [`IdentityArray'](@ref), [`IdentityVector'](@ref)
-
 # Examples
 ```julia
 julia> using AxisIndices
@@ -176,7 +174,7 @@ Provides [`IdentityAxis`](@ref)s for indexing `A`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> IdentityArray(ones(3,3))[2:3, 2:3]
+julia> AxisIndices.IdentityArray(ones(3,3))[2:3, 2:3]
 2×2 AxisArray(::Array{Float64,2}
   • axes:
      1 = 2:3
@@ -243,7 +241,7 @@ Provides an [`IdentityAxis`](@ref) for indexing `v`.
 ```jldoctest
 julia> using AxisIndices
 
-julia> IdentityVector(ones(4))[3:4]
+julia> AxisIndices.IdentityVector(ones(4))[3:4]
 2-element AxisArray(::Array{Float64,1}
   • axes:
      1 = 3:4
@@ -268,7 +266,7 @@ Creates a vector with elements of type `T` of size `sz` an [`IdentityAxis`](@ref
 ```jldoctest
 julia> using AxisIndices
 
-julia> IdentityVector{Union{Missing, Int}}(missing, 3)[2:3]
+julia> AxisIndices.IdentityVector{Union{Missing, Int}}(missing, 3)[2:3]
 2-element AxisArray(::Array{Union{Missing, Int64},1}
   • axes:
      1 = 2:3

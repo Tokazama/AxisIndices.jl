@@ -167,7 +167,7 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
         axs = compose_axes(axs, x, checks)
         return new{T,N,typeof(x),typeof(axs)}(x, axs)
     end
-    function AxisArray{T,N}(A::AxisArray, ks::Tuple; checks=AxisArray(), kwargs...) where {T,T2,N}
+    function AxisArray{T,N}(A::AxisArray, ks::Tuple; checks=AxisArray(), kwargs...) where {T,N}
         if eltype(A) <: T
             axs = compose_axes(ks, A, checks)
             return new{T,N,parent_type(A),typeof(axs)}(p, axs)
@@ -326,8 +326,6 @@ Base.axes(x::AxisArray) = getfield(x, :axes)
 
 Base.parent(x::AxisArray) = getfield(x, :data)
 
-Base.IndexStyle(::Type{A}) where {A<:AxisArray} = IndexStyle(parent_type(A))
-
 ArrayInterface.parent_type(::Type{T}) where {P,T<:AxisArray{<:Any,<:Any,P}} = P
 @inline function ArrayInterface.can_change_size(::Type{T}) where {D,Axs,T<:AxisArray{<:Any,<:Any,D,Axs}}
     if can_change_size(D)
@@ -409,8 +407,14 @@ end
 ### getindex
 ###
 @inline function ArrayInterface.unsafe_get_element(A::AxisArray, inds)
-    return _unsafe_get_element(A, apply_offsets(A, inds))
+    if is_dense_wrapper(A)
+        return @inbounds(parent(A)[apply_offsets(A, inds)...])
+    else
+        return _unsafe_get_element(A, apply_offsets(A, inds))
+    end
 end
+# other methods in padded_axis.jl
+@inline _unsafe_get_element(A, inds::Tuple{Vararg{Integer}}) = @inbounds(parent(A)[inds...])
 
 function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
     axs = to_axes(A, inds)
@@ -423,8 +427,7 @@ function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
     return dest
 end
 
-@inline _unsafe_get_element(A::AxisArray, p) = p(A)
-@inline _unsafe_get_element(A::AxisArray, inds::Tuple) = @inbounds(parent(A)[inds...])
+
 
 function ArrayInterface.unsafe_set_element!(A::AxisArray, value, inds)
     return @inbounds(setindex!(parent(A), value, apply_offsets(A, inds)...))
@@ -480,3 +483,25 @@ end
     end
 end
 
+"""
+    is_dense_wrapper(::Type{T}) where {T} -> Bool
+
+Do all the indices of `T` map to a unique indice of the parent data that is wrapped?
+This is not true for padded axes.
+"""
+is_dense_wrapper(x) = is_dense_wrapper(typeof(x))
+is_dense_wrapper(::Type{T}) where {T} = true
+@generated function is_dense_wrapper(::Type{T}) where {Axs,T<:AxisArray{<:Any,<:Any,<:Any,Axs}}
+    for i in Axs.parameters
+        is_dense_wrapper(i) || return false
+    end
+    return true
+end
+
+@inline function Base.IndexStyle(::Type{A}) where {A<:AxisArray}
+    if is_dense_wrapper(A)
+        return IndexStyle(parent_type(A))
+    else
+        return IndexCartesian()
+    end
+end

@@ -1,4 +1,6 @@
 
+using AxisIndices: OffsetArray, OffsetVector
+
 @testset "OffsetAxis" begin
     inds = Base.OneTo(3)
     ks = 1:3

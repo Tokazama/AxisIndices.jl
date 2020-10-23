@@ -252,4 +252,3 @@ end
         @test Ap[axes(A)...] == A
     end
 end
-

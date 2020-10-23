@@ -223,7 +223,7 @@ julia> ax = AxisArray(x, center, center)
 
 The default origin of each centered axis is zero, but we can choose any origin.
 ```julia
-julia> ax = AxisArray(reshape(1:9, 3, 3), center(10), center(10))
+julia> ax = AxisArray(reshape(1:9, 3, 3), center(origin=10), center(origin=10))
 3×3 AxisArray(reshape(::UnitRange{Int64}, 3, 3)
   • axes:
      1 = 9:11
@@ -334,6 +334,100 @@ julia> ax = AxisArray(x, nothing, attach_metadata(m));
 
 julia> metadata(ax, dim=2)
 (a = 1, b = 2)
+
+```
+
+## Padded Axes
+
+We can also pad axes in various ways.
+```julia
+julia> x = [:a, :b, :c, :d];
+
+julia> AxisArray(x, circular_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :c
+  0    :d
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :a
+  6    :b  
+
+julia> AxisArray(x, replicate_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :a
+  0    :a
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :d
+  6    :d  
+
+julia> AxisArray(x, symmetric_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :c
+  0    :b
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :c
+  6    :b  
+
+julia> AxisArray(x, reflect_pad(first_pad=2, last_pad=2))
+8-element AxisArray(::Array{Symbol,1}
+  • axes:
+     1 = -1:6
+)
+      1
+  -1   :b
+  0    :a
+  1    :a
+  2    :b
+  3    :c
+  4    :d
+  5    :d
+  6    :c  
+
+julia> AxisArray(3:4, zero_pad(sym_pad=2))
+6-element AxisArray(::UnitRange{Int64}
+  • axes:
+     1 = -1:4
+)
+      1
+  -1  0
+  0   0
+  1   3
+  2   4
+  3   0
+  4   0  
+
+julia> AxisArray(3:4, one_pad(sym_pad=2))
+6-element AxisArray(::UnitRange{Int64}
+  • axes:
+     1 = -1:4
+)
+      1
+  -1  1
+  0   1
+  1   3
+  2   4
+  3   1
+  4   1  
 
 ```
 

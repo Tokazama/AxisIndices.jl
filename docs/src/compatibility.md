@@ -16,14 +16,6 @@ In other words, the current version can only support multi-mapping multiple `Abs
 Indexing via named dimensions is supported via the [NamedDims.jl](https://github.com/invenia/NamedDims.jl) package.
 [`NamedAxisArray`](@ref) assists in constructing arrays that have both named dimensions and a subtype of `AbstractAxis` along each axis.
 
-## EllipsisNotattion
-
-Use `..` when indexing an array for all indices before or after it's use (see [Array Interface](@ref)). 
-
-## Tables.jl
-
-The Table.jl API is supported through the `Table` type (see [Tabular Interface](@ref))
-
 ## Metadata
 
 Metadata is supported through the [Metadata.jl](https://github.com/Tokazama/Metadata.jl) package.
