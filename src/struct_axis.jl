@@ -5,7 +5,7 @@ _fieldcount(::Type{T}) where {T} = length(_fieldnames(T))
 """
     StructAxis{T}
 
-An axis that uses a structure `T` to form its keys. the field names of
+An axis that uses a structure `T` to form its keys.
 """
 struct StructAxis{T,Inds} <: AbstractAxis{Int,Inds}
     parent::Inds
@@ -21,7 +21,7 @@ struct StructAxis{T,Inds} <: AbstractAxis{Int,Inds}
     function StructAxis{T}(inds::AbstractAxis) where {T}
         fc = _fieldcount(T)
         if known_length(inds) === fc
-            return new{T,typeof(inds)}(inds)
+            return StructAxis{T,typeof(inds)}(inds)
         else
             if known_first(inds) === nothing
                 throw(ArgumentError("StructAxis cannot have a parent type whose first index and last index are not known at compile time."))
@@ -96,7 +96,6 @@ end
         return StaticInt(d)
     end
 end
-
 Base.@pure function _structdim(::Type{T}) where {T<:Tuple}
     for i in OneTo(length(T.parameters))
         T.parameters[i] <: StructAxis && return i
@@ -104,12 +103,7 @@ Base.@pure function _structdim(::Type{T}) where {T<:Tuple}
     return 0
 end
 
-#structaxis(x) = axes(x, structdim(x))
-
-function to_index_type(axis::StructAxis{T}, arg) where {T}
-    return fieldtype(T, to_index(axis, arg))
-end
-
+to_index_type(axis::StructAxis{T}, arg) where {T} = fieldtype(T, to_index(axis, arg))
 
 """
     struct_view(A)
@@ -144,7 +138,6 @@ _struct_view_function(::Type{T}) where {T} = T
     end
     return Expr(:block, Expr(:meta, :inline), e)
 end
-
 @generated function _not_axes(axs::Tuple{Vararg{<:Any,N}}, ::StaticInt{I}) where {N,I}
     e = Expr(:tuple)
     for i in OneTo(N)
@@ -154,25 +147,19 @@ end
     end
     return Expr(:block, Expr(:meta, :inline), e)
 end
-
 function _struct_view(::Type{T}, data, axs) where {T}
     f = _struct_view_function(T)
     aview = __struct_view(T, f, data)
     return AxisArray{T,length(axs),typeof(aview),typeof(axs)}(aview, axs; checks=NoChecks)
 end
-
 @inline function __struct_view(::Type{T}, f, data) where {T}
     return ReadonlyMultiMappedArray{T,ndims(first(data)),typeof(data),typeof(f)}(f, data)
 end
-
 @inline function __struct_view(::Type{T}, ::Type{T}, data) where {T}
     return ReadonlyMultiMappedArray{T,ndims(first(data)),typeof(data),Type{T}}(T, data)
 end
 
 function print_axis(io, axis::StructAxis{T}) where {T}
-    if haskey(io, :compact)
-        show(io, keys(axis))
-    else
-        print(io, "StructAxis($(T) => $(parent(axis)))")
-    end
+    print(io, "StructAxis($(T) => $(parent(axis)))")
 end
+

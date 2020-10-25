@@ -73,6 +73,7 @@ include("first_tests.jl")
 include("last_tests.jl")
 include("length_tests.jl")
 include("copyto_tests.jl")
+include("permutedims.jl")
 
 @testset "keys" begin
     axis = Axis(2:3 => 1:2)

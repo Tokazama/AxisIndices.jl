@@ -173,6 +173,20 @@
             @test @inferred(A[0.3]) == 3
         end
     end
+
+    @testset "isequal" begin
+        x = 1:10
+        y = 1:1:10
+        z = StaticRanges.GapRange(1:5,6:10)
+        axis = SimpleAxis(x)
+        @test ==(x, axis)
+        @test ==(axis, x)
+        @test ==(y, axis)
+        @test ==(axis, y)
+        @test ==(z, axis)
+        @test ==(axis, z)
+        @test ==(axis, axis)
+    end
 end
 
 @testset "pop" begin

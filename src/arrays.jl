@@ -523,15 +523,6 @@ function size(a::ReinterpretArray{T,N,S} where {N}) where {T,S}
 end
 =#
 
-function Base.permutedims(A::AxisArray{T,N}, perms) where {T,N}
-    p = permutedims(parent(A), perms)
-    axs = ntuple(Val(N)) do i
-        assign_indices(axes(A, perms[i]), axes(p, i))
-    end
-    return AxisArray(p, axs)
-end
-
-
 @inline function Base.selectdim(A::AxisArray{T,N}, d::Integer, i) where {T,N}
     axs = ntuple(N) do dim_i
         if dim_i == d
@@ -592,7 +583,6 @@ end
 for f in (
     :(Base.transpose),
     :(Base.adjoint),
-    :(Base.permutedims),
     :(LinearAlgebra.pinv))
     @eval begin
         function $f(A::AxisArray)
@@ -628,20 +618,6 @@ function compute_itspace(A, ::Val{dims}) where {dims}
 end
 =#
 
-"""
-    permuteddimsview(A, perm)
-
-returns a "view" of `A` with its dimensions permuted as specified by
-`perm`. This is like `permutedims`, except that it produces a view
-rather than a copy of `A`; consequently, any manipulations you make to
-the output will be mirrored in `A`. Compared to the copy, the view is
-much faster to create, but generally slower to use.
-"""
-permuteddimsview(A, perm) = PermutedDimsArray(A, perm)
-function permuteddimsview(A::AxisArray, perm)
-    p = PermutedDimsArray(parent(A), perm)
-    return AxisArray(p, permute_axes(A, p, perm))
-end
 
 for f in (:map, :map!)
     # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0

@@ -443,41 +443,6 @@ end  # Base
         @test keys.(axes(f(maxes; dims=1))) == (2:2, 3:4)
     end
 end
-@testset "permuteddimsview" begin
-    @testset "standard" begin
-        a = [1 3; 2 4]
-        v = permuteddimsview(a, (1,2))
-        @test v == a
-        v = permuteddimsview(a, (2,1))
-        @test v == a'
-        a = rand(3,7,5)
-        v = permuteddimsview(a, (2,3,1))
-        @test v == permutedims(a, (2,3,1))
-    end
-
-    @testset "AxisArray" begin
-        a = AxisArray([1 3; 2 4], [:one, :two], ["three", "four"]);
-        v = permuteddimsview(a, (1,2))
-        @test v == a
-        @test keys.(axes(v)) == ([:one, :two], ["three", "four"])
-        v = permuteddimsview(a, (2,1))
-        @test v == a'
-        @test keys.(axes(v)) == (["three", "four"], [:one, :two])
-        a = AxisArray(rand(2,3,4), ["a", "b"], [:a, :b, :c], [1,2,3,4])
-        v = permuteddimsview(a, (2,3,1))
-        @test v == permutedims(a, (2,3,1))
-        @test keys.(axes(v)) == ([:a, :b, :c], [1,2,3,4], ["a", "b"])
-    end
-
-    #= FIXME
-    @testset "NamedDimsArray" begin
-        a = NamedAxisArray{(:a,:b)}([1 3; 2 4])
-        v = permuteddimsview(a, (2,1))
-        @test v == a'
-        @test dimnames(v) == (:b, :a)
-    end
-    =#
-end
 
 @testset "Array Interface" begin
     x = AxisArray([1 2; 3 4]);
@@ -497,26 +462,6 @@ end
     @test @inferred(x[CartesianIndex(1,1), :]) == parent(parent(x)[CartesianIndex(1,1), :])
     @test @inferred(x[:, CartesianIndex(1,1)]) == parent(parent(x)[:, CartesianIndex(1,1)])
     @test @inferred(x[[true,true], CartesianIndex(1,1)]) == parent(parent(x)[[true,true], CartesianIndex(1,1)])
-end
-
-@testset "permutedims" begin
-    v = AxisArray([10, 20, 30], (2:4,))
-    @test keys.(axes(permutedims(transpose(v)))) == (2:4, 1:1)
-
-    a = AxisArray(ones(10, 20, 30, 40), (2:11, 2:21, 2:31, 2:41));
-    @test (keys.(axes(permutedims(a, (1, 2, 3, 4)))) ==
-           keys.(axes(permutedims(a, 1:4))) ==
-           (2:11, 2:21, 2:31, 2:41)
-    )
-
-    @test (keys.(axes(permutedims(a, (1, 3, 2, 4)))) == (2:11, 2:31, 2:21, 2:41))
-end
-
-@testset "PermuteDimsArray" begin
-    x = AxisArray(ones(2,2))
-    y = PermutedDimsArray(x, (2, 1))
-    @test axes(y) isa Tuple{SimpleAxis, SimpleAxis}
-    @test axes(y, 1) isa SimpleAxis
 end
 
 @testset "I/O" begin
@@ -754,23 +699,16 @@ end
     @test keys.(axes(selectdim(a, 1, 2:2))) == (2:2, 2:4)
 end
 
-for f in (adjoint, transpose, permutedims)
+for f in (adjoint, transpose)
     @testset "$f" begin
         @testset "Vector $f" begin
             v = AxisArray([10, 20, 30], (2:4,))
             @test f(v) == [10 20 30]
             @test keys.(axes(f(v))) == (1:1, 2:4)
 
-            if f === permutedims
-                # unlike adjoint and tranpose, permutedims should not be its own inverse
-                # The new dimension should stick around
-                @test f(f(v)) == reshape([10, 20, 30], Val(2))
-                @test keys.(axes(f(f(v)))) == (2:4, 1:1)
-            else
-                # Make sure vector double adjoint gets you back to the start.
-                @test f(f(v)) == [10, 20, 30]
-                @test keys.(axes(f(f(v)))) == (2:4,)
-            end
+            # Make sure vector double adjoint gets you back to the start.
+            @test f(f(v)) == [10, 20, 30]
+            @test keys.(axes(f(f(v)))) == (2:4,)
         end
 
         @testset "Matrix $f" begin

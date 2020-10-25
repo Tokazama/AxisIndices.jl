@@ -130,6 +130,7 @@ const NamedMetaAxisArray{L,T,N,P,M,Axs} = NamedDimsArray{L,T,N,MetaAxisArray{T,N
 
 
 include("indexing.jl")
+include("permutedims.jl")
 include("axes_methods.jl")
 include("combine.jl")
 include("arrays.jl")
