@@ -23,6 +23,8 @@ end
     # TODO should this be a strict key array still?
     v = OffsetVector([1,2,3], 1)
     @test keys.(axes(@inferred(reverse(v)))) == (4:-1:2,)
+
+    @test_throws MethodError insert!(AxisArray(1:2), 2, 2)
 end
 
 @testset "AxisArray constructors" begin
@@ -743,3 +745,11 @@ end
     end
 end
 
+@testset "ReinterpretAxisArray" begin
+    x = [1.0 2 3; 4 5 6]
+    rx = reinterpret(Float32, x)
+    ax = AxisArray(x, (2:3, 4:6))
+    rax = reinterpret(Float32, ax)
+    @test axes(rax) == (2:5, 4:6)
+    @test rax == rx
+end

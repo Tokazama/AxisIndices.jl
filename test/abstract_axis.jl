@@ -1,5 +1,45 @@
 
 @testset "AbstractAxis" begin
+    @testset "keys" begin
+        axis = Axis(2:3 => 1:2)
+
+        @test keytype(typeof(Axis(1.0:10.0))) <: Float64
+        @test keytype(typeof(parent(axis))) <: Int
+        @test haskey(axis, 3)
+        @test !haskey(axis, 4)
+        @test keys.(axes(axis)) == (2:3,)
+
+        A = AxisArray(ones(3,2), [:one, :two, :three], nothing)
+        @testset "reverse" begin
+            x = [1, 2, 3]
+            y = AxisArray(x)
+            z = AxisArray(x, Axis([:one, :two, :three]))
+
+            revx = reverse(x)
+            revy = @inferred(reverse(y))
+            revz = @inferred(reverse(z))
+
+            @testset "reverse vectors values properly" begin
+                @test revx == revz == revy
+            end
+
+            @testset "reverse vectors keys" begin
+                @test keys(axes(revy, 1)) == [3, 2, 1]
+                @test keys(axes(revz, 1)) == [:three, :two, :one]
+            end
+
+            @testset "reverse arrays" begin
+                b = [1 2; 3 4]
+                x = AxisArray(b, [:one, :two], ["a", "b"])
+
+                xrev1 = reverse(x, dims=1)
+                xrev2 = reverse(x, dims=2)
+                @test keys.(axes(xrev1)) == ([:two, :one], ["a", "b"])
+                @test keys.(axes(xrev2)) == ([:one, :two], ["b", "a"])
+            end
+        end
+    end
+
     @testset "step(r)" begin
         for (r,b) in ((SimpleAxis(OneToMRange(10)), OneToMRange(10)),)
             @test @inferred(step(r)) === step(b)
@@ -12,7 +52,6 @@
 
         @test @inferred(step(SimpleAxis(2))) == 1
         @test @inferred(firstindex(Axis(1:10))) == firstindex(1:10)
-        # TODO delete? @test @inferred(AxisIndices.step_key([1])) == 1
     end
 
     @testset "to_index" begin
@@ -219,4 +258,89 @@ end
     @test isempty(r) == true
 end
 =#
+
+@testset "last" begin
+   @testset "can_set_last" begin
+       @test @inferred(can_set_last(typeof(Axis(UnitMRange(1:2))))) == true
+       @test @inferred(can_set_last(typeof(Axis(UnitSRange(1:2))))) == false
+    end
+
+    for (r1,b,v,r2) in ((SimpleAxis(UnitMRange(1,3)), true, 2, SimpleAxis(UnitMRange(1,2))),
+                        (Axis(UnitMRange(1,3),UnitMRange(1,3)), true, 2, Axis(UnitMRange(1,2),UnitMRange(1,2))))
+        @testset "set_last-$(r1)" begin
+            x = @inferred(can_set_last(typeof(r1)))
+            @test x == b
+            if x
+                @test @inferred(set_last!(r1, v)) == r2
+            end
+            if x
+                @test @inferred(set_last(r1, v)) == r2
+            end
+        end
+    end
+
+    @test last(Axis(2:3)) == 2
+    @test last(Axis(2:3, 2:3)) == 3
+end
+
+# FIXME? should we be able to change the first index of an axis?
+#= 
+@testset "first" begin
+    @testset "can_set_first" begin
+        @test @inferred(!StaticRanges.can_set_first(Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}))
+        @test @inferred(StaticRanges.can_set_first(Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}))
+    end
+
+    for (r1,b,v,r2) in ((SimpleAxis(UnitMRange(1,3)), true, 2, SimpleAxis(UnitMRange(2,3))),
+                        (Axis(UnitMRange(1,3),UnitMRange(1,3)), true, 2, Axis(UnitMRange(2,3),UnitMRange(2,3))))
+        @testset "set_first-$(r1)" begin
+            x = @inferred(can_set_first(r1))
+            @test x == b
+            if x
+                set_first!(r1, v)
+                @test r1 == r2
+            end
+            @test set_first(r1, v) == r2
+        end
+    end
+
+    @test first(Axis(2:3)) == 1
+    @test first(Axis(2:3, 2:3)) == 2
+end
+=#
+
+@testset "length - tests" begin
+    @testset "length(r)" begin
+        for (r,b) in ((SimpleAxis(UnitMRange(1,3)), 1:3),
+                      (Axis(UnitMRange(1,3),UnitMRange(1,3)), 1:3)
+                     )
+            @test @inferred(length(r)) == length(b)
+            @test @inferred(length(r)) == length(b)
+            if b isa StepRangeLen
+                @test @inferred(stephi(r)) == stephi(b)
+                @test @inferred(steplo(r)) == steplo(b)
+            end
+        end
+    end
+
+    @testset "can_set_length" begin
+        @test @inferred(!StaticRanges.can_set_length(Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}))
+        @test @inferred(StaticRanges.can_set_length(Axis{Int,Int,UnitMRange{Int},OneToMRange{Int}}))
+    end
+
+    @testset "set_length!" begin
+        @test @inferred(set_length!(SimpleAxis(OneToMRange(10)), UInt32(11))) == SimpleAxis(OneToMRange(11))
+        @test @inferred(set_length!(Axis(OneToMRange(10), OneToMRange(10)), UInt32(11))) == Axis(OneToMRange(11), OneToMRange(11))
+    end
+
+    @testset "set_length" begin
+        @test @inferred(set_length(SimpleAxis(OneToMRange(10)), UInt32(11))) == SimpleAxis(OneToMRange(11))
+        @test @inferred(set_length(Axis(OneToMRange(10), OneToMRange(10)), UInt32(11))) == Axis(OneToMRange(11), OneToMRange(11))
+    end
+
+    @testset "empty length" begin
+        @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
+        @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
+    end
+end
 

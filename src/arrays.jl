@@ -754,11 +754,6 @@ end
 unwrap_broadcasted(a::AxisArray) = parent(a)
 unwrap_broadcasted(x) = x
 
-get_first_axis_indices(bc::Broadcasted) = _get_first_axis_indices(bc.args)
-_get_first_axis_indices(args::Tuple{Any,Vararg{Any}}) = _get_first_axis_indices(tail(args))
-_get_first_axis_indices(args::Tuple{<:AxisArray,Vararg{Any}}) = first(args)
-_get_first_axis_indices(args::Tuple{}) = nothing
-
 # We need to implement copy because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
 function Broadcast.copy(bc::Broadcasted{AxisArrayStyle{S}}) where S
