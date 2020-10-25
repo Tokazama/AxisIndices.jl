@@ -508,9 +508,11 @@ function Base.axes(A::ReinterpretAxisArray{T,N,S}) where {T,N,S}
     return tuple(resize_last(axis_1, len), tail(paxs)...)
 end
 
-function Base.collect(A::AxisArray)
-    p = collect(parent(A))
-    return AxisArray(p, map(assign_indices,  axes(A), axes(p)))
+function Base.collect(A::AxisArray{T,N}) where {T,N}
+    p = similar(parent(A), size(A))
+    copyto!(p, A)
+    axs = map(unsafe_reconstruct,  axes(A), axes(p))
+    return AxisArray{T,N,typeof(p),typeof(axs)}(p, axs; checks=NoChecks)
 end
 
 #=

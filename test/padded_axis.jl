@@ -8,7 +8,14 @@
     @test AxisArray(1:2, zero_pad(sym_pad=2)) == [0, 0, 1, 2, 0, 0]
     @test AxisArray(1:2, one_pad(sym_pad=2)) == [1, 1, 1, 2, 1, 1]
 
-    A = @inferred(AxisArray(reshape(1:6, 3, 2), replicate_pad(first_pad=2, last_pad=2), replicate_pad(first_pad=2, last_pad=2)))
-    @test @inferred(IndexStyle(A)) isa IndexCartesian
+    x = reshape(1:6, 3, 2)
+    ax = @inferred(AxisArray(x, replicate_pad(sym_pad=2), replicate_pad(sym_pad=2)))
+    @test ax == @inferred(replicate_pad(x; sym_pad=2))
+    @test eltype(x) <: eltype(ax)
+    @test axes(ax) == (-1:5, -1:4)
+    cax = collect(ax)
+    @test cax == ax
+    @test axes(cax, 1) isa OffsetAxis
+    @test @inferred(IndexStyle(ax)) isa IndexCartesian
 end
 

@@ -92,6 +92,7 @@ end
 The border elements return `zero(eltype(A))`, where `A` is the parent array being padded.
 """
 const zero_pad = FillPad(zero)
+pad_call_string(::FillPad{typeof(zero)}) = "zero_pad"
 
 """
     one_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
@@ -99,6 +100,7 @@ const zero_pad = FillPad(zero)
 The border elements return `oneunit(eltype(A))`, where `A` is the parent array being padded.
 """
 const one_pad = FillPad(oneunit)
+pad_call_string(::FillPad{typeof(oneunit)}) = "one_pad"
 
 @inline function pad_index(p::FillPad, start, stop, i)
     if start > i
@@ -111,6 +113,7 @@ const one_pad = FillPad(oneunit)
 end
 
 struct SymmetricPad <: PaddedInitializer end
+pad_call_string(::Symmetric) = "symmetric_pad"
 
 """
     symmetric_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
@@ -152,6 +155,7 @@ function check_pad(::SymmetricPad, first_pad, last_pad, start, stop)
 end
 
 struct ReplicatePad <: PaddedInitializer end
+pad_call_string(::ReplicatePad) = "replicate_pad"
 
 """
     replicate_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
@@ -179,6 +183,7 @@ function pad_index(::ReplicatePad, start, stop, i)
 end
 
 struct CircularPad <: PaddedInitializer end
+pad_call_string(::CircularPad) = "circular_pad"
 
 """
     circular_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
@@ -218,6 +223,7 @@ function check_pad(::CircularPad, first_pad, last_pad, start, stop)
 end
 
 struct ReflectPad <: PaddedInitializer end
+pad_call_string(::ReflectPad) = "reflect_pad"
 
 """
     reflect_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
@@ -233,6 +239,7 @@ The border elements reflect relative to the edge itself.
 ```
 """
 const reflect_pad = ReflectPad()
+
 
 function pad_index(::ReflectPad, start, stop, i)
     if start > i
@@ -266,9 +273,29 @@ function (p::PaddedInitializer)(x::AbstractArray; first_pad=Zero(), last_pad=Zer
             return PaddedAxis(p, sym_pad, sym_pad, x)
         end
     else
-        axs = ntuple(_ -> p(; first_pad=first_pad, last_pad=last_pad, sym_pad=sym_pad), Val(ndims(x)))
-        return AxisArray(x, axs)
+        if sym_pad === nothing
+            return _pad_init_to_array(x, p, first_pad, last_pad)
+        else
+            return _pad_init_to_array(x, p, sym_pad)
+        end
     end
+end
+
+@inline function _pad_init_to_array(x, p, fp::Integer, lp::Integer)
+    axs = map(axis -> PaddedAxis(p, fp, lp, axis), axes(x), sp)
+    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
+end
+@inline function _pad_init_to_array(x, p, fp::Tuple, lp::Tuple)
+    axs = map((axis, f, l) -> PaddedAxis(p, f, l, axis), axes(x), fp, lp)
+    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
+end
+@inline function _pad_init_to_array(x, p, sp::Integer)
+    axs = map(axis -> PaddedAxis(p, sp, sp, axis), axes(x))
+    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
+end
+@inline function _pad_init_to_array(x, p, sp::Tuple)
+    axs = map((axis, sp_i) -> PaddedAxis(p, sp_i, sp_i, axis), axes(x), sp)
+    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
 end
 
 @inline function _sub_offset(axis::PaddedAxis, i::Integer)
@@ -277,22 +304,19 @@ end
 end
 
 function print_axis(io::IO, axis::PaddedAxis)
-    start = Int(first(axis))
-    stop = Int(last(axis))
-    if haskey(io, :compact)
-        print(io, start:stop)
+    print(io, pad_call_string(pad(axis)))
+    print(io, "(")
+    print(io, parent(axis))
+    if first_pad(axis) === last_pad(axis)
+        print(io, "; sym_pad=")
+        print(io, first_pad(axis))
+        print(io, ")")
     else
-        p = parent(axis)
-        print(io, "PaddedAxis($(pad(axis)), ")
-        fp = first_pad(axis)
-        if fp != 0
-            print(io, "($(start))[$(Int(first_pad(axis)))]")
-        end
-        print(io, "$(Int(first(p))):$(Int(last(p)))")
-        lp = last_pad(axis)
-        if lp != 0
-            print(io, "[$(Int(last_pad(axis)))]($(stop)))")
-        end
+        print(io, "; first_pad=")
+        print(io, first_pad(axis))
+        print(io, ", last_pad=")
+        print(io, last_pad(axis))
+        print(io, ")")
     end
 end
 
@@ -321,7 +345,7 @@ end
 is_dense_wrapper(::Type{T}) where {T<:PaddedAxis} = false
 
 function ArrayInterface.unsafe_reconstruct(axis::PaddedAxis, data; kwargs...)
-    return OffsetAxis(first_pad(axis) - static_first(parent(axis)), data)
+    return OffsetAxis(-first_pad(axis), data)
 end
 
 @inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(oneunit)}}
@@ -331,3 +355,4 @@ end
 @inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(zero)}}
     return zero(eltype(A))
 end
+

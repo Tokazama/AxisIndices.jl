@@ -10,11 +10,11 @@
 ```julia
 julia> using AxisIndices
 
-julia> axis = IdentityAxis(3:5)
-IdentityAxis(identity=3:5, parent=SimpleAxis(1:3))
+julia> axis = AxisIndices.IdentityAxis(3:5)
+idaxis(3:5 parent=SimpleAxis(1:3))
 
 julia> axis[4:5]
-IdentityAxis(identity=4:5, parent=SimpleAxis(2:3))
+idaxis(4:5 parent=SimpleAxis(2:3))
 
 ```
 """
@@ -197,30 +197,6 @@ IdentityArray{T}(A::AbstractArray) where {T} = IdentityArray{T,ndims(A)}(A)
 
 IdentityArray{T,N}(A::AbstractArray) where {T,N} = IdentityArray{T,N,typeof(A)}(A)
 
-#=
-IdentityArray{T,N,P}(A::IdentityArray{T,N,P}) where {T,N,P} = A
-function IdentityArray{T,N,P}(A::IdentityArray) where {T,N,P}
-    return IdentityArray{T,N,P}(parent(A))
-end
-
-function IdentityArray{T,N,P}(A::AbstractArray) where {T,N,P<:AbstractArray{T,N}}
-    return IdentityArray{T,N,P}(convert(P, A))
-end
-
-function IdentityArray{T,N,P}(A::P) where {T,N,P<:AbstractArray{T,N}}
-    axs = map(idaxis, axes(A))
-    return IdentityArray{T,N,P,typeof(axs)}(A, axs)
-end
-
-function IdentityArray{T}(init::ArrayInitializer, sz::Tuple=()) where {T}
-    return IdentityArray{T,length(inds)}(init, sz)
-end
-
-function IdentityArray{T,N}(init::ArrayInitializer, sz::Tuple=()) where {T,N}
-    return IdentityArray{T,N}(Array{T,N}(init, sz))
-end
-=#
-
 function IdentityArray{T,N,P}(x::P; checks=AxisArrayChecks(), kwargs...) where {T,N,P<:AbstractArray{T,N}}
     axs = map(IdentityAxis, axes(x))
     return AxisArray{T,N,P,typeof(axs)}(x, axs; checks=NoChecks)
@@ -287,11 +263,10 @@ end
 end
 
 function print_axis(io::IO, axis::IdentityAxis)
-    if haskey(io, :compact)
-        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
-    else
-        print(io, "IdentityAxis(identity=$(Int(first(axis))):$(Int(last(axis)))," *
-              " parent=$(parent(axis)))")
-    end
+    print(io, "idaxis(")
+    print(io, Int(first(axis)))
+    print(io, ":")
+    print(io, Int(last(axis)))
+    print(io, " parent=$(parent(axis)))")
 end
 

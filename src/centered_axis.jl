@@ -13,10 +13,10 @@ A `CenteredAxis` sends all indexing arguments to the keys and only maps to the i
 julia> using AxisIndices
 
 julia> axis = CenteredAxis(1:10)
-CenteredAxis(origin=0, parent=SimpleAxis(1:10))
+center(SimpleAxis(1:10)); origin=0)
 
 julia> axis[10]  # the indexing goes straight to keys and is centered around zero
-ERROR: BoundsError: attempt to access CenteredAxis(origin=0, parent=SimpleAxis(1:10)) at index [10]
+ERROR: BoundsError: attempt to access center(SimpleAxis(1:10)); origin=0) at index [10]
 [...]
 
 julia> axis[-4]
@@ -267,9 +267,6 @@ function CenteredVector{T}(init::ArrayInitializer, arg) where {T}
 end
 
 function print_axis(io::IO, axis::CenteredAxis)
-    if haskey(io, :compact)
-        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
-    else
-        print(io, "CenteredAxis(origin=$(Int(origin(axis))), parent=$(parent(axis)))")
-    end
+    print(io, "center($(parent(axis))); origin=$(Int(origin(axis))))")
 end
+

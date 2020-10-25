@@ -221,5 +221,19 @@ end
 
 @inline ArrayInterface.offsets(axis::AbstractAxis) = (first(axis),)
 
-Base.show(io::IO, axis::AbstractAxis) = print_axis(io, axis)
-Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = print_axis(io, axis)
+Base.show(io::IO, axis::AbstractAxis) = _show(io, axis)
+Base.show(io::IO, ::MIME"text/plain", axis::AbstractAxis) = _show(io, axis)
+function _show(io::IO, axis::AbstractAxis)
+    if haskey(io, :compact)
+        ks = keys(axis)
+        if known_step(ks) === 1
+            # this prevents StaticInt from creating long prints to REPL
+            print(io, "$(Int(first(ks))):$(Int(last(ks)))")
+        else
+            print(io, ks)
+        end
+    else
+        print_axis(io, axis)
+    end
+end
+

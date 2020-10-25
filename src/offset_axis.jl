@@ -14,8 +14,8 @@ Users may construct an `OffsetAxis` by providing an from a set of indices.
 ```jldoctest offset_axis_examples
 julia> using AxisIndices
 
-julia> axis = OffsetAxis(-2, 1:3)
-OffsetAxis(offset=-2, parent=SimpleAxis(1:3)))
+julia> axis = AxisIndices.OffsetAxis(-2, 1:3)
+offset(SimpleAxis(1:3); offset=-2)
 
 ```
 
@@ -43,14 +43,14 @@ This means that traditional one based indexing no longer applies and may result 
 errors.
 ```jldoctest offset_axis_examples
 julia> axis[3]
-ERROR: BoundsError: attempt to access OffsetAxis(offset=-2, parent=SimpleAxis(1:3))) at index [3]
+ERROR: BoundsError: attempt to access offset(SimpleAxis(1:3); offset=-2) at index [3]
 [...]
 ```
 
 When an `OffsetAxis` is reconstructed the offset from indices are presserved.
 ```jldoctest offset_axis_examples
 julia> axis[0:1]  # offset of -2 still applies
-OffsetAxis(offset=-2, parent=SimpleAxis(2:3)))
+offset(SimpleAxis(2:3); offset=-2)
 
 ```
 """
@@ -180,9 +180,8 @@ end
 struct Offset <: AxisInitializer end
 
 """
-    offset(x)
+    offset(x; offset)
 
-Shortcut for creating `OffsetAxis` where `x` is the first argument to [`OffsetAxis`](@ref).
 
 ## Examples
 ```jldoctest
@@ -201,13 +200,37 @@ julia> AxisArray(ones(3), offset(2))
 ```
 """
 const offset = Offset()
-offset(f) = x -> offset(x, f)
-function offset(x::AbstractArray, f)
-    if known_step(x) === 1
-        return OffsetAxis(f, x)
+function offset(x::Integer; offset=nothing)
+    if offset === nothing
+        return y -> AxisIndices.offset(y; offset=x)
     else
-        return AxisArray(x, ntuple(_ -> offset(f), Val(ndims(x))))
+        throw(ArgumentError("cannot offset an integer."))
     end
+end
+function offset(x::AbstractArray; offset=nothing)
+    if offset === nothing
+        if known_step(x) === 1
+            return y -> AxisIndices.offset(y; offset=x)
+        else
+            throw(ArgumentError("Must specify offset."))
+        end
+    else
+        if known_step(x) === 1
+            return OffsetAxis(offset, x)
+        else
+            return _offset_init_to_array(x, offset)
+        end
+    end
+end
+
+function _offset_init_to_array(x, offset::Integer)
+    axs = map(axis -> OffsetAxis(offset, axis), axes(x))
+    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
+end
+
+function _offset_init_to_array(x, offset::Tuple)
+    axs = map((axis, f) -> OffsetAxis(f, axis), axes(x), offset)
+    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
 end
 
 """
@@ -279,9 +302,6 @@ function OffsetArray{T,N,P}(A::P, inds::Tuple{Vararg{<:Any,N}}; checks=AxisArray
 end
 
 function print_axis(io::IO, axis::OffsetAxis)
-    if haskey(io, :compact)
-        print(io, "$(Int(first(axis))):$(Int(last(axis)))")
-    else
-        print(io, "OffsetAxis(offset=$(getfield(axis, :offset)), parent=$(parent(axis))))")
-    end
+    print(io, "offset($(parent(axis)); offset=$(Int(getfield(axis, :offset))))")
 end
+
