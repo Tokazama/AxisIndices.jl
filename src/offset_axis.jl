@@ -177,10 +177,8 @@ function ArrayInterface.unsafe_reconstruct(axis::OffsetAxis, inds; kwargs...)
     end
 end
 
-struct Offset <: AxisInitializer end
-
 """
-    offset(x; offset)
+    offset([collection,] x)
 
 
 ## Examples
@@ -199,39 +197,10 @@ julia> AxisArray(ones(3), offset(2))
 
 ```
 """
+struct Offset <: AxisInitializer end
+axis_method(::Offset, x, inds) = OffsetAxis(x, inds)
+
 const offset = Offset()
-function offset(x::Integer; offset=nothing)
-    if offset === nothing
-        return y -> AxisIndices.offset(y; offset=x)
-    else
-        throw(ArgumentError("cannot offset an integer."))
-    end
-end
-function offset(x::AbstractArray; offset=nothing)
-    if offset === nothing
-        if known_step(x) === 1
-            return y -> AxisIndices.offset(y; offset=x)
-        else
-            throw(ArgumentError("Must specify offset."))
-        end
-    else
-        if known_step(x) === 1
-            return OffsetAxis(offset, x)
-        else
-            return _offset_init_to_array(x, offset)
-        end
-    end
-end
-
-function _offset_init_to_array(x, offset::Integer)
-    axs = map(axis -> OffsetAxis(offset, axis), axes(x))
-    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
-end
-
-function _offset_init_to_array(x, offset::Tuple)
-    axs = map((axis, f) -> OffsetAxis(f, axis), axes(x), offset)
-    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
-end
 
 """
     OffsetArray

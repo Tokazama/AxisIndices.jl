@@ -143,7 +143,7 @@ function ArrayInterface.unsafe_reconstruct(axis::IdentityAxis, inds; keys=nothin
 end
 
 """
-    idaxis(inds::AbstractUnitRange{<:Integer}) -> IdentityAxis
+    idaxis(inds::AbstractUnitRange{<:Integer})
 
 Shortcut for creating [`IdentityAxis`](@ref).
 
@@ -163,7 +163,16 @@ julia> AxisArray(ones(3), idaxis)[2:3]
 
 ```
 """
-idaxis(inds) = IdentityAxis(inds)
+struct IdAxis <: AxisInitializer end
+axis_method(::IdAxis, x, inds) = IdentityAxis(x, inds)
+const idaxis = IdAxis()
+function idaxis(collection)
+    if known_step(collection) === 1
+        return IdentityAxis(collection)
+    else
+        return idaxis(collection, axes(collection))
+    end
+end
 
 """
     IdentityArray(A::AbstractArray)

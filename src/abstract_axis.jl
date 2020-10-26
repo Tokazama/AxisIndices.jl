@@ -22,13 +22,6 @@ abstract type AbstractOffsetAxis{I,Inds,F} <: AbstractAxis{I,Inds} end
 
 
 """
-    AxisInitializer <: Function
-
-Supertype for functions that assist in initialization of `AbstractAxis` subtypes.
-"""
-abstract type AxisInitializer <: Function end
-
-"""
     IndexAxis
 
 Index style for mapping keys to an array's parent indices.

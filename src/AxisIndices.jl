@@ -45,29 +45,26 @@ const to_indices = ArrayInterface.to_indices
 export
     AbstractAxis,
     AxisArray,
-    AxisVector,
     AxisMatrix,
+    AxisVector,
     Axis,
     AxisArray,
     CartesianAxes,
-    CenteredAxis,
-    IdentityAxis,
-    idaxis,
     LinearAxes,
     NamedAxisArray,
-    OffsetAxis,
     SimpleAxis,
-    center,
-    offset,
-    permuteddimsview,
     StructAxis,
-    struct_view,
-    zero_pad,
-    one_pad,
-    symmetric_pad,
-    reflect_pad,
+    center,
     circular_pad,
-    replicate_pad
+    idaxis,
+    permuteddimsview,
+    offset,
+    one_pad,
+    reflect_pad,
+    replicate_pad,
+    struct_view,
+    symmetric_pad,
+    zero_pad
 
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
@@ -94,6 +91,34 @@ end
 include("errors.jl")
 include("abstract_axis.jl")
 include("axis_array.jl")
+
+"""
+    AxisInitializer <: Function
+
+Supertype for functions that assist in initialization of `AbstractAxis` subtypes.
+"""
+abstract type AxisInitializer <: Function end
+
+(init::AxisInitializer)(x) = Base.Fix2(init, x)
+function (init::AxisInitializer)(collection, x)
+    if known_step(collection) === 1
+        return axis_method(init, x, collection)
+    else
+        return AxisArray(collection, ntuple(_ -> init(x), Val(ndims(collection))))
+    end
+end
+function (init::AxisInitializer)(collection, x::Tuple)
+    if ndims(collection) !== length(x)
+        throw(DimensionMismatch("Number of axis arguments provided ($(length(x))) does " *
+                                "not match number of collections's axes ($(ndims(collection)))."))
+    end
+    if known_step(collection) === 1
+        return axis_method(init, first(x), collection)
+    else
+        return AxisArray(collection, map(init, x))
+    end
+end
+
 include("simple_axis.jl")
 include("axis.jl")
 include("offset_axis.jl")

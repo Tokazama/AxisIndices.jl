@@ -12,7 +12,7 @@ A `CenteredAxis` sends all indexing arguments to the keys and only maps to the i
 ```jldoctest
 julia> using AxisIndices
 
-julia> axis = CenteredAxis(1:10)
+julia> axis = AxisIndices.CenteredAxis(1:10)
 center(SimpleAxis(1:10)); origin=0)
 
 julia> axis[10]  # the indexing goes straight to keys and is centered around zero
@@ -125,11 +125,9 @@ origin(axis::CenteredAxis) = getfield(axis, :origin)
     return (_origin_to_offset(static_first(inds), static_length(inds), origin(axis)),)
 end
 
-struct Center <: AxisInitializer end
 
 """
-    center(x; origin=0)
-    center(; origin=0) = x -> center(x; origin)
+    center(collection, origin=0)
 
 Shortcut for creating [`CenteredAxis`](@ref).
 
@@ -137,7 +135,7 @@ Shortcut for creating [`CenteredAxis`](@ref).
 ```jldoctest
 julia> using AxisIndices
 
-julia> AxisArray(ones(3), center(origin=0))
+julia> AxisArray(ones(3), center(0))
 3-element AxisArray(::Array{Float64,1}
   • axes:
      1 = -1:1
@@ -149,15 +147,10 @@ julia> AxisArray(ones(3), center(origin=0))
 
 ```
 """
+struct Center <: AxisInitializer end
 const center = Center()
-center(; origin=Zero()) = x -> center(x; origin=origin)
-function center(x::AbstractArray; origin=Zero())
-    if known_step(x) === 1
-        return CenteredAxis(origin, x)
-    else
-        return AxisArray(x, ntuple(_ -> center(;origin=origin), Val(ndims(x))))
-    end
-end
+axis_method(::Center, x, inds) = CenteredAxis(x, inds)
+center(collection::AbstractArray) = center(collection, Zero())
 
 """
     CenteredArray(A::AbstractArray)
@@ -269,4 +262,3 @@ end
 function print_axis(io::IO, axis::CenteredAxis)
     print(io, "center($(parent(axis))); origin=$(Int(origin(axis))))")
 end
-

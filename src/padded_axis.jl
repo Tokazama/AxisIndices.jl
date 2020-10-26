@@ -112,9 +112,6 @@ pad_call_string(::FillPad{typeof(oneunit)}) = "one_pad"
     end
 end
 
-struct SymmetricPad <: PaddedInitializer end
-pad_call_string(::Symmetric) = "symmetric_pad"
-
 """
     symmetric_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
 
@@ -129,7 +126,10 @@ border pixel is omitted when mirroring.
 }
 ```
 """
+struct SymmetricPad <: PaddedInitializer end
+pad_call_string(::Symmetric) = "symmetric_pad"
 const symmetric_pad = SymmetricPad()
+axis_method(p::SymmetricPad) = (pads, axis) -> PaddedAxis(p, pads, axis)
 
 function pad_index(::SymmetricPad, start, stop, i)
     if start > i
@@ -355,4 +355,3 @@ end
 @inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(zero)}}
     return zero(eltype(A))
 end
-
