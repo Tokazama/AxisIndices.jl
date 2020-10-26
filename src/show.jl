@@ -201,7 +201,7 @@ function Base.print_matrix(
                 if i != rowsA[end] || i == rowsA[halfheight]; println(io); end
                 if i == rowsA[halfheight]
                     print(io, i == first(rowsA) ? pre : presp)
-                    print_matrix_vdots(io, vdots, A, sep, vmod, 1, false)
+                    Base.print_matrix_vdots(io, vdots, A, sep, vmod, 1, false)
                     print(io, i == last(rowsA) ? post : postsp * '\n')
                 end
             end
@@ -224,9 +224,9 @@ function Base.print_matrix(
                 if i != rowsA[end] || i == rowsA[halfheight]; println(io); end
                 if i == rowsA[halfheight]
                     print(io, i == first(rowsA) ? pre : presp)
-                    print_matrix_vdots(io, vdots, Lalign, sep, vmod, 1, true)
+                    Base.print_matrix_vdots(io, vdots, Lalign, sep, vmod, 1, true)
                     print(io, ddots)
-                    print_matrix_vdots(io, vdots, Ralign, sep, vmod, r, false)
+                    Base.print_matrix_vdots(io, vdots, Ralign, sep, vmod, r, false)
                     print(io, i == last(rowsA) ? post : postsp * '\n')
                 end
             end
