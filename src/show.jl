@@ -91,7 +91,6 @@ function print_col_keys(
             print(io, sep)
         end
     end
-    println(io)
 end
 
 function print_row_key(io, axis, i, a, pre, post)
@@ -159,6 +158,7 @@ function Base.print_matrix(
             rA = row_alignment(io, axes(X, 1))
             print(io, " " * repeat(" ", rA + length(pre) + length(post)))  # print space before column keys
             print_col_keys(io, X, A, colsA, sep)
+            println(io)
             for i in rowsA
                 print(io, i == first(rowsA) ? pre : presp)
                 print_row_key(io, axes(X, 1), i, rA, pre, post)
@@ -171,11 +171,14 @@ function Base.print_matrix(
         else # rows fit down screen but cols don't, so need horizontal ellipsis
             c = div(screenwidth-length(hdots)::Int+1,2)+1  # what goes to right of ellipsis
             Ralign = reverse(alignment(io, X, rowsA, reverse(colsA), c, c, sepsize)) # alignments for right
-            c = screenwidth - sum(map(sum,Ralign)) - (length(Ralign)-1)*sepsize - length(hdots)::Int
+            c = screenwidth - sum(map(sum, Ralign)) - (length(Ralign)-1)*sepsize - length(hdots)::Int
             Lalign = alignment(io, X, rowsA, colsA, c, c, sepsize) # alignments for left of ellipsis
             rA = row_alignment(io, axes(X, 1))
             print(io, " " * repeat(" ", rA + length(pre) + length(post)))  # print space before column keys
-            print_col_keys(io, X, A, colsA, sep)
+            print_col_keys(io, X, Lalign, colsA[1:length(Lalign)], sep)
+            print(io, repeat(" ", length(hdots)::Int))
+            print_col_keys(io, X, Ralign, (n - length(Ralign)) .+ colsA, sep)
+            println(io)
             for i in rowsA
                 print(io, i == first(rowsA) ? pre : presp)
                 print_row_key(io, axes(X, 1), i, rA, pre, post)
@@ -193,6 +196,7 @@ function Base.print_matrix(
             rA = row_alignment(io, axes(X, 1))
             print(io, " " * repeat(" ", rA + length(pre) + length(post)))  # print space before column keys
             print_col_keys(io, X, A, colsA, sep)
+            println(io)
             for i in rowsA
                 print_row_key(io, axes(X, 1), i, rA, pre, post)
                 print(io, i == first(rowsA) ? pre : presp)
@@ -213,7 +217,10 @@ function Base.print_matrix(
             r = mod((length(Ralign) - n + 1),vmod) # where to put dots on right half
             rA = row_alignment(io, axes(X, 1))
             print(io, " " * repeat(" ", rA + length(pre) + length(post)))  # print space before column keys
-            print_col_keys(io, X, A, colsA, sep)
+            print_col_keys(io, X, Lalign, colsA[1:length(Lalign)], sep)
+            print(io, repeat(" ", length(hdots)::Int))
+            print_col_keys(io, X, Ralign, (n - length(Ralign)) .+ colsA, sep)
+            println(io)
             for i in rowsA
                 print_row_key(io, axes(X, 1), i, rA, pre, post)
                 print(io, i == first(rowsA) ? pre : presp)
@@ -225,6 +232,7 @@ function Base.print_matrix(
                 if i == rowsA[halfheight]
                     print(io, i == first(rowsA) ? pre : presp)
                     Base.print_matrix_vdots(io, vdots, Lalign, sep, vmod, 1, true)
+                    print(io, " " * repeat(" ", rA + length(pre) + length(post)))  # print space before column keys
                     print(io, ddots)
                     Base.print_matrix_vdots(io, vdots, Ralign, sep, vmod, r, false)
                     print(io, i == last(rowsA) ? post : postsp * '\n')
