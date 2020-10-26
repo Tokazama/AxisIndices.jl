@@ -80,5 +80,7 @@ end
     # FIXME this is a problem with promotion on ArrayInterface.OptionallyStaticUnitRange, not AxisIndices
     @test_broken promote_type(a2, p) <: Axis{Float64,Int64,StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}},SimpleAxis{Int64,UnitRange{Int64}}}
     @test_broken promote_type(p, a2) <: Axis{Float64,Int64,StepRangeLen{Float64,Base.TwicePrecision{Float64},Base.TwicePrecision{Float64}},SimpleAxis{Int64,UnitRange{Int64}}}
+
+    @test @inferred(keys(ArrayInterface.to_axis(Axis([:a, :b]), [2]))) == [:b]
 end
 

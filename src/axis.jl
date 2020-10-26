@@ -202,6 +202,31 @@ function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=n
     end
 end
 
+@inline function ArrayInterface.to_axis(::IndexStyle, axis::Axis, inds)
+    if allunique(inds)
+        ks = Base.keys(axis)
+        p = parent(axis)
+        kindex = firstindex(ks)
+        pindex = first(p)
+        if kindex === pindex
+            return Axis(
+                @inbounds(ks[inds]),
+                to_axis(parent(axis), inds);
+                checks=NoChecks
+            )
+        else
+            return Axis(
+                @inbounds(ks[inds .+ (pindex - kindex)]),
+                to_axis(parent(axis), inds);
+                checks=NoChecks
+            )
+        end
+    else
+        return unsafe_reconstruct(axis, to_axis(parent(axis), inds))
+    end
+end
+
+
 ## other stuff
 function StaticRanges.set_last!(axis::Axis, val)
     can_set_last(axis) || throw(MethodError(set_last!, (axis, val)))
