@@ -72,7 +72,7 @@ include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 include("copyto_tests.jl")
 include("permutedims.jl")
-
+include("closest.jl")
 
 @testset "CartesianAxes" begin
     cartaxes = CartesianAxes((2.0:5.0, 1:4))

@@ -55,6 +55,7 @@ export
     SimpleAxis,
     StructAxis,
     center,
+    closest,
     circular_pad,
     idaxis,
     permuteddimsview,
@@ -251,6 +252,8 @@ end
         return metadata(axes(x, dim); kwargs...)
     end
 end
+
+include("closest.jl")
 
 export ..
 
