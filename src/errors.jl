@@ -27,7 +27,6 @@ function check_unique_keys(ks, ::AxisArrayChecks{T}) where {T}
         error("All keys must be unique")
     end
 end
-
 struct CheckedOffsets end
 checked_offsets(::AxisArrayChecks{T}) where {T} = AxisArrayChecks{Union{T,CheckedOffsets}}()
 check_offsets(ks, inds, ::AxisArrayChecks{T}) where {T >: CheckedOffsets} = nothing

@@ -63,7 +63,7 @@ Notice that `==` returns a single value instead of a collection of all elements
 where the key was found to be true. This is because all keys must be unique so
 there can only ever be one element returned.
 """
-struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
+struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
     keys::Ks
     parent::Inds
 
@@ -71,7 +71,8 @@ struct Axis{K,I,Ks,Inds<:AbstractUnitRange{I}} <: AbstractAxis{I,Inds}
         ks::Ks,
         inds::Inds;
         checks=AxisArrayChecks()
-    ) where {K,I,Ks<:AbstractVector{K},Inds<:AbstractUnitRange{I}}
+    ) where {K,I,Ks<:AbstractVector{K},Inds<:AbstractRange{I}}
+
         check_axis_length(ks, inds, checks)
         check_unique_keys(ks, checks)
         return new{K,I,Ks,Inds}(ks, inds)

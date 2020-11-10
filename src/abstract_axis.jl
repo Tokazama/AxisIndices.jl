@@ -178,15 +178,6 @@ end
 function maybe_unsafe_reconstruct(axis::AbstractOffsetAxis, inds::AbstractArray; keys=nothing)
     if known_step(inds) === 1 && eltype(inds) <: Integer
         return unsafe_reconstruct(axis, SimpleAxis(inds); keys=keys)
-        #=
-        f = offsets(axis, 1)
-        new_inds = (static_first(inds) - f):(static_last(inds) - f)
-        if keys === nothing
-            return unsafe_reconstruct(axis, new_inds; keys=inds)
-        else
-            return unsafe_reconstruct(axis, new_inds; keys=keys)
-        end
-        =#
     else
         axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds))),)
         return AxisArray{eltype(inds),ndims(inds),typeof(inds),typeof(axs)}(inds, axs)
