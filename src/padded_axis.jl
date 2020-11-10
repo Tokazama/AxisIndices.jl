@@ -311,13 +311,13 @@ function print_axis(io::IO, axis::PaddedAxis)
     print(io, parent(axis))
     if first_pad(axis) === last_pad(axis)
         print(io, "; sym_pad=")
-        print(io, first_pad(axis))
+        print(io, Int(first_pad(axis)))
         print(io, ")")
     else
         print(io, "; first_pad=")
-        print(io, first_pad(axis))
+        print(io, Int(first_pad(axis)))
         print(io, ", last_pad=")
-        print(io, last_pad(axis))
+        print(io, Int(last_pad(axis)))
         print(io, ")")
     end
 end
