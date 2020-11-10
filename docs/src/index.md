@@ -460,7 +460,6 @@ The second benchmark demonstrates how close we really are to standard indexing g
 ## Notes
 
 [^1]: Terminology here is important here. Keys, indices, and axes each have a specific meaning. Throughout the documentation the following functional definitions apply:
-
   * axis: maps a set of keys to a set of indices.
   * indices: a set of integers (e.g., `<:Integer`) that locate the in memory locations of elements.
   * keys: maps a set of any type to a set of indices
