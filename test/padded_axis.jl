@@ -17,5 +17,10 @@
     @test cax == ax
     @test axes(cax, 1) isa OffsetAxis
     @test @inferred(IndexStyle(ax)) isa IndexCartesian
+
+    axis = eachindex(AxisArray(3:4, one_pad(sym_pad=2)))
+    x = map(identity, axis)
+    @test x == axis
+    @test axes(x, 1) == axis
 end
 

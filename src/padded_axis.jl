@@ -35,6 +35,8 @@ struct PaddedAxis{P,FP<:Integer,LP<:Integer,I,Inds} <: AbstractAxis{I,Inds}
     end
 end
 
+@inline Base.axes1(axis::PaddedAxis) = OffsetAxis(static_first(axis):static_last(axis))
+
 Base.first(axis::PaddedAxis) = first(parent(axis)) - first_pad(axis)
 Base.last(axis::PaddedAxis) = last(parent(axis)) + last_pad(axis)
 
@@ -82,25 +84,25 @@ Index style that pads a set number of indices on each side of an axis.
 `fxn`(eltype(A))` returns the padded value.
 
 =#
-struct FillPad{F} <: PaddedInitializer
-    fxn::F
-end
+abstract type FillPad <: PaddedInitializer end
 
 """
     zero_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
 
 The border elements return `zero(eltype(A))`, where `A` is the parent array being padded.
 """
-const zero_pad = FillPad(zero)
-pad_call_string(::FillPad{typeof(zero)}) = "zero_pad"
+struct ZeroPad <: FillPad end
+const zero_pad = ZeroPad()
+pad_call_string(::ZeroPad) = "zero_pad"
 
 """
     one_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
 
 The border elements return `oneunit(eltype(A))`, where `A` is the parent array being padded.
 """
-const one_pad = FillPad(oneunit)
-pad_call_string(::FillPad{typeof(oneunit)}) = "one_pad"
+struct OnePad <: FillPad end
+const one_pad = OnePad()
+pad_call_string(::OnePad) = "one_pad"
 
 @inline function pad_index(p::FillPad, start, stop, i)
     if start > i
@@ -348,10 +350,10 @@ function ArrayInterface.unsafe_reconstruct(axis::PaddedAxis, data; kwargs...)
     return OffsetAxis(-first_pad(axis), data)
 end
 
-@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(oneunit)}}
+@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:OnePad}
     return oneunit(eltype(A))
 end
 
-@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:FillPad{typeof(zero)}}
+@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:ZeroPad}
     return zero(eltype(A))
 end
