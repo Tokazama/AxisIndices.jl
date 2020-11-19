@@ -368,9 +368,6 @@ function Base.reshape(A::AbstractArray, shp::Tuple{<:AbstractAxis,Vararg{<:Abstr
     return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs; checks=NoChecks)
 end
 
-#StaticRanges.axes_type(::Type{<:AxisArray{T,N,P,AI}}) where {T,N,P,AI} = AI
-#StaticRanges.axes_type(::Type{<:AxisArray{T,N,P,AI}}, i::Int) where {T,N,P,AI} = AI.parameters[i]
-
 # FIXME
 # When I use Val(N) on the tuple the it spits out many lines of extra code.
 # But without it it loses inferrence
@@ -427,9 +424,9 @@ Base.getindex(A::AxisArray, ::Ellipsis) = A
     return ArrayInterface.setindex!(A, val, args...)
 end
 
-for (unsafe_f, f) in ((:unsafe_view, :view),
-                      (:unsafe_dotview, :dotview),
-                     )
+for (unsafe_f, f) in (
+    (:unsafe_view, :view),
+    (:unsafe_dotview, :dotview))
     @eval begin
         @propagate_inbounds function Base.$f(A::AxisArray, args...)
             return unsafe_view(A, to_indices(A, args))
@@ -441,9 +438,10 @@ end
 ### Math
 ###
 for f in (:sum!, :prod!, :maximum!, :minimum!)
-    for (A,B) in ((AxisArray, AbstractArray),
-                  (AbstractArray,       AxisArray),
-                  (AxisArray, AxisArray))
+    for (A,B) in (
+        (AxisArray, AbstractArray),
+        (AbstractArray, AxisArray),
+        (AxisArray, AxisArray))
         @eval begin
             function Base.$f(a::$A, b::$B)
                 Base.$f(parent(a), parent(b))

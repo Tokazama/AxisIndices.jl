@@ -101,14 +101,17 @@ Supertype for functions that assist in initialization of `AbstractAxis` subtypes
 abstract type AxisInitializer <: Function end
 
 (init::AxisInitializer)(x) = Base.Fix2(init, x)
-function (init::AxisInitializer)(collection, x)
+function (init::AxisInitializer)(collection::AbstractRange, x)
     if known_step(collection) === 1
         return axis_method(init, x, collection)
     else
         return AxisArray(collection, ntuple(_ -> init(x), Val(ndims(collection))))
     end
 end
-function (init::AxisInitializer)(collection, x::Tuple)
+function (init::AxisInitializer)(collection, x)
+    return AxisArray(collection, ntuple(_ -> init(x), Val(ndims(collection))))
+end
+function (init::AxisInitializer)(collection::AbstractRange, x::Tuple)
     if ndims(collection) !== length(x)
         throw(DimensionMismatch("Number of axis arguments provided ($(length(x))) does " *
                                 "not match number of collections's axes ($(ndims(collection)))."))
@@ -119,6 +122,13 @@ function (init::AxisInitializer)(collection, x::Tuple)
         return AxisArray(collection, map(init, x))
     end
 end
+function (init::AxisInitializer)(collection, x::Tuple)
+    if ndims(collection) !== length(x)
+        throw(DimensionMismatch("Number of axis arguments provided ($(length(x))) does " *
+                                "not match number of collections's axes ($(ndims(collection)))."))
+    end
+    return AxisArray(collection, map(init, x))
+end
 
 include("simple_axis.jl")
 include("axis.jl")
@@ -127,6 +137,7 @@ include("centered_axis.jl")
 include("identity_axis.jl")
 include("padded_axis.jl")
 include("struct_axis.jl")
+include("sub_axis.jl")
 
 # TODO assign_indices tests
 function assign_indices(axis, inds)
@@ -155,7 +166,9 @@ const MetaAxisArray{T,N,P,Axs,M} = Metadata.MetaArray{T,N,AxisArray{T,N,P,Axs},M
 const NamedMetaAxisArray{L,T,N,P,M,Axs} = NamedDimsArray{L,T,N,MetaAxisArray{T,N,P,Axs,M}}
 
 
-include("indexing.jl")
+include("to_index.jl")
+include("checkindex.jl")
+include("getindex.jl")
 include("permutedims.jl")
 include("axes_methods.jl")
 include("combine.jl")

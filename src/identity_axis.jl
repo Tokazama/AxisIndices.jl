@@ -11,10 +11,10 @@
 julia> using AxisIndices
 
 julia> axis = AxisIndices.IdentityAxis(3:5)
-idaxis(3:5 parent=SimpleAxis(1:3))
+idaxis(3:5)(SimpleAxis(1:3))
 
 julia> axis[4:5]
-idaxis(4:5 parent=SimpleAxis(2:3))
+idaxis(4:5)(SimpleAxis(2:3))
 
 ```
 """
@@ -274,7 +274,7 @@ end
 function print_axis(io::IO, axis::IdentityAxis)
     print(io, "idaxis(")
     print(io, Int(first(axis)))
-    print(io, ":")
+    print(io, ")(")
     print(io, Int(last(axis)))
     print(io, " parent=$(parent(axis)))")
 end

@@ -223,10 +223,10 @@ julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 julia> F = lu(m);
 
 julia> axes(F.L)
-(offset(SimpleAxis(1:2); offset=1), SimpleAxis(1:2))
+(offset(1)(SimpleAxis(1:2)), SimpleAxis(1:2))
 
 julia> axes(F.U)
-(SimpleAxis(1:2), offset(SimpleAxis(1:2); offset=2))
+(SimpleAxis(1:2), offset(2)(SimpleAxis(1:2)))
 
 julia> F.p
 2-element Array{Int64,1}:
@@ -234,13 +234,13 @@ julia> F.p
  2
 
 julia> axes(F.P)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=1))
+(offset(1)(SimpleAxis(1:2)), offset(1)(SimpleAxis(1:2)))
 
 julia> axes(F.P * m)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=2))
+(offset(1)(SimpleAxis(1:2)), offset(2)(SimpleAxis(1:2)))
 
 julia> axes(F.L * F.U)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=2))
+(offset(1)(SimpleAxis(1:2)), offset(2)(SimpleAxis(1:2)))
 
 ```
 """ lu
@@ -298,13 +298,13 @@ julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 julia> F = lq(m);
 
 julia> axes(F.L)
-(offset(SimpleAxis(1:2); offset=1), SimpleAxis(1:2))
+(offset(1)(SimpleAxis(1:2)), SimpleAxis(1:2))
 
 julia> axes(F.Q)
-(SimpleAxis(1:2), offset(SimpleAxis(1:2); offset=2))
+(SimpleAxis(1:2), offset(2)(SimpleAxis(1:2)))
 
 julia> axes(F.L * F.Q)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=2))
+(offset(1)(SimpleAxis(1:2)), offset(2)(SimpleAxis(1:2)))
 ```
 """
 LinearAlgebra.lq(A::AxisArray, args...; kws...) = lq!(copy(A), args...; kws...)
@@ -350,22 +350,22 @@ julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 julia> F = qr(m, Val(true));
 
 julia> axes(F.Q)
-(offset(SimpleAxis(1:2); offset=1), SimpleAxis(1:2))
+(offset(1)(SimpleAxis(1:2)), SimpleAxis(1:2))
 
 julia> axes(F.R)
-(SimpleAxis(1:2), offset(SimpleAxis(1:2); offset=2))
+(SimpleAxis(1:2), offset(2)(SimpleAxis(1:2)))
 
 julia> axes(F.Q * F.R)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=2))
+(offset(1)(SimpleAxis(1:2)), offset(2)(SimpleAxis(1:2)))
 
 julia> axes(F.p)
 (Base.OneTo(2),)
 
 julia> axes(F.P)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=1))
+(offset(1)(SimpleAxis(1:2)), offset(1)(SimpleAxis(1:2)))
 
 julia> axes(F.P * AxisArray([1.0 2; 3 4], (2:3, 3:4)))
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=2))
+(offset(1)(SimpleAxis(1:2)), offset(2)(SimpleAxis(1:2)))
 
 ```
 
@@ -455,16 +455,16 @@ julia> m = AxisArray([1.0 2; 3 4], (2:3, 3:4));
 julia> F = svd(m);
 
 julia> axes(F.U)
-(offset(SimpleAxis(1:2); offset=1), SimpleAxis(1:2))
+(offset(1)(SimpleAxis(1:2)), SimpleAxis(1:2))
 
 julia> axes(F.V)
-(offset(SimpleAxis(1:2); offset=2), SimpleAxis(1:2))
+(offset(2)(SimpleAxis(1:2)), SimpleAxis(1:2))
 
 julia> axes(F.Vt)
-(SimpleAxis(1:2), offset(SimpleAxis(1:2); offset=2))
+(SimpleAxis(1:2), offset(2)(SimpleAxis(1:2)))
 
 julia> axes(F.U * Diagonal(F.S) * F.Vt)
-(offset(SimpleAxis(1:2); offset=1), offset(SimpleAxis(1:2); offset=2))
+(offset(1)(SimpleAxis(1:2)), offset(2)(SimpleAxis(1:2)))
 
 ```
 """

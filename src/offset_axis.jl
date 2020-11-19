@@ -15,7 +15,7 @@ Users may construct an `OffsetAxis` by providing an from a set of indices.
 julia> using AxisIndices
 
 julia> axis = AxisIndices.OffsetAxis(-2, 1:3)
-offset(SimpleAxis(1:3); offset=-2)
+offset(-2)(SimpleAxis(1:3))
 
 ```
 
@@ -43,14 +43,14 @@ This means that traditional one based indexing no longer applies and may result 
 errors.
 ```jldoctest offset_axis_examples
 julia> axis[3]
-ERROR: BoundsError: attempt to access offset(SimpleAxis(1:3); offset=-2) at index [3]
+ERROR: BoundsError: attempt to access offset(-2)(SimpleAxis(1:3)) at index [3]
 [...]
 ```
 
 When an `OffsetAxis` is reconstructed the offset from indices are presserved.
 ```jldoctest offset_axis_examples
 julia> axis[0:1]  # offset of -2 still applies
-offset(SimpleAxis(2:3); offset=-2)
+offset(-2)(SimpleAxis(2:3))
 
 ```
 """
@@ -271,6 +271,6 @@ function OffsetArray{T,N,P}(A::P, inds::Tuple{Vararg{<:Any,N}}; checks=AxisArray
 end
 
 function print_axis(io::IO, axis::OffsetAxis)
-    print(io, "offset($(parent(axis)); offset=$(Int(getfield(axis, :offset))))")
+    print(io, "offset($(Int(getfield(axis, :offset))))($(parent(axis)))")
 end
 

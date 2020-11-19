@@ -129,7 +129,7 @@ border pixel is omitted when mirroring.
 ```
 """
 struct SymmetricPad <: PaddedInitializer end
-pad_call_string(::Symmetric) = "symmetric_pad"
+pad_call_string(::SymmetricPad) = "symmetric_pad"
 const symmetric_pad = SymmetricPad()
 axis_method(p::SymmetricPad) = (pads, axis) -> PaddedAxis(p, pads, axis)
 
@@ -264,40 +264,37 @@ function check_pad(::ReflectPad, first_pad, last_pad, start, stop)
     end
 end
 
+# TODO if user passes something funky this is a confusing place to get the error
+_sym_pad_to_tuple(::Val{N}, sym_pad::Integer) where {N} = ntuple(_ -> (sym_pad, sym_pad), Val(N))
+function _sym_pad_to_tuple(::Val{N}, sym_pad::Tuple{Vararg{<:Any,N}}) where {N}
+    return map(i -> (i, i), sym_pad)
+end
+function _pad_to_tuple(::Val{N}, first_pad::Integer, last_pad::Integer) where {N}
+    return ntuple(_ -> (first_pad, last_pad), Val(N))
+end
+function _pad_to_tuple(::Val{N}, first_pad::Integer, last_pad::Tuple{Vararg{<:Any,N}}) where {N}
+    return ntuple(i -> (first_pad, getfield(last_pad, i)), Val(N))
+end
+function _pad_to_tuple(::Val{N}, first_pad::Tuple{Vararg{<:Any,N}}, last_pad::Integer) where {N}
+    return ntuple(i -> (getfield(first_pad, i), last_pad), Val(N))
+end
+function _pad_to_tuple(::Val{N}, first_pad::Tuple{Vararg{<:Any,N}}, last_pad::Tuple{Vararg{<:Any,N}}) where {N}
+    return ntuple(i -> (getfield(first_pad, i), getfield(last_pad, i)), Val(N))
+end
+
+axis_method(p::PaddedInitializer, pads, axis) = PaddedAxis(p, first(pads), last(pads), axis)
 function (p::PaddedInitializer)(; first_pad=Zero(), last_pad=Zero(), sym_pad=nothing)
     return x -> p(x; first_pad=first_pad, last_pad=last_pad, sym_pad=sym_pad)
 end
-function (p::PaddedInitializer)(x::AbstractArray; first_pad=Zero(), last_pad=Zero(), sym_pad=nothing)
-    if known_step(x) === 1
-        if sym_pad === nothing
-            return PaddedAxis(p, first_pad, last_pad, x)
-        else
-            return PaddedAxis(p, sym_pad, sym_pad, x)
-        end
+function (p::PaddedInitializer)(x::Tuple)
+    return collection -> p(collection; first_pad=first(x), last_pad=last(x))
+end
+function (p::PaddedInitializer)(collection; first_pad=Zero(), last_pad=Zero(), sym_pad=nothing)
+    if sym_pad === nothing
+        return p(collection, _pad_to_tuple(Val(ndims(collection)), first_pad, last_pad))
     else
-        if sym_pad === nothing
-            return _pad_init_to_array(x, p, first_pad, last_pad)
-        else
-            return _pad_init_to_array(x, p, sym_pad)
-        end
+        return p(collection, _sym_pad_to_tuple(Val(ndims(collection)), sym_pad))
     end
-end
-
-@inline function _pad_init_to_array(x, p, fp::Integer, lp::Integer)
-    axs = map(axis -> PaddedAxis(p, fp, lp, axis), axes(x), sp)
-    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
-end
-@inline function _pad_init_to_array(x, p, fp::Tuple, lp::Tuple)
-    axs = map((axis, f, l) -> PaddedAxis(p, f, l, axis), axes(x), fp, lp)
-    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
-end
-@inline function _pad_init_to_array(x, p, sp::Integer)
-    axs = map(axis -> PaddedAxis(p, sp, sp, axis), axes(x))
-    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
-end
-@inline function _pad_init_to_array(x, p, sp::Tuple)
-    axs = map((axis, sp_i) -> PaddedAxis(p, sp_i, sp_i, axis), axes(x), sp)
-    return AxisArray{eltype(x),ndims(x),typeof(x),typeof(axs)}(x, axs; checks=NoChecks)
 end
 
 @inline function _sub_offset(axis::PaddedAxis, i::Integer)
