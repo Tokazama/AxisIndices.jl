@@ -18,12 +18,3 @@ size of any axis
 @inline function reshape_axes(axs::Tuple, inds::Tuple{Vararg{Any,N}}) where {N}
     return map((a, i) -> resize_last(a, i), axs, inds)
 end
-
-###
-### offset axes
-###
-function StaticRanges.has_offset_axes(::Type{T}) where {T<:AbstractAxis}
-    return !(known_first(T) === oneunit(valtype(T)))
-end
-
-
