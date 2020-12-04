@@ -1,8 +1,9 @@
 # AxisIndices.jl
 
-[![Build Status](https://travis-ci.com/Tokazama/AxisIndices.jl.svg?branch=master)](https://travis-ci.com/Tokazama/AxisIndices.jl)
+![CI](https://github.com/Tokazama/AxisIndices.jl/workflows/CI/badge.svg)
 [![stable-docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://Tokazama.github.io/AxisIndices.jl/stable)
 [![dev-docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://Tokazama.github.io/AxisIndices.jl/dev)
+[![codecov](https://codecov.io/gh/Tokazama/AxisIndices.jl/branch/master/graph/badge.svg?token=Tn6CCi1hG8)](https://codecov.io/gh/Tokazama/AxisIndices.jl)
 
 Here are some reasons you should try AxisIndices
 * **Flexible design** for **customizing multidimensional indexing** behavior

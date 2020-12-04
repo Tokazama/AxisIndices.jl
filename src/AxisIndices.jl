@@ -137,7 +137,6 @@ include("centered_axis.jl")
 include("identity_axis.jl")
 include("padded_axis.jl")
 include("struct_axis.jl")
-include("sub_axis.jl")
 
 # TODO assign_indices tests
 function assign_indices(axis, inds)
