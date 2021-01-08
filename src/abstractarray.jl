@@ -175,7 +175,7 @@ function Base.similar(A::AxisArray)
     return unsafe_reconstruct(A, p; axes=map(assign_indices, axes(A), axes(p)))
 end
 
-function Base.similar(::Type{T}, shape::Tuple{DimOrAxes,Vararg{DimOrAxes}}) where {T<:AbstractArray}
+function Base.similar(::Type{T}, shape::S) where {T<:AbstractArray, DoA<:DimOrAxes, S<:Tuple{DoA,Vararg{DoA}}}
     p = similar(T, Base.to_shape(shape))
     axs = map((key, axis) -> compose_axis(key, axis, NoChecks), shape, axes(p))
     return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs; checks=NoChecks)

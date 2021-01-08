@@ -63,6 +63,7 @@ Base.pairs(axis::AbstractAxis) = Base.Iterators.Pairs(a, keys(axis))
 
 # This is required for performing `similar` on arrays
 Base.to_shape(axis::AbstractAxis) = length(axis)
+Base.to_shape(r::IdentityUnitRange) = length(r)
 
 Base.haskey(axis::AbstractAxis, key) = key in keys(axis)
 
