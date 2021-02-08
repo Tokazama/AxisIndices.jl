@@ -186,7 +186,7 @@ end
 julia> using AxisIndices
 
 julia> AxisArray(ones(3), offset(2))
-3-element AxisArray(::Array{Float64,1}
+3-element AxisArray(::Vector{Float64}
   • axes:
      1 = 3:5
 )

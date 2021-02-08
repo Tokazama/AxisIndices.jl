@@ -229,7 +229,7 @@ julia> axes(F.U)
 (SimpleAxis(1:2), offset(2)(SimpleAxis(1:2)))
 
 julia> F.p
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  3
  2
 

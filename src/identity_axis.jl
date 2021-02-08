@@ -153,7 +153,7 @@ Shortcut for creating [`IdentityAxis`](@ref).
 julia> using AxisIndices
 
 julia> AxisArray(ones(3), idaxis)[2:3]
-2-element AxisArray(::Array{Float64,1}
+2-element AxisArray(::Vector{Float64}
   • axes:
      1 = 2:3
 )
@@ -184,7 +184,7 @@ Provides [`IdentityAxis`](@ref)s for indexing `A`.
 julia> using AxisIndices
 
 julia> AxisIndices.IdentityArray(ones(3,3))[2:3, 2:3]
-2×2 AxisArray(::Array{Float64,2}
+2×2 AxisArray(::Matrix{Float64}
   • axes:
      1 = 2:3
      2 = 2:3
@@ -227,7 +227,7 @@ Provides an [`IdentityAxis`](@ref) for indexing `v`.
 julia> using AxisIndices
 
 julia> AxisIndices.IdentityVector(ones(4))[3:4]
-2-element AxisArray(::Array{Float64,1}
+2-element AxisArray(::Vector{Float64}
   • axes:
      1 = 3:4
 )
@@ -252,7 +252,7 @@ Creates a vector with elements of type `T` of size `sz` an [`IdentityAxis`](@ref
 julia> using AxisIndices
 
 julia> AxisIndices.IdentityVector{Union{Missing, Int}}(missing, 3)[2:3]
-2-element AxisArray(::Array{Union{Missing, Int64},1}
+2-element AxisArray(::Vector{Union{Missing, Int64}}
   • axes:
      1 = 2:3
 )

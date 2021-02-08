@@ -137,7 +137,7 @@ Shortcut for creating [`CenteredAxis`](@ref).
 julia> using AxisIndices
 
 julia> AxisArray(ones(3), center(0))
-3-element AxisArray(::Array{Float64,1}
+3-element AxisArray(::Vector{Float64}
   • axes:
      1 = -1:1
 )
@@ -163,7 +163,7 @@ Provides centered axes for indexing `A`.
 julia> using AxisIndices
 
 julia> AxisIndices.CenteredArray(ones(3,3))
-3×3 AxisArray(::Array{Float64,2}
+3×3 AxisArray(::Matrix{Float64}
   • axes:
      1 = -1:1
      2 = -1:1
@@ -219,7 +219,7 @@ Provides a centered axis for indexing `v`.
 julia> using AxisIndices
 
 julia> AxisIndices.CenteredVector(ones(3))
-3-element AxisArray(::Array{Float64,1}
+3-element AxisArray(::Vector{Float64}
   • axes:
      1 = -1:1
 )
@@ -245,7 +245,7 @@ Creates a vector with elements of type `T` of size `sz` and a centered axis.
 julia> using AxisIndices
 
 julia> AxisIndices.CenteredVector{Union{Missing, Int}}(missing, 3)
-3-element AxisArray(::Array{Union{Missing, Int64},1}
+3-element AxisArray(::Vector{Union{Missing, Int64}}
   • axes:
      1 = -1:1
 )

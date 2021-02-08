@@ -11,7 +11,7 @@ A vector whose indices have keys.
 julia> using AxisIndices
 
 julia> AxisVector([1, 2], [:a, :b])
-2-element AxisArray(::Array{Int64,1}
+2-element AxisArray(::Vector{Int64}
   • axes:
      1 = [:a, :b]
 )
@@ -88,7 +88,7 @@ julia> using AxisIndices
 julia> x = AxisArray([1, 2, 3, 4]);
 
 julia> deleteat!(x, 3)
-3-element AxisArray(::Array{Int64,1}
+3-element AxisArray(::Vector{Int64}
   • axes:
      1 = 1:3
 )

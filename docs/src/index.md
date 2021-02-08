@@ -129,7 +129,7 @@ julia> x[:one] == y["one"] == z[Second(1)]
 true
 
 julia> x[[:one, :two]]
-2-element AxisArray(::Array{Int64,1}
+2-element AxisArray(::Vector{Int64}
   • axes:
      1 = [:one, :two]
 )
@@ -190,7 +190,7 @@ Axis((1.5:0.5:2.0) s => SimpleAxis(2:3))
 However, we can't ensure that the resulting range will have a step of one in other cases so only the indices are returned.
 ```jldoctest indexing_examples
 julia> time1[1:2:3]
-2-element AxisArray(::StepRange{Int64,Int64}
+2-element AxisArray(::StepRange{Int64, Int64}
   • axes:
      1 = (1.5:1.0:2.5) s
 )
@@ -199,9 +199,9 @@ julia> time1[1:2:3]
   2.5 s  3
 
 julia> time1[[1, 2, 3]]
-3-element AxisArray(::Array{Int64,1}
+3-element AxisArray(::Vector{Int64}
   • axes:
-     1 = Unitful.Quantity{Float64,𝐓,Unitful.FreeUnits{(s,),𝐓,nothing}}[1.5 s, 2.0 s, 2.5 s]
+     1 = Unitful.Quantity{Float64, 𝐓, Unitful.FreeUnits{(s,), 𝐓, nothing}}[1.5 s, 2.0 s, 2.5 s]
 )
          1
   1.5 s  1
@@ -294,7 +294,7 @@ julia> using AxisIndices
 julia> A_base = [1 2; 3 4];
 
 julia> A_axis = AxisArray(A_base, ["a", "b"], [:one, :two])
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = ["a", "b"]
      2 = [:one, :two]
@@ -319,7 +319,7 @@ julia> A_axis = AxisArray{Int}(undef, ["a", "b"], [:one, :two]);
 julia> A_axis[:,:] = A_base;
 
 julia> A_axis
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = ["a", "b"]
      2 = [:one, :two]
@@ -335,11 +335,11 @@ We can also attach metadata to an array.
 julia> using Metadata
 
 julia> attach_metadata(AxisArray(A_base, (["a", "b"], [:one, :two])), (m1 = 1, m2 = 2))
-2×2 attach_metadata(AxisArray(::Array{Int64,2}
+2×2 attach_metadata(AxisArray(::Matrix{Int64}
   • axes:
      1 = ["a", "b"]
      2 = [:one, :two]
-), ::NamedTuple{(:m1, :m2),Tuple{Int64,Int64}}
+), ::NamedTuple{(:m1, :m2), Tuple{Int64, Int64}}
   • metadata:
      m1 = 1
      m2 = 2
@@ -349,11 +349,11 @@ julia> attach_metadata(AxisArray(A_base, (["a", "b"], [:one, :two])), (m1 = 1, m
   "b"  3      4
 
 julia> attach_metadata(NamedAxisArray{(:xdim, :ydim)}(A_base, ["a", "b"], [:one, :two]), (m1 = 1, m2 = 2))
-2×2 NamedDimsArray(attach_metadata(AxisArray(::Array{Int64,2}
+2×2 NamedDimsArray(attach_metadata(AxisArray(::Matrix{Int64}
   • axes:
      xdim = ["a", "b"]
      ydim = [:one, :two]
-), ::NamedTuple{(:m1, :m2),Tuple{Int64,Int64}}
+), ::NamedTuple{(:m1, :m2), Tuple{Int64, Int64}}
   • metadata:
      m1 = 1
      m2 = 2
@@ -372,7 +372,7 @@ offset by 4 and the last indices are centered.
 
 ```jldoctest indexing_examples
 julia> AxisArray(ones(3,3), offset(4), center)
-3×3 AxisArray(::Array{Float64,2}
+3×3 AxisArray(::Matrix{Float64}
   • axes:
      1 = 5:7
      2 = -1:1

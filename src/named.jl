@@ -137,7 +137,7 @@ julia> A = NamedAxisArray{(:x, :y, :z)}(reshape(1:24, 2, 3, 4), ["a", "b"], ["on
   "b"  20       22       24
 
 julia> B = A["a", :, :]
-3×4 NamedDimsArray(AxisArray(::Array{Int64,2}
+3×4 NamedDimsArray(AxisArray(::Matrix{Int64}
   • axes:
      y = ["one", "two", "three"]
      z = 2:5
@@ -148,7 +148,7 @@ julia> B = A["a", :, :]
   "three"  5  11  17  23
 
 julia> C = B["one",:]
-4-element NamedDimsArray(AxisArray(::Array{Int64,1}
+4-element NamedDimsArray(AxisArray(::Vector{Int64}
   • axes:
      z = 2:5
 ))
