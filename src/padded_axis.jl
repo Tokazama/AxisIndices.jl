@@ -330,8 +330,7 @@ end
 end
 _check_index_range(axis::PaddedAxis, arg) = checkindex(Bool, eachindex(axis), arg)
 
-check_axis_length(::PaddedAxis, inds, ::AxisArrayChecks{T}) where {T >: CheckedAxisLengths} = nothing
-function check_axis_length(ks::PaddedAxis, inds, ::AxisArrayChecks{T}) where {T}
+function check_axis_length(ks::PaddedAxis, inds) where {T}
     if length(parent(ks)) != length(inds)
         throw(DimensionMismatch(
             "keys and indices must have same length, got length(keys) = $(length(ks))" *

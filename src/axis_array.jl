@@ -1,66 +1,66 @@
 
-@inline function compose_axes(::Tuple{}, x::AbstractArray{<:Any,N}, checks) where {N}
+@inline function compose_axes(::Tuple{}, x::AbstractArray{<:Any,N}) where {N}
     if N === 0
         return ()
     elseif N === 1 && can_change_size(x)
-        return (compose_axis(OneToMRange(length(x)), checks),)
+        return (compose_axis(OneToMRange(length(x))),)
     else
-        return map(axis -> compose_axis(axis, checks), axes(x))
+        return map(compose_axis, axes(x))
     end
 end
-function compose_axes(ks::Tuple{Vararg{<:Any,N}}, x::AbstractArray{<:Any,N}, checks) where {N}
+function compose_axes(ks::Tuple{Vararg{<:Any,N}}, x::AbstractArray{<:Any,N}) where {N}
     if N === 0
         return ()
     elseif N === 1 && can_change_size(x)
-        return compose_axes(ks, (OneToMRange(length(x)),), checks)
+        return compose_axes(ks, (OneToMRange(length(x)),))
     else
-        return compose_axes(ks, axes(x), checks)
+        return compose_axes(ks, axes(x))
     end
 end
-function compose_axes(ks::Tuple, x::AbstractArray{<:Any,N}, checks) where {N}
+function compose_axes(ks::Tuple, x::AbstractArray{<:Any,N}) where {N}
     throw(DimensionMismatch("Number of axis arguments provided ($(length(ks))) does " *
                             "not match number of parent axes ($N)."))
 end
-@inline function compose_axes(ks::Tuple{Vararg{<:Any,N}}, inds::Tuple{Vararg{<:Any,N}}, checks) where {N}
+@inline function compose_axes(ks::Tuple{Vararg{<:Any,N}}, inds::Tuple{Vararg{<:Any,N}}) where {N}
     return (
-        compose_axis(first(ks), first(inds), checks),
-        compose_axes(tail(ks), tail(inds), checks)...
+        compose_axis(first(ks), first(inds)),
+        compose_axes(tail(ks), tail(inds))...
     )
 end
-compose_axes(::Tuple{}, ::Tuple{}, checks) = ()
-compose_axes(::Tuple{}, inds::Tuple, checks) = map(i -> compose_axis(i, checks), inds)
-compose_axes(axs::Tuple, ::Tuple{}, checks) = map(axis -> compose_axis(axis, checks), axs)
+compose_axes(::Tuple{}, ::Tuple{}) = ()
+compose_axes(::Tuple{}, inds::Tuple) = map(compose_axis, inds)
+compose_axes(axs::Tuple, ::Tuple{}) = map(compose_axis, axs)
 
 ###
 ### compose_axis
 ###
-compose_axis(x::Integer, checks=AxisArrayChecks()) = SimpleAxis(x)
-compose_axis(x, checks=AxisArrayChecks()) = Axis(x; checks=checks)
-compose_axis(x::AbstractAxis, checks=AxisArrayChecks()) = x
-function compose_axis(x::AbstractUnitRange{I}, checks=AxisArrayChecks()) where {I<:Integer}
+compose_axis(x::Integer) = SimpleAxis(x)
+compose_axis(x) = Axis(x)
+compose_axis(x::AbstractAxis) = x
+function compose_axis(x::AbstractUnitRange{I}) where {I<:Integer}
     if known_first(x) === one(eltype(x))
         return SimpleAxis(x)
     else
         return OffsetAxis(x)
     end
 end
-compose_axis(x::IdentityUnitRange, checks=AxisArrayChecks()) = compose_axis(x.indices, checks)
+compose_axis(x::IdentityUnitRange) = compose_axis(x.indices)
 
 # 3-args
-compose_axis(::Nothing, inds, checks) = compose_axis(inds, checks)
-compose_axis(ks::Function, inds, checks) = ks(inds)
-function compose_axis(ks::Integer, inds, checks)
+compose_axis(::Nothing, inds) = compose_axis(inds)
+compose_axis(ks::Function, inds) = ks(inds)
+function compose_axis(ks::Integer, inds)
     if ks isa StaticInt
         return SimpleAxis(known_first(inds):ks)
     else
         return SimpleAxis(inds)
     end
 end
-function compose_axis(ks, inds, checks)
-    check_axis_length(ks, inds, checks)
-    return _compose_axis(ks, inds, checked_axis_lengths(checks))
+function compose_axis(ks, inds)
+    check_axis_length(ks, inds)
+    return _compose_axis(ks, inds)
 end
-function _compose_axis(ks::AbstractAxis, inds, checks)
+function _compose_axis(ks::AbstractAxis, inds)
     # if the indices are the same then don't reconstruct
     if first(parent(ks)) == first(inds)
         return copy(ks)
@@ -68,7 +68,7 @@ function _compose_axis(ks::AbstractAxis, inds, checks)
         return unsafe_reconstruct(ks, inds)
     end
 end
-@inline function _compose_axis(ks, inds, checks)
+@inline function _compose_axis(ks, inds)
     start = known_first(ks)
     if known_step(ks) === 1
         if known_first(ks) === nothing
@@ -85,7 +85,9 @@ end
             return OffsetAxis(static_first(ks) - static_first(inds), inds)
         end
     else
-        return Axis(ks, inds; checks=checked_axis_lengths(checks))
+        check_unique_keys(ks)
+        T = Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}
+        return unsafe_initialize(T, (ks, inds))
     end
 end
 
@@ -102,9 +104,10 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     axes::Axs
 
     # TODO robust checking of indices should happen at this level
-    function AxisArray{T,N,P,A}(p::P, axs::A; checks=AxisArrayChecks()) where {T,N,P,A}
+    # FIXME this needs to check that all axs are AbstractAxis
+    function AxisArray{T,N,P,A}(p::P, axs::A) where {T,N,P,A}
         for i in OneTo(N)
-            check_axis_length(axs[i], axes(p, i), checks)
+            check_axis_length(axs[i], axes(p, i))
         end
         return new{T,N,P,A}(p, axs)
     end
@@ -112,8 +115,8 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     ###
     ### AxisArray{T,N,P}
     ###
-    function AxisArray{T,N,P}(x::P, axs::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N,P<:AbstractArray{T,N}}
-        axs = compose_axes(axs, x, checks)
+    function AxisArray{T,N,P}(x::P, axs::Tuple) where {T,N,P<:AbstractArray{T,N}}
+        axs = compose_axes(axs, x)
         return new{T,N,P,typeof(axs)}(x, axs)
     end
 
@@ -125,8 +128,8 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
         return AxisArray{T,N,P}(convert(P, parent(A)), axes(A); kwargs...)
     end
 
-    function AxisArray{T,N,P}(x::AbstractArray, axs::Tuple; kwargs...) where {T,N,P}
-        return AxisArray{T,N,P}(convert(P, x), axs; kwargs...)
+    function AxisArray{T,N,P}(x::AbstractArray, axs::Tuple) where {T,N,P}
+        return AxisArray{T,N,P}(convert(P, x), axs)
     end
 
     # TODO fix/clean up these docs
@@ -153,39 +156,36 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     (2, 2)
 
     """
-    function AxisArray{T,N}(A::AbstractArray, ks::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N}
+    function AxisArray{T,N}(A::AbstractArray, ks::Tuple) where {T,N}
         if eltype(A) <: T
-            axs = compose_axes(ks, A, checks)
+            axs = compose_axes(ks, A)
             return new{T,N,typeof(A),typeof(axs)}(p, axs)
         else
             p = AbstractArray{T}(A)
-            axs = compose_axes(ks, p, checks)
+            axs = compose_axes(ks, p)
             return new{T,N,typeof(p),typeof(axs)}(p, axs)
         end
     end
-    function AxisArray{T,N}(x::AbstractArray{T,N}, axs::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N}
-        axs = compose_axes(axs, x, checks)
+    function AxisArray{T,N}(x::AbstractArray{T,N}, axs::Tuple) where {T,N}
+        axs = compose_axes(axs, x)
         return new{T,N,typeof(x),typeof(axs)}(x, axs)
     end
-    function AxisArray{T,N}(A::AxisArray, ks::Tuple; checks=AxisArray(), kwargs...) where {T,N}
+    function AxisArray{T,N}(A::AxisArray, ks::Tuple) where {T,N}
         if eltype(A) <: T
-            axs = compose_axes(ks, A, checks)
+            axs = compose_axes(ks, A)
             return new{T,N,parent_type(A),typeof(axs)}(p, axs)
         else
             p = AbstractArray{T}(parent(A))
-            axs = compose_axes(ks, A, checks)
+            axs = compose_axes(ks, A)
             return new{T,N,typeof(p),typeof(axs)}(p, axs)
         end
     end
     function AxisArray{T,N}(init::ArrayInitializer, args...; kwargs...) where {T,N}
         return AxisArray{T,N}(init, args; kwargs...)
     end
-    function AxisArray{T,N}(x::AbstractArray, args...; kwargs...) where {T,N}
-        return AxisArray{T,N}(x, args; kwargs...)
-    end
-    function AxisArray{T,N}(init::ArrayInitializer, ks::Tuple{Vararg{<:Any,N}}; kwargs...) where {T,N}
-        c = AxisArrayChecks{CheckedAxisLengths}()
-        axs = map(axis -> compose_axis(axis, c), ks)
+    AxisArray{T,N}(x::AbstractArray, args...) where {T,N} = AxisArray{T,N}(x, args)
+    function AxisArray{T,N}(init::ArrayInitializer, ks::Tuple{Vararg{<:Any,N}}) where {T,N}
+        axs = map(compose_axis, ks)
         p = init_array(T, init, axs)
         return new{T,N,typeof(p),typeof(axs)}(p, axs)
     end
@@ -206,20 +206,19 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     (2, 2)
     ```
     """
-    function AxisArray{T}(x::AbstractArray, axs::Tuple; kwargs...) where {T}
-        return AxisArray{T,ndims(x)}(x, axs; kwargs...)
+    function AxisArray{T}(x::AbstractArray, axs::Tuple) where {T}
+        return AxisArray{T,ndims(x)}(x, axs)
     end
-    function AxisArray{T}(x::AbstractArray, axs::Vararg; kwargs...) where {T}
-        return AxisArray{T,ndims(x)}(x, axs; kwargs...)
+    function AxisArray{T}(x::AbstractArray, axs::Vararg) where {T}
+        return AxisArray{T,ndims(x)}(x, axs)
     end
-    function AxisArray{T}(init::ArrayInitializer, axs::Tuple; kwargs...) where {T}
-        return AxisArray{T,length(axs)}(init, axs; kwargs...)
+    function AxisArray{T}(init::ArrayInitializer, axs::Tuple) where {T}
+        return AxisArray{T,length(axs)}(init, axs)
     end
-    function AxisArray{T}(init::ArrayInitializer, axs::Vararg; kwargs...) where {T}
-        return AxisArray{T,length(axs)}(init, axs; kwargs...)
+    function AxisArray{T}(init::ArrayInitializer, axs::Vararg) where {T}
+        return AxisArray{T,length(axs)}(init, axs)
     end
 
-    # TODO should AxisArrayChecks be documented here?
     """
         AxisArray(parent::AbstractArray, axes::Tuple)
 
@@ -253,8 +252,8 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
 
     ```
     """
-    function AxisArray(x::AbstractArray{T,N}, ks::Tuple; checks=AxisArrayChecks(), kwargs...) where {T,N}
-        axs = compose_axes(ks, x, checks)
+    function AxisArray(x::AbstractArray{T,N}, ks::Tuple) where {T,N}
+        axs = compose_axes(ks, x)
         return new{T,N,typeof(x),typeof(axs)}(x, axs)
     end
 
@@ -282,7 +281,7 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     true
     ```
     """
-    AxisArray(x::AbstractArray, args...; kwargs...) = AxisArray(x, args; kwargs...)
+    AxisArray(x::AbstractArray, args...) = AxisArray(x, args)
 
     #= TODO delete this?
     function AxisArray(x::AbstractVector{T}; kwargs...) where {T}
@@ -320,6 +319,13 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
         return new{T,1,typeof(x),typeof(axs)}(x, axs)
     end
     =#
+end
+
+function initialize_axis_array(data, axs)
+    return unsafe_initialize(
+        AxisArray{eltype(data),ndims(data),typeof(data),typeof(axs)},
+        (data, axs)
+    )
 end
 
 Base.axes(x::AxisArray) = getfield(x, :axes)
@@ -374,19 +380,14 @@ end
     end
 end
 
-function Base.eachindex(A::AxisArray)
-    if IndexStyle(A) isa IndexLinear
-        return compose_axis(eachindex(parent(A)), NoChecks)
-    else
-        return CartesianIndices(axes(A))
-    end
-end
+Base.eachindex(A::AxisArray) = eachindex(IndexStyle(A), A)
 
-function Base.eachindex(S::IndexLinear, A::AxisArray{<:Any,N}) where {N}
+Base.eachindex(::IndexCartesian, A::AxisArray{T,N}) where {T,N} = CartesianIndices(axes(A))
+function Base.eachindex(S::IndexLinear, A::AxisArray{T,N}) where {T,N}
     if N === 1
         return axes(A, 1)
     else
-        return compose_axis(eachindex(S, parent(A)), NoChecks)
+        return compose_axis(eachindex(S, parent(A)))
     end
 end
 
@@ -398,10 +399,8 @@ function ArrayInterface.unsafe_reconstruct(A::AxisArray, data; axes=nothing, kwa
 end
 
 # TODO function _unsafe_reconstruct(A, data, ::Nothing) end
+_unsafe_reconstruct(A, data, axs) = initialize_axis_array(data, axs)
 
-function _unsafe_reconstruct(A, data, axs)
-    return AxisArray{eltype(data),length(axs),typeof(data),typeof(axs)}(data, axs)
-end
 
 ###
 ### getindex
@@ -418,7 +417,7 @@ end
 
 function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
     axs = to_axes(A, inds)
-    dest = AxisArray(similar(parent(A), length.(axs)), axs; checks=NoChecks)
+    dest = AxisArray(similar(parent(A), length.(axs)), axs)
     if map(Base.unsafe_length, axes(dest)) == map(Base.unsafe_length, axs)
         Base._unsafe_getindex!(dest, A, inds...) # usually a generated function, don't allow it to impact inference result
     else

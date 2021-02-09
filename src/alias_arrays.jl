@@ -22,8 +22,7 @@ CartesianIndex(2, 2)
 const CartesianAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = CartesianIndices{N,R}
 
 function CartesianAxes(axs::Tuple{Vararg{Any,N}}) where {N}
-    c = AxisArrayChecks{CheckedAxisLengths}()
-    return CartesianIndices(map(axis -> compose_axis(axis, _inds(axis), c), axs))
+    return CartesianIndices(map(axis -> compose_axis(axis, _inds(axis)), axs))
 end
 
 # compose_axis(axis, checks) doesn't assume one based indexing in case a range is
@@ -68,8 +67,7 @@ julia> lininds[2, 2]
 const LinearAxes{N,R<:Tuple{Vararg{<:AbstractAxis,N}}} = LinearIndices{N,R}
 
 function LinearAxes(axs::Tuple{Vararg{<:Any,N}}) where {N}
-    c = AxisArrayChecks{CheckedAxisLengths}()
-    return LinearIndices(map(axis -> compose_axis(axis, _inds(axis), c), axs))
+    return LinearIndices(map(axis -> compose_axis(axis, _inds(axis)), axs))
 end
 
 Base.axes(A::LinearAxes) = getfield(A, :indices)

@@ -206,13 +206,12 @@ IdentityArray{T}(A::AbstractArray) where {T} = IdentityArray{T,ndims(A)}(A)
 
 IdentityArray{T,N}(A::AbstractArray) where {T,N} = IdentityArray{T,N,typeof(A)}(A)
 
-function IdentityArray{T,N,P}(x::P; checks=AxisArrayChecks(), kwargs...) where {T,N,P<:AbstractArray{T,N}}
-    axs = map(IdentityAxis, axes(x))
-    return AxisArray{T,N,P,typeof(axs)}(x, axs; checks=NoChecks)
+function IdentityArray{T,N,P}(x::P) where {T,N,P<:AbstractArray{T,N}}
+    return initialize_axis_array(x, map(IdentityAxis, axes(x)))
 end
-function AxisArray{T,N,P}(x::P, axs::Tuple; kwargs...) where {T,N,P}
+function AxisArray{T,N,P}(x::P, axs::Tuple) where {T,N,P}
     axs = map(IdentityAxis, axs)
-    return AxisArray{T,N,P}(convert(P, x), axs; kwargs...)
+    return AxisArray{T,N,P}(convert(P, x), axs)
 end
 
 IdentityArray{T,N,P}(A::IdentityArray{T,N,P}) where {T,N,P} = A

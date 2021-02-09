@@ -20,7 +20,6 @@ and [`IdentityAxis`](@ref) for more details and examples.
 """
 abstract type AbstractOffsetAxis{I,Inds,F} <: AbstractAxis{I,Inds} end
 
-
 """
     IndexAxis
 
@@ -160,7 +159,7 @@ ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis} = known_first(pare
 Base.summary(io::IO, axis::AbstractAxis) = show(io, axis)
 
 function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
-    return Axis(reverse(keys(axis)), newinds; checks=NoChecks)
+    return initialize_axis(reverse(keys(axis)), newinds)
 end
 
 ###
