@@ -86,8 +86,7 @@ end
         end
     else
         check_unique_keys(ks)
-        T = Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}
-        return unsafe_initialize(T, (ks, inds))
+        return initialize_axis(ks, inds)
     end
 end
 

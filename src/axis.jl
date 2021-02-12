@@ -117,7 +117,7 @@ struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
         if can_change_size(ks)
             inds = SimpleAxis(OneToMRange{I}(length(ks)))
         else
-            inds = compose_axis(indices(ks))
+            inds = SimpleAxis(indices(ks))
         end
         return new{K,I,typeof(ks),typeof(inds)}()
     end
@@ -151,7 +151,7 @@ struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
 
     Axis(x::Pair) = Axis(x.first, x.second)
 
-    function Axis(ks::AbstractVector, inds::AbstractAxis; kwargs...)
+    function Axis(ks::AbstractVector, inds::AbstractAxis)
         return new{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}(ks, inds)
     end
 
@@ -168,7 +168,8 @@ struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
     end
 end
 
-function initialize_axis(ks, inds)
+initialize_axis(ks, inds) = initialize_axis(ks, compose_axis(inds))
+function initialize_axis(ks, inds::AbstractAxis)
     return unsafe_initialize(
         Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)},
         (ks, inds)
@@ -179,19 +180,19 @@ end
 Base.keys(axis::Axis) = getfield(axis, :keys)
 @inline Base.getproperty(axis::Axis, k::Symbol) = getproperty(parent(axis), k)
 
-function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=nothing, kwargs...) where {K,I,Ks,Inds}
+function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=nothing) where {K,I,Ks,Inds}
     if keys === nothing
         ks = Base.keys(axis)
         p = parent(axis)
         kindex = firstindex(ks)
         pindex = first(p)
         if kindex === pindex
-            return initialize_axis(@inbounds(ks[inds]), compose_axis(inds))
+            return initialize_axis(@inbounds(ks[inds]), inds)
         else
-            return initialize_axis(@inbounds(ks[inds .+ (pindex - kindex)]), compose_axis(inds))
+            return initialize_axis(@inbounds(ks[inds .+ (pindex - kindex)]), inds)
         end
     else
-        return initialize_axis(keys, compose_axis(inds))
+        return initialize_axis(keys, inds)
     end
 end
 
@@ -202,7 +203,7 @@ end
         kindex = firstindex(ks)
         pindex = first(p)
         if kindex === pindex
-            return initialize_axis( @inbounds(ks[inds]), to_axis(parent(axis), inds))
+            return initialize_axis(@inbounds(ks[inds]), to_axis(parent(axis), inds))
         else
             return initialize_axis(
                 @inbounds(ks[inds .+ (pindex - kindex)]),

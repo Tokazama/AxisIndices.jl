@@ -40,6 +40,8 @@ end
     T = eltype(axis)
     if eltype(inds) <: T
         return initialize_axis_array(inds, (axis,))
+
+        return index_axis_to_array(inds, (axis,))
     else
         # FIXME doesn't this create stack overflow?
         return __unsafe_get_axis_collection(axis, AbstractArray{T}(inds))

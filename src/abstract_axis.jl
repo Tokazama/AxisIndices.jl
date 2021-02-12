@@ -159,7 +159,7 @@ ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis} = known_first(pare
 Base.summary(io::IO, axis::AbstractAxis) = show(io, axis)
 
 function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
-    return initialize_axis(reverse(keys(axis)), newinds)
+    return initialize_axis(reverse(keys(axis)), compose_axis(newinds))
 end
 
 ###
