@@ -19,10 +19,25 @@ function Base.similar(
     return initialize_axis_array(p, axs)
 end
 
+function Base.similar(a::AxisArray, ::Type{T}, dims::Tuple{Union{Integer, Base.OneTo}}) where {T}
+    p = similar(parent(a), T, (length(first(dims)),))
+    return initialize_axis_array(p,  (similar_axis(axes(p, 1), first(dims)),))
+end
 function Base.similar(a::AxisArray, ::Type{T}, dims::Tuple{AbstractUnitRange}) where {T}
     p = similar(parent(a), T, (length(first(dims)),))
     return initialize_axis_array(p,  (similar_axis(axes(p, 1), first(dims)),))
 end
+
+function Base.similar(
+    a::AxisArray,
+    ::Type{T},
+    dims::Tuple{Union{Integer, Base.OneTo}, Vararg{Union{Integer, Base.OneTo},N}}
+) where {T,N}
+    p = similar(parent(a), T, map(_new_axis_length, dims))
+    axs = map(similar_axis, axes(p), dims)
+    return initialize_axis_array(p, axs)
+end
+
 function Base.similar(
     a::AxisArray,
     ::Type{T},

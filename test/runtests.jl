@@ -15,7 +15,8 @@ using ArrayInterface
 using ArrayInterface: indices, known_length, StaticInt
 
 #=
-pkgs = (Documenter,Dates,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core);
+using Dates,MappedArrays,Statistics,LinearAlgebra,Base,Core
+pkgs = (Dates,MappedArrays,Statistics,LinearAlgebra,Base,Core);
 ambs = detect_ambiguities(pkgs...);
 using AxisIndices
 ambs = setdiff(detect_ambiguities(AxisIndices, pkgs...), ambs);
