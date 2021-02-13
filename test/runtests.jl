@@ -48,7 +48,6 @@ using AxisIndices: CenteredAxis, IdentityAxis, OffsetAxis
 using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!
-#using AxisIndices.Interface: IdentityUnitRange
 
 using ArrayInterface: to_axes, to_index
 using Base: step_hp, OneTo
@@ -110,8 +109,11 @@ include("mapped_arrays.jl")
 include("resize_tests.jl")
 include("fft.jl")
 
-@testset "docs" begin
-    doctest(AxisIndices)
+if VERSION >= v"1.6"
+    @testset "docs" begin
+        doctest(AxisIndices)
+    end
 end
 
 #include("NamedMetaAxisArray_tests.jl")
+
