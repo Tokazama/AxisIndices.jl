@@ -70,25 +70,6 @@ export
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
-# Val wraps the number of axes to retain
-naxes(A::AbstractArray, v::Val) = naxes(axes(A), v)
-naxes(axs::Tuple, v::Val{N}) where {N} = _naxes(axs, N)
-@inline function _naxes(axs::Tuple, i::Int)
-    if i === 0
-        return ()
-    else
-        return (first(axs), _naxes(tail(axs), i - 1)...)
-    end
-end
-
-@inline function _naxes(axs::Tuple{}, i::Int)
-    if i === 0
-        return ()
-    else
-        return (SimpleAxis(1), _naxes((), i - 1)...)
-    end
-end
-
 include("errors.jl")
 include("abstract_axis.jl")
 include("axis_array.jl")
@@ -137,15 +118,8 @@ include("centered_axis.jl")
 include("identity_axis.jl")
 include("padded_axis.jl")
 include("struct_axis.jl")
-
-# TODO assign_indices tests
-function assign_indices(axis, inds)
-    if can_change_size(axis) && !((known_length(inds) === nothing) || known_length(inds) === known_length(axis))
-        return unsafe_reconstruct(axis, inds)
-    else
-        return axis
-    end
-end
+include("similar.jl")
+include("utils.jl")
 
 """
     is_key([collection,] arg) -> Bool

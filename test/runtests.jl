@@ -15,7 +15,8 @@ using ArrayInterface
 using ArrayInterface: indices, known_length, StaticInt
 
 #=
-pkgs = (Documenter,Dates,MappedArrays,Statistics,TableTraits,TableTraitsUtils,LinearAlgebra,Tables,IntervalSets,NamedDims,StaticRanges,StaticArrays,Base,Core);
+using Dates,MappedArrays,Statistics,LinearAlgebra,Base,Core
+pkgs = (Dates,MappedArrays,Statistics,LinearAlgebra,Base,Core);
 ambs = detect_ambiguities(pkgs...);
 using AxisIndices
 ambs = setdiff(detect_ambiguities(AxisIndices, pkgs...), ambs);
@@ -47,7 +48,6 @@ using AxisIndices: CenteredAxis, IdentityAxis, OffsetAxis
 using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
 using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
 using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!
-#using AxisIndices.Interface: IdentityUnitRange
 
 using ArrayInterface: to_axes, to_index
 using Base: step_hp, OneTo
@@ -109,8 +109,11 @@ include("mapped_arrays.jl")
 include("resize_tests.jl")
 include("fft.jl")
 
-@testset "docs" begin
-    doctest(AxisIndices)
+if VERSION >= v"1.6.0-DEV.421"
+    @testset "docs" begin
+        doctest(AxisIndices)
+    end
 end
 
 #include("NamedMetaAxisArray_tests.jl")
+

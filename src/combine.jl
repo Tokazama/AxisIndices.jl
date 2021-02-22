@@ -222,8 +222,7 @@ end
 function combine_axis(x::Axis, y::Axis, inds)
     return Axis(
         combine_keys(x, y),
-        combine_axis(parent(x), parent(y), inds);
-        checks=NoChecks
+        combine_axis(parent(x), parent(y), inds)
     )
 end
 

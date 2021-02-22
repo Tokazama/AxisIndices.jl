@@ -39,7 +39,7 @@ When using functions as indexing arguments, the axis corresponding to each argum
 
 ```julia
 julia> ax[:, >(2)]
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = 1:2
@@ -65,7 +65,7 @@ julia> inds_before = firstindex(axis):(not_index - 1);  # all of the indices bef
 julia> inds_after = (not_index + 1):lastindex(axis);    # all of the indices after `not_index`
 
 julia> x[:, vcat(inds_before, inds_after)]
-2×3 Array{Int64,2}:
+2×3 Matrix{Int64}:
  1  5  7
  2  6  8
 
@@ -74,7 +74,7 @@ julia> x[:, vcat(inds_before, inds_after)]
 Using an `AxisArray`, this only requires one line of code
 ```julia
 julia> ax[:, !=(2)]
-2×3 AxisArray(::Array{Int64,2}
+2×3 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = 1:3
@@ -89,7 +89,7 @@ We can using `ChainedFixes` to combine multiple functions.
 julia> using ChainedFixes
 
 julia> ax[:, or(<(2), >(3))]  # == ax[:, [1, 4]]
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = 1:2
@@ -99,7 +99,7 @@ julia> ax[:, or(<(2), >(3))]  # == ax[:, [1, 4]]
   2  2  8  
 
 julia> ax[:, and(>(1), <(4))]
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = 1:2
@@ -136,7 +136,7 @@ julia> ax = AxisArray(x, nothing, (.1:.1:.4)s)
 We can still use functions to access these elements
 ```julia
 julia> ax[:, <(0.3s)]
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = (0.1:0.1:0.2) s
@@ -155,7 +155,7 @@ julia> ax[1, 0.1s]
 ...or as intervals.
 ```julia
 julia> ax[:, 0.1s..0.3s]
-2×3 AxisArray(::Array{Int64,2}
+2×3 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = (0.1:0.1:0.3) s
@@ -182,7 +182,7 @@ julia> ax = AxisArray(x, 2:3, 2:5)
   3  2  4  6  8  
 
 julia> ax[:,2]
-2-element AxisArray(::Array{Int64,1}
+2-element AxisArray(::Vector{Int64}
   • axes:
      1 = 2:3
 )
@@ -259,7 +259,7 @@ julia> ArrayInterface.known_length(typeof(ax)) # size is known at compile time
 julia> ax[1:2, 1:2] .= x[1:2, 1:2];  # underlying type is mutable `Array`, so we can assign new values
 
 julia> ax
-2×2 AxisArray(::Array{Int64,2}
+2×2 AxisArray(::Matrix{Int64}
   • axes:
      1 = 1:2
      2 = 1:2
@@ -274,7 +274,7 @@ julia> ax
 
 If each element along a particular axis corresponds to a field of a type then we can encode that information in the axis.
 ```julia
-julia> ax = AxisArray(reshape(1:4, 2, 2), StructAxis{Complex{Float64}}(), [:a, :b])
+julia> ax = AxisArray(reshape(1:4, 2, 2), StructAxis{ComplexF64}(), [:a, :b])
 2×2 AxisArray(reshape(::UnitRange{Int64}, 2, 2)
   • axes:
      1 = [:re, :im]
@@ -289,7 +289,7 @@ julia> ax = AxisArray(reshape(1:4, 2, 2), StructAxis{Complex{Float64}}(), [:a, :
 We can then create a lazy mapping of that type across views of the array.
 ```julia
 julia> axview = struct_view(ax)
-2-element AxisArray(mappedarray(Complex{Float64}, view(reshape(::UnitRange{Int64}, 2, 2), 1, :), view(reshape(::UnitRange{Int64}, 2, 2), 2, :))
+2-element AxisArray(mappedarray(ComplexF64, view(reshape(::UnitRange{Int64}, 2, 2), 1, :), view(reshape(::UnitRange{Int64}, 2, 2), 2, :))
   • axes:
      1 = [:a, :b]
 )
@@ -313,7 +313,7 @@ julia> mx = attach_metadata(AxisArray(x))
   • axes:
      1 = 1:2
      2 = 1:4
-), ::Dict{Symbol,Any}
+), ::Dict{Symbol, Any}
   • metadata:
 )
      1  2  3  4
@@ -345,7 +345,7 @@ We can also pad axes in various ways.
 julia> x = [:a, :b, :c, :d];
 
 julia> AxisArray(x, circular_pad(first_pad=2, last_pad=2))
-8-element AxisArray(::Array{Symbol,1}
+8-element AxisArray(::Vector{Symbol}
   • axes:
      1 = -1:6
 )
@@ -360,7 +360,7 @@ julia> AxisArray(x, circular_pad(first_pad=2, last_pad=2))
   6    :b  
 
 julia> AxisArray(x, replicate_pad(first_pad=2, last_pad=2))
-8-element AxisArray(::Array{Symbol,1}
+8-element AxisArray(::Vector{Symbol}
   • axes:
      1 = -1:6
 )
@@ -375,7 +375,7 @@ julia> AxisArray(x, replicate_pad(first_pad=2, last_pad=2))
   6    :d  
 
 julia> AxisArray(x, symmetric_pad(first_pad=2, last_pad=2))
-8-element AxisArray(::Array{Symbol,1}
+8-element AxisArray(::Vector{Symbol}
   • axes:
      1 = -1:6
 )
@@ -390,7 +390,7 @@ julia> AxisArray(x, symmetric_pad(first_pad=2, last_pad=2))
   6    :b  
 
 julia> AxisArray(x, reflect_pad(first_pad=2, last_pad=2))
-8-element AxisArray(::Array{Symbol,1}
+8-element AxisArray(::Vector{Symbol}
   • axes:
      1 = -1:6
 )

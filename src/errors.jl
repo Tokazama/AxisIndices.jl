@@ -1,13 +1,5 @@
 
-struct AxisArrayChecks{T}
-    AxisArrayChecks{T}() where {T} = new{T}()
-    AxisArrayChecks() = AxisArrayChecks{Union{}}()
-end
-
-struct CheckedAxisLengths end
-checked_axis_lengths(::AxisArrayChecks{T}) where {T} = AxisArrayChecks{Union{T,CheckedAxisLengths}}()
-check_axis_length(ks, inds, ::AxisArrayChecks{T}) where {T >: CheckedAxisLengths} = nothing
-function check_axis_length(ks, inds, ::AxisArrayChecks{T}) where {T}
+function check_axis_length(ks, inds)
     if length(ks) != length(inds)
         throw(DimensionMismatch(
             "keys and indices must have same length, got length(keys) = $(length(ks))" *
@@ -17,20 +9,14 @@ function check_axis_length(ks, inds, ::AxisArrayChecks{T}) where {T}
     return nothing
 end
 
-struct CheckedUniqueKeys end
-checked_unique_keys(::AxisArrayChecks{T}) where {T} = AxisArrayChecks{Union{T,CheckedUniqueKeys}}()
-check_unique_keys(ks, ::AxisArrayChecks{T}) where {T >: CheckedUniqueKeys} = nothing
-function check_unique_keys(ks, ::AxisArrayChecks{T}) where {T}
+function check_unique_keys(ks)
     if allunique(ks)
         return nothing
     else
         error("All keys must be unique")
     end
 end
-struct CheckedOffsets end
-checked_offsets(::AxisArrayChecks{T}) where {T} = AxisArrayChecks{Union{T,CheckedOffsets}}()
-check_offsets(ks, inds, ::AxisArrayChecks{T}) where {T >: CheckedOffsets} = nothing
-function check_offsets(ks, inds, ::AxisArrayChecks{T}) where {T}
+function check_offsets(ks, inds)
     if firstindex(inds) === firstindex(ks)
         return nothing
     else
@@ -38,4 +24,3 @@ function check_offsets(ks, inds, ::AxisArrayChecks{T}) where {T}
     end
 end
 
-const NoChecks = AxisArrayChecks{Union{CheckedAxisLengths,CheckedUniqueKeys,CheckedOffsets}}()

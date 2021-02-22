@@ -31,7 +31,7 @@ end
 @inline function __unsafe_get_axis_collection(axis, inds::AbstractRange)
     T = eltype(axis)
     if eltype(inds) <: T
-        return AxisArray{T,1,typeof(inds),Tuple{typeof(axis)}}(inds, (axis,); checks=NoChecks)
+        return initialize_axis_array(inds, (axis,))
     else
         return __unsafe_get_axis_collection(axis, AbstractRange{T}(inds))
     end
@@ -39,8 +39,11 @@ end
 @inline function __unsafe_get_axis_collection(axis, inds)
     T = eltype(axis)
     if eltype(inds) <: T
-        return AxisArray{T,1,typeof(inds),Tuple{typeof(axis)}}(inds, (axis,); checks=NoChecks)
+        return initialize_axis_array(inds, (axis,))
+
+        return index_axis_to_array(inds, (axis,))
     else
+        # FIXME doesn't this create stack overflow?
         return __unsafe_get_axis_collection(axis, AbstractArray{T}(inds))
     end
 end
@@ -72,7 +75,7 @@ An axis cannot be preserved if the elements with any collection that doesn't hav
 index_axis_to_array(axis::SimpleAxis, inds) = SimpleAxis(eachindex(inds))
 function index_axis_to_array(axis::Axis, inds)
     if allunique(inds)  # propagate keys corresponds to inds
-        return Axis(@inbounds(keys(axis)[inds]), index_axis_to_array(parent(axis), inds); checks=NoChecks)
+        return initialize_axis(@inbounds(keys(axis)[inds]), index_axis_to_array(parent(axis), inds))
     else  # b/c not all indices are unique it will result in non-unique keys so drop keys
         return index_axis_to_array(parent(axis), inds)
     end

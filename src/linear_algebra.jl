@@ -43,7 +43,7 @@ for fun in (:cor, :cov)
         @doc $fun_doc
         function Statistics.$fun(x::AxisArray{T,2}; dims=1, kwargs...) where {T}
             p = Statistics.$fun(parent(x); dims=dims, kwargs...)
-            return AxisArray(p, covcor_axes(axes(x), axes(p), dims); checks=NoChecks)
+            return initialize_axis_array(p, covcor_axes(axes(x), axes(p), dims))
         end
     end
 end
@@ -78,10 +78,16 @@ function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any}, p::Tuple{Any})
     return (_matmul_unsafe_reconstruct(first(a), first(p)),)
 end
 
-_matmul_unsafe_reconstruct(axis::AbstractAxis, inds) = unsafe_reconstruct(axis, inds; keys=keys(axis))
+function _matmul_unsafe_reconstruct(axis::AbstractAxis, inds)
+    if is_dynamic(axis)
+        return copy(axis)
+    else
+        return axis
+    end
+end
 _matmul_unsafe_reconstruct(axis, inds) = SimpleAxis(inds)
 
-_matmul(p, axs::Tuple) = AxisArray(p, axs)
+_matmul(p, axs::Tuple) = initialize_axis_array(p, axs)
 _matmul(p, axs::Tuple{}) = p
 
 function Base.:*(a::AxisMatrix, b::AxisMatrix)
@@ -229,7 +235,7 @@ julia> axes(F.U)
 (SimpleAxis(1:2), offset(2)(SimpleAxis(1:2)))
 
 julia> F.p
-2-element Array{Int64,1}:
+2-element Vector{Int64}:
  3
  2
 

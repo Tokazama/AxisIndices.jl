@@ -52,9 +52,9 @@ Base.parent(axis::StructAxis) = getfield(axis, :parent)
 end
 
 function Base.keys(axis::StructAxis{T}) where {T}
-    axs = (SimpleAxis(One():static_length(axis)),)
-    return AxisArray{Symbol,1,Vector{Symbol},typeof(axs)}(
-        Symbol[fieldnames(T)...], axs; checks=NoChecks
+    return initialize_axis_array(
+        Symbol[fieldnames(T)...],
+        (SimpleAxis(One():static_length(axis)),)
     )
 end
 
@@ -68,9 +68,9 @@ end
     end
 end
 @inline function _unsafe_reconstruct_struct_axis(axis::StructAxis{T}, inds, start, stop) where {T}
-    return Axis([fieldname(T, i) for i in start:stop], inds; checks=NoChecks)
+    return initialize_axis([fieldname(T, i) for i in start:stop], compose_axis(inds))
 end
-    
+
 @inline function _unsafe_reconstruct_struct_axis(axis::StructAxis{T}, inds, start::StaticInt, stop::StaticInt) where {T}
     return StructAxis{NamedTuple{__names(T, start, stop), __types(T, start, stop)}}(inds)
 end
@@ -150,7 +150,7 @@ end
 function _struct_view(::Type{T}, data, axs) where {T}
     f = _struct_view_function(T)
     aview = __struct_view(T, f, data)
-    return AxisArray{T,length(axs),typeof(aview),typeof(axs)}(aview, axs; checks=NoChecks)
+    return unsafe_initialize(AxisArray{T,length(axs),typeof(aview),typeof(axs)}, (aview, axs))
 end
 @inline function __struct_view(::Type{T}, f, data) where {T}
     return ReadonlyMultiMappedArray{T,ndims(first(data)),typeof(data),typeof(f)}(f, data)

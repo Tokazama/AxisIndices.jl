@@ -67,29 +67,24 @@ struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
     keys::Ks
     parent::Inds
 
-    function Axis{K,I,Ks,Inds}(
-        ks::Ks,
-        inds::Inds;
-        checks=AxisArrayChecks()
-    ) where {K,I,Ks<:AbstractVector{K},Inds<:AbstractRange{I}}
-
-        check_axis_length(ks, inds, checks)
-        check_unique_keys(ks, checks)
+    function Axis{K,I,Ks,Inds}(ks::Ks, inds::Inds) where {K,I,Ks<:AbstractVector{K},Inds}
+        check_axis_length(ks, inds)
+        check_unique_keys(k)
         return new{K,I,Ks,Inds}(ks, inds)
     end
 
     function Axis{K,V,Ks,Vs}(x::AbstractUnitRange{<:Integer}) where {K,V,Ks,Vs}
         if x isa Ks
             if x isa Vs
-                return Axis{K,V,Ks,Vs}(x, x)
+                return new{K,V,Ks,Vs}(x, x)
             else
-                return  Axis{K,V,Ks,Vs}(x, Vs(x))
+                return new{K,V,Ks,Vs}(x, Vs(x))
             end
         else
             if x isa Vs
-                return Axis{K,V,Ks,Vs}(Ks(x), x)
+                return new{K,V,Ks,Vs}(Ks(x), x)
             else
-                return  Axis{K,V,Ks,Vs}(Ks(x), Vs(x))
+                return  new{K,V,Ks,Vs}(Ks(x), Vs(x))
             end
         end
     end
@@ -117,27 +112,28 @@ struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
         return new{K,I,typeof(ks),typeof(inds)}()
     end
 
-    function Axis{K,I}(ks::AbstractVector; checks=AxisArrayChecks, kwargs...) where {K,I}
-        c = checked_axis_lengths(checks)
+    function Axis{K,I}(ks::AbstractVector) where {K,I}
+        check_unique_keys(ks)
         if can_change_size(ks)
-            return Axis{K,I}(ks, SimpleAxis(OneToMRange{I}(length(ks))); checks=c, kwargs...)
+            inds = SimpleAxis(OneToMRange{I}(length(ks)))
         else
-            return Axis{K,I}(ks, compose_axis(indices(ks), NoChecks); checks=c, kwargs...)
+            inds = SimpleAxis(indices(ks))
         end
+        return new{K,I,typeof(ks),typeof(inds)}()
     end
-    function Axis{K,I}(ks::AbstractVector, inds::AbstractAxis; kwargs...) where {K,I}
+    function Axis{K,I}(ks::AbstractVector, inds::AbstractAxis) where {K,I}
         if eltype(ks) <: K
             if eltype(inds) <: I
-                return Axis{K,I,typeof(ks),typeof(inds)}(ks, inds; kwargs...)
+                return Axis{K,I,typeof(ks),typeof(inds)}(ks, inds)
             else
-                return Axis{K,I}(ks, AbstractUnitRange{I}(inds); kwargs...)
+                return Axis{K,I}(ks, AbstractUnitRange{I}(inds))
             end
         else
-            return Axis{K,I}(AbstractVector{K}(ks), inds; kwargs...)
+            return Axis{K,I}(AbstractVector{K}(ks), inds)
         end
     end
-    function Axis{K,I}(ks::AbstractVector, inds::AbstractUnitRange; kwargs...) where {K,I}
-        return Axis{K,I}(ks, compose_axis(inds, NoChecks); kwargs...)
+    function Axis{K,I}(ks::AbstractVector, inds::AbstractUnitRange) where {K,I}
+        return Axis{K,I}(ks, compose_axis(inds))
     end
 
     # Axis
@@ -155,51 +151,48 @@ struct Axis{K,I,Ks,Inds<:AbstractRange{I}} <: AbstractAxis{I,Inds}
 
     Axis(x::Pair) = Axis(x.first, x.second)
 
-    function Axis(ks::AbstractVector, inds::AbstractAxis; kwargs...)
-        return Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}(ks, inds; kwargs...)
+    function Axis(ks::AbstractVector, inds::AbstractAxis)
+        return new{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}(ks, inds)
     end
 
-    function Axis(ks::AbstractVector, inds::AbstractUnitRange; kwargs...)
-        return Axis(ks, compose_axis(inds, NoChecks); kwargs...)
-    end
+    Axis(ks::AbstractVector, inds::AbstractUnitRange) = Axis(ks, compose_axis(inds))
 
-    function Axis(ks::AbstractVector; checks=AxisArrayChecks(), kwargs...)
-        c = checked_axis_lengths(checks)
+    function Axis(ks::AbstractVector)
+        check_unique_keys(ks)
         if can_change_size(ks)
-            return Axis(ks, SimpleAxis(OneToMRange(length(ks))); checks=c)
+            inds = SimpleAxis(OneToMRange(length(ks)))
         else
-            return Axis(ks, compose_axis(static_first(eachindex(ks)):static_length(ks), NoChecks); checks=c)
+            inds = compose_axis(static_first(eachindex(ks)):static_length(ks))
         end
+        new{eltype(ks),eltype(inds),typeof(ks),typeof(inds)}(ks, inds)
     end
+end
+
+initialize_axis(ks, inds) = initialize_axis(ks, compose_axis(inds))
+function initialize_axis(ks, inds::AbstractAxis)
+    return unsafe_initialize(
+        Axis{eltype(ks),eltype(inds),typeof(ks),typeof(inds)},
+        (ks, inds)
+    )
 end
 
 ## interface
 Base.keys(axis::Axis) = getfield(axis, :keys)
 @inline Base.getproperty(axis::Axis, k::Symbol) = getproperty(parent(axis), k)
 
-function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=nothing, kwargs...) where {K,I,Ks,Inds}
+function ArrayInterface.unsafe_reconstruct(axis::Axis{K,I,Ks,Inds}, inds; keys=nothing) where {K,I,Ks,Inds}
     if keys === nothing
         ks = Base.keys(axis)
         p = parent(axis)
         kindex = firstindex(ks)
         pindex = first(p)
         if kindex === pindex
-            return Axis(
-                @inbounds(ks[inds]),
-               inds;
-               checks=NoChecks
-            )
+            return initialize_axis(@inbounds(ks[inds]), inds)
         else
-            return Axis(@inbounds(ks[inds .+ (pindex - kindex)]), inds; checks=NoChecks)
-            #=
-        else
-            f = (offsets(parent(axis), 1) - offsets(ks, 1))
-            ks = ks[(first(inds) - f):(last(inds) - f)]
-            return Axis(ks, unsafe_reconstruct(parent(axis), inds); checks=NoChecks)
-            =#
+            return initialize_axis(@inbounds(ks[inds .+ (pindex - kindex)]), inds)
         end
     else
-        return Axis(keys, inds; checks=NoChecks)
+        return initialize_axis(keys, inds)
     end
 end
 
@@ -210,16 +203,11 @@ end
         kindex = firstindex(ks)
         pindex = first(p)
         if kindex === pindex
-            return Axis(
-                @inbounds(ks[inds]),
-                to_axis(parent(axis), inds);
-                checks=NoChecks
-            )
+            return initialize_axis(@inbounds(ks[inds]), to_axis(parent(axis), inds))
         else
-            return Axis(
+            return initialize_axis(
                 @inbounds(ks[inds .+ (pindex - kindex)]),
-                to_axis(parent(axis), inds);
-                checks=NoChecks
+                to_axis(parent(axis), inds)
             )
         end
     else
@@ -385,16 +373,14 @@ end
     kindex = firstindex(ks)
     pindex = first(p)
     if kindex === pindex
-        return Axis(
+        return initialize_axis(
             @inbounds(ks[arg]),
-            @inbounds(getindex(p, arg));
-            checks=NoChecks
+            @inbounds(getindex(p, arg))
         )
     else
-        return Axis(
+        return initialize_axis(
             @inbounds(ks[arg .+ (kindex - pindex)]),
-            @inbounds(getindex(p, arg));
-            checks=NoChecks
+            @inbounds(getindex(p, arg))
         )
     end
 end

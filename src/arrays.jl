@@ -11,7 +11,7 @@ A vector whose indices have keys.
 julia> using AxisIndices
 
 julia> AxisVector([1, 2], [:a, :b])
-2-element AxisArray(::Array{Int64,1}
+2-element AxisArray(::Vector{Int64}
   • axes:
      1 = [:a, :b]
 )
@@ -71,7 +71,7 @@ end
 
 function Base.reverse(x::AxisVector)
     p = reverse(parent(x))
-    return AxisArray(p, (reverse_keys(axes(x, 1), axes(p, 1)),); checks=NoChecks)
+    return initialize_axis_array(p, (reverse_keys(axes(x, 1), axes(p, 1)),))
 end
 
 """
@@ -88,7 +88,7 @@ julia> using AxisIndices
 julia> x = AxisArray([1, 2, 3, 4]);
 
 julia> deleteat!(x, 3)
-3-element AxisArray(::Array{Int64,1}
+3-element AxisArray(::Vector{Int64}
   • axes:
      1 = 1:3
 )
@@ -351,21 +351,21 @@ end
 Base.dataids(A::AxisArray) = Base.dataids(parent(A))
 
 function Base.zeros(::Type{T}, axs::Tuple{Vararg{<:AbstractAxis}}) where {T}
-    return AxisArray(zeros(T, map(length, axs)), axs; NoChecks)
+    return initialize_axis_array(zeros(T, map(length, axs)), axs)
 end
 
 function Base.falses(axs::Tuple{Vararg{<:AbstractAxis}})
-    return AxisArray(falses(map(length, axs)), axs; NoChecks)
+    return initialize_axis_array(falses(map(length, axs)), axs)
 end
 
 function Base.fill(x, axs::Tuple{Vararg{<:AbstractAxis}})
-    return AxisArray(fill(x, map(length, axs)), axs; NoChecks)
+    return initialize_axis_array(fill(x, map(length, axs)), axs)
 end
 
 function Base.reshape(A::AbstractArray, shp::Tuple{<:AbstractAxis,Vararg{<:AbstractAxis}})
     p = reshape(parent(A), map(length, shp))
     axs = reshape_axes(naxes(shp, Val(length(shp))), axes(p))
-    return AxisArray{eltype(p),ndims(p),typeof(p),typeof(axs)}(p, axs; checks=NoChecks)
+    return initialize_axis_array(p, axs)
 end
 
 # FIXME
@@ -510,7 +510,7 @@ function Base.collect(A::AxisArray{T,N}) where {T,N}
     p = similar(parent(A), size(A))
     copyto!(p, A)
     axs = map(unsafe_reconstruct,  axes(A), axes(p))
-    return AxisArray{T,N,typeof(p),typeof(axs)}(p, axs; checks=NoChecks)
+    return initialize_axis_array(p, axs)
 end
 
 #=
