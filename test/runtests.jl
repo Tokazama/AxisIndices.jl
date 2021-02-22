@@ -109,7 +109,7 @@ include("mapped_arrays.jl")
 include("resize_tests.jl")
 include("fft.jl")
 
-if VERSION >= v"1.6"
+if VERSION >= v"1.6.0-DEV.421"
     @testset "docs" begin
         doctest(AxisIndices)
     end

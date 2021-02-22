@@ -2,21 +2,17 @@
 _new_axis_length(x::Integer) = x
 _new_axis_length(x::AbstractUnitRange) = length(x)
 
+const DimAxes = Union{AbstractVector,Integer}
+
 # see this https://github.com/JuliaLang/julia/blob/33573eca1107531b3b33e8d20c08ef6db81c9f41/base/abstractarray.jl#L737 comment
 # for why we do this type piracy
 function Base.similar(a::AbstractArray, ::Type{T}, dims::Tuple{AbstractUnitRange}) where {T}
     p = similar(a, T, (length(first(dims)),))
     return initialize_axis_array(p, (similar_axis(axes(p, 1), first(dims)),))
 end
-function Base.similar(
-    a::AbstractArray,
-    ::Type{T},
-    dims::Tuple{Union{Integer, AbstractUnitRange}, Vararg{Union{Integer, AbstractUnitRange},N}}
-) where {T,N}
-
+function Base.similar(a::AbstractArray, ::Type{T}, dims::Tuple{DimAxes, Vararg{DimAxes,N}}) where {T,N}
     p = similar(a, T, map(_new_axis_length, dims))
-    axs = map(similar_axis, axes(p), dims)
-    return initialize_axis_array(p, axs)
+    return initialize_axis_array(p, map(similar_axis, axes(p), dims))
 end
 
 function Base.similar(a::AxisArray, ::Type{T}, dims::Tuple{Union{Integer, Base.OneTo}}) where {T}
@@ -34,55 +30,36 @@ function Base.similar(
     dims::Tuple{Union{Integer, Base.OneTo}, Vararg{Union{Integer, Base.OneTo},N}}
 ) where {T,N}
     p = similar(parent(a), T, map(_new_axis_length, dims))
-    axs = map(similar_axis, axes(p), dims)
-    return initialize_axis_array(p, axs)
+    return initialize_axis_array(p, map(similar_axis, axes(p), dims))
 end
 
-function Base.similar(
-    a::AxisArray,
-    ::Type{T},
-    dims::Tuple{Union{Integer, AbstractUnitRange}, Vararg{Union{Integer, AbstractUnitRange},N}}
-) where {T,N}
+function Base.similar(a::AxisArray, ::Type{T}, dims::Tuple{DimAxes, Vararg{DimAxes,N}}) where {T,N}
     p = similar(parent(a), T, map(_new_axis_length, dims))
-    axs = map(similar_axis, axes(p), dims)
-    return initialize_axis_array(p, axs)
+    return initialize_axis_array(p, map(similar_axis, axes(p), dims))
 end
 
-function Base.similar(
-    ::Type{T},
-    dims::Tuple{Union{Integer, AbstractUnitRange}, Vararg{Union{Integer, AbstractUnitRange}}}
-) where {T<:AbstractArray}
-
+function Base.similar(::Type{T}, dims::Tuple{DimAxes, Vararg{DimAxes}}) where {T<:AbstractArray}
     p = similar(T, map(_new_axis_length, dims))
-    axs = map(similar_axis, axes(p), dims)
-    return initialize_axis_array(p, axs)
+    return initialize_axis_array(p, map(similar_axis, axes(p), dims))
 end
 
-function Base.similar(
-    ::Type{T},
-    dims::Tuple{Union{Integer, AbstractUnitRange}}
-) where {T<:AbstractArray}
-
+function Base.similar(::Type{T}, dims::Tuple{DimAxes}) where {T<:AbstractArray}
     p = similar(T, map(_new_axis_length, dims))
-    axs = map(similar_axis, axes(p), dims)
-    return initialize_axis_array(p, axs)
+    return initialize_axis_array(p, map(similar_axis, axes(p), dims))
 end
 
 function Base.similar(a::AxisArray, ::Type{T}, dims::Tuple{Vararg{Int64, N}}) where {T,N}
     p = similar(parent(a), T, map(_new_axis_length, dims))
-    axs = map(similar_axis, axes(p), dims)
-    return initialize_axis_array(p, axs)
+    return initialize_axis_array(p, map(similar_axis, axes(p), dims))
 end
 
 function Base.similar(a::AxisArray, ::Type{T}) where {T}
-    p = similar(parent(a), T, size(a))
-    return initialize_axis_array(p, axes(a))
+    return initialize_axis_array(similar(parent(a), T, size(a)), axes(a))
 end
 
 ###
 ### similar_axis 
 ### TODO choose better name for this b/c this assumes that they are the same size already
-
 similar_axis(original, paxis, inds) = _similar_axis(original, paxis, inds)
 
 # we can't be sure that the new indices aren't longer than the keys for Axis or StructAxis

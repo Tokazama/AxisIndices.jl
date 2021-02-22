@@ -1,4 +1,5 @@
 
+@testset "similar" begin
 
 #=
 @testset "similar_type" begin
@@ -31,9 +32,27 @@ end
 end
 =#
 
+x = AxisArray{Int}(undef, offset(-1)([:a, :b, :c]), 4);
+@test @inferred(similar(x, eltype(x), Base.OneTo(3))) isa AxisArray
+@test @inferred(similar(x, eltype(x), 3)) isa AxisArray
+@test @inferred(eachindex(axes(similar(x, eltype(x), 2:3), 1))) == 2:3
+
+#=
+y = similar(x, eltype(x), Base.OneTo(3), Base.OneTo(3))
+y = similar(x, eltype(x), 2:3, 2:3)
+y = similar(x, eltype(x), 3, 3)
+
+similar(Array{Int,2}, Int, 2:3, 2:3)
+similar(Array{Int,2}, Int, 2:3)
+=#
+
+
+
+
 @testset "similar by axes" begin
     x = AxisArray([1,2,3])
     z = [i for i in x]
     @test axes(x) == axes(z)
 end
 
+end
