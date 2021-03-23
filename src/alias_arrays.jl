@@ -91,3 +91,4 @@ end
 Base.getindex(A::LinearAxes, ::Ellipsis) = A
 
 Base.eachindex(A::LinearAxes) = SimpleAxis(StaticInt(1):static_length(A))
+
