@@ -417,7 +417,11 @@ julia> keys.(axes(diag(A, 1; dim=Val(2))))
 """
 function LinearAlgebra.diag(M::AxisArray, k::Integer=0; dim::Val{D}=Val(1)) where {D}
     p = diag(parent(M), k)
-    return AxisArray(p, (StaticRanges.shrink_end(axes(M, D), axes(p, 1)),))
+    axis = axes(M, static(D))
+    len = minimum(ArrayInterface.size(M))
+    start = static_first(axis)
+    new_axis = @inbounds(axis[start:(start + len - one(start))])
+    return _AxisArray(p, (new_axis,))
 end
 
 """

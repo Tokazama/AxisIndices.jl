@@ -58,6 +58,7 @@ bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
 @test Base.to_shape(SimpleAxis(1)) == 1
 
+include("similar_tests.jl")
 include("indexing.jl")
 include("simple_axis.jl")
 include("axis.jl")
@@ -73,13 +74,12 @@ include("arrays.jl")
     @test_throws ErrorException append_axis!(CombineStack(), 1:3, 3:4)
 end
 =#
-include("similar_tests.jl")
-include("broadcasting_tests.jl")
 include("linear_algebra.jl")
 include("copyto_tests.jl")
 include("permutedims.jl")
 include("closest.jl")
 
+include("broadcasting_tests.jl")
 @testset "CartesianAxes" begin
     cartaxes = CartesianAxes((2.0:5.0, 1:4))
     cartinds = CartesianIndices((1:4, 1:4))

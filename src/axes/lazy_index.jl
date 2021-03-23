@@ -1,5 +1,5 @@
 
-# TODO document
+#= TODO document
 struct SubAxis{A<:AbstractAxis,I<:AbstractVector} <: AbstractVector{Int}
     axis::A
     indices::I
@@ -27,6 +27,7 @@ end
 end
 
 _sub_offset(axis::SubAxis, arg) = @inbounds(_getindices(axis)[arg])
+=#
 
 ###
 ### LazyIndex - different from SubAxis b/c getindex(::LazyIndex, i) calls to_index

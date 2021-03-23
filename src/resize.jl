@@ -1,43 +1,4 @@
 
-function StaticRanges.unsafe_grow_end!(axis::AbstractAxis, n)
-    unsafe_grow_end!(parent(axis), n)
-end
-unsafe_grow_at!(axis::AbstractAxis, n) = unsafe_grow_at!(parent(axis), n)
-function unsafe_grow_at!(axis::KeyedAxis, n)
-    unsafe_grow_at!(param(axis).keys, n)
-    unsafe_grow_at!(parent(axis), n)
-end
-unsafe_grow_at!(axis::MutableAxis, n) = unsafe_grow_end!(axis, n)
-function unsafe_grow_at!(axis::AbstractRange, n)
-    if n === 1
-        unsafe_grow_beg!(axis, n)
-    else
-        unsafe_grow_end!(axis, n)
-    end
-end
-
-function StaticRanges.unsafe_shrink_end!(axis::AbstractAxis, n)
-    unsafe_shrink_end!(parent(axis), n)
-end
-
-unsafe_shrink_at!(axis::AbstractAxis, n) = unsafe_shrink_at!(parent(axis), n)
-function unsafe_shrink_at!(axis::KeyedAxis, n)
-    unsafe_shrink_at!(getfield(axis, :keys), n)
-    unsafe_shrink_at!(parent(axis), n)
-end
-unsafe_shrink_at!(axis::MutableAxis, n) = unsafe_shrink_end!(axis, n)
-function unsafe_shrink_at!(axis::AbstractRange, n)
-    if n === 1
-        unsafe_shrink_beg!(axis, n)
-    else
-        unsafe_shrink_end!(axis, n)
-    end
-end
-
-unsafe_shrink_at!(axis::AbstractVector, n) = deleteat!(axis, n)
-
-
-
 function StaticRanges.unsafe_grow_end!(A::AxisVector, n)
     StaticRanges.unsafe_grow_end!(axes(A, 1), n)
     StaticRanges.unsafe_grow_end!(parent(A), n)
@@ -68,39 +29,6 @@ function Base.pushfirst!(A::AxisVector, item)
     unsafe_grow_at!(axes(A, 1), 1)
     pushfirst!(parent(A), item)
     return A
-end
-
-function Base.pushfirst!(A::AxisVector, item::Pair)
-    can_change_size(A) || throw(MethodError(pushfirst!, (A, item)))
-    axis = axes(A, 1)
-    pushfirst_axis!(axis, first(item))
-    pushfirst!(parent(A), last(item))
-    return A
-end
-
-
-# TODO check for existing key first
-function push_key!(axis::AbstractAxis, key)
-    unsafe_grow_end!(parent(axis), 1)
-    return nothing
-end
-
-function pushfirst_axis!(axis::AbstractAxis, key)
-    unsafe_grow_end!(parent(axis), 1)
-    return nothing
-end
-
-function popfirst_axis!(axis::AbstractAxis)
-    shrink_last!(parent(axis), 1)
-    return nothing
-end
-
-Base.pop!(axis::AbstractAxis) = pop!(parent(axis))
-Base.popfirst!(axis::AbstractAxis) = popfirst!(parent(axis))
-
-function Base.empty!(axis::AbstractAxis)
-    StaticRanges.shrink_to!(axis, 0)
-    return axis
 end
 
 function Base.append!(A::AxisVector{T,V,Ax}, collection) where {T,V,Ax}
@@ -185,4 +113,3 @@ function Base.resize!(x::AxisVector, n::Integer)
     resize!(parent(x), n)
     return x
 end
-

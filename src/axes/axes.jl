@@ -31,8 +31,9 @@ ArrayInterface.parent_type(::Type{T}) where {P,T<:AbstractAxis{P}} = P
 Supertype for axes that begin indexing offset from one. All subtypes of `AbstractOffsetAxis`
 use the keys for indexing and only convert to the underlying indices when
 `to_index(::OffsetAxis, ::Integer)` is called (i.e. when indexing the an array
-with an `AbstractOffsetAxis`. See [`OffsetAxis`](@ref), [`CenteredAxis`](@ref),
-and [`IdentityAxis`](@ref) for more details and examples.
+with an `AbstractOffsetAxis`.
+
+See also: [`OffsetAxis`](@ref), [`CenteredAxis`](@ref)
 """
 abstract type AbstractOffsetAxis{O,P} <: AbstractAxis{P} end
 
@@ -58,5 +59,6 @@ include("compose.jl")
 include("broadcast.jl")
 include("cat.jl")
 include("range_interface.jl")
+include("resize.jl")
 
 

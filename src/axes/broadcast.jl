@@ -33,7 +33,6 @@ function _bcs(shape::Tuple, newshape::Tuple)
     return (broadcast_axis(first(shape), first(newshape)), _bcs(tail(shape), tail(newshape))...)
 end
 
-
 for (f, FT, arg) in ((:-, typeof(-), Number),
                      (:+, typeof(+), Real),
                      (:*, typeof(*), Real))
@@ -47,35 +46,45 @@ for (f, FT, arg) in ((:-, typeof(-), Number),
     end
 end
 
-broadcast_axis(x, y) = broadcast_axis(x, y, _combine_indices(x, y))
-broadcast_axis(x, y, inds) = SimpleAxis(inds)
-broadcast_axis(x, y::AbstractAxis, inds) = broadcast_axis(y, x, inds)
-broadcast_axis(x::AbstractAxis, y, inds) = unsafe_reconstruct(x, inds)
-function broadcast_axis(x::AbstractAxis, y::AbstractAxis, inds)
-    if y isa AbstractOffsetAxis
-        return unsafe_reconstruct(x, unsafe_reconstruct(parent(y), inds))
-    else
-        return unsafe_reconstruct(x, unsafe_reconstruct(y, inds))
-    end
+broadcast_axis(x, y) = broadcast_axis2(x, y)
+broadcast_axis2(x, y) = SimpleAxis(_combine_length(x, y))
+
+function broadcast_axis(x::KeyedAxis, y)
+    xk, xaxis = strip_offset(x)
+    yk, yaxis = strip_offset(y)
+    return initialize(xk, broadcast_axis(xaxis, yaxis))
+end
+function broadcast_axis2(x, y::KeyedAxis)
+    xk, xaxis = strip_offset(x)
+    yk, yaxis = strip_offset(y)
+    return initialize(yk, broadcast_axis(xaxis, yaxis))
 end
 
-broadcast_axis(x::SimpleAxis, y::AbstractAxis, inds) = broadcast_axis(parent(x), y, inds)
-broadcast_axis(x::AbstractAxis, y::SimpleAxis, inds) = broadcast_axis(x, parent(y), inds)
-broadcast_axis(x::SimpleAxis, y::SimpleAxis, inds) = broadcast_axis(parent(x), parent(y), inds)
+function broadcast_axis(x::CenteredAxis, y)
+    xo, xaxis = strip_offset(x)
+    yo, yaxis = strip_offset(y)
+    return initialize(xo, broadcast_axis(xaxis, yaxis))
+end
+function broadcast_axis2(x, y::CenteredAxis)
+    xo, xaxis = strip_offset(x)
+    yo, yaxis = strip_offset(y)
+    return initialize(yo, broadcast_axis(xaxis, yaxis))
+end
 
-# Axis
-broadcast_axis(x::Axis, y, inds) = resize_last(x, inds)
-broadcast_axis(x::Axis, y::SimpleAxis, inds) = broadcast_axis(x, parent(y), inds)
-function broadcast_axis(x::Axis, y::AbstractAxis, inds)
-    return resize_last(x, broadcast_axis(parent(x), y, inds))
+function broadcast_axis(x::OffsetAxis, y)
+    xo, xaxis = strip_offset(x)
+    yo, yaxis = strip_offset(y)
+    return initialize(xo, broadcast_axis(xaxis, yaxis))
 end
-# TODO check this stuff
-function broadcast_axis(x::Axis, y::Axis, inds)
-    return Axis(
-        combine_keys(x, y),
-        broadcast_axis(parent(x), parent(y), inds)
-    )
+function broadcast_axis2(x, y::OffsetAxis)
+    xo, xaxis = strip_offset(x)
+    yo, yaxis = strip_offset(y)
+    return initialize(yo, broadcast_axis(xaxis, yaxis))
 end
+
+broadcast_keys(::Nothing, y) = y
+broadcast_keys(x, ::Nothing) = x
+broadcast_keys(x, y) = x  # TODO
 
 _combine_indices(x, y) = One():_combine_length(static_length(x), static_length(y))
 function _combine_length(::StaticInt{X}, ::StaticInt{Y}) where {X,Y}

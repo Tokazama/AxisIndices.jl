@@ -12,9 +12,6 @@ end
 function is_key(::Type{KeyType}, ::Type{ArgType}) where {KeyType,ArgType<:AbstractVector}
     return is_key(KeyType, eltype(ArgType)) * static(2)
 end
-function is_key(::Type{KeyType}, ::Type{ArgType}) where {KeyType,ArgType<:AbstractVector}
-    return is_key(KeyType, eltype(ArgType)) * static(2)
-end
 
 @propagate_inbounds function keys_to_index(::StaticInt{1}, axis, arg::Union{<:Equal,Approx})
     k = keys(axis)

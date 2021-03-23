@@ -187,47 +187,6 @@ end
     end
 end
 
-# TODO replace initialize with to_axis or something
-param(::InitOffset) = AxisOffset
-param(::InitOrigin) = AxisOrigin
-param(::InitZeroPads) = ZeroPads
-param(::InitOnePads) = OnePads
-param(::InitNothingPads) = NothingPads
-param(::InitReplicatePads) = ReplicatePads
-param(::InitSymmetricPads) = SymmetricPads
-param(::InitCircularPads) = CircularPads
-param(::InitReflectPads) = ReflectPads
-
-param(axis::KeyedAxis) = _AxisKeys(getfield(axis, :keys))
-param(axis::SimpleAxis) = nothing
-param(axis::OffsetAxis) = AxisOffset(getfield(axis, :offset))
-param(axis::CenteredAxis) = AxisOrigin(getfield(axis, :origin))
-param(axis::PaddedAxis) = getfield(axis, :pads)
-param(axis::StructAxis{T}) where {T} = _AxisStruct(T)
-
-reparam(::NothingPads) = NothingPads
-reparam(::OnePads) = OnePads
-reparam(::ZeroPads) = ZeroPads
-reparam(::ReplicatePads) = ReplicatePads
-reparam(::SymmetricPads) = SymmetricPads
-reparam(::CircularPads) = CircularPads
-reparam(::ReflectPads) = ReflectPads
-
-
-initialize(::Nothing, axis::AbstractUnitRange{Int}) = SimpleAxis(axis)
-initialize(p::AxisOrigin, axis::AbstractUnitRange{Int}) = _CenteredAxis(p.origin, axis)
-initialize(p::AxisOffset, axis::AbstractUnitRange{Int}) = _OffsetAxis(p.offset, axis)
-initialize(p::PadsParameter, axis::AbstractUnitRange{Int}) = _PaddedAxis(p, axis)
-initialize(p::AxisKeys, axis::AbstractUnitRange{Int}) = _Axis(p.keys, axis)
-initialize(p::AxisStruct{T}, axis::AbstractUnitRange{Int}) where {T} = _StructAxis(T, axis)
-
-initialize(p::PadsParameter, x) = AxisArray(x, ntuple(_ -> p, Val(ndims(x))))
-initialize(::Axis, param, axis) = _Axis(param, axis)
-initialize(::CenteredAxis, param, axis) = _CenteredAxis(param, axis)
-initialize(::OffsetAxis, param, axis) = _CenteredAxis(param, axis)
-initialize(::PaddedAxis, param, axis) = _PaddedAxis(param, axis)
-initialize(::StructAxis, ::Type{T}, axis) where {T} = _StructAxis(T, axis)
-
 include("closest.jl")
 
 export ..
