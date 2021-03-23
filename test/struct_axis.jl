@@ -3,8 +3,8 @@
     axis = @inferred(StructAxis{Complex{Float64}}())
     @test ArrayInterface.known_length(axis) === 2
     @test @inferred(getindex(axis, StaticInt(1):StaticInt(2))) === axis
-    @test keys(@inferred(getindex(axis, StaticInt(1):StaticInt(1))))[1] === :re
-    @test keys(@inferred(getindex(axis, StaticInt(2):StaticInt(2))))[1] === :im
+    @test @inferred(getindex(axis, StaticInt(1):StaticInt(1)))[:re] === 1
+    @test @inferred(getindex(axis, StaticInt(2):StaticInt(2)))[:im] === 2
 
     @testset "struct_view" begin
         x = AxisArray(reshape(1:4, 2, 2), StructAxis{Complex{Float64}}(), ["a", "b"]);

@@ -21,33 +21,15 @@ end
     end
 end
 
-known_offset1(::Type{T}) where {T} = first(known_offsets(T))
-
-offset1(::Type{T}) where {T} = first(offsets(T))
-
-
-
-
-function same_root_offset(::Type{A}, ::Type{I}) where {A<:SimpleAxis,I}
-    offset_axis1(A) === offset_axis1(I)
-end
-function same_root_offset(::Type{A}, ::Type{I}) where {A<:AbstractAxis,I}
-    return same_root_offset(parent_type(A), I)
-end
-
-is_dynamic(x) = is_dynamic(typeof(x))
-function is_dynamic(::Type{T}) where {T}
-    if can_change_size(T) || ismutable(T)
-        return true
-    elseif parent_type(T) <: T
-        return false
+known_offset1(x) = known_offset1(typeof(x))
+known_offset1(::Type{T}) where {T} = first(ArrayInterface.known_offsets(T))
+@inline function offset1(x)
+    o = known_offset1(x)
+    if o === nothing
+        return first(ArrayInterface.offsets(x))
     else
-        return is_dynamic(parent_type(T))
+        return static(o)
     end
-end
-
-function is_dynamic(::Type{T}) where {K,Ks,T<:Axis{K,Ks}}
-    return is_dynamic(Ks) || is_dynamic(parent_type(T))
 end
 
 function assign_indices(axis, inds)
@@ -61,3 +43,79 @@ end
 function throw_offset_error(@nospecialize(axis))
     throw("Cannot wrap axis $axis due to offset of $(first(axis))")
 end
+
+int(x::Integer) = Int(x)
+int(x::StaticInt) = x
+
+const DUnitRange = OptionallyStaticUnitRange{Int,Int}
+const DOneTo = OptionallyStaticUnitRange{StaticInt{1},Int}
+
+const StepSRange{F,S,L} = ArrayInterface.OptionallyStaticStepRange{StaticInt{F},StaticInt{S},StaticInt{L}}
+const UnitSRange{F,L} = OptionallyStaticUnitRange{StaticInt{F},StaticInt{L}}
+const SOneTo{L} = UnitSRange{1,L}
+
+# TODO this should probably be in ArrayInterface.jl "dimensions.jl"
+#=
+    dims_indicators(cat_dims, array_dims) -> Tuple
+
+This turns a tuple of dimensions passed to something like `reduce` into a tuple of
+true/false indicators. If possible, values are preserved as `StaticBool` to help with
+type stability.
+=#
+@inline function dims_indicators(x::Tuple, dims::Tuple)
+    return (static_in(first(x), dims), dims_indicators(tail(x), dims)...)
+end
+dims_indicators(::Tuple{}, dims::Tuple) = ()
+dims_indicators(::Tuple{}, dims::Integer) = ()
+function dims_indicators(axs::Tuple, dims::Integer)
+    return (static_in(first(axs), dims), dims_indicators(tail(axs), dims)...)
+end
+dims_indicators(axs::Tuple{Vararg{Any,N}}, ::Colon) where {N} = __ntuple(_->static(true), Val(N))
+
+static_in(i::StaticInt{N}, dim::Int) where {N} = N === dim
+static_in(i::StaticInt{N}, ::StaticInt{N}) where {N} = static(true)
+static_in(i::StaticInt{N}, ::StaticInt) where {N} = static(false)
+static_in(i::StaticInt{N}, ::Tuple{}) where {N} = static(false)
+static_in(i::StaticInt{N}, dims::Tuple{StaticInt{N},Vararg{Any}}) where {N} = static(true)
+@inline function static_in(i::StaticInt{N}, dims::Tuple{StaticInt,Vararg{Any}}) where {N}
+    return static(false) | static_in(i, tail(dims))
+end
+@inline function static_in(i::StaticInt{N}, dims::Tuple{Int,Vararg{Any}}) where {N}
+    # if any StaticInt match then we can preserve a static True
+    return (first(dims) === N)  | static_in(i, tail(dims))
+end
+
+# if we could return on of the two values we need to ensure they they are both static for
+# type stability, otherwise drop to dynamic
+conform_dynamic(x::X, y::Y) where {X,Y} = _conform_static(is_static(Y), x)
+_conform_dynamic(::True, x) = x
+_conform_dynamic(::False, x) = dynamic(x)
+
+###
+### ERRORS
+###
+function check_axis_length(ks, inds)
+    if length(ks) != length(inds)
+        throw(DimensionMismatch(
+            "keys and indices must have same length, got length(keys) = $(length(ks))" *
+            " and length(indices) = $(length(inds)).")
+        )
+    end
+    return nothing
+end
+
+function check_unique_keys(ks)
+    if allunique(ks)
+        return nothing
+    else
+        error("All keys must be unique")
+    end
+end
+function check_offsets(ks, inds)
+    if firstindex(inds) === firstindex(ks)
+        return nothing
+    else
+        throw(ArgumentError("firstindex of $ks and $inds are not the same."))
+    end
+end
+

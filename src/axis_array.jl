@@ -1,95 +1,4 @@
 
-@inline function compose_axes(::Tuple{}, x::AbstractArray{<:Any,N}) where {N}
-    if N === 0
-        return ()
-    elseif N === 1 && can_change_size(x)
-        return (compose_axis(OneToMRange(length(x))),)
-    else
-        return map(compose_axis, axes(x))
-    end
-end
-function compose_axes(ks::Tuple{Vararg{<:Any,N}}, x::AbstractArray{<:Any,N}) where {N}
-    if N === 0
-        return ()
-    elseif N === 1 && can_change_size(x)
-        return compose_axes(ks, (OneToMRange(length(x)),))
-    else
-        return compose_axes(ks, axes(x))
-    end
-end
-function compose_axes(ks::Tuple, x::AbstractArray{<:Any,N}) where {N}
-    throw(DimensionMismatch("Number of axis arguments provided ($(length(ks))) does " *
-                            "not match number of parent axes ($N)."))
-end
-@inline function compose_axes(ks::Tuple{Vararg{<:Any,N}}, inds::Tuple{Vararg{<:Any,N}}) where {N}
-    return (
-        compose_axis(first(ks), first(inds)),
-        compose_axes(tail(ks), tail(inds))...
-    )
-end
-compose_axes(::Tuple{}, ::Tuple{}) = ()
-compose_axes(::Tuple{}, inds::Tuple) = map(compose_axis, inds)
-compose_axes(axs::Tuple, ::Tuple{}) = map(compose_axis, axs)
-
-###
-### compose_axis
-###
-compose_axis(x::Integer) = SimpleAxis(x)
-compose_axis(x) = Axis(x)
-compose_axis(x::AbstractAxis) = x
-function compose_axis(x::AbstractUnitRange{I}) where {I<:Integer}
-    if known_first(x) === one(eltype(x))
-        return SimpleAxis(x)
-    else
-        return OffsetAxis(x)
-    end
-end
-compose_axis(x::IdentityUnitRange) = compose_axis(x.indices)
-
-# 3-args
-compose_axis(::Nothing, inds) = compose_axis(inds)
-compose_axis(ks::Function, inds) = ks(inds)
-function compose_axis(ks::Integer, inds)
-    if ks isa StaticInt
-        return SimpleAxis(known_first(inds):ks)
-    else
-        return SimpleAxis(inds)
-    end
-end
-function compose_axis(ks, inds)
-    check_axis_length(ks, inds)
-    return _compose_axis(ks, inds)
-end
-function _compose_axis(ks::AbstractAxis, inds)
-    # if the indices are the same then don't reconstruct
-    if first(parent(ks)) == first(inds)
-        return copy(ks)
-    else
-        return unsafe_reconstruct(ks, inds)
-    end
-end
-@inline function _compose_axis(ks, inds)
-    start = known_first(ks)
-    if known_step(ks) === 1
-        if known_first(ks) === nothing
-            return OffsetAxis(first(ks) - static_first(inds), inds)
-        elseif known_first(ks) === known_first(inds)
-            # if we don't know the length of `inds` but we know the length of `ks` then we
-            # should reconstruct `inds` so that it has a static length
-            if known_last(inds) === nothing && known_last(ks) !== nothing
-                return set_length(inds, static_length(ks))
-            else
-                return copy(inds)
-            end
-        else
-            return OffsetAxis(static_first(ks) - static_first(inds), inds)
-        end
-    else
-        check_unique_keys(ks)
-        return initialize_axis(ks, inds)
-    end
-end
-
 """
     AxisArray{T,N,P,AI}
 
@@ -98,9 +7,13 @@ each dimension. The first argument is the parent array and the second argument i
 a tuple of subtypes to `AbstractAxis` or keys that will be converted to subtypes
 of `AbstractAxis` with the provided keys.
 """
-struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
+struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: ArrayInterface.AbstractArray2{T,N}
     data::D
     axes::Axs
+
+    global function _AxisArray(p::P, a::A) where {P,N,A<:Tuple{Vararg{Any,N}}}
+        return new{eltype(P),N,P,A}(p, a)
+    end
 
     # TODO robust checking of indices should happen at this level
     # FIXME this needs to check that all axs are AbstractAxis
@@ -281,43 +194,6 @@ struct AxisArray{T,N,D,Axs<:Tuple{Vararg{<:Any,N}}} <: AbstractArray{T,N}
     ```
     """
     AxisArray(x::AbstractArray, args...) = AxisArray(x, args)
-
-    #= TODO delete this?
-    function AxisArray(x::AbstractVector{T}; kwargs...) where {T}
-        if can_change_size(x)
-            axs = (SimpleAxis(OneToMRange(length(x))),)
-        else
-            axs = (SimpleAxis(axes(x, 1)),)
-        end
-        return new{T,1,typeof(x),typeof(axs)}(x, axs)
-    end
-
-    function AxisArray(x::AbstractVector{T}, ks::AbstractAxis) where {T}
-        check_axis_length(ks, axes(x, 1))
-        return new{T,1,typeof(x),Tuple{typeof(ks)}}(x, (ks,))
-    end
-
-    function AxisArray(x::AbstractVector{T}, ks::AbstractVector) where {T}
-        if can_change_size(x)
-            axs = (Axis(ks, OneToMRange(length(x))),)
-        else
-            axs = (Axis(ks, axes(x, 1)),)
-        end
-        return new{T,1,typeof(x),typeof(axs)}(x, axs)
-    end
-
-    AxisArray(x::AbstractVector{T}, ks::Tuple{}; kwargs...) where {T} = AxisArray(x)
-
-    AxisArray(x::AbstractVector{T}, ks::Tuple; kwargs...) where {T} = AxisArray{T}(x, ks)
-
-    function AxisArray(x::AbstractArray{T,0}, axs::Tuple{}=()) where {T}
-        return new{T,0,typeof(x),Tuple{}}(x, ())
-    end
-
-    function AxisArray(x::AbstractVector{T}, ks::Tuple) where {T}
-        return new{T,1,typeof(x),typeof(axs)}(x, axs)
-    end
-    =#
 end
 
 function initialize_axis_array(data, axs)
@@ -327,11 +203,12 @@ function initialize_axis_array(data, axs)
     )
 end
 
-Base.axes(x::AxisArray) = getfield(x, :axes)
+ArrayInterface.axes_types(::Type{AxisArray{T,N,P,A}}) where {T,N,P,A} = A
+ArrayInterface.axes(x::AxisArray) = getfield(x, :axes)
 
+ArrayInterface.parent_type(::Type{AxisArray{T,N,P,A}}) where {T,N,P,A} = P
 Base.parent(x::AxisArray) = getfield(x, :data)
 
-ArrayInterface.parent_type(::Type{T}) where {P,T<:AxisArray{<:Any,<:Any,P}} = P
 @inline function ArrayInterface.can_change_size(::Type{T}) where {D,Axs,T<:AxisArray{<:Any,<:Any,D,Axs}}
     if can_change_size(D)
         return _can_change_axes_size(Axs)
@@ -398,37 +275,19 @@ function ArrayInterface.unsafe_reconstruct(A::AxisArray, data; axes=nothing, kwa
 end
 
 # TODO function _unsafe_reconstruct(A, data, ::Nothing) end
-_unsafe_reconstruct(A, data, axs) = initialize_axis_array(data, axs)
+_unsafe_reconstruct(A, data, axs) = _AxisArray(data, axs)
 
 
 ###
 ### getindex
 ###
-@inline function ArrayInterface.unsafe_get_element(A::AxisArray, inds)
-    if is_dense_wrapper(A)
-        return @inbounds(parent(A)[apply_offsets(A, inds)...])
-    else
-        return _unsafe_get_element(A, apply_offsets(A, inds))
-    end
-end
 # other methods in padded_axis.jl
-@inline _unsafe_get_element(A, inds::Tuple{Vararg{Integer}}) = @inbounds(parent(A)[inds...])
-
-function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
-    axs = to_axes(A, inds)
-    dest = AxisArray(similar(parent(A), length.(axs)), axs)
-    if map(Base.unsafe_length, axes(dest)) == map(Base.unsafe_length, axs)
-        Base._unsafe_getindex!(dest, A, inds...) # usually a generated function, don't allow it to impact inference result
-    else
-        Base.throw_checksize_error(dest, axs)
-    end
-    return dest
-end
-
-
+# function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
+    # return @inbounds(getindex(parent(A), inds...))
+# end
 
 function ArrayInterface.unsafe_set_element!(A::AxisArray, value, inds)
-    return @inbounds(setindex!(parent(A), value, apply_offsets(A, inds)...))
+    return @inbounds(setindex!(parent(A), value, inds...))
 end
 
 # * apply_offsets helps apply offsets for offset axes and if there is a padded region

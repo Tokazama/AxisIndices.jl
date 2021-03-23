@@ -15,19 +15,15 @@ using MappedArrays
 using Metadata
 using NamedDims
 using SparseArrays
+using ArrayInterface.Static
 using StaticRanges
 using Statistics
 using SuiteSparse
 
 using EllipsisNotation: Ellipsis
 using StaticRanges
-using StaticRanges: OneToUnion
-using StaticRanges: can_set_first, can_set_last, can_set_length, same_type
-using StaticRanges: checkindexlo, checkindexhi
-using StaticRanges: grow_first!, grow_last!, grow_first, grow_last
-using StaticRanges: shrink_first!, shrink_last!, shrink_first, shrink_last
-using StaticRanges: resize_last, resize_last!, resize_first, resize_first!
-using StaticRanges: is_static, is_fixed, similar_type
+using StaticRanges: unsafe_grow_beg!, unsafe_grow_end!, unsafe_shrink_beg!, unsafe_shrink_end!
+using StaticRanges: is_static
 
 using Base: @propagate_inbounds, tail, LogicalIndex, Slice, OneTo, Fix2, ReinterpretArray
 using Base: IdentityUnitRange, setindex
@@ -36,7 +32,7 @@ using ArrayInterface: OptionallyStaticUnitRange
 using ArrayInterface: known_length, known_first, known_step, known_last, can_change_size
 using ArrayInterface: static_length, static_first, static_step, static_last, StaticInt, Zero, One
 using ArrayInterface: indices, offsets, to_index, to_axis, to_axes, unsafe_reconstruct, parent_type
-using ArrayInterface: can_setindex
+using ArrayInterface: can_setindex, to_dims, AbstractArray2
 using MappedArrays: MultiMappedArray, ReadonlyMultiMappedArray
 using Base: print_array, print_matrix_row, print_matrix, alignment
 
@@ -59,6 +55,7 @@ export
     circular_pad,
     idaxis,
     permuteddimsview,
+    nothing_pad,
     offset,
     one_pad,
     reflect_pad,
@@ -70,82 +67,52 @@ export
 
 const ArrayInitializer = Union{UndefInitializer, Missing, Nothing}
 
-include("errors.jl")
-include("abstract_axis.jl")
+# TODO better erros than @assert in Pads
+struct Pads{F,L}
+    first_pad::F
+    last_pad::L
+
+    global _Pads(f::F, l::L) where {F,L} = new{F,L}(f, l)
+    function Pads(f, l)
+        @assert f > 0
+        @assert l > 0
+        _Pads(int(f), int(l))
+    end
+end
+
+function Pads(; first_pad=Zero(), last_pad=Zero(), sym_pad=nothing)
+    if sym_pad === nothing
+        return Pads(first_pad, last_pad)
+    else
+        return Pads(sym_pad, sym_pad)
+    end
+end
+
+include("utils.jl")
 include("axis_array.jl")
+include("axes/axes.jl")
+include("abstract_axis.jl")
 
-"""
-    AxisInitializer <: Function
-
-Supertype for functions that assist in initialization of `AbstractAxis` subtypes.
-"""
-abstract type AxisInitializer <: Function end
-
-(init::AxisInitializer)(x) = Base.Fix2(init, x)
-function (init::AxisInitializer)(collection::AbstractRange, x)
-    if known_step(collection) === 1
-        return axis_method(init, x, collection)
-    else
-        return AxisArray(collection, ntuple(_ -> init(x), Val(ndims(collection))))
-    end
-end
-function (init::AxisInitializer)(collection, x)
-    return AxisArray(collection, ntuple(_ -> init(x), Val(ndims(collection))))
-end
-function (init::AxisInitializer)(collection::AbstractRange, x::Tuple)
-    if ndims(collection) !== length(x)
-        throw(DimensionMismatch("Number of axis arguments provided ($(length(x))) does " *
-                                "not match number of collections's axes ($(ndims(collection)))."))
-    end
-    if known_step(collection) === 1
-        return axis_method(init, first(x), collection)
-    else
-        return AxisArray(collection, map(init, x))
-    end
-end
-function (init::AxisInitializer)(collection, x::Tuple)
-    if ndims(collection) !== length(x)
-        throw(DimensionMismatch("Number of axis arguments provided ($(length(x))) does " *
-                                "not match number of collections's axes ($(ndims(collection)))."))
-    end
-    return AxisArray(collection, map(init, x))
-end
-
-include("simple_axis.jl")
 include("axis.jl")
 include("offset_axis.jl")
 include("centered_axis.jl")
-include("identity_axis.jl")
-include("padded_axis.jl")
 include("struct_axis.jl")
+
+include("padded_axis.jl")
+
 include("similar.jl")
-include("utils.jl")
-
-"""
-    is_key([collection,] arg) -> Bool
-
-Whether `arg` refers to a key of `axis`.
-"""
-is_key(arg) = is_key(IndexLinear(), typeof(arg))
-is_key(collection, arg) = is_key(IndexStyle(collection), typeof(arg))
-is_key(collection, ::Type{I}) where {I} = is_key(IndexStyle(collection), I)
-is_key(::IndexStyle, ::Type{T}) where {T<:Colon} = false
-is_key(::IndexStyle, ::Type{T}) where {T<:Integer} = false
-is_key(S::IndexStyle, ::Type{T}) where {T<:AbstractArray} = is_key(S, eltype(T))
-is_key(::IndexStyle, ::Type{T}) where {T} = true
 
 const MetaAxisArray{T,N,P,Axs,M} = Metadata.MetaArray{T,N,AxisArray{T,N,P,Axs},M}
 
 const NamedMetaAxisArray{L,T,N,P,M,Axs} = NamedDimsArray{L,T,N,MetaAxisArray{T,N,P,Axs,M}}
 
-
-include("to_index.jl")
-include("checkindex.jl")
 include("getindex.jl")
 include("permutedims.jl")
 include("axes_methods.jl")
 include("combine.jl")
+include("reduce.jl")
 include("arrays.jl")
+include("resize.jl")
 include("alias_arrays.jl")
 include("linear_algebra.jl")
 include("deprecations.jl")
@@ -169,7 +136,6 @@ ArrayInterface._multi_check_index(axs::Tuple, arg::LogicalIndex{<:Any,<:AxisArra
     end
 end
 apply_offset(axis::OffsetAxis, arg) = _apply_offset(getfield(axis, :offset), arg)
-apply_offset(axis::IdentityAxis, arg) = _apply_offset(getfield(axis, :offset), arg)
 function apply_offset(axis::CenteredAxis, arg)
     p = parent(axis)
     return _apply_offset(_origin_to_offset(first(p), length(p), origin(axis)), arg)
@@ -187,7 +153,6 @@ end
 # add offsets
 _add_offset(axis, x) = x
 _add_offset(axis::OffsetAxis, arg) = __add_offset(getfield(axis, :offset), arg)
-_add_offset(axis::IdentityAxis, arg) = __add_offset(getfield(axis, :offset), arg)
 function _add_offset(axis::CenteredAxis, arg)
     p = parent(axis)
     return __add_offset(_origin_to_offset(first(p), length(p), origin(axis)), arg)
@@ -212,23 +177,6 @@ end
 @inline function apply_offsets(axs::Tuple, inds::Tuple)
     return (_sub_offset(first(axs), first(inds)), apply_offsets(tail(axs), tail(inds))...)
 end
-_sub_offset(axis, x) = x
-_sub_offset(axis::OffsetAxis, arg) = __sub_offset(getfield(axis, :offset), arg)
-_sub_offset(axis::IdentityAxis, arg) = __sub_offset(getfield(axis, :offset), arg)
-function _sub_offset(axis::CenteredAxis, arg)
-    p = parent(axis)
-    return __sub_offset(_origin_to_offset(first(p), length(p), origin(axis)), arg)
-end
-__sub_offset(f, arg::Integer) = arg - f
-__sub_offset(f, arg::AbstractArray) = arg .- f
-function __sub_offset(f, arg::AbstractRange)
-    if known_step(arg) === 1
-        return (first(arg) - f):(last(arg) - f)
-    else
-        return (first(arg) - f):step(arg):(last(arg) - f)
-    end
-end
-
 
 # Metadata stuff
 @inline function Metadata.metadata(x::AxisArray; dim=nothing, kwargs...)
@@ -238,6 +186,47 @@ end
         return metadata(axes(x, dim); kwargs...)
     end
 end
+
+# TODO replace initialize with to_axis or something
+param(::InitOffset) = AxisOffset
+param(::InitOrigin) = AxisOrigin
+param(::InitZeroPads) = ZeroPads
+param(::InitOnePads) = OnePads
+param(::InitNothingPads) = NothingPads
+param(::InitReplicatePads) = ReplicatePads
+param(::InitSymmetricPads) = SymmetricPads
+param(::InitCircularPads) = CircularPads
+param(::InitReflectPads) = ReflectPads
+
+param(axis::KeyedAxis) = _AxisKeys(getfield(axis, :keys))
+param(axis::SimpleAxis) = nothing
+param(axis::OffsetAxis) = AxisOffset(getfield(axis, :offset))
+param(axis::CenteredAxis) = AxisOrigin(getfield(axis, :origin))
+param(axis::PaddedAxis) = getfield(axis, :pads)
+param(axis::StructAxis{T}) where {T} = _AxisStruct(T)
+
+reparam(::NothingPads) = NothingPads
+reparam(::OnePads) = OnePads
+reparam(::ZeroPads) = ZeroPads
+reparam(::ReplicatePads) = ReplicatePads
+reparam(::SymmetricPads) = SymmetricPads
+reparam(::CircularPads) = CircularPads
+reparam(::ReflectPads) = ReflectPads
+
+
+initialize(::Nothing, axis::AbstractUnitRange{Int}) = SimpleAxis(axis)
+initialize(p::AxisOrigin, axis::AbstractUnitRange{Int}) = _CenteredAxis(p.origin, axis)
+initialize(p::AxisOffset, axis::AbstractUnitRange{Int}) = _OffsetAxis(p.offset, axis)
+initialize(p::PadsParameter, axis::AbstractUnitRange{Int}) = _PaddedAxis(p, axis)
+initialize(p::AxisKeys, axis::AbstractUnitRange{Int}) = _Axis(p.keys, axis)
+initialize(p::AxisStruct{T}, axis::AbstractUnitRange{Int}) where {T} = _StructAxis(T, axis)
+
+initialize(p::PadsParameter, x) = AxisArray(x, ntuple(_ -> p, Val(ndims(x))))
+initialize(::Axis, param, axis) = _Axis(param, axis)
+initialize(::CenteredAxis, param, axis) = _CenteredAxis(param, axis)
+initialize(::OffsetAxis, param, axis) = _CenteredAxis(param, axis)
+initialize(::PaddedAxis, param, axis) = _PaddedAxis(param, axis)
+initialize(::StructAxis, ::Type{T}, axis) where {T} = _StructAxis(T, axis)
 
 include("closest.jl")
 

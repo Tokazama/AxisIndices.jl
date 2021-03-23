@@ -1,20 +1,4 @@
 
-Base.getindex(axis::AbstractAxis, ::Colon) = copy(axis)
-Base.getindex(axis::AbstractAxis, ::Ellipsis) = copy(axis)
-@propagate_inbounds Base.getindex(axis::AbstractAxis, arg::Integer) = to_index(axis, arg)
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::AbstractUnitRange{I}) where {I<:Integer}
-    return ArrayInterface.unsafe_getindex(axis, (to_index(axis, arg),))
-end
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::StepRange{I}) where {I<:Integer}
-    return ArrayInterface.unsafe_getindex(axis, (to_index(axis, arg),))
-end
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg::AbstractArray{I}) where {I<:Integer}
-    return ArrayInterface.unsafe_getindex(axis, (to_index(axis, arg),))
-end
-@propagate_inbounds function Base.getindex(axis::AbstractAxis, arg)
-    return ArrayInterface.unsafe_getindex(axis, (to_index(axis, arg),))
-end
-
 ArrayInterface.unsafe_get_element(axis::AbstractAxis, inds) = eltype(axis)(first(inds))
 
 @inline function ArrayInterface.unsafe_get_collection(axis::AbstractAxis, inds::Tuple)
@@ -22,65 +6,119 @@ ArrayInterface.unsafe_get_element(axis::AbstractAxis, inds) = eltype(axis)(first
 end
 _unsafe_get_axis_collection(axis, i::Integer) = Int(i)
 @inline function _unsafe_get_axis_collection(axis, inds)
-    if known_step(inds) === one(eltype(inds))
-        return index_axis_to_axis(axis, inds)
+    if known_step(inds) === 1
+        return _axis_to_axis(axis, inds)
     else
-        return __unsafe_get_axis_collection(index_axis_to_array(axis, inds), inds)
+        new_axis, array = _axis_to_array(axis, inds)
+        return _AxisArray(array, (new_axis,))
     end
 end
-@inline function __unsafe_get_axis_collection(axis, inds::AbstractRange)
-    T = eltype(axis)
-    if eltype(inds) <: T
-        return initialize_axis_array(inds, (axis,))
+
+@inline function _axis_to_axis(axis::StructAxis{T}, inds::StepSRange{F,S,L}) where {T,F,S,L}
+    new_axis = _axis_to_axis(parent(axis), inds)
+    return _StructAxis(NamedTuple{__names(T, inds), __types(T, inds)}, new_axis)
+end
+
+###
+### AxisArray
+###
+function ArrayInterface.unsafe_get_element(A::AxisArray, inds)
+    return ArrayInterface.unsafe_get_element(IndexStyle(A), A, inds)
+end
+function ArrayInterface.unsafe_get_element(::IndexLinear, A::AxisArray, inds)
+    return @inbounds(getindex(parent(A), inds...))
+end
+function ArrayInterface.unsafe_get_element(::IndexCartesian, A::AxisArray, inds)
+    return _get_element(A, inds, get_fill_pad(axes(A), inds))
+end
+
+_get_element(A, inds::Tuple, ::Nothing) = @inbounds(getindex(parent(A), inds...))
+_get_element(A, inds::Tuple, p::FillPads) = pad_with(A, p)
+
+# FIXME change this so that it only checks when we are looking at padded axes
+get_fill_pad(::Tuple{}, ::Tuple{}) = nothing
+function get_fill_pad(axs::Tuple{Any,Vararg}, inds::Tuple{Any,Vararg})
+    p = get_fill_pad(first(axs), first(inds))
+    if p === nothing
+        return get_fill_pad(tail(axs), tail(inds))
     else
-        return __unsafe_get_axis_collection(axis, AbstractRange{T}(inds))
+        return p
     end
 end
-@inline function __unsafe_get_axis_collection(axis, inds)
-    T = eltype(axis)
-    if eltype(inds) <: T
-        return initialize_axis_array(inds, (axis,))
+get_fill_pad(axis, i) = nothing
+get_fill_pad(axis::PaddedAxis, i) = _get_fill_pad(pads(axis), i)
 
-        return index_axis_to_array(inds, (axis,))
+_get_fill_pad(::PadsParameter, ::Int) = nothing
+_get_fill_pad(::PadsParameter, ::StaticInt) = nothing
+_get_fill_pad(::PadsParameter, ::StaticInt{0}) = nothing
+_get_fill_pad(p::FillPads, ::StaticInt{0}) = p
+_get_fill_pad(p::FillPads, i::StaticInt{I}) where {I} = i
+function _get_fill_pad(p::FillPads, i::Int)
+    if i === -1
+        return p
     else
-        # FIXME doesn't this create stack overflow?
-        return __unsafe_get_axis_collection(axis, AbstractArray{T}(inds))
+        return nothing
+    end
+end
+function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
+    axs = to_axes(A, inds)
+    dest = similar(A, axs)
+    if map(Base.unsafe_length, axes(dest)) == map(Base.unsafe_length, axs)
+        _unsafe_getindex!(dest, A, inds...) # usually a generated function, don't allow it to impact inference result
+    else
+        Base.throw_checksize_error(dest, axs)
+    end
+    return dest
+end
+
+function ArrayInterface.unsafe_set_collection!(A::AxisArray, val, inds)
+    return _unsafe_setindex!(IndexStyle(A), A, val, inds...)
+end
+
+@generated function _unsafe_getindex!(
+    dest::AbstractArray,
+    src::AbstractArray,
+    I::Vararg{Union{Real,AbstractArray},N}
+) where {N}
+    return _generate_unsafe_getindex!_body(N)
+end
+function _generate_unsafe_getindex!_body(N::Int)
+    quote
+        Base.@_inline_meta
+        D = eachindex(dest)
+        Dy = iterate(D)
+        @inbounds Base.Cartesian.@nloops $N j d -> I[d] begin
+            # This condition is never hit, but at the moment
+            # the optimizer is not clever enough to split the union without it
+            Dy === nothing && return dest
+            (idx, state) = Dy
+            dest[idx] = ArrayInterface.unsafe_get_element(src, Base.Cartesian.@ntuple($N, j))
+            Dy = iterate(D, state)
+        end
+        return dest
     end
 end
 
-#= 
-    index_axis_to_array(axis, inds)
-
-An axis may have other axis types nested within it so we need to propagate the indexing,
-but we can usually just use unsafe_reconstruct.
-=#
-@inline function index_axis_to_axis(axis::SimpleAxis, inds)
-    return SimpleAxis(static_first(inds):static_last(inds))
-end
-@inline function index_axis_to_axis(axis, inds)
-    return unsafe_reconstruct(axis, index_axis_to_axis(parent(axis), _sub_offset(axis, inds)))
-end
-@inline function index_axis_to_axis(axis::IdentityAxis, inds)
-    return IdentityAxis(inds, index_axis_to_axis(parent(axis),  _sub_offset(axis, inds)))
+@generated function _unsafe_setindex!(::IndexStyle, A::AbstractArray, x, I::Vararg{Union{Real,AbstractArray}, N}) where N
+    _generate_unsafe_setindex!_body(N)
 end
 
-# TODO this might be worth making part of official API if a better name and more thought out
-# documentation/implementation accompanies it b/c eventually all axis types have to deal
-# with non unit range indexing.
-#= 
-    index_axis_to_array(axis, inds)
-
-An axis cannot be preserved if the elements with any collection that doesn't have a step of 1.
-=#
-index_axis_to_array(axis::SimpleAxis, inds) = SimpleAxis(eachindex(inds))
-function index_axis_to_array(axis::Axis, inds)
-    if allunique(inds)  # propagate keys corresponds to inds
-        return initialize_axis(@inbounds(keys(axis)[inds]), index_axis_to_array(parent(axis), inds))
-    else  # b/c not all indices are unique it will result in non-unique keys so drop keys
-        return index_axis_to_array(parent(axis), inds)
+function _generate_unsafe_setindex!_body(N::Int)
+    quote
+        x′ = Base.unalias(A, x)
+        Base.Cartesian.@nexprs $N d -> (I_d = Base.unalias(A, I[d]))
+        idxlens = Base.Cartesian.@ncall $N Base.index_lengths I
+        Base.Cartesian.@ncall $N Base.setindex_shape_check x′ (d -> idxlens[d])
+        Xy = iterate(x′)
+        @inbounds Base.Cartesian.@nloops $N i d->I_d begin
+            # This is never reached, but serves as an assumption for
+            # the optimizer that it does not need to emit error paths
+            Xy === nothing && break
+            (val, state) = Xy
+            ArrayInterface.unsafe_set_element!(A, val, Base.Cartesian.@ntuple($N, i))
+            Xy = iterate(x′, state)
+        end
+        A
     end
-end
-function index_axis_to_array(axis, inds)
-    return unsafe_reconstruct(axis, index_axis_to_array(parent(axis), _sub_offset(axis, inds)))
 end
 

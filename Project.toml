@@ -21,14 +21,14 @@ SuiteSparse = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [compat]
 AbstractFFTs = "0.5"
-ArrayInterface = "2"
+ArrayInterface = "3"
 ChainedFixes = "0.2"
 EllipsisNotation = "0.4"
 IntervalSets = "0.4, 0.5"
 MappedArrays = "0.3"
 Metadata = "0.2"
 NamedDims = "0.2"
-StaticRanges = "0.8"
+StaticRanges = "0.9"
 julia = "1.5"
 
 [extras]

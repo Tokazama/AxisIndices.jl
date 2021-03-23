@@ -41,7 +41,7 @@
     end
 
     @testset "step(r)" begin
-        for (r,b) in ((SimpleAxis(OneToMRange(10)), OneToMRange(10)),)
+        for (r,b) in ((SimpleAxis(DynamicAxis(10)), DynamicAxis(10)),)
             @test @inferred(step(r)) === step(b)
             @test @inferred(Base.step_hp(r)) === Base.step_hp(b)
             if b isa StepRangeLen
@@ -188,7 +188,6 @@
 
         # trigger errors when functions return bad indices
         @test_throws BoundsError AxisIndices.to_index(Axis(1:10), ==(11))
-
     end
         #= TODO I don't think this should ever happen
             @testset "CartesianElement" begin
@@ -228,119 +227,39 @@
     end
 end
 
+#= FIXME we don't pop! axes
 @testset "pop" begin
-    for x in (Axis(UnitMRange(1,10),UnitMRange(1,10)),
-              SimpleAxis(UnitMRange(1,10)))
+    for x in (Axis((1,10),DynamicAxis(10)),
+              SimpleAxis(DynamicAxis(10)))
         y = collect(x)
         #@test pop(x) == pop(y)
         @test pop!(x) == pop!(y)
         @test x == y
     end
-
-    r = UnitMRange(1, 1)
-    y = collect(r)
-    @test pop!(r) == pop!(y)
-    @test isempty(r) == true
-end
-
-#= FIXME popfirst
-@testset "popfirst" begin
-    for x in (Axis(UnitMRange(1,10),UnitMRange(1,10)),
-              SimpleAxis(UnitMRange(1,10)))
-        y = collect(x)
-        #@test popfirst(x) == popfirst(y)
-        @test popfirst!(x) == popfirst!(y)
-        @test x == y
-    end
-    r = UnitMRange(1, 1)
-    y = collect(r)
-    @test popfirst!(r) == popfirst!(y)
-    @test isempty(r) == true
 end
 =#
 
 @testset "last" begin
-   @testset "can_set_last" begin
-       @test @inferred(can_set_last(typeof(Axis(UnitMRange(1:2))))) == true
-       @test @inferred(can_set_last(typeof(Axis(UnitSRange(1:2))))) == false
-    end
-
-    for (r1,b,v,r2) in ((SimpleAxis(UnitMRange(1,3)), true, 2, SimpleAxis(UnitMRange(1,2))),
-                        (Axis(UnitMRange(1,3),UnitMRange(1,3)), true, 2, Axis(UnitMRange(1,2),UnitMRange(1,2))))
-        @testset "set_last-$(r1)" begin
-            x = @inferred(can_set_last(typeof(r1)))
-            @test x == b
-            if x
-                @test @inferred(set_last!(r1, v)) == r2
-            end
-            if x
-                @test @inferred(set_last(r1, v)) == r2
-            end
-        end
-    end
-
     @test last(Axis(2:3)) == 2
     @test last(Axis(2:3, 2:3)) == 3
 end
 
-# FIXME? should we be able to change the first index of an axis?
-#= 
-@testset "first" begin
-    @testset "can_set_first" begin
-        @test @inferred(!StaticRanges.can_set_first(Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}))
-        @test @inferred(StaticRanges.can_set_first(Axis{Int,Int,UnitMRange{Int},UnitMRange{Int}}))
-    end
-
-    for (r1,b,v,r2) in ((SimpleAxis(UnitMRange(1,3)), true, 2, SimpleAxis(UnitMRange(2,3))),
-                        (Axis(UnitMRange(1,3),UnitMRange(1,3)), true, 2, Axis(UnitMRange(2,3),UnitMRange(2,3))))
-        @testset "set_first-$(r1)" begin
-            x = @inferred(can_set_first(r1))
-            @test x == b
-            if x
-                set_first!(r1, v)
-                @test r1 == r2
-            end
-            @test set_first(r1, v) == r2
-        end
-    end
-
-    @test first(Axis(2:3)) == 1
-    @test first(Axis(2:3, 2:3)) == 2
-end
-=#
-
-@testset "length - tests" begin
-    @testset "length(r)" begin
-        for (r,b) in ((SimpleAxis(UnitMRange(1,3)), 1:3),
-                      (Axis(UnitMRange(1,3),UnitMRange(1,3)), 1:3)
-                     )
-            @test @inferred(length(r)) == length(b)
-            @test @inferred(length(r)) == length(b)
-            if b isa StepRangeLen
-                @test @inferred(stephi(r)) == stephi(b)
-                @test @inferred(steplo(r)) == steplo(b)
-            end
-        end
-    end
-
-    @testset "can_set_length" begin
-        @test @inferred(!StaticRanges.can_set_length(Axis{Int,Int,UnitRange{Int},Base.OneTo{Int}}))
-        @test @inferred(StaticRanges.can_set_length(Axis{Int,Int,UnitMRange{Int},OneToMRange{Int}}))
-    end
-
-    @testset "set_length!" begin
-        @test @inferred(set_length!(SimpleAxis(OneToMRange(10)), UInt32(11))) == SimpleAxis(OneToMRange(11))
-        @test @inferred(set_length!(Axis(OneToMRange(10), OneToMRange(10)), UInt32(11))) == Axis(OneToMRange(11), OneToMRange(11))
-    end
-
-    @testset "set_length" begin
-        @test @inferred(set_length(SimpleAxis(OneToMRange(10)), UInt32(11))) == SimpleAxis(OneToMRange(11))
-        @test @inferred(set_length(Axis(OneToMRange(10), OneToMRange(10)), UInt32(11))) == Axis(OneToMRange(11), OneToMRange(11))
-    end
-
-    @testset "empty length" begin
-        @test length(empty!(Axis(UnitMRange(1, 10)))) == 0
-        @test length(empty!(SimpleAxis(UnitMRange(1, 10)))) == 0
-    end
+@testset "empty length" begin
+    sa = SimpleAxis(DynamicAxis(10))
+    ka = Axis(collect(1:10), SimpleAxis(DynamicAxis(10)))
+    @test length(empty!(sa)) == 0
+    @test length(empty!(ka)) == 0
 end
 
+@testset "can_change_size" begin
+    @test @inferred(!ArrayInterface.can_change_size(SimpleAxis{DUnitRange}))
+    @test @inferred(ArrayInterface.can_change_size(SimpleAxis{DynamicAxis}))
+    @test @inferred(!ArrayInterface.can_change_size(Axis{UnitRange{Int},SimpleAxis{DUnitRange}}))
+    @test @inferred(ArrayInterface.can_change_size(Axis{DynamicAxis,SimpleAxis{DynamicAxis}}))
+end
+
+@testset "CenteredAxis" begin
+    ca = @inferred(CenteredAxis(1:10))
+    @test @inferred(keys(ca)) == -5:4
+    @test @inferred(parent(ca)) == 1:10
+end

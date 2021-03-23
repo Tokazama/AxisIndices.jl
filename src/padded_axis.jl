@@ -1,323 +1,80 @@
 
-"""
-    PaddedInitializer
-
-Abstract type for padding styles.
-"""
-abstract type PaddedInitializer <: AxisInitializer end
-
-check_pad(::PaddedInitializer, ::Any, ::Any, ::Any, ::Any) = nothing
-
-struct PaddedAxis{P,FP<:Integer,LP<:Integer,I,Inds} <: AbstractAxis{I,Inds}
-    pad::P
-    first_pad::FP
-    last_pad::LP
-    parent::Inds
-
-    function PaddedAxis(
-        p::P,
-        first_pad::Integer,
-        last_pad::Integer,
-        inds::AbstractAxis
-    ) where {P}
-
-        check_pad(p, first_pad, last_pad, first(inds), last(inds))
-        return new{P,typeof(first_pad),typeof(last_pad),eltype(inds),typeof(inds)}(
-            p,
-            first_pad,
-            last_pad,
-            inds
-        )
-    end
-
-    function PaddedAxis(p, first_pad::Integer, last_pad::Integer, inds)
-        return PaddedAxis(p, first_pad, last_pad, compose_axis(inds))
-    end
+function PaddedAxis(p::PadsParameter, inds::AbstractAxis)
+    check_pads(p, first(inds), last(inds))
+    return _PaddedAxis(p, inds)
 end
 
 @inline Base.axes1(axis::PaddedAxis) = OffsetAxis(static_first(axis):static_last(axis))
 
-Base.first(axis::PaddedAxis) = first(parent(axis)) - first_pad(axis)
-Base.last(axis::PaddedAxis) = last(parent(axis)) + last_pad(axis)
-
-function ArrayInterface.known_first(::Type{T}) where {F,T<:PaddedAxis{<:Any,StaticInt{F}}}
-    if known_first(parent_type(T)) === nothing
-        return nothing
-    else
-        return known_first(parent_type(T)) - F
-    end
-end
-ArrayInterface.known_first(::Type{T}) where {T<:PaddedAxis{<:Any,<:Any}} = nothing
-
-function ArrayInterface.known_last(::Type{T}) where {L,T<:PaddedAxis{<:Any,<:Any,StaticInt{L}}}
-    if known_last(parent_type(T)) === nothing
-        return nothing
-    else
-        return known_last(parent_type(T)) + L
-    end
-end
-ArrayInterface.known_last(::Type{T}) where {T<:PaddedAxis{<:Any,<:Any,<:Any}} = nothing
-
-function ArrayInterface.known_length(::Type{T}) where {T<:PaddedAxis}
-    return _length_padded_axis(known_first(T), known_last(T))
-end
-
-pad(axis::PaddedAxis) = getfield(axis, :pad)
-
-first_pad(axis::PaddedAxis) = getfield(axis, :first_pad)
-
-last_pad(axis::PaddedAxis) = getfield(axis, :last_pad)
-
-@inline function Base.length(axis::PaddedAxis)
-    return _length_padded_axis(static_first(axis), static_last(axis))
-end
-
-_length_padded_axis(start::Integer, stop::Integer) = (stop - start) + one(start)
-_length_padded_axis(::Nothing, ::Integer) = nothing
-_length_padded_axis(::Integer, ::Nothing) = nothing
-_length_padded_axis(::Nothing, ::Nothing) = nothing
-
 #=
-    FillPad{F}(fxn::F)
+    FillPads{F}(fxn::F)
 
 Index style that pads a set number of indices on each side of an axis.
 `fxn`(eltype(A))` returns the padded value.
 
 =#
-abstract type FillPad <: PaddedInitializer end
+axis_method(p::SymmetricPads) = (pads, axis) -> PaddedAxis(p, pads, axis)
 
-"""
-    zero_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
-
-The border elements return `zero(eltype(A))`, where `A` is the parent array being padded.
-"""
-struct ZeroPad <: FillPad end
-const zero_pad = ZeroPad()
-pad_call_string(::ZeroPad) = "zero_pad"
-
-"""
-    one_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
-
-The border elements return `oneunit(eltype(A))`, where `A` is the parent array being padded.
-"""
-struct OnePad <: FillPad end
-const one_pad = OnePad()
-pad_call_string(::OnePad) = "one_pad"
-
-@inline function pad_index(p::FillPad, start, stop, i)
-    if start > i
-        return p
-    elseif stop < i
-        return p
-    else
-        return Int(i)
-    end
-end
-
-"""
-    symmetric_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
-
-The border elements reflect relative to a position between elements. That is, the
-border pixel is omitted when mirroring.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  e\\, d\\, c\\, b  &  a \\, b \\, c \\, d \\, e \\, f & e \\, d \\, c \\, b
-\\end{array}
-}
-```
-"""
-struct SymmetricPad <: PaddedInitializer end
-pad_call_string(::SymmetricPad) = "symmetric_pad"
-const symmetric_pad = SymmetricPad()
-axis_method(p::SymmetricPad) = (pads, axis) -> PaddedAxis(p, pads, axis)
-
-function pad_index(::SymmetricPad, start, stop, i)
-    if start > i
-        return 2start - i
-    elseif stop < i
-        return 2stop - i
-    else
-        return Int(i)
-    end
-end
-
-function check_pad(::SymmetricPad, first_pad, last_pad, start, stop)
+check_pads(::PadsParameter, ::Any, ::Any) = nothing
+function check_pad(p::SymmetricPads, start, stop)
     len = stop - start
-    if first_pad > len
-        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPad, " *
-            "first pad is $first_pad and indices are of length $len"))
+    if p.first_pad > len
+        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPads, " *
+                            "first pad is $(p.first_pad) and indices are of length $len"))
     elseif last_pad > len
-        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPad, " *
-            "first pad is $last_pad and indices are of length $len"))
+        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPads, " *
+                            "first pad is $(p.last_pad) and indices are of length $len"))
     else
         return nothing
     end
 end
-
-struct ReplicatePad <: PaddedInitializer end
-pad_call_string(::ReplicatePad) = "replicate_pad"
-
-"""
-    replicate_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
-
-The border elements extend beyond the image boundaries.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  a\\, a\\, a\\, a  &  a \\, b \\, c \\, d \\, e \\, f & f \\, f \\, f \\, f
-\\end{array}
-}
-```
-"""
-const replicate_pad = ReplicatePad()
-
-function pad_index(::ReplicatePad, start, stop, i)
-    if start > i
-        return start
-    elseif stop < i
-        return stop
-    else
-        return Int(i)
-    end
-end
-
-struct CircularPad <: PaddedInitializer end
-pad_call_string(::CircularPad) = "circular_pad"
-
-"""
-    circular_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
-
-The border elements wrap around. For instance, indexing beyond the left border
-returns values starting from the right border.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  c\\, d\\, e\\, f  &  a \\, b \\, c \\, d \\, e \\, f & a \\, b \\, c \\, d
-\\end{array}
-}
-```
-"""
-const circular_pad = CircularPad()
-
-function pad_index(::CircularPad, start, stop, i)
-    if start > i
-        return stop - start + i + one(start)
-    elseif stop < i
-        return start + i - stop - one(stop)
-    else
-        return Int(i)
-    end
-end
-
-function check_pad(::CircularPad, first_pad, last_pad, start, stop)
+function check_pad(p::CircularPads, start, stop)
     len = stop - start + 1
-    if first_pad > len
-        throw(ArgumentError("cannot have pad of size $first_pad and indices of length $len for CircularPad"))
+    if p.first_pad > len
+        throw(ArgumentError("cannot have pad of size $(p.first_pad) and indices of length $len for CircularPads"))
     elseif last_pad > len
-        throw(ArgumentError("cannot have pad of size $last_pad and indices of length $len for CircularPad"))
+        throw(ArgumentError("cannot have pad of size $(p.last_pad) and indices of length $len for CircularPads"))
     else
         return nothing
     end
 end
-
-struct ReflectPad <: PaddedInitializer end
-pad_call_string(::ReflectPad) = "reflect_pad"
-
-"""
-    reflect_pad(x; first_pad=0, last_pad=0, sym_pad=nothing)
-
-The border elements reflect relative to the edge itself.
-
-```math
-\\boxed{
-\\begin{array}{l|c|r}
-  d\\, c\\, b\\, a  &  a \\, b \\, c \\, d \\, e \\, f & f \\, e \\, d \\, c
-\\end{array}
-}
-```
-"""
-const reflect_pad = ReflectPad()
-
-
-function pad_index(::ReflectPad, start, stop, i)
-    if start > i
-        return 2start - i - one(start)
-    elseif stop < i
-        return 2stop - i + one(stop)
-    else
-        return Int(i)
-    end
-end
-
-function check_pad(::ReflectPad, first_pad, last_pad, start, stop)
+function check_pad(p::ReflectPads, start, stop)
     len = stop - start + 1
-    if first_pad > len
-        throw(ArgumentError("cannot have pad of size $first_pad and indices of length $len for ReflectPad"))
+    if pfirst_pad > len
+        throw(ArgumentError("cannot have pad of size $(p.first_pad) and indices of length $len for ReflectPads"))
     elseif last_pad > len 
-        throw(ArgumentError("cannot have pad of size $last_pad and indices of length $len for ReflectPad"))
+        throw(ArgumentError("cannot have pad of size $(p.last_pad) and indices of length $len for ReflectPads"))
     else
         return nothing
     end
-end
-
-# TODO if user passes something funky this is a confusing place to get the error
-_sym_pad_to_tuple(::Val{N}, sym_pad::Integer) where {N} = ntuple(_ -> (sym_pad, sym_pad), Val(N))
-function _sym_pad_to_tuple(::Val{N}, sym_pad::Tuple{Vararg{<:Any,N}}) where {N}
-    return map(i -> (i, i), sym_pad)
-end
-function _pad_to_tuple(::Val{N}, first_pad::Integer, last_pad::Integer) where {N}
-    return ntuple(_ -> (first_pad, last_pad), Val(N))
-end
-function _pad_to_tuple(::Val{N}, first_pad::Integer, last_pad::Tuple{Vararg{<:Any,N}}) where {N}
-    return ntuple(i -> (first_pad, getfield(last_pad, i)), Val(N))
-end
-function _pad_to_tuple(::Val{N}, first_pad::Tuple{Vararg{<:Any,N}}, last_pad::Integer) where {N}
-    return ntuple(i -> (getfield(first_pad, i), last_pad), Val(N))
-end
-function _pad_to_tuple(::Val{N}, first_pad::Tuple{Vararg{<:Any,N}}, last_pad::Tuple{Vararg{<:Any,N}}) where {N}
-    return ntuple(i -> (getfield(first_pad, i), getfield(last_pad, i)), Val(N))
-end
-
-axis_method(p::PaddedInitializer, pads, axis) = PaddedAxis(p, first(pads), last(pads), axis)
-function (p::PaddedInitializer)(; first_pad=Zero(), last_pad=Zero(), sym_pad=nothing)
-    return x -> p(x; first_pad=first_pad, last_pad=last_pad, sym_pad=sym_pad)
-end
-function (p::PaddedInitializer)(x::Tuple)
-    return collection -> p(collection; first_pad=first(x), last_pad=last(x))
-end
-function (p::PaddedInitializer)(collection; first_pad=Zero(), last_pad=Zero(), sym_pad=nothing)
-    if sym_pad === nothing
-        return p(collection, _pad_to_tuple(Val(ndims(collection)), first_pad, last_pad))
-    else
-        return p(collection, _sym_pad_to_tuple(Val(ndims(collection)), sym_pad))
-    end
-end
-
-@inline function _sub_offset(axis::PaddedAxis, i::Integer)
-    p = parent(axis)
-    return pad_index(pad(axis), static_first(p), static_last(p), i)
 end
 
 function print_axis(io::IO, axis::PaddedAxis)
-    print(io, pad_call_string(pad(axis)))
+    print(io, pads(axis))
     print(io, "(")
     print(io, parent(axis))
-    if first_pad(axis) === last_pad(axis)
-        print(io, "; sym_pad=")
-        print(io, Int(first_pad(axis)))
+    print(io, ")")
+end
+
+@noinline function Base.show(io::IO, ::MIME"text/plain", init::PadsParameter)
+    print(io, pad_call_string(init))
+    print(io, "(")
+    fp = first_pad(init)
+    lp = last_pad(init)
+    if lp === fp
+        print(io, "sym_pad=")
+        print(io, fp)
         print(io, ")")
     else
-        print(io, "; first_pad=")
-        print(io, Int(first_pad(axis)))
+        print(io, "first_pad=")
+        print(io, fp)
         print(io, ", last_pad=")
-        print(io, Int(last_pad(axis)))
+        print(io, lp)
         print(io, ")")
     end
 end
+
+pad_call_string(@nospecialize(x)) = lowercase(string(nameof(typeof(x)))[1:end-4]) * "_pad"
 
 @inline function _check_index_real(axis::PaddedAxis, arg)
     if first(axis) > arg
@@ -330,7 +87,7 @@ end
 end
 _check_index_range(axis::PaddedAxis, arg) = checkindex(Bool, eachindex(axis), arg)
 
-function check_axis_length(ks::PaddedAxis, inds) where {T}
+function check_axis_length(ks::PaddedAxis, inds)
     if length(parent(ks)) != length(inds)
         throw(DimensionMismatch(
             "keys and indices must have same length, got length(keys) = $(length(ks))" *
@@ -346,10 +103,55 @@ function ArrayInterface.unsafe_reconstruct(axis::PaddedAxis, data; kwargs...)
     return OffsetAxis(-first_pad(axis), data)
 end
 
-@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:OnePad}
-    return oneunit(eltype(A))
+###
+### pad methods
+###
+first_pad(p::Pads) = getfield(p, :first_pad)
+first_pad(p::PadsParameter) = first_pad(pads(p))
+first_pad(axis::PaddedAxis) = first_pad(pads(axis))
+
+last_pad(p::Pads) = getfield(p, :last_pad)
+last_pad(p::PadsParameter) = last_pad(pads(p))
+last_pad(axis::PaddedAxis) = last_pad(pads(axis))
+
+pads(axis::PadsParameter) = getfield(axis, :pads)
+pads(axis::PaddedAxis) = getfield(axis, :pads)
+
+#= has_pads =#
+has_pads(x) = has_pads(typeof(x))
+has_pads(::Type{T}) where {T} = static(false)
+has_pads(::Type{T}) where {T<:AbstractAxis} = has_pads(parent_type(T))
+has_pads(::Type{T}) where {T<:PaddedAxis} = static(true)
+@inline function has_pads(::Type{T}) where {T<:AxisArray}
+    return static(any(eachop_tuple(_has_pads, nstatic(Val(ndims)), axes_types(T))))
+end
+_has_pads(::Type{T}, i::StaticInt{I}) where {T,I} = has_pads(Static._get_tuple(T, i))
+
+#= strip_pads - return offset and instance of x stripped of offset =#
+function strip_pads(x::PaddedAxis)
+    p = pads(x)
+    return p, _grow_to_pads(p, parent(x))
+end
+strip_pads(x) = _strip_pads(has_pads(x), x)
+function _strip_pads(::True, x)
+    p, axis = strip_pads(parent(x))
+    return p, initialize(x, param(x), axis)
+end
+_strip_pads(::False, x) = nothing, x
+
+#= drop_pads(x) - return instance of x without an offset =#
+drop_pads(x::Axis) = parent(x)
+drop_pads(x::StructAxis) = parent(x)
+drop_pads(x) = _drop_offset(has_offset(x), x)
+_drop_pads(::True, x) =initialize(x, param(x), drop_offset(parent(x)))
+_drop_pads(::False, x) = x
+_drop_pads(::True, x::AxisArray) = _AxisArray(parent(x), map(drop_offset, axes(x)))
+
+# when we take the pads of an indices and keys need to match their size
+function _grow_to_pads(p::Pads, axis::SimpleAxis)
+    return SimpleAxis(static(1):(static_length(axis) + first_pad(p) + last_pad(p)))
+end
+function _grow_to_pads(p::Pads, axis::KeyedAxis)
 end
 
-@inline function _unsafe_get_element(A, inds::Tuple{Vararg{Union{Integer,P}}}) where {P<:ZeroPad}
-    return zero(eltype(A))
-end
+

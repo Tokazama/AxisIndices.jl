@@ -2,43 +2,6 @@
 @generated _fieldnames(::Type{T}) where {T} = fieldnames(T)
 _fieldcount(::Type{T}) where {T} = length(_fieldnames(T))
  
-"""
-    StructAxis{T}
-
-An axis that uses a structure `T` to form its keys.
-"""
-struct StructAxis{T,Inds} <: AbstractAxis{Int,Inds}
-    parent::Inds
-
-    function StructAxis{T,Inds}(inds::Inds) where {T,Inds}
-        if typeof(T) <: DataType
-            new{T,Inds}(inds)
-        else
-            throw(ArgumentError("Type must be have all field fully paramterized, got $T"))
-        end
-    end
-
-    function StructAxis{T}(inds::AbstractAxis) where {T}
-        fc = _fieldcount(T)
-        if known_length(inds) === fc
-            return StructAxis{T,typeof(inds)}(inds)
-        else
-            if known_first(inds) === nothing
-                throw(ArgumentError("StructAxis cannot have a parent type whose first index and last index are not known at compile time."))
-            else
-                f = static_first(inds)
-                l = f + StaticInt(fc) - One()
-                return StructAxis{T}(unsafe_reconstruct(inds, f:l))
-            end
-        end
-    end
-    StructAxis{T}(inds) where {T} = StructAxis{T}(compose_axis(inds))
-    function StructAxis{T}() where {T}
-        inds = SimpleAxis(One():StaticInt{_fieldcount(T)}())
-        return new{T,typeof(inds)}(inds)
-    end
-end
-
 Base.parent(axis::StructAxis) = getfield(axis, :parent)
 
 @inline Base.propertynames(axis::StructAxis{T}) where {T} = (_fieldnames(T), propertynames(parent(axis))...)
@@ -49,13 +12,6 @@ Base.parent(axis::StructAxis) = getfield(axis, :parent)
     else
         return @inbounds(parent(axis)[i + (One() - static_first(axis))])
     end
-end
-
-function Base.keys(axis::StructAxis{T}) where {T}
-    return initialize_axis_array(
-        Symbol[fieldnames(T)...],
-        (SimpleAxis(One():static_length(axis)),)
-    )
 end
 
 # TODO ArrayInterface.unsafe_reconstruct(axis::StructAxis
@@ -72,10 +28,17 @@ end
 end
 
 @inline function _unsafe_reconstruct_struct_axis(axis::StructAxis{T}, inds, start::StaticInt, stop::StaticInt) where {T}
-    return StructAxis{NamedTuple{__names(T, start, stop), __types(T, start, stop)}}(inds)
+    return StructAxis{NamedTuple{__names(T, start:stop), __types(T, start:stop)}}(inds)
 end
 
-@generated function __names(::Type{T}, ::StaticInt{F}, ::StaticInt{L}) where {T,F,L}
+@generated function __names(::Type{T}, ::StepSRange{F,S,L}) where {T,F,S,L}
+    e = Expr(:tuple)
+    for i in F:S:L
+        push!(e.args, QuoteNode(fieldname(T, i)))
+    end
+    return e
+end
+@generated function __names(::Type{T}, ::UnitSRange{F,L}) where {T,F,L}
     e = Expr(:tuple)
     for i in F:L
         push!(e.args, QuoteNode(fieldname(T, i)))
@@ -83,7 +46,10 @@ end
     return e
 end
 
-@generated function __types(::Type{T}, ::StaticInt{F}, ::StaticInt{L}) where {T,F,L}
+@generated function __types(::Type{T}, ::StepSRange{F,L}) where {T,F,L}
+    return Tuple{[fieldtype(T, i) for i in F:S:L]...}
+end
+@generated function __types(::Type{T}, ::UnitSRange{F,L}) where {T,F,L}
     return Tuple{[fieldtype(T, i) for i in F:L]...}
 end
 

@@ -1,3 +1,5 @@
+
+
 Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg) = _check_index_any(axis, arg)
 _check_index_any(axis, arg) = checkindex(Bool, parent(axis), arg)
 _check_index_any(axis::Axis, arg) = in(arg, keys(axis))
@@ -55,4 +57,3 @@ Base.checkindex(::Type{Bool}, axis::AbstractAxis, ::Fix2) = true
 function Base.checkindex(::Type{Bool}, axis::AbstractAxis, arg::LogicalIndex)
     return (axis,) == axes(arg.mask)
 end
-

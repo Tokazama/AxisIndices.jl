@@ -1,40 +1,4 @@
 
-"""
-    AbstractAxis
-
-An `AbstractVector` subtype optimized for indexing.
-"""
-abstract type AbstractAxis{I<:Integer,Inds} <: AbstractUnitRange{I} end
-
-Base.keytype(::Type{T}) where {I,T<:AbstractAxis{I}} = I
-Base.keys(axis::AbstractAxis) = eachindex(axis)
-
-"""
-    AbstractOffsetAxis{I,Inds}
-
-Supertype for axes that begin indexing offset from one. All subtypes of `AbstractOffsetAxis`
-use the keys for indexing and only convert to the underlying indices when
-`to_index(::OffsetAxis, ::Integer)` is called (i.e. when indexing the an array
-with an `AbstractOffsetAxis`. See [`OffsetAxis`](@ref), [`CenteredAxis`](@ref),
-and [`IdentityAxis`](@ref) for more details and examples.
-"""
-abstract type AbstractOffsetAxis{I,Inds,F} <: AbstractAxis{I,Inds} end
-
-"""
-    IndexAxis
-
-Index style for mapping keys to an array's parent indices.
-"""
-struct IndexAxis <: IndexStyle end
-
-Base.valtype(::Type{T}) where {I,T<:AbstractAxis{I}} = I
-
-Base.IndexStyle(::Type{T}) where {T<:AbstractAxis} = IndexAxis()
-
-Base.parent(axis::AbstractAxis) = getfield(axis, :parent)
-
-ArrayInterface.parent_type(::Type{T}) where {I,Inds,T<:AbstractAxis{I,Inds}} = Inds
-
 Base.eachindex(axis::AbstractAxis) = static_first(axis):static_last(axis)
 
 for f in (:(==), :isequal)
@@ -53,10 +17,7 @@ end
 
 Base.allunique(a::AbstractAxis) = true
 
-Base.empty!(axis::AbstractAxis) = set_length!(axis, 0)
-
 @inline Base.in(x::Integer, axis::AbstractAxis) = !(x < first(axis) || x > last(axis))
-@inline Base.length(axis::AbstractAxis) = length(parent(axis))
 
 Base.pairs(axis::AbstractAxis) = Base.Iterators.Pairs(a, keys(axis))
 
@@ -70,11 +31,6 @@ Base.haskey(axis::AbstractAxis, key) = key in keys(axis)
 @inline Base.axes1(axis::AbstractAxis) = copy(axis)
 
 @inline Base.unsafe_indices(axis::AbstractAxis) = (axis,)
-
-Base.isempty(axis::AbstractAxis) = isempty(parent(axis))
-Base.empty(axis::AbstractAxis) = unsafe_reconstruct(axis, _empty(parent(axis)))
-_empty(axis::AbstractAxis) = empty(axis)
-_empty(axis::AbstractUnitRange) = One():Zero()
 
 Base.sum(axis::AbstractAxis) = sum(eachindex(axis))
 
@@ -122,44 +78,17 @@ function Base.AbstractUnitRange{T}(axis::AbstractAxis) where {T<:Integer}
     end
 end
 
-Base.pop!(axis::AbstractAxis) = pop!(parent(axis))
-Base.popfirst!(axis::AbstractAxis) = popfirst!(parent(axis))
-
-# TODO check for existing key first
-function push_key!(axis::AbstractAxis, key)
-    grow_last!(parent(axis), 1)
-    return nothing
-end
-
-function pushfirst_axis!(axis::AbstractAxis, key)
-    grow_last!(parent(axis), 1)
-    return nothing
-end
-
-function popfirst_axis!(axis::AbstractAxis)
-    shrink_last!(parent(axis), 1)
-    return nothing
-end
-
-Base.lastindex(a::AbstractAxis) = last(a)
-Base.last(axis::AbstractAxis) = last(parent(axis))
-
-ArrayInterface.known_last(::Type{T}) where {T<:AbstractAxis} = known_last(parent_type(T))
-
 ###
 ### first
 ###
-Base.firstindex(axis::AbstractAxis) = first(axis)
-Base.first(axis::AbstractAxis) = first(parent(axis))
-
-ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis} = known_first(parent_type(T))
 
 # This is different than how most of Julia does a summary, but it also makes errors
 # infinitely easier to read when wrapping things at multiple levels or using Unitful keys
 Base.summary(io::IO, axis::AbstractAxis) = show(io, axis)
 
-function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange)
-    return initialize_axis(reverse(keys(axis)), compose_axis(newinds))
+# FIXME this should have offset axes remain as the parent axis
+function reverse_keys(axis::AbstractAxis, newinds::AbstractUnitRange{Int})
+    return _Axis(reverse(keys(axis)), compose_axis(newinds))
 end
 
 ###

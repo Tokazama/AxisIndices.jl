@@ -1,55 +1,4 @@
 
-function Base.push!(A::AxisVector, item)
-    StaticRanges.can_set_last(axes(A, 1)) || throw(MethodError(push!, (A, item)))
-    push!(parent(A), item)
-    grow_last!(axes(A, 1), 1)
-    return A
-end
-
-function Base.push!(A::AxisVector, item::Pair)
-    axis = axes(A, 1)
-    StaticRanges.can_set_last(axis) || throw(MethodError(push!, (A, item)))
-    push!(parent(A), last(item))
-    push_key!(axis, first(item))
-    return A
-end
-
-function Base.pushfirst!(A::AxisVector, item)
-    can_change_size(A) || throw(MethodError(pushfirst!, (A, item)))
-    pushfirst_axis!(axes(A, 1))
-    pushfirst!(parent(A), item)
-    return A
-end
-
-function pushfirst_axis!(axis::Axis, key)
-    pushfirst!(keys(axis), key)
-    grow_last!(parent(axis), 1)
-    return nothing
-end
-
-function pushfirst_axis!(axis::AbstractAxis)
-    grow_last!(parent(axis), 1)
-    return nothing
-end
-
-function pushfirst_axis!(axis::Axis)
-    grow_first!(keys(axis), 1)
-    grow_last!(parent(axis), 1)
-    return nothing
-end
-
-function Base.pushfirst!(A::AxisVector, item::Pair)
-    can_change_size(A) || throw(MethodError(pushfirst!, (A, item)))
-    axis = axes(A, 1)
-    pushfirst_axis!(axis, first(item))
-    pushfirst!(parent(A), last(item))
-    return A
-end
-
-function Base.mapslices(f, a::AxisArray; dims, kwargs...)
-    return reconstruct_reduction(a, Base.mapslices(f, parent(a); dims=dims, kwargs...), dims)
-end
-
 macro def_equals(f, X,Y)
     if X === :AxisArray
         if Y === :AxisArray
@@ -152,3 +101,4 @@ end
 Base.vcat(A::AxisArray{T,N}) where {T,N} = A
 
 Base.cat(A::AxisArray{T,N}; dims) where {T,N} = A
+

@@ -13,6 +13,8 @@ using Documenter
 using StaticArrays
 using ArrayInterface
 using ArrayInterface: indices, known_length, StaticInt
+using ArrayInterface.Static
+
 
 #=
 using Dates,MappedArrays,Statistics,LinearAlgebra,Base,Core
@@ -43,11 +45,11 @@ if !isempty(ambs)
 
 using DelimitedFiles
 using AxisIndices
-using AxisIndices: is_key, cat_axis, hcat_axes, vcat_axes, matmul_axes
-using AxisIndices: CenteredAxis, IdentityAxis, OffsetAxis
-using StaticRanges: can_set_first, can_set_last, can_set_length, parent_type
-using StaticRanges: grow_last, grow_last!, grow_first, grow_first!
-using StaticRanges: shrink_last, shrink_last!, shrink_first, shrink_first!
+using AxisIndices: cat_axis, hcat_axes, vcat_axes, matmul_axes
+using AxisIndices: CenteredAxis, OffsetAxis
+using AxisIndices: DUnitRange, DOneTo, SOneTo, UnitSRange
+using AxisIndices: OffsetVector
+using StaticRanges: parent_type
 
 using ArrayInterface: to_axes, to_index
 using Base: step_hp, OneTo
@@ -56,17 +58,21 @@ bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
 @test Base.to_shape(SimpleAxis(1)) == 1
 
+include("indexing.jl")
 include("simple_axis.jl")
 include("axis.jl")
 include("abstract_axis.jl")
-include("centered_axis.jl")
-include("identity_axis.jl")
 include("offset_axis.jl")
 include("struct_axis.jl")
 include("padded_axis.jl")
 include("arrays.jl")
-include("indexing.jl")
-include("append_tests.jl")
+
+#= TODO test append_axis!
+@testset "append tests" begin
+    @test append_axis!(CombineStack(), [1, 2], [3, 4]) == [1, 2, 3, 4]
+    @test_throws ErrorException append_axis!(CombineStack(), 1:3, 3:4)
+end
+=#
 include("similar_tests.jl")
 include("broadcasting_tests.jl")
 include("linear_algebra.jl")

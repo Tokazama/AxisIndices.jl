@@ -71,7 +71,6 @@ similar_axis(original::StructAxis, paxis, inds) = similar_axis(parent(axis), pax
 # type explicitly provides an offset then we should respect that
 similar_axis(original::OffsetAxis, paxis, inds) =  _similar_offset_axis(original.offset, similar_axis(parent(original), paxis, inds))
 similar_axis(original::PaddedAxis, paxis, inds) =  _similar_offset_axis(offset1(original), similar_axis(parent(original), paxis, inds))
-similar_axis(original::IdentityAxis, paxis, inds) = _similar_offset_axis(original.offset, similar_axis(parent(original), paxis, inds))
 function _similar_offset_axis(f, inds::I) where {I}
     if known_first(I) === 1
         return OffsetAxis(f, inds)
