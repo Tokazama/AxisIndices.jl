@@ -1,24 +1,5 @@
 
-function covcor_axes(old_axes::NTuple{2,Any}, new_indices::NTuple{2,Any}, dim::Int)
-    if dim === 1
-        return (
-            unsafe_reconstruct(last(old_axes), first(new_indices)),
-            resize_last(last(old_axes), length(last(new_indices)))
-        )
-    elseif dim === 2
-        return (
-            resize_last(first(old_axes), length(first(new_indices))),
-            unsafe_reconstruct(first(old_axes), last(new_indices))
-        )
-    else
-        return (
-            resize_last(first(old_axes), length(first(new_indices))),
-            resize_last(last(old_axes), length(last(new_indices)))
-        )
-    end
-end
-
-for fun in (:cor, :cov)
+#= TODO put these in as ordinary tests
     fun_doc = """
         $fun(x::AxisMatrix; dims=1, kwargs...)
 
@@ -39,15 +20,15 @@ for fun in (:cor, :cov)
 
     ```
     """
-    @eval begin
-        @doc $fun_doc
-        function Statistics.$fun(x::AxisMatrix; dims=1, kwargs...)
-            p = Statistics.$fun(parent(x); dims=dims, kwargs...)
-            return initialize_axis_array(p, covcor_axes(axes(x), axes(p), dims))
-        end
-    end
+=#
+function Statistics.cov(x::AxisMatrix; dims=1, kwargs...)
+    d = to_dims(x, dims)
+    return _AxisArray(cov(parent(x); dims=d, kwargs...), covcor_axes(axes(x), d))
 end
-
+function Statistics.cor(x::AxisMatrix; dims=1, kwargs...)
+    d = to_dims(x, dims)
+    return _AxisArray(cor(parent(x); dims=d, kwargs...), covcor_axes(axes(x), d))
+end
 
 ###
 ### 🐇/*
@@ -56,71 +37,26 @@ end
 #    matmul_axes(a, b, p) -> Tuple
 #
 # The arrays from `a * b = p`, where `p` will be the new parent array of an AxisArray.
-
-matmul_axes(a::Tuple, b::Tuple, p::Tuple) = _matmul_axes(a, b, p)
-matmul_axes(a::Tuple, b::Tuple, p::Tuple{}) = ()
-
-function _matmul_axes(a::Tuple{Any}, b::Tuple{Any,Any}, p::Tuple{Any,Any})
-    return (
-        _matmul_unsafe_reconstruct(first(a), first(p)),
-        _matmul_unsafe_reconstruct(last(b), last(p))
-    )
-end
-
-function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any,Any}, p::Tuple{Any,Any})
-    return (
-        _matmul_unsafe_reconstruct(first(a), first(p)),
-        _matmul_unsafe_reconstruct(last(b), last(p))
-    )
-end
-
-function _matmul_axes(a::Tuple{Any,Any}, b::Tuple{Any}, p::Tuple{Any})
-    return (_matmul_unsafe_reconstruct(first(a), first(p)),)
-end
-
-_matmul_unsafe_reconstruct(axis::AbstractAxis, inds) = copy(axis)
-_matmul_unsafe_reconstruct(axis, inds) = SimpleAxis(inds)
-
-_matmul(p, axs::Tuple) = initialize_axis_array(p, axs)
-_matmul(p, axs::Tuple{}) = p
-
-function Base.:*(a::AxisMatrix, b::AxisMatrix)
-    p = *(parent(a), parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
-end
-function Base.:*(a::AxisMatrix, b::AxisVector)
-    p = *(parent(a), parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
-end
-function Base.:*(a::AxisVector, b::AxisMatrix)
-    p = *(parent(a), parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
-end
-
 #Base.:*(x::AxisVector, y::AxisVector) = throw(MethodError(*, (x, y)))
-function Base.:*(a::AxisVector, b::AxisVector)
-    p = *(parent(a), parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
-end
+
+_matmul(p::AbstractArray, axs::Tuple) = _AxisArray(p, axs)
+_matmul(p, axs::Tuple) = p
+
+Base.:*(a::AxisMatrix, b::AxisMatrix) = _matmul(*(parent(a), parent(b)), matmul_axes(axes(a), axes(b)))
+Base.:*(a::AxisMatrix, b::AxisVector) = _matmul(*(parent(a), parent(b)), matmul_axes(axes(a), axes(b)))
+Base.:*(a::AxisVector, b::AxisMatrix) = _matmul(*(parent(a), parent(b)), matmul_axes(axes(a), axes(b)))
+Base.:*(a::AxisVector, b::AxisVector) = _matmul(*(parent(a), parent(b)), matmul_axes(axes(a), axes(b)))
 
 macro declare_axis_array_matmul_left(X, Y)
     esc(quote
-        function Base.:*(x::$X, y::$Y)
-            p = *(parent(x), y)
-            return _matmul(p, matmul_axes(axes(x), axes(y), axes(p)))
-        end
+        Base.:*(x::$X, y::$Y) = _matmul(*(parent(x), y), matmul_axes(axes(x), axes(y)))
     end)
 end
-
 macro declare_axis_array_matmul_right(X, Y)
     esc(quote
-        function Base.:*(x::$X, y::$Y)
-            p = *(x, parent(y))
-            return _matmul(p, matmul_axes(axes(x), axes(y), axes(p)))
-        end
+        Base.:*(x::$X, y::$Y) = _matmul(*(x, parent(y)), matmul_axes(axes(x), axes(y)))
     end)
 end
-
 
 #     @declare_axisarray_matmul(T)
 #
@@ -140,9 +76,7 @@ macro declare_axisarray_matmul(T)
 end
 
 @declare_axisarray_matmul AbstractVector
-
 @declare_axisarray_matmul AbstractMatrix
-
 @declare_axisarray_matmul Diagonal
 
 @declare_axis_array_matmul_left(AxisMatrix, Transpose{<:Any,<:LinearAlgebra.RealHermSymComplexSym})
@@ -152,7 +86,6 @@ end
 @declare_axis_array_matmul_left(AxisVector, LinearAlgebra.AdjOrTransAbsVec)
 @declare_axis_array_matmul_left(AxisVector, Transpose{<:Any,<:AbstractMatrix})
 @declare_axis_array_matmul_left(AxisVector, Adjoint{<:Any,<:AbstractMatrix})
-
 
 @declare_axis_array_matmul_right(LinearAlgebra.AdjointAbsVec{<:Number}, AxisVector{<:Number})
 @declare_axis_array_matmul_right(LinearAlgebra.AdjOrTransAbsVec, AxisVector)
@@ -172,30 +105,22 @@ for T in (AxisVector, AxisMatrix)
     end
 end
 function Base.:*(a::Transpose{<:Any,<:AbstractMatrix{T}}, b::AxisVector{S}) where {T,S}
-    p = *(a, parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+    return _matmul(*(a, parent(b)), matmul_axes(axes(a), axes(b)))
 end
-
 function Base.:*(x::LinearAlgebra.TransposeAbsVec{T}, y::AxisVector{T}) where {T<:Real}
-    p = *(x, parent(y))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+    return _matmul(*(x, parent(y)), matmul_axes(axes(a), axes(b)))
 end
-
 function Base.:*(a::Adjoint{<:Any,<:AbstractMatrix{T}}, b::AxisVector{S}) where {T,S}
-    p = *(a, parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+    return _matmul(*(a, parent(b)), matmul_axes(axes(a), axes(b)))
 end
 function Base.:*(a::Adjoint{T,<:AbstractArray{T,1}}, b::AxisVector{T}) where {T}
-    p = *(a, parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+    return _matmul(*(a, parent(b)), matmul_axes(axes(a), axes(b)))
 end
 function Base.:*(a::Adjoint{T,<:AbstractArray{T,1}}, b::AxisVector{T}) where {T<:Number}
-    p = *(a, parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+    return _matmul(*(a, parent(b)), matmul_axes(axes(a), axes(b)))
 end
 function Base.:*(a::Transpose{T,<:AbstractArray{T,1}}, b::AxisVector{T}) where {T<:Real}
-    p = *(a, parent(b))
-    return _matmul(p, matmul_axes(axes(a), axes(b), axes(p)))
+    return _matmul(*(a, parent(b)), matmul_axes(axes(a), axes(b)))
 end
 
 #=

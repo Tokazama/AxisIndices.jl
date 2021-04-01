@@ -1,92 +1,195 @@
 
-@inline function compose_axes(::Tuple{}, x::AbstractArray{<:Any,N}) where {N}
-    if N === 0
-        return ()
-    elseif N === 1 && can_change_size(x)
-        return (compose_axis(DynamicAxis(length(x))),)
-    else
-        return map(compose_axis, axes(x))
-    end
-end
-function compose_axes(ks::Tuple{Vararg{<:Any,N}}, x::AbstractArray{<:Any,N}) where {N}
-    if N === 0
-        return ()
-    elseif N === 1 && can_change_size(x)
-        return compose_axes(ks, (DynamicAxis(length(x)),))
-    else
-        return compose_axes(ks, axes(x))
-    end
-end
-function compose_axes(ks::Tuple, x::AbstractArray{<:Any,N}) where {N}
-    throw(DimensionMismatch("Number of axis arguments provided ($(length(ks))) does " *
-                            "not match number of parent axes ($N)."))
-end
-@inline function compose_axes(ks::Tuple{Vararg{<:Any,N}}, inds::Tuple{Vararg{<:Any,N}}) where {N}
-    return (
-        compose_axis(first(ks), first(inds)),
-        compose_axes(tail(ks), tail(inds))...
+function _dim_length_error(@nospecialize(x), @nospecialize(y))
+    throw(DimensionMismatch(
+        "keys and indices must have same length, got length(keys) = $(x)" *
+        " and length(indices) = $(y).")
     )
 end
-compose_axes(::Tuple{}, ::Tuple{}) = ()
-compose_axes(::Tuple{}, inds::Tuple) = map(compose_axis, inds)
-compose_axes(axs::Tuple, ::Tuple{}) = map(compose_axis, axs)
+
+as_axes(x::Tuple) = map(as_axis, x)
+function as_axes(::Tuple{}, x::AbstractVector)
+    if can_change_size(x)
+        return (SimpleAxis(DynamicAxis(length(x))),)
+    else
+        return (SimpleAxis(static_length(x)),)
+    end
+end
+# FIXME we shouldn't initialize the DynamicAxis if the parameter is static
+as_axes(ps::Tuple{Any}, x::AbstractVector) = _maybe_dynamic_axes(first(ps), x)
+
+_maybe_dynamic_axes(p::StaticInt, x) = as_axis(as_axis(p), indices(x))
+function _maybe_dynamic_axes(::Nothing, x)
+    if can_change_size(x)
+        return (SimpleAxis(DynamicAxis(length(x))),)
+    else
+        return (SimpleAxis(static_length(x)),)
+    end
+end
+
+as_axes(::Tuple{}, x::AbstractArray) = map(SimpleAxis, ArrayInterface.size(x))
+as_axes(ps::Tuple{Vararg{Any,N}}, x::AbstractArray{Any,N}) where {N} = as_axes(ps, axes(x))
+function as_axes(ps::Tuple, x::AbstractArray)
+    throw(DimensionMismatch("Number of axis arguments provided ($(length(ps))) does " *
+                            "not match number of parent axes ($(ndims(x)))."))
+end
+@inline function as_axes(ps::Tuple{Vararg{Any,N}}, as::Tuple{Vararg{Any,N}}) where {N}
+    return (as_axis(first(ps), first(as)), as_axes(tail(ps), tail(as))...)
+end
+as_axes(::Tuple{}, ::Tuple) = ()
 
 ###
-### compose_axis
+### as_axis
 ###
-compose_axis(x::Integer) = SimpleAxis(x)
-compose_axis(x) = Axis(x)
-compose_axis(x::AbstractAxis) = x
-function compose_axis(x::AbstractUnitRange{I}) where {I<:Integer}
-    if known_first(x) === one(eltype(x))
-        return SimpleAxis(x)
-    else
-        return OffsetAxis(x)
-    end
-end
-compose_axis(x::IdentityUnitRange) = compose_axis(x.indices)
+#=
 
-# 3-args
-compose_axis(::Nothing, inds) = compose_axis(inds)
-compose_axis(ks::Function, inds) = ks(inds)
-function compose_axis(ks::Integer, inds)
-    if ks isa StaticInt
-        return SimpleAxis(known_first(inds):ks)
+1. `as_axis(param)`
+2. `as_axis(param, axis)`: try to convert `param` to some subtype of `AxisParameter`.
+  This is primarily used to convert axis arguments passed to `AxisArray` into their obvious
+  `AxisParameter` counterparts. This is useful for saving users from verbose code (e.g.,
+  explicitly calling `AxisKeys(keys)` for each axis), but means we are guessing what the
+  user wants. Therefore, this application is limited to construction of `AxisArray`.
+  - `Integer`
+=#
+## initialize(p) ##
+as_axis(stop::Integer) = initialize(SimpleAxis, static(1):stop)
+as_axis(axis::Axis) = axis
+function as_axis(x::AbstractUnitRange{Int})
+    if known_first(x) === 1
+        return initialize(SimpleAxis, x)
     else
-        return SimpleAxis(inds)
+        return initialize(AxisOffset(_sub1(static_first(x))), static(1):static_length(x))
     end
 end
-function compose_axis(ks, inds)
-    check_axis_length(ks, inds)
-    return _compose_axis(ks, inds)
+function as_axis(x::AbstractVector{T}) where {T}
+    return unsafe_initialize(AxisKeys(x), initialize(SimpleAxis, indices(x)))
 end
-function _compose_axis(ks::AbstractAxis, inds)
-    # if the indices are the same then don't reconstruct
-    if first(parent(ks)) == first(inds)
-        return copy(ks)
-    else
-        return unsafe_reconstruct(ks, inds)
-    end
+
+## initialize(p, a) ##
+# function as_axis(p::StaticInt{N}, axis::DynamicAxis) where {N}
+#    N === length(axis) || _dim_length_error(N, length(axis))
+# end
+as_axis(::Nothing, axis) = as_axis(axis)
+function as_axis(p::Integer, axis)
+    Int(p) === length(axis) || _dim_length_error(p, length(axis))
+    return as_axis(p)
 end
-@inline function _compose_axis(ks, inds)
-    start = known_first(ks)
-    if known_step(ks) === 1
-        if known_first(ks) === nothing
-            return OffsetAxis(first(ks) - static_first(inds), inds)
-        elseif known_first(ks) === known_first(inds)
-            # if we don't know the length of `inds` but we know the length of `ks` then we
-            # should reconstruct `inds` so that it has a static length
-            if known_last(inds) === nothing && known_last(ks) !== nothing
-                return set_length(inds, static_length(ks))
-            else
-                return copy(inds)
-            end
+function as_axis(p::AbstractVector, axis)
+    if known_step(p) === 1
+        length(p) === length(axis) || _dim_length_error(length(p), length(axis))
+        if known_first(p) === 1
+            return as_axis(p)
         else
-            return OffsetAxis(static_first(ks) - static_first(inds), inds)
+            return initialize(AxisOffset(_sub1(static_first(x))), axis)
         end
     else
-        check_unique_keys(ks)
-        return _Axis(ks, compose_axis(inds))
+        return AxisKeys(p)(axis)
+    end
+end
+as_axis(p::AxisParameter, axis) = initialize(p, axis)
+
+#=
+    initialize(param, axis) -> Axis
+
+
+Binds a parameter to an axis, performing the appropriate checks. These checks may be
+bypassed by directly calling `unsafe_initialize`.
+
+`initialize` may be called recursively up to 2 times.
+1. `initialize(param::AxisParameter, axis)` : With the exception `SimpleParam`, `axis` should
+  always be an instance of `Axis`. Therefore we need to convert `axis`.
+2. `initialize(param::AxisParameter, axis::Axis)`: This is the final where we ensure `axis`
+  is compatible with `param` before binding the two. Some of the checks here include:
+  - `AxisKeys` : ensure there aren't any other keys (other `AxisKeys` or `AxisStruct`)
+    nested within `axis`. The keys and length of `axis` are also checked for the same length.
+  - `AxisStruct{T}` : essentially the same checks as `AxisKeys` but we also ensure that `T`
+    is concrete type.
+  - `AxisOffset`: if `axis` contains another instance of `AxisOffset` or `AxisOrigin` then
+    the original offsets are stripped of and consolidated in the new parameter.
+  - `AxisOrigin`:  if `axis` contains another instance of `AxisOffset` or `AxisOrigin` then
+    the original offsets are removed entirely.
+  - `AxisName`: if `axis` has any names they are removed.
+
+!!! warning
+
+    This method is not considered part of the public API and may change in the future.
+
+=#
+initialize(p::AxisParameter, a) = initialize(p, as_axis(a))
+initialize(p::AxisParameter, a::Axis) = unsafe_initialize(p, a)
+# ComposedFunction is assumed to hold chained AxisParameter
+initialize(p::ComposedFunction, a) = p(a)
+initialize(::SimpleParam, a::DynamicAxis) = unsafe_initialize(SimpleAxis, a)
+initialize(::SimpleParam, a::OptionallyStaticUnitRange) = unsafe_initialize(SimpleAxis, a)
+initialize(::SimpleParam, a::IdentityUnitRange) = initialize(SimpleAxis, a.indices)
+initialize(::SimpleParam, a) = initialize(SimpleAxis, OptionallyStaticUnitRange(a))
+
+initialize(p::AxisName, a::Axis) = unsafe_initialize(p, unname(a))
+initialize(p::AxisOrigin, axis::Axis) = unsafe_initialize(p, drop_offset(axis))
+function initialize(p::AxisKeys, axis::Axis)
+    length(param(p)) === length(axis) || _dim_length_error(length(param(p)), length(axis))
+    return unsafe_initialize(p, drop_keys(axis))
+end
+function initialize(p::AxisStruct{T}, axis::Axis) where {T}
+    typeof(T) <: DataType || throw(ArgumentError("Type must be have all field fully paramterized, got $T"))
+    return unsafe_initialize(p, drop_keys(axis))
+end
+
+initialize(p::AxisOffset, a::Axis) = _offset_axis(has_offset(x), p, a)
+function _offset_axis(::True, p, a)
+    o2, paxis = strip_offset(a)
+    return unsafe_initialize(AxisOffset(_sub1(param(p) + o2)), paxis)
+end
+_offset_axis(::False, p, x) = unsafe_initialize(p, x)
+
+
+function initialize(p::SymmetricPads, axis::Axis)
+    len = static_length(axis)
+    if first_pad(p) > len
+        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPads, " *
+                            "first pad is $(first_pad(p)) and indices are of length $len"))
+    elseif last_pad(p) > len
+        throw(ArgumentError("cannot have pad that is larger than length of parent indices +1 for SymmetricPads, " *
+                            "first pad is $(last_pad(p)) and indices are of length $len"))
+    else
+        return unsafe_initialize(p, axis)
+    end
+end
+function initialize(p::CircularPads, axis::Axis)
+    len = static_length(axis)
+    if first_pad(p) > len
+        throw(ArgumentError("cannot have pad of size $(first_pad(p)) and indices of length $len for CircularPads"))
+    elseif last_pad(p) > len
+        throw(ArgumentError("cannot have pad of size $(last_pad(p)) and indices of length $len for CircularPads"))
+    else
+        return unsafe_initialize(p, axis)
+    end
+end
+function initialize(p::ReflectPads, axis::Axis)
+    len = static_length(axis)
+    if first_pad(p) > len
+        throw(ArgumentError("cannot have pad of size $(first_pad(p)) and indices of length $len for ReflectPads"))
+    elseif last_pad(p) > len 
+        throw(ArgumentError("cannot have pad of size $(first_pad(p)) and indices of length $len for ReflectPads"))
+    else
+        return unsafe_initialize(p, axis)
+    end
+end
+
+unsafe_initialize(p::AxisParameter, a::Axis) = _Axis(p, a)
+unsafe_initialize(::SimpleParam, a::Axis{SimpleParam}) = a
+unsafe_initialize(::SimpleParam, a::AbstractUnitRange) = SimpleAxis(OptionallyStaticUnitRange(a))
+unsafe_initialize(::SimpleParam, a::OptionallyStaticUnitRange) = _Axis(SimpleAxis, a)
+unsafe_initialize(::SimpleParam, a::DynamicAxis) = _Axis(SimpleAxis, a)
+
+(p::AxisParameter)(stop::Integer) = p(static(1):stop)
+(p::AxisParameter)(start::Integer, stop::Integer) = p(OptionallyStaticUnitRange(start, stop))
+(p::AxisParameter)(x::AxisParameter) = ComposedFunction(p, x)
+(p::AxisParameter)(x::ComposedFunction) = ComposedFunction(p, x)
+function (p::AxisParameter)(collection::AbstractArray)
+    if known_step(collection) === 1
+        return initialize(p, collection)
+    else
+        return AxisArray(collection, ntuple(_ -> p, Val(ndims(collection))))
     end
 end
 

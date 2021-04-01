@@ -1,9 +1,9 @@
 
 @testset "AbstractAxis" begin
     @testset "keys" begin
-        axis = Axis(2:3 => 1:2)
+        axis = KeyedAxis(2:3 => 1:2)
 
-        @test keytype(typeof(Axis(1.0:10.0))) <: Float64
+        @test keytype(typeof(KeyedAxis(1.0:10.0))) <: Float64
         @test keytype(typeof(parent(axis))) <: Int
         @test haskey(axis, 3)
         @test !haskey(axis, 4)
@@ -52,40 +52,6 @@
 
         @test @inferred(step(SimpleAxis(2))) == 1
         @test @inferred(firstindex(Axis(1:10))) == firstindex(1:10)
-    end
-
-    @testset "to_index" begin
-        a = Axis(2:10)
-        @test @inferred(to_index(a, 1)) == 1
-        @test @inferred(to_index(a, 1:2)) == 1:2
-        x = Axis([:one, :two])
-        @test @inferred(to_index(x, :one)) == 1
-        @test @inferred(to_index(x, [:one, :two])) == [1, 2]
-
-        x = Axis(0.1:0.1:0.5)
-        @test @inferred(to_index(x, 0.3)) == 3
-
-        x = Axis(["a", "b"])
-        @test @inferred(to_index(x, "a")) == 1
-        @test @inferred(to_index(x, ==("b"))) == 2
-        @test @inferred(to_index(x, "b")) == 2
-
-        @test @inferred(to_index(x, 2)) == 2
-        @test @inferred(to_index(x, ["a", "b"])) == [1, 2]
-        @test @inferred(to_index(x, in(["a", "b"]))) == [1, 2]
-        @test @inferred(to_index(x, 1:2)) == [1, 2]
-        @test @inferred(to_index(x, [false, true])) == [2]
-        @test @inferred(to_index(x, [true, true])) == [1, 2] 
-        @test @inferred(to_index(x, true)) == 1
-        @test @inferred(to_index(x, :)) == Base.Slice(parent(x))
-
-        @test_throws BoundsError to_index(x, ==("c"))
-        @test_throws BoundsError to_index(x, "c")
-        @test_throws BoundsError to_index(x, 3)
-        @test_throws BoundsError to_index(x, ["a", "b", "c"])
-        @test_throws BoundsError to_index(x, 1:3)
-        @test_throws BoundsError to_index(x, [true, true, true])
-        @test_throws BoundsError to_index(x, false)
     end
 
     @testset "to_indices" begin
@@ -137,35 +103,35 @@
     end
 
     @testset "checkindex" begin
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), :a))
-        @test !@inferred(checkindex(Bool, Axis([:a, :b]), :c))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), 1))
-        @test !@inferred(checkindex(Bool, Axis([:a, :b]), 3))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), true))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), [:a, :b]))
-        @test !@inferred(checkindex(Bool, Axis([:a, :b]), [:a, :c]))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), [1, 2]))
-        @test !@inferred(checkindex(Bool, Axis([:a, :b]), [1, 3]))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), [true, true]))
-        @test !@inferred(checkindex(Bool, Axis([:a, :b]), [true, true, true]))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), 1..2))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), in([:a, :b])))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), :a))
+        @test !@inferred(checkindex(Bool, KeyedAxis([:a, :b]), :c))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), 1))
+        @test !@inferred(checkindex(Bool, KeyedAxis([:a, :b]), 3))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), true))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), [:a, :b]))
+        @test !@inferred(checkindex(Bool, KeyedAxis([:a, :b]), [:a, :c]))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), [1, 2]))
+        @test !@inferred(checkindex(Bool, KeyedAxis([:a, :b]), [1, 3]))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), [true, true]))
+        @test !@inferred(checkindex(Bool, KeyedAxis([:a, :b]), [true, true, true]))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), 1..2))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), in([:a, :b])))
         #@test !@inferred(checkindex(Bool, Axis([:a, :b]), in([:a, :c])))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), ==(:a)))
-        @test !@inferred(checkindex(Bool, Axis([:a, :b]), ==(:c)))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), <(:b)))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), <(2)))
-        @test @inferred(checkindex(Bool, Axis([:a, :b]), :))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), ==(:a)))
+        @test !@inferred(checkindex(Bool, KeyedAxis([:a, :b]), ==(:c)))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), <(:b)))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), <(2)))
+        @test @inferred(checkindex(Bool, KeyedAxis([:a, :b]), :))
 
 
     @testset "checkbounds" begin
-        x = Axis(1:10)
+        x = KeyedAxis(1:10)
         @test Base.checkindex(Bool, x, Base.Slice(1:10))
         @test Base.checkindex(Bool, x, [1,2,3])
         @test !Base.checkindex(Bool, x, [0, 1,2,3])
 
-        @test checkbounds(Bool, Axis(1:2), CartesianIndex(1))
-        @test !checkbounds(Bool, Axis(1:2), CartesianIndex(3))
+        @test checkbounds(Bool, KeyedAxis(1:2), CartesianIndex(1))
+        @test !checkbounds(Bool, KeyedAxis(1:2), CartesianIndex(3))
 
         x2 = Axis(1:2)
 
@@ -198,8 +164,8 @@
     end
 
     @testset "values/indices" begin
-        @test valtype(typeof(Axis(1.0:10.0))) <: Int
-        a1 = Axis(2:3 => 1:2)
+        @test valtype(typeof(KeyedAxis(1.0:10.0))) <: Int
+        a1 = KeyedAxis(2:3 => 1:2)
 
         @test allunique(a1)
         @test in(2, a1)
@@ -240,13 +206,13 @@ end
 =#
 
 @testset "last" begin
-    @test last(Axis(2:3)) == 2
-    @test last(Axis(2:3, 2:3)) == 3
+    @test last(KeyedAxis(2:3)) == 2
+    @test last(KeyedAxis(2:3, 2:3)) == 3
 end
 
 @testset "empty length" begin
     sa = SimpleAxis(DynamicAxis(10))
-    ka = Axis(collect(1:10), SimpleAxis(DynamicAxis(10)))
+    ka = KeyedAxis(collect(1:10), SimpleAxis(DynamicAxis(10)))
     @test length(empty!(sa)) == 0
     @test length(empty!(ka)) == 0
 end
@@ -263,3 +229,4 @@ end
     @test @inferred(keys(ca)) == -5:4
     @test @inferred(parent(ca)) == 1:10
 end
+

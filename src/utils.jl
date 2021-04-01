@@ -1,7 +1,5 @@
 # things that don't directly have anything to do with this package but are necessary
 
-@generated unsafe_initialize(::Type{T}, args::Tuple) where {T} = Expr(:splatnew, :T, :args)
-
 # Val wraps the number of axes to retain
 naxes(A::AbstractArray, v::Val) = naxes(axes(A), v)
 naxes(axs::Tuple, v::Val{N}) where {N} = _naxes(axs, N)
@@ -91,31 +89,30 @@ conform_dynamic(x::X, y::Y) where {X,Y} = _conform_static(is_static(Y), x)
 _conform_dynamic(::True, x) = x
 _conform_dynamic(::False, x) = dynamic(x)
 
-###
-### ERRORS
-###
-function check_axis_length(ks, inds)
-    if length(ks) != length(inds)
-        throw(DimensionMismatch(
-            "keys and indices must have same length, got length(keys) = $(length(ks))" *
-            " and length(indices) = $(length(inds)).")
-        )
-    end
-    return nothing
-end
+_two(x) = (one(x) + one(x))
+_double(x) = _two(x) * x
+_half(x) = div(x, _two(x))
 
-function check_unique_keys(ks)
-    if allunique(ks)
-        return nothing
-    else
-        error("All keys must be unique")
-    end
-end
-function check_offsets(ks, inds)
-    if firstindex(inds) === firstindex(ks)
-        return nothing
-    else
-        throw(ArgumentError("firstindex of $ks and $inds are not the same."))
-    end
-end
+_sub1(x) = x - oneunit(x)
+_sub1(::Nothing) = nothing
+_sub(x, y) = x - y
+_sub(x, ::Nothing) = nothing
+_sub(::Nothing, y) = nothing
+_sub(::Nothing, ::Nothing) = nothing
+
+_add1(x) = x + oneunit(x)
+_add1(::Nothing) = nothing
+_add(x, y) = x + y
+_add(x, ::Nothing) = nothing
+_add(::Nothing, y) = nothing
+_add(::Nothing, ::Nothing) = nothing
+
+_two(::Nothing) = nothing
+_double(::Nothing) = nothing
+_half(::Nothing) = nothing
+
+maybe_first(x::Tuple) = first(x)
+maybe_first(x::Tuple{}) = nothing
+maybe_tail(x::Tuple) = tail(x)
+maybe_tail(x::Tuple{}) = ()
 

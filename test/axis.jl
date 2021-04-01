@@ -1,15 +1,25 @@
 
-@testset "Axis" begin
-    axis = Axis()
+@testset "SimpleAxis" begin
+    x = SimpleAxis(10)
+    @test @inferred(SimpleAxis(static(1), 10)) === x
+    @test @inferred(SimpleAxis(x)) === x
+    @test @inferred(SimpleAxis(Base.IdentityUnitRange(parent(x)))) === x
+    @test @inferred(SimpleAxis(DynamicAxis(10))) isa SimpleAxis{DynamicAxis}
+    @test @inferred(typeof(SimpleAxis(1:10))(2:3)) == 2:3
+    @test @inferred(SimpleAxis(KeyedAxis(1:2))) isa SimpleAxis
+end
 
-    a1 = Axis(2:3 => 1:2)
-    axis = Axis(1:10)
+@testset "Axis" begin
+    axis = KeyedAxis()
+
+    a1 = KeyedAxis(2:3 => 1:2)
+    axis = KeyedAxis(1:10)
 
     @test UnitRange(a1) == 1:2
 
-    @test @inferred(Axis(a1)) isa typeof(a1)
+    @test @inferred(KeyedAxis(a1)) isa typeof(a1)
 
-    @test @inferred(Axis(1:10)) isa Axis{UnitRange{Int},SimpleAxis{DOneTo}}
+    @test @inferred(KeyedAxis(1:10)) isa KeyedAxis{UnitRange{Int},SimpleAxis{DOneTo}}
 
     #= FIXME
     @test @inferred(Axis{UnitRange{Int},SimpleAxis{UnitMRange{Int}}}(1:10)) isa Axis{UnitRange{Int},SimpleAxis{DUnitRange}}

@@ -1,116 +1,217 @@
 
-@inline Base.getproperty(axis::AbstractAxis, k::Symbol) = getproperty(parent(axis), k)
-
 #= length =#
-@inline Base.length(axis::AbstractAxis) = length(parent(axis))
+@inline Base.length(axis::Axis) = _length(param(axis), parent(axis))
+_length(p, a) = length(a)
+_length(p::AxisPads, a) = first_pad(p) + last_pad(p) + length(a)
 
-function ArrayInterface.known_length(::Type{T}) where {T<:PaddedAxis}
-    return _length_padded_axis(known_first(T), known_last(T))
+#= known_length =#
+ArrayInterface.known_length(::Type{Axis{P,A}}) where {P,A} = known_length(A)
+function ArrayInterface.known_length(::Type{Axis{P,A}}) where {F,L,P<:AxisPads{F,L},A}
+    return _add(_padded_known_length(Pads{F,L}), known_length(A))
 end
-@inline function Base.length(axis::PaddedAxis)
-    return _length_padded_axis(static_first(axis), static_last(axis))
-end
-
-_length_padded_axis(start::Integer, stop::Integer) = (stop - start) + one(start)
-_length_padded_axis(::Nothing, ::Integer) = nothing
-_length_padded_axis(::Integer, ::Nothing) = nothing
-_length_padded_axis(::Nothing, ::Nothing) = nothing
-
-@inline function Base.length(axis::KeyedAxis{K,P}) where {K,P}
-    if known_length(K) !== nothing
-        return known_length(K)
-    elseif known_length(P) !== nothing
-        return known_length(P)
-    else
-        return length(parent(axis))
-    end
-end
-
-#= known_last =#
-ArrayInterface.known_last(::Type{T}) where {T<:AbstractAxis} = known_last(parent_type(T))
-ArrayInterface.known_last(::Type{T}) where {T<:OffsetAxis{Int}} = nothing
-function ArrayInterface.known_last(::Type{T}) where {O,T<:OffsetAxis{StaticInt{O}}}
-    if known_last(parent_type(T)) === nothing
-        return nothing
-    else
-        return known_last(parent_type(T)) + O
-    end
-end
-function ArrayInterface.known_last(::Type{T}) where {F,L,P<:PadsParameter{F,L},T<:PaddedAxis{P}}
-    return _padded_known_last(Pads{F,L}, known_last(parent_type(T)))
-end
-_padded_known_last(::Type{Pads{F,L}}, ::Nothing) where {F,L} = nothing
-_padded_known_last(::Type{Pads{F,L}}, ::Int) where {F,L} = nothing
-_padded_known_last(::Type{Pads{F,StaticInt{L}}}, x::Int) where {F,L} = x + L
-_padded_known_last(::Type{Pads{F,StaticInt{L}}}, ::Nothing) where {F,L} = nothing
-
-#= last =#
-Base.lastindex(a::AbstractAxis) = last(a)
-Base.last(axis::AbstractAxis) = last(parent(axis))
-Base.last(axis::OffsetAxis) = last(parent(axis)) + getfield(axis, :offset)
-Base.last(axis::PaddedAxis) = last(parent(axis)) + last_pad(axis)
-
+_padded_known_length(::Type{Pads{StaticInt{F},StaticInt{L}}}) where {F,L} = F + L
+_padded_known_length(::Type{Pads{F,L}}) where {F,L} = nothing
 
 #= known_first =#
-ArrayInterface.known_first(::Type{T}) where {T<:AbstractAxis} = known_first(parent_type(T))
-ArrayInterface.known_first(::Type{T}) where {T<:OffsetAxis{Int}} = nothing
-function ArrayInterface.known_first(::Type{T}) where {O,T<:OffsetAxis{StaticInt{O}}}
-    if known_first(parent_type(T)) === nothing
-        return nothing
-    else
-        return known_first(parent_type(T)) + O
-    end
+ArrayInterface.known_first(::Type{Axis{P,A}}) where {P,A} = known_first(A)
+ArrayInterface.known_first(::Type{Axis{AxisOffset{Int},A}}) where {A} = nothing
+function ArrayInterface.known_first(::Type{Axis{AxisOffset{StaticInt{N}},A}}) where {N,A}
+    return _add(known_first(A), N)
 end
-function ArrayInterface.known_first(::Type{T}) where {F,L,P<:PadsParameter{F,L},T<:PaddedAxis{P}}
-    return _padded_known_first(Pads{F,L}, known_first(parent_type(T)))
+ArrayInterface.known_first(::Type{Axis{AxisOrigin{Int},A}}) where {A} = nothing
+function ArrayInterface.known_first(::Type{Axis{AxisOrigin{StaticInt{N}},A}}) where {N,A}
+    return _sub(N, _half(known_length(A)))
 end
-_padded_known_first(::Type{Pads{F,L}}, ::Nothing) where {F,L} = nothing
-_padded_known_first(::Type{Pads{F,L}}, ::Int) where {F,L} = nothing
-_padded_known_first(::Type{Pads{StaticInt{F},L}}, x::Int) where {F,L} = x - F
-_padded_known_first(::Type{Pads{StaticInt{F},L}}, ::Nothing) where {F,L} = nothing
+
+function ArrayInterface.known_first(::Type{Axis{P,A}}) where {F,L,P<:AxisPads{F,L},A}
+    return _padded_known_first(Pads{F,L}, known_first(A))
+end
+_padded_known_first(::Type{Pads{F,L}}, x) where {F,L} = nothing
+_padded_known_first(::Type{Pads{StaticInt{F},L}}, x) where {F,L} = _sub(x, F)
 
 #= first =#
-Base.firstindex(axis::AbstractAxis) = first(axis)
-Base.first(axis::AbstractAxis) = first(parent(axis))
-Base.first(axis::OffsetAxis) = first(parent(axis)) + getfield(axis, :offset)
-Base.first(axis::PaddedAxis) = first(parent(axis)) - first_pad(axis)
+Base.firstindex(axis::Axis) = first(axis)
+Base.first(axis::Axis) = Int(_first(param(axis), parent(axis)))
+_first(p, axis) = first(axis)
+_first(p::AxisOffset, axis) = first(axis) + param(p)
+_first(p::AxisPads, axis) = first(axis) - first_pad(p)
+_first(p::AxisOrigin, axis) = param(p) - div(length(parent(axis)), 2)
 
-#= offsets =#
-#= strip_offsets(x) - return offset and instance of x stripped of offset =#
-has_offset(x) = has_offset(typeof(x))
-has_offset(::Type{T}) where {T} = static(false)
-has_offset(::Type{T}) where {T<:AbstractAxis} = has_offset(parent_type(T))
-has_offset(::Type{T}) where {T<:OffsetAxis} = static(true)
-has_offset(::Type{T}) where {T<:CenteredAxis} = static(true)
-function has_offset(::Type{T}) where {T<:AxisArray}
-    return static(any(eachop_tuple(_has_offset, nstatic(Val(ndims)), axes_types(T))))
+#= known_last =#
+ArrayInterface.known_last(::Type{Axis{P,A}}) where {P,A} = known_last(A)
+ArrayInterface.known_last(::Type{Axis{AxisOffset{Int},A}}) where {A} = nothing
+function ArrayInterface.known_last(::Type{Axis{AxisOffset{StaticInt{N}},A}}) where {N,A}
+    return _add(known_last(A), N)
 end
-_has_offset(::Type{T}, i::StaticInt{I}) where {T,I} = has_offset(Static._get_tuple(T, i))
-
-#= strip_offset - return offset and instance of x stripped of offset =#
-strip_offset(x::OffsetAxis) = param(x), parent(x)
-strip_offset(x::CenteredAxis) = param(x), parent(x)
-strip_offset(x) = _strip_offset(has_offset(x), x)
-function _strip_offset(::True, x)
-    o, p = strip_offset(parent(x))
-    return o, initialize(x, param(x), p)
+ArrayInterface.known_last(::Type{Axis{AxisOrigin{Int},A}}) where {A} = nothing
+function ArrayInterface.known_last(::Type{Axis{AxisOrigin{StaticInt{N}},A}}) where {N,A}
+    len = known_length(A)
+    return _sub1(_add(_sub(N, _half(len)), len))
 end
-_strip_offset(::False, x) = nothing, x
+function ArrayInterface.known_last(::Type{Axis{P,A}}) where {F,L,P<:AxisPads{F,L},A}
+    return _padded_known_last(Pads{F,L}, known_last(A))
+end
+_padded_known_last(::Type{Pads{F,L}}, x) where {F,L} = nothing
+_padded_known_last(::Type{Pads{F,StaticInt{L}}}, x) where {F,L} = _add(x, L)
 
-#= drop_offset(x) - return instance of x without an offset =#
-drop_offset(x::StructAxis{T}) where {T} = parent(x)
-drop_offset(x) = _drop_offset(has_offset(x), x)
-drop_offset(x::KeyedAxis) = _Axis(keys(x), drop_offset(parent(x)))
-_drop_offset(::False, x) = x
-_drop_offset(::True, x) = initialize(x, param(x), drop_offset(parent(x)))
-_drop_offset(::True, x::AxisArray) = _AxisArray(parent(x), map(drop_offset, axes(x)))
+#= last =#
+Base.lastindex(a::Axis) = last(a)
+Base.last(axis::Axis) = Int(_last(param(axis), parent(axis)))
+_last(p, axis) = last(axis)
+_last(p::AxisOffset, axis) = last(axis) + param(p)
+_last(p::AxisPads, axis) = last(axis) + last_pad(p)
+function _last(p::AxisOrigin, axis)
+    len = length(axis)
+    return _sub1(_add(_sub(param(p), _half(len)), len))
+end
 
-_maybe_offset(odiff::Int, x::AbstractAxis) = OffsetAxis(odiff, x)
-_maybe_offset(odiff::Int, x::AbstractVector) = _AxisArray(x, (OffsetAxis(odiff, axes(x, 1)),))
-_maybe_offset(odiff::Zero, x::AbstractAxis) = x
-_maybe_offset(odiff::Zero, x::AbstractVector) = x
-_maybe_offset(odiff::StaticInt{O}, x::AbstractAxis) where {O} = OffsetAxis(odiff, x)
-function _maybe_offset(odiff::StaticInt{O}, x::AbstractVector) where {O}
-    return _AxisArray(x, (OffsetAxis(odiff, axes(x, 1)),))
+############
+### misc ###
+############
+Base.eachindex(axis::Axis) = static_first(axis):static_last(axis)
+@inline Base.axes1(axis::PaddedAxis) = OffsetAxis(static_first(axis):static_last(axis))
+@inline Base.axes1(axis::Axis) = copy(axis)
+
+for f in (:(==), :isequal)
+    @eval begin
+        Base.$(f)(x::Axis, y::Axis) = $f(eachindex(x), eachindex(y))
+        Base.$(f)(x::AbstractArray, y::Axis) = $f(x, eachindex(y))
+        Base.$(f)(x::Axis, y::AbstractArray) = $f(eachindex(x), y)
+        Base.$(f)(x::AbstractRange, y::Axis) = $f(x, eachindex(y))
+        Base.$(f)(x::Axis, y::AbstractRange) = $f(eachindex(x), y)
+        Base.$(f)(x::StaticRanges.GapRange, y::Axis) = $f(x, eachindex(y))
+        Base.$(f)(x::Axis, y::StaticRanges.GapRange) = $f(eachindex(x), y)
+        Base.$(f)(x::OrdinalRange, y::Axis) = $f(x, eachindex(y))
+        Base.$(f)(x::Axis, y::OrdinalRange) = $f(eachindex(x), y)
+    end
+end
+
+Base.allunique(a::Axis) = true
+
+@inline Base.in(x::Integer, axis::Axis) = !(x < first(axis) || x > last(axis))
+
+Base.pairs(axis::Axis) = Base.Iterators.Pairs(a, keys(axis))
+
+# This is required for performing `similar` on arrays
+Base.to_shape(axis::Axis) = length(axis)
+
+Base.haskey(axis::Axis, key) = key in keys(axis)
+
+@inline Base.axes(axis::Axis) = (Base.axes1(axis),)
+
+@inline Base.unsafe_indices(axis::Axis) = (axis,)
+
+Base.sum(axis::Axis) = sum(eachindex(axis))
+
+offset1(axis::Axis) = static_first(axis)
+known_offset1(::Type{T}) where {T<:Axis} = known_first(T)
+function ArrayInterface.can_change_size(::Type{T}) where {T<:Axis}
+    return can_change_size(parent_type(T))
+end
+
+Base.collect(a::Axis) = collect(eachindex(a))
+
+Base.step(axis::Axis) = oneunit(eltype(axis))
+
+Base.step_hp(axis::Axis) = 1
+
+Base.size(axis::Axis) = (length(axis),)
+
+Base.:-(axis::Axis) = maybe_unsafe_reconstruct(axis, -eachindex(axis))
+
+function Base.:+(r::Axis, s::Axis)
+    indsr = axes(r, 1)
+    if indsr == axes(s, 1)
+        data = eachindex(r) + eachindex(s)
+        axs = (unsafe_reconstruct(r, eachindex(data)),)
+        return  AxisArray{eltype(data),ndims(data),typeof(data),typeof(axs)}(data, axs)
+    else
+        throw(DimensionMismatch("axes $indsr and $(axes(s, 1)) do not match"))
+    end
+end
+function Base.:-(r::Axis, s::Axis)
+    indsr = axes(r, 1)
+    if indsr == axes(s, 1)
+        data = eachindex(r) - eachindex(s)
+        axs = (unsafe_reconstruct(r, eachindex(data); keys=keys(data)),)
+        return  AxisArray{eltype(data),ndims(data),typeof(data),typeof(axs)}(data, axs)
+    else
+        throw(DimensionMismatch("axes $indsr and $(axes(s, 1)) do not match"))
+    end
+end
+
+Base.UnitRange(axis::Axis) = UnitRange(eachindex(axis))
+function Base.AbstractUnitRange{T}(axis::Axis) where {T<:Integer}
+    if eltype(axis) <: T && !can_change_size(axis)
+        return axis
+    else
+        return unsafe_reconstruct(axis, AbstractUnitRange{T}(parent(axis)); keys=keys(axis))
+    end
+end
+
+# FIXME this should have offset axes remain as the parent axis
+function reverse_keys(axis::Axis, newinds::AbstractUnitRange{Int})
+    return _Axis(reverse(keys(axis)), compose_axis(newinds))
+end
+
+###
+### append
+###
+# TODO document append_keys!
+#= append_keys!(x, y) =#
+append_keys!(x::AbstractRange, y) = set_length!(x, length(x) + length(y))
+function append_keys!(x, y)
+    if eltype(x) <: eltype(y)
+        for x_i in x
+            if x_i in y
+                error("Element $x_i appears in both collections in call to " *
+                    "append_axis!(collection1, collection2). All elements must be unique.")
+            end
+        end
+        return append!(x, y)
+    else
+        return append_axis!(x, promote_axis_collections(y, x))
+    end
+end
+
+@inline ArrayInterface.offsets(axis::Axis) = (first(axis),)
+
+#= FIXME
+@inline function ArrayInterface.to_axis(::IndexAxis, axis::Axis, inds)
+    if allunique(inds)
+        ks = Base.keys(axis)
+        p = parent(axis)
+        kindex = firstindex(ks)
+        pindex = first(p)
+        if kindex === pindex
+            return _Axis(@inbounds(ks[inds]), to_axis(parent(axis), inds))
+        else
+            return _Axis(
+                @inbounds(ks[inds .+ (pindex - kindex)]),
+                to_axis(parent(axis), inds)
+            )
+        end
+    else
+        return unsafe_reconstruct(axis, to_axis(parent(axis), inds))
+    end
+end
+=#
+
+function maybe_unsafe_reconstruct(axis::Axis, inds::AbstractUnitRange{I}; keys=nothing) where {I<:Integer}
+    if keys === nothing
+        return unsafe_reconstruct(axis, SimpleAxis(inds); keys=@inbounds(Base.keys(axis)[inds]))
+    else
+        return unsafe_reconstruct(axis, SimpleAxis(inds); keys=keys)
+    end
+end
+function maybe_unsafe_reconstruct(axis::Axis, inds::AbstractArray)
+    if keys === nothing
+        axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds))),)
+    elseif allunique(inds)
+        axs = (unsafe_reconstruct(axis, SimpleAxis(eachindex(inds)); keys=@inbounds(keys(axis)[inds])),)
+    else  # not all indices are unique so will result in non-unique keys
+        axs = (SimpleAxis(eachindex(inds)),)
+    end
+    return AxisArray{eltype(axis),ndims(inds),typeof(inds),typeof(axs)}(inds, axs)
 end
 

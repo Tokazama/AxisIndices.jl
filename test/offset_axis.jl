@@ -147,7 +147,7 @@ using AxisIndices: OffsetArray, OffsetVector
 
     @testset "changing sizes" begin
         # push!
-        o = OffsetVector(Int[], -1)
+        o = offset(-1)(Int[])  # OffsetVector(Int[], -1)
         @test push!(o) === o
         @test axes(o, 1) == 0:-1
         @test push!(o, 1) === o
@@ -157,11 +157,11 @@ using AxisIndices: OffsetArray, OffsetVector
         @test axes(o, 1) == 0:2
         @test o[end-1:end] == [2, 3]
         # pop!
-        o = OffsetVector([1, 2, 3], -1)
+        o = offset(-1)([1, 2, 3])  # OffsetVector([1, 2, 3], -1)
         @test pop!(o) == 3
         @test axes(o, 1) == 0:1
         # empty!
-        o = OffsetVector([1, 2, 3], -1)
+        o = offset(-1)([1, 2, 3])  # OffsetVector([1, 2, 3], -1)
         @test empty!(o) === o
         @test axes(o, 1) == 0:-1
     end
@@ -289,7 +289,7 @@ end
     @test @inbounds(A[0,3]) == @inbounds(A[0,3,1]) == @inbounds(A[1]) == @inbounds(S[0,3]) == @inbounds(S[0,3,1]) == @inbounds(S[1]) == 1
     @test @inbounds(A[1,3]) == @inbounds(A[1,3,1]) == @inbounds(A[2]) == @inbounds(S[1,3]) == @inbounds(S[1,3,1]) == @inbounds(S[2]) == 2
     @test @inbounds(A[0,4]) == @inbounds(A[0,4,1]) == @inbounds(A[3]) == @inbounds(S[0,4]) == @inbounds(S[0,4,1]) == @inbounds(S[3]) == 3
-    @test @inbounds(A[1,4]) == @inbounds(A[1,4,1]) == @inbounds(A[4]) == @inbounds(S[1,4]) == @inbounds(S[1,4,1]) == @inbounds(S[4]) == 4
+    @test @inbounds(A[1, 4]) == @inbounds(A[1,4,1]) == @inbounds(A[4]) == @inbounds(S[1,4]) == @inbounds(S[1,4,1]) == @inbounds(S[4]) == 4
     @test_throws BoundsError A[1,1]
     @test_throws BoundsError S[1,1]
     @test_throws BoundsError A[0,3,2]

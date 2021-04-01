@@ -372,3 +372,44 @@ end
 
 Base.summary(io::IO, x::AxisArray) = Base.showarg(io, x, true)
 
+###################
+### show - Axis ###
+###################
+# This is different than how most of Julia does a summary, but it also makes errors
+# infinitely easier to read when wrapping things at multiple levels or using Unitful keys
+Base.summary(io::IO, axis::Axis) = show(io, axis)
+
+Base.show(io::IO, x::Pads) = show(io, MIME"text/plain"(), x)
+function Base.show(io::IO, ::MIME"text/plain", x::Pads)
+    print(io, "Pads(")
+    show(io, first_pad(x))
+    print(io, ", ")
+    show(io, last_pad(x))
+    print(io, ")")
+end
+
+Base.show(io::IO, x::Axis) = show(io, MIME"text/plain"(), x)
+function Base.show(io::IO, ::MIME"text/plain", axis::Axis)
+    show(io, param(axis))
+    print(io, "(")
+    show(io, parent(axis))
+    print(io, ")")
+end
+
+Base.show(io::IO, x::AxisParameter) = show(io, MIME"text/plain"(), x)
+Base.show(io::IO, ::MIME"text/plain", ::SimpleParam) = print(io, "SimpleAxis")
+function Base.show(io::IO, ::MIME"text/plain", x::AxisParameter)
+    print(io, nameof(typeof(x)))
+    print(io, "(")
+    show(io, param(x))
+    print(io, ")")
+end
+function Base.show(io::IO, ::MIME"text/plain", x::AxisPads)
+    print(io, nameof(typeof(x)))
+    print(io, "(")
+    show(io, first_pad(x))
+    print(io, ", ")
+    show(io, last_pad(x))
+    print(io, ")")
+end
+

@@ -12,9 +12,8 @@ using Dates
 using Documenter
 using StaticArrays
 using ArrayInterface
-using ArrayInterface: indices, known_length, StaticInt
+using ArrayInterface: indices, known_length, StaticInt, known_first, known_last, known_length
 using ArrayInterface.Static
-
 
 #=
 using Dates,MappedArrays,Statistics,LinearAlgebra,Base,Core
@@ -46,7 +45,7 @@ if !isempty(ambs)
 using DelimitedFiles
 using AxisIndices
 using AxisIndices: cat_axis, hcat_axes, vcat_axes, matmul_axes
-using AxisIndices: CenteredAxis, OffsetAxis
+using AxisIndices: CenteredAxis, OffsetAxis, StructAxis, SimpleAxis, KeyedAxis, PaddedAxis
 using AxisIndices: DUnitRange, DOneTo, SOneTo, UnitSRange
 using AxisIndices: OffsetVector
 using StaticRanges: parent_type
@@ -57,16 +56,19 @@ using Base.Broadcast: broadcasted
 bstyle = Base.Broadcast.DefaultArrayStyle{1}()
 
 @test Base.to_shape(SimpleAxis(1)) == 1
+include("axes.jl")
 
-include("similar_tests.jl")
+#=
 include("indexing.jl")
-include("simple_axis.jl")
-include("axis.jl")
 include("abstract_axis.jl")
 include("offset_axis.jl")
 include("struct_axis.jl")
 include("padded_axis.jl")
 include("arrays.jl")
+include("similar_tests.jl")
+
+include("axis.jl")
+=#
 
 #= TODO test append_axis!
 @testset "append tests" begin
