@@ -192,7 +192,7 @@ function NamedAxisArray{L,T}(init::ArrayInitializer, args::AbstractVector...) wh
     return NamedAxisArray{L,T}(init, args)
 end
 
-NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, kwargs.data)
+NamedAxisArray(x::AbstractArray; kwargs...) = NamedAxisArray(x, values(kwargs))
 
 for f in (:getindex, :view, :dotview)
     @eval begin
