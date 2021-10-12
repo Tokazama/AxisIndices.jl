@@ -417,7 +417,7 @@ end
 function ArrayInterface.unsafe_get_collection(A::AxisArray, inds)
     axs = to_axes(A, inds)
     dest = AxisArray(similar(parent(A), length.(axs)), axs)
-    if map(Base.unsafe_length, axes(dest)) == map(Base.unsafe_length, axs)
+    if map(length, axes(dest)) == map(length, axs)
         Base._unsafe_getindex!(dest, A, inds...) # usually a generated function, don't allow it to impact inference result
     else
         Base.throw_checksize_error(dest, axs)
